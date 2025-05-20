@@ -1,112 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Kurobara - Your personal manga library for manga, manhua, and manhwa enthusiasts" />
+    <meta name="theme-color" content="#0ea5e9" />
     <title>Kurobara - Black Rose</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        header {
-            background-color: #1a1a1a;
-            color: #fff;
-            padding: 1rem 0;
-            text-align: center;
-        }
-        h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-        .subtitle {
-            font-style: italic;
-            color: #aaa;
-        }
-        .content {
-            margin-top: 2rem;
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .feature-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .feature-list li {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-        .feature-list li:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #ff3e3e;
-        }
-        footer {
-            margin-top: 2rem;
-            text-align: center;
-            color: #777;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1>Kurobara</h1>
-            <div class="subtitle">Black Rose - Manga Library</div>
-        </div>
-    </header>
-    
-    <div class="container">
-        <div class="content">
-            <h2>Welcome to Kurobara</h2>
-            <p>
-                Kurobara (Black Rose) is a modern web application for manga, manhua, and manhwa enthusiasts.
-                This is a placeholder for the frontend, which will be implemented with Vue.js.
-            </p>
-            
-            <h3>Features</h3>
-            <ul class="feature-list">
-                <li>Search for manga/manhua/manhwa from various online providers</li>
-                <li>Add manga/manhua/manhwa with cover and metadata to your library</li>
-                <li>Download manga/manhua/manhwa to your library</li>
-                <li>Read manga/manhua/manhwa directly in the app</li>
-                <li>Import CBZ or CBR files to your library</li>
-                <li>User-defined and pre-made categories</li>
-                <li>Customizable dashboard with pinned categories</li>
-                <li>NSFW/Explicit content management with blur option</li>
-                <li>User registration with 2FA</li>
-                <li>Reading progress tracking and bookmarking</li>
-                <li>Custom reading lists</li>
-            </ul>
-            
-            <h3>API Documentation</h3>
-            <p>
-                The API documentation is available at:
-            </p>
-            <ul>
-                <li><a href="http://localhost:8000/api/docs" target="_blank">Swagger UI</a></li>
-                <li><a href="http://localhost:8000/api/redoc" target="_blank">ReDoc</a></li>
-            </ul>
-        </div>
-    </div>
-    
-    <footer>
-        <div class="container">
-            <p>&copy; 2023 Kurobara. All rights reserved.</p>
-        </div>
-    </footer>
-</body>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

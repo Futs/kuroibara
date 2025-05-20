@@ -21,14 +21,16 @@ services:
     networks:
       - kurobara-network
 
-  # Frontend Vue.js application
+  # Frontend Vue.js application (Development mode)
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    restart: unless-stopped
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend/app:/app
+      - /app/node_modules
     ports:
-      - "3000:80"
+      - "3000:5173"
     depends_on:
       - backend
     networks:

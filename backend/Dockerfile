@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     libmagic1 \
-    unrar \
+    unar \
     p7zip-full \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

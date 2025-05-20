@@ -1,0 +1,252 @@
+<script setup>
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useReaderStore } from '../stores/reader';
+
+const route = useRoute();
+const router = useRouter();
+const readerStore = useReaderStore();
+
+// Route params
+const mangaId = computed(() => route.params.id);
+const chapterId = computed(() => route.params.chapter);
+const pageParam = computed(() => route.params.page ? parseInt(route.params.page) : 1);
+
+// UI state
+const showControls = ref(true);
+const showSettings = ref(false);
+const showChapterSelector = ref(false);
+const controlsTimeout = ref(null);
+
+// Get data from store
+const manga = computed(() => readerStore.getManga);
+const chapter = computed(() => readerStore.getChapter);
+const chapters = computed(() => readerStore.getChapters);
+const pages = computed(() => readerStore.getPages);
+const currentPage = computed(() => readerStore.getCurrentPage);
+const settings = computed(() => readerStore.getSettings);
+const loading = computed(() => readerStore.loading);
+const error = computed(() => readerStore.error);
+
+// Computed values
+const totalPages = computed(() => readerStore.getTotalPages);
+const hasNextPage = computed(() => readerStore.hasNextPage);
+const hasPrevPage = computed(() => readerStore.hasPrevPage);
+const hasNextChapter = computed(() => readerStore.hasNextChapter);
+const hasPrevChapter = computed(() => readerStore.hasPrevChapter);
+
+const currentPageUrl = computed(() => {
+  if (!pages.value || !pages.value.length || currentPage.value > pages.value.length) return null;
+  return pages.value[currentPage.value - 1]?.url;
+});
+
+// Methods
+const loadContent = async () => {
+  try {
+    // Load manga data
+    await readerStore.fetchManga(mangaId.value);
+    
+    // Load chapters
+    await readerStore.fetchChapters(mangaId.value);
+    
+    // Determine which chapter to load
+    let targetChapterId = chapterId.value;
+    if (!targetChapterId && chapters.value.length > 0) {
+      // If no chapter specified, use the first one
+      targetChapterId = chapters.value[0].id;
+    }
+    
+    if (targetChapterId) {
+      // Load chapter
+      await readerStore.fetchChapter(mangaId.value, targetChapterId);
+      
+      // Load pages
+      await readerStore.fetchPages(mangaId.value, targetChapterId);
+      
+      // Set initial page
+      if (pageParam.value && pageParam.value <= totalPages.value) {
+        readerStore.setCurrentPage(pageParam.value);
+      } else {
+        readerStore.setCurrentPage(1);
+      }
+      
+      // Update URL if needed
+      if (!chapterId.value || !pageParam.value) {
+        updateUrl();
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load content:', error);
+  }
+};
+
+const updateUrl = () => {
+  if (!chapter.value) return;
+  
+  router.replace({
+    name: 'manga-reader',
+    params: {
+      id: mangaId.value,
+      chapter: chapter.value.id,
+      page: currentPage.value,
+    },
+  });
+};
+
+const nextPage = () => {
+  readerStore.nextPage();
+  updateUrl();
+};
+
+const prevPage = () => {
+  readerStore.prevPage();
+  updateUrl();
+};
+
+const nextChapter = async () => {
+  await readerStore.loadNextChapter();
+  updateUrl();
+};
+
+const prevChapter = async () => {
+  await readerStore.loadPrevChapter();
+  updateUrl();
+};
+
+const selectChapter = async (id) => {
+  showChapterSelector.value = false;
+  
+  if (id === chapter.value?.id) return;
+  
+  await readerStore.fetchChapter(mangaId.value, id);
+  await readerStore.fetchPages(mangaId.value, id);
+  readerStore.setCurrentPage(1);
+  updateUrl();
+};
+
+const updateSettings = (newSettings) => {
+  readerStore.updateSettings(newSettings);
+};
+
+const toggleSettings = () => {
+  showSettings.value = !showSettings.value;
+};
+
+const handleContentClick = (event) => {
+  // Ignore clicks on controls
+  if (event.target.closest('.reader-controls')) return;
+  
+  // Toggle controls visibility
+  showControls.value = !showControls.value;
+};
+
+const handleMouseMove = () => {
+  // Show controls on mouse move
+  showControls.value = true;
+  
+  // Reset timeout
+  if (controlsTimeout.value) {
+    clearTimeout(controlsTimeout.value);
+  }
+  
+  // Hide controls after 3 seconds of inactivity
+  controlsTimeout.value = setTimeout(() => {
+    showControls.value = false;
+  }, 3000);
+};
+
+// Keyboard navigation
+const handleKeyDown = (event) => {
+  switch (event.key) {
+    case 'ArrowRight':
+      if (settings.value.readingDirection === 'ltr') {
+        nextPage();
+      } else {
+        prevPage();
+      }
+      break;
+    case 'ArrowLeft':
+      if (settings.value.readingDirection === 'ltr') {
+        prevPage();
+      } else {
+        nextPage();
+      }
+      break;
+    case 'ArrowUp':
+      prevChapter();
+      break;
+    case 'ArrowDown':
+      nextChapter();
+      break;
+    case 'Escape':
+      showControls.value = true;
+      showSettings.value = false;
+      showChapterSelector.value = false;
+      break;
+  }
+};
+
+// Watch for route changes
+watch([mangaId, chapterId], () => {
+  loadContent();
+});
+
+// Lifecycle hooks
+onMounted(() => {
+  loadContent();
+  document.addEventListener('keydown', handleKeyDown);
+  
+  // Initial timeout to hide controls
+  controlsTimeout.value = setTimeout(() => {
+    showControls.value = false;
+  }, 3000);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeyDown);
+  
+  if (controlsTimeout.value) {
+    clearTimeout(controlsTimeout.value);
+  }
+});
+</script>
+
+<style scoped>
+.reader-content {
+  cursor: pointer;
+}
+
+.reader-page-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.reader-page-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.reader-page-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reader-page-container::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+.reader-fit-width .reader-page {
+  width: 100%;
+  height: auto;
+}
+
+.reader-fit-height .reader-page {
+  width: auto;
+  height: 100vh;
+}
+
+.reader-fit-both .reader-page {
+  max-width: 100%;
+  max-height: 100vh;
+}
+</style>

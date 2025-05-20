@@ -2,14 +2,14 @@ FROM node:18-alpine as build
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy package.json and package-lock.json from app directory
+COPY app/package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the application
-COPY . .
+COPY app/ .
 
 # Build the application
 RUN npm run build

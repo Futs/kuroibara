@@ -42,12 +42,41 @@ A modern web application for manga, manhua, and manhwa enthusiasts.
 ### Prerequisites
 - Docker and Docker Compose
 - Python 3.12
-- Node.js and npm
+- Node.js 18+ and npm
 
 ### Setup
 1. Clone the repository
 2. Copy `.env.example` to `.env` and configure the environment variables
-3. Run `docker-compose up -d` to start the development environment
+3. Run `docker-compose up -d` to start the production environment
+
+### Development Mode
+For development with hot-reloading:
+
+```bash
+# Start the development environment
+docker-compose -f docker-compose.dev.yml up -d
+
+# Access the frontend at http://localhost:3000
+# Access the backend API at http://localhost:8000
+# Access the API documentation at http://localhost:8000/api/docs
+```
+
+### Frontend Development
+You can also run the frontend separately:
+
+```bash
+# Navigate to the frontend app directory
+cd frontend/app
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+
+# Build for production
+npm run build
+```
 
 ## License
 

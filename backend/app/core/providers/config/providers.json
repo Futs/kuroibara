@@ -1,0 +1,1118 @@
+[
+  {
+    "id": "mangapill",
+    "name": "MangaPill",
+    "class_name": "GenericProvider",
+    "url": "https://mangapill.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangapill.com",
+      "search_url": "https://mangapill.com/search",
+      "manga_url_pattern": "https://mangapill.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangapill.com/chapters/{manga_id}/{chapter_id}",
+      "name": "MangaPill"
+    }
+  },
+  {
+    "id": "anshscans",
+    "name": "AnshScans",
+    "class_name": "GenericProvider",
+    "url": "https://anshscans.org",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://anshscans.org",
+      "search_url": "https://anshscans.org/search",
+      "manga_url_pattern": "https://anshscans.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://anshscans.org/manga/{manga_id}/{chapter_id}",
+      "name": "AnshScans"
+    }
+  },
+  {
+    "id": "xlecx",
+    "name": "XlecX",
+    "class_name": "GenericProvider",
+    "url": "https://xlecx.org",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://xlecx.org",
+      "search_url": "https://xlecx.org/search",
+      "manga_url_pattern": "https://xlecx.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://xlecx.org/manga/{manga_id}/{chapter_id}",
+      "name": "XlecX"
+    }
+  },
+  {
+    "id": "eightmuses",
+    "name": "EightMuses",
+    "class_name": "GenericProvider",
+    "url": "https://8muses.io",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://8muses.io",
+      "search_url": "https://8muses.io/search",
+      "manga_url_pattern": "https://8muses.io/comics/{manga_id}",
+      "chapter_url_pattern": "https://8muses.io/comics/{manga_id}/{chapter_id}",
+      "name": "EightMuses"
+    }
+  },
+  {
+    "id": "manganelos",
+    "name": "Manganelos",
+    "class_name": "GenericProvider",
+    "url": "https://manganelos.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manganelos.com",
+      "search_url": "https://manganelos.com/search",
+      "manga_url_pattern": "https://manganelos.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manganelos.com/chapter/{manga_id}/{chapter_id}",
+      "name": "Manganelos"
+    }
+  },
+  {
+    "id": "hentainexus",
+    "name": "HentaiNexus",
+    "class_name": "GenericProvider",
+    "url": "https://hentainexus.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://hentainexus.com",
+      "search_url": "https://hentainexus.com/search",
+      "manga_url_pattern": "https://hentainexus.com/view/{manga_id}",
+      "chapter_url_pattern": "https://hentainexus.com/read/{manga_id}/{chapter_id}",
+      "name": "HentaiNexus"
+    }
+  },
+  {
+    "id": "manhwahub",
+    "name": "ManhwaHub",
+    "class_name": "GenericProvider",
+    "url": "https://manhwahub.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://manhwahub.com",
+      "search_url": "https://manhwahub.com/search",
+      "manga_url_pattern": "https://manhwahub.com/manhwa/{manga_id}",
+      "chapter_url_pattern": "https://manhwahub.com/manhwa/{manga_id}/{chapter_id}",
+      "name": "ManhwaHub"
+    }
+  },
+  {
+    "id": "lewdmanhwa",
+    "name": "LewdManhwa",
+    "class_name": "GenericProvider",
+    "url": "https://lewdmanhwa.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://lewdmanhwa.com",
+      "search_url": "https://lewdmanhwa.com/search",
+      "manga_url_pattern": "https://lewdmanhwa.com/manhwa/{manga_id}",
+      "chapter_url_pattern": "https://lewdmanhwa.com/manhwa/{manga_id}/{chapter_id}",
+      "name": "LewdManhwa"
+    }
+  },
+  {
+    "id": "mangarockteam",
+    "name": "MangaRockTeam",
+    "class_name": "GenericProvider",
+    "url": "https://mangarockteam.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangarockteam.com",
+      "search_url": "https://mangarockteam.com/search",
+      "manga_url_pattern": "https://mangarockteam.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangarockteam.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaRockTeam"
+    }
+  },
+  {
+    "id": "deathtollscans",
+    "name": "DeathTollScans",
+    "class_name": "GenericProvider",
+    "url": "https://deathtollscans.net",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://deathtollscans.net",
+      "search_url": "https://deathtollscans.net/search",
+      "manga_url_pattern": "https://deathtollscans.net/manga/{manga_id}",
+      "chapter_url_pattern": "https://deathtollscans.net/manga/{manga_id}/{chapter_id}",
+      "name": "DeathTollScans"
+    }
+  },
+  {
+    "id": "mangaowlio",
+    "name": "MangaOwlio",
+    "class_name": "GenericProvider",
+    "url": "https://mangaowl.io",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangaowl.io",
+      "search_url": "https://mangaowl.io/search",
+      "manga_url_pattern": "https://mangaowl.io/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangaowl.io/manga/{manga_id}/{chapter_id}",
+      "name": "MangaOwlio"
+    }
+  },
+  {
+    "id": "firstkiss",
+    "name": "FirstKiss",
+    "class_name": "GenericProvider",
+    "url": "https://1stkiss.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://1stkiss.com",
+      "search_url": "https://1stkiss.com/search",
+      "manga_url_pattern": "https://1stkiss.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://1stkiss.com/manga/{manga_id}/{chapter_id}",
+      "name": "FirstKiss"
+    }
+  },
+  {
+    "id": "woopread",
+    "name": "WoopRead",
+    "class_name": "GenericProvider",
+    "url": "https://woopread.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://woopread.com",
+      "search_url": "https://woopread.com/search",
+      "manga_url_pattern": "https://woopread.com/series/{manga_id}",
+      "chapter_url_pattern": "https://woopread.com/series/{manga_id}/{chapter_id}",
+      "name": "WoopRead"
+    }
+  },
+  {
+    "id": "tsumino",
+    "name": "Tsumino",
+    "class_name": "GenericProvider",
+    "url": "https://tsumino.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://tsumino.com",
+      "search_url": "https://tsumino.com/search",
+      "manga_url_pattern": "https://tsumino.com/entry/{manga_id}",
+      "chapter_url_pattern": "https://tsumino.com/read/{manga_id}/{chapter_id}",
+      "name": "Tsumino"
+    }
+  },
+  {
+    "id": "dynastyscans",
+    "name": "DynastyScans",
+    "class_name": "GenericProvider",
+    "url": "https://dynasty-scans.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://dynasty-scans.com",
+      "search_url": "https://dynasty-scans.com/search",
+      "manga_url_pattern": "https://dynasty-scans.com/series/{manga_id}",
+      "chapter_url_pattern": "https://dynasty-scans.com/chapters/{manga_id}",
+      "name": "DynastyScans"
+    }
+  },
+  {
+    "id": "webcomicsapp",
+    "name": "WebComicsApp",
+    "class_name": "GenericProvider",
+    "url": "https://www.webcomicsapp.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://www.webcomicsapp.com",
+      "search_url": "https://www.webcomicsapp.com/search",
+      "manga_url_pattern": "https://www.webcomicsapp.com/comic/{manga_id}",
+      "chapter_url_pattern": "https://www.webcomicsapp.com/comic/{manga_id}/{chapter_id}",
+      "name": "WebComicsApp"
+    }
+  },
+  {
+    "id": "vortexscans",
+    "name": "VortexScans",
+    "class_name": "GenericProvider",
+    "url": "https://vortexscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://vortexscans.com",
+      "search_url": "https://vortexscans.com/search",
+      "manga_url_pattern": "https://vortexscans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://vortexscans.com/manga/{manga_id}/{chapter_id}",
+      "name": "VortexScans"
+    }
+  },
+  {
+    "id": "omegascans",
+    "name": "OmegaScans",
+    "class_name": "GenericProvider",
+    "url": "https://omegascans.org",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://omegascans.org",
+      "search_url": "https://omegascans.org/search",
+      "manga_url_pattern": "https://omegascans.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://omegascans.org/manga/{manga_id}/{chapter_id}",
+      "name": "OmegaScans"
+    }
+  },
+  {
+    "id": "tcbscans",
+    "name": "TCBScans",
+    "class_name": "GenericProvider",
+    "url": "https://tcbscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://tcbscans.com",
+      "search_url": "https://tcbscans.com/search",
+      "manga_url_pattern": "https://tcbscans.com/mangas/{manga_id}",
+      "chapter_url_pattern": "https://tcbscans.com/chapters/{manga_id}/{chapter_id}",
+      "name": "TCBScans"
+    }
+  },
+  {
+    "id": "culturedworks",
+    "name": "CulturedWorks",
+    "class_name": "GenericProvider",
+    "url": "https://culturedworks.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://culturedworks.com",
+      "search_url": "https://culturedworks.com/search",
+      "manga_url_pattern": "https://culturedworks.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://culturedworks.com/manga/{manga_id}/{chapter_id}",
+      "name": "CulturedWorks"
+    }
+  },
+  {
+    "id": "weebcentral",
+    "name": "WeebCentral",
+    "class_name": "GenericProvider",
+    "url": "https://weebcentral.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://weebcentral.com",
+      "search_url": "https://weebcentral.com/search",
+      "manga_url_pattern": "https://weebcentral.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://weebcentral.com/manga/{manga_id}/{chapter_id}",
+      "name": "WeebCentral"
+    }
+  },
+  {
+    "id": "anigliscans",
+    "name": "AniGliScans",
+    "class_name": "GenericProvider",
+    "url": "https://anigliscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://anigliscans.com",
+      "search_url": "https://anigliscans.com/search",
+      "manga_url_pattern": "https://anigliscans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://anigliscans.com/manga/{manga_id}/{chapter_id}",
+      "name": "AniGliScans"
+    }
+  },
+  {
+    "id": "eightmusesxxx",
+    "name": "EightMusesXXX",
+    "class_name": "GenericProvider",
+    "url": "https://8muses.xxx",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://8muses.xxx",
+      "search_url": "https://8muses.xxx/search",
+      "manga_url_pattern": "https://8muses.xxx/comic/{manga_id}",
+      "chapter_url_pattern": "https://8muses.xxx/comic/{manga_id}/{chapter_id}",
+      "name": "EightMusesXXX"
+    }
+  },
+  {
+    "id": "manhwahentaime",
+    "name": "ManhwaHentaiMe",
+    "class_name": "GenericProvider",
+    "url": "https://manhwahentai.me",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://manhwahentai.me",
+      "search_url": "https://manhwahentai.me/search",
+      "manga_url_pattern": "https://manhwahentai.me/manhwa/{manga_id}",
+      "chapter_url_pattern": "https://manhwahentai.me/manhwa/{manga_id}/{chapter_id}",
+      "name": "ManhwaHentaiMe"
+    }
+  },
+  {
+    "id": "mangalife",
+    "name": "MangaLife",
+    "class_name": "GenericProvider",
+    "url": "https://manga4life.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manga4life.com",
+      "search_url": "https://manga4life.com/search",
+      "manga_url_pattern": "https://manga4life.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manga4life.com/read-online/{manga_id}-chapter-{chapter_id}",
+      "name": "MangaLife"
+    }
+  },
+  {
+    "id": "mangareaderto",
+    "name": "MangaReaderTo",
+    "class_name": "GenericProvider",
+    "url": "https://mangareader.to",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangareader.to",
+      "search_url": "https://mangareader.to/search",
+      "manga_url_pattern": "https://mangareader.to/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangareader.to/read/{manga_id}/{chapter_id}",
+      "name": "MangaReaderTo"
+    }
+  },
+  {
+    "id": "mangabat",
+    "name": "MangaBat",
+    "class_name": "GenericProvider",
+    "url": "https://mangabat.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangabat.com",
+      "search_url": "https://mangabat.com/search",
+      "manga_url_pattern": "https://mangabat.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangabat.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaBat"
+    }
+  },
+  {
+    "id": "imhentai",
+    "name": "IMHentai",
+    "class_name": "GenericProvider",
+    "url": "https://imhentai.xxx",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://imhentai.xxx",
+      "search_url": "https://imhentai.xxx/search",
+      "manga_url_pattern": "https://imhentai.xxx/gallery/{manga_id}",
+      "chapter_url_pattern": "https://imhentai.xxx/gallery/{manga_id}/{chapter_id}",
+      "name": "IMHentai"
+    }
+  },
+  {
+    "id": "monochromescans",
+    "name": "MonochromeScans",
+    "class_name": "GenericProvider",
+    "url": "https://monochromescans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://monochromescans.com",
+      "search_url": "https://monochromescans.com/search",
+      "manga_url_pattern": "https://monochromescans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://monochromescans.com/manga/{manga_id}/{chapter_id}",
+      "name": "MonochromeScans"
+    }
+  },
+  {
+    "id": "taptrans",
+    "name": "TapTrans",
+    "class_name": "GenericProvider",
+    "url": "https://taptrans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://taptrans.com",
+      "search_url": "https://taptrans.com/search",
+      "manga_url_pattern": "https://taptrans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://taptrans.com/manga/{manga_id}/{chapter_id}",
+      "name": "TapTrans"
+    }
+  },
+  {
+    "id": "mangafire",
+    "name": "MangaFire",
+    "class_name": "GenericProvider",
+    "url": "https://mangafire.to",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangafire.to",
+      "search_url": "https://mangafire.to/search",
+      "manga_url_pattern": "https://mangafire.to/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangafire.to/manga/{manga_id}/{chapter_id}",
+      "name": "MangaFire"
+    }
+  },
+  {
+    "id": "toonily",
+    "name": "Toonily",
+    "class_name": "GenericProvider",
+    "url": "https://toonily.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://toonily.com",
+      "search_url": "https://toonily.com/search",
+      "manga_url_pattern": "https://toonily.com/webtoon/{manga_id}",
+      "chapter_url_pattern": "https://toonily.com/webtoon/{manga_id}/{chapter_id}",
+      "name": "Toonily"
+    }
+  },
+  {
+    "id": "readm",
+    "name": "ReadM",
+    "class_name": "GenericProvider",
+    "url": "https://readm.org",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://readm.org",
+      "search_url": "https://readm.org/search",
+      "manga_url_pattern": "https://readm.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://readm.org/manga/{manga_id}/{chapter_id}",
+      "name": "ReadM"
+    }
+  },
+  {
+    "id": "mangahasu",
+    "name": "MangaHasu",
+    "class_name": "GenericProvider",
+    "url": "https://mangahasu.se",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangahasu.se",
+      "search_url": "https://mangahasu.se/search",
+      "manga_url_pattern": "https://mangahasu.se/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangahasu.se/manga/{manga_id}/{chapter_id}",
+      "name": "MangaHasu"
+    }
+  },
+  {
+    "id": "mangatown",
+    "name": "MangaTown",
+    "class_name": "GenericProvider",
+    "url": "https://mangatown.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangatown.com",
+      "search_url": "https://mangatown.com/search",
+      "manga_url_pattern": "https://mangatown.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangatown.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaTown"
+    }
+  },
+  {
+    "id": "mangaheretoday",
+    "name": "MangaHereToday",
+    "class_name": "GenericProvider",
+    "url": "https://mangahere.today",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangahere.today",
+      "search_url": "https://mangahere.today/search",
+      "manga_url_pattern": "https://mangahere.today/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangahere.today/manga/{manga_id}/{chapter_id}",
+      "name": "MangaHereToday"
+    }
+  },
+  {
+    "id": "webtoontrcom",
+    "name": "WebtoonTRCOM",
+    "class_name": "GenericProvider",
+    "url": "https://webtoon.tr.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://webtoon.tr.com",
+      "search_url": "https://webtoon.tr.com/search",
+      "manga_url_pattern": "https://webtoon.tr.com/webtoon/{manga_id}",
+      "chapter_url_pattern": "https://webtoon.tr.com/webtoon/{manga_id}/{chapter_id}",
+      "name": "WebtoonTRCOM"
+    }
+  },
+  {
+    "id": "mangakakalot",
+    "name": "MangaKakalot",
+    "class_name": "GenericProvider",
+    "url": "https://mangakakalot.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangakakalot.com",
+      "search_url": "https://mangakakalot.com/search",
+      "manga_url_pattern": "https://mangakakalot.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangakakalot.com/chapter/{manga_id}/{chapter_id}",
+      "name": "MangaKakalot"
+    }
+  },
+  {
+    "id": "xunscans",
+    "name": "XunScans",
+    "class_name": "GenericProvider",
+    "url": "https://xunscans.xyz",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://xunscans.xyz",
+      "search_url": "https://xunscans.xyz/search",
+      "manga_url_pattern": "https://xunscans.xyz/manga/{manga_id}",
+      "chapter_url_pattern": "https://xunscans.xyz/manga/{manga_id}/{chapter_id}",
+      "name": "XunScans"
+    }
+  },
+  {
+    "id": "novelcoolen",
+    "name": "NovelCoolEN",
+    "class_name": "GenericProvider",
+    "url": "https://novelcool.com/en",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://novelcool.com/en",
+      "search_url": "https://novelcool.com/en/search",
+      "manga_url_pattern": "https://novelcool.com/en/manga/{manga_id}",
+      "chapter_url_pattern": "https://novelcool.com/en/manga/{manga_id}/{chapter_id}",
+      "name": "NovelCoolEN"
+    }
+  },
+  {
+    "id": "readallcomics",
+    "name": "ReadAllComics",
+    "class_name": "GenericProvider",
+    "url": "https://readallcomics.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://readallcomics.com",
+      "search_url": "https://readallcomics.com/search",
+      "manga_url_pattern": "https://readallcomics.com/comics/{manga_id}",
+      "chapter_url_pattern": "https://readallcomics.com/comics/{manga_id}/{chapter_id}",
+      "name": "ReadAllComics"
+    }
+  },
+  {
+    "id": "wordexcerpt",
+    "name": "WordExcerpt",
+    "class_name": "GenericProvider",
+    "url": "https://wordexcerpt.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://wordexcerpt.com",
+      "search_url": "https://wordexcerpt.com/search",
+      "manga_url_pattern": "https://wordexcerpt.com/series/{manga_id}",
+      "chapter_url_pattern": "https://wordexcerpt.com/series/{manga_id}/{chapter_id}",
+      "name": "WordExcerpt"
+    }
+  },
+  {
+    "id": "manganelotoday",
+    "name": "MangaNeloToday",
+    "class_name": "GenericProvider",
+    "url": "https://manganelo.today",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manganelo.today",
+      "search_url": "https://manganelo.today/search",
+      "manga_url_pattern": "https://manganelo.today/manga/{manga_id}",
+      "chapter_url_pattern": "https://manganelo.today/manga/{manga_id}/{chapter_id}",
+      "name": "MangaNeloToday"
+    }
+  },
+  {
+    "id": "kisscomic",
+    "name": "KissComic",
+    "class_name": "GenericProvider",
+    "url": "https://kisscomic.io",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://kisscomic.io",
+      "search_url": "https://kisscomic.io/search",
+      "manga_url_pattern": "https://kisscomic.io/comic/{manga_id}",
+      "chapter_url_pattern": "https://kisscomic.io/comic/{manga_id}/{chapter_id}",
+      "name": "KissComic"
+    }
+  },
+  {
+    "id": "mangakisa",
+    "name": "MangaKisa",
+    "class_name": "GenericProvider",
+    "url": "https://mangakisa.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangakisa.com",
+      "search_url": "https://mangakisa.com/search",
+      "manga_url_pattern": "https://mangakisa.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangakisa.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaKisa"
+    }
+  },
+  {
+    "id": "whimsubs",
+    "name": "WhimSubs",
+    "class_name": "GenericProvider",
+    "url": "https://whimsubs.xyz",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://whimsubs.xyz",
+      "search_url": "https://whimsubs.xyz/search",
+      "manga_url_pattern": "https://whimsubs.xyz/manga/{manga_id}",
+      "chapter_url_pattern": "https://whimsubs.xyz/manga/{manga_id}/{chapter_id}",
+      "name": "WhimSubs"
+    }
+  },
+  {
+    "id": "tenshimoe",
+    "name": "TenshiMoe",
+    "class_name": "GenericProvider",
+    "url": "https://tenshi.moe",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://tenshi.moe",
+      "search_url": "https://tenshi.moe/search",
+      "manga_url_pattern": "https://tenshi.moe/manga/{manga_id}",
+      "chapter_url_pattern": "https://tenshi.moe/manga/{manga_id}/{chapter_id}",
+      "name": "TenshiMoe"
+    }
+  },
+  {
+    "id": "myanimelist",
+    "name": "MyAnimeListManga",
+    "class_name": "GenericProvider",
+    "url": "https://myanimelist.net",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://myanimelist.net",
+      "search_url": "https://myanimelist.net/manga.php?q=",
+      "manga_url_pattern": "https://myanimelist.net/manga/{manga_id}",
+      "chapter_url_pattern": "https://myanimelist.net/manga/{manga_id}/{chapter_id}",
+      "name": "MyAnimeListManga"
+    }
+  },
+  {
+    "id": "mangabuddy",
+    "name": "MangaBuddy",
+    "class_name": "GenericProvider",
+    "url": "https://mangabuddy.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangabuddy.com",
+      "search_url": "https://mangabuddy.com/search",
+      "manga_url_pattern": "https://mangabuddy.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangabuddy.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaBuddy"
+    }
+  },
+  {
+    "id": "manga18fx",
+    "name": "Manga18FX",
+    "class_name": "GenericProvider",
+    "url": "https://manga18fx.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://manga18fx.com",
+      "search_url": "https://manga18fx.com/search",
+      "manga_url_pattern": "https://manga18fx.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manga18fx.com/manga/{manga_id}/{chapter_id}",
+      "name": "Manga18FX"
+    }
+  },
+  {
+    "id": "mangafox",
+    "name": "MangaFox",
+    "class_name": "GenericProvider",
+    "url": "https://fanfox.net",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://fanfox.net",
+      "search_url": "https://fanfox.net/search",
+      "manga_url_pattern": "https://fanfox.net/manga/{manga_id}",
+      "chapter_url_pattern": "https://fanfox.net/manga/{manga_id}/{chapter_id}",
+      "name": "MangaFox"
+    }
+  },
+  {
+    "id": "hatigarmscans",
+    "name": "HatigarmScans",
+    "class_name": "GenericProvider",
+    "url": "https://hatigarmscans.net",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://hatigarmscans.net",
+      "search_url": "https://hatigarmscans.net/search",
+      "manga_url_pattern": "https://hatigarmscans.net/manga/{manga_id}",
+      "chapter_url_pattern": "https://hatigarmscans.net/manga/{manga_id}/{chapter_id}",
+      "name": "HatigarmScans"
+    }
+  },
+  {
+    "id": "manhuaz",
+    "name": "ManhuaZ",
+    "class_name": "GenericProvider",
+    "url": "https://manhuaz.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manhuaz.com",
+      "search_url": "https://manhuaz.com/search",
+      "manga_url_pattern": "https://manhuaz.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuaz.com/manga/{manga_id}/{chapter_id}",
+      "name": "ManhuaZ"
+    }
+  },
+  {
+    "id": "manhuaga",
+    "name": "Manhuaga",
+    "class_name": "GenericProvider",
+    "url": "https://manhuaga.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manhuaga.com",
+      "search_url": "https://manhuaga.com/search",
+      "manga_url_pattern": "https://manhuaga.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuaga.com/manga/{manga_id}/{chapter_id}",
+      "name": "Manhuaga"
+    }
+  },
+  {
+    "id": "mangadna",
+    "name": "MangaDNA",
+    "class_name": "GenericProvider",
+    "url": "https://mangadna.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangadna.com",
+      "search_url": "https://mangadna.com/search",
+      "manga_url_pattern": "https://mangadna.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangadna.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaDNA"
+    }
+  },
+  {
+    "id": "mangaeighteenUS",
+    "name": "MangaEighteenUS",
+    "class_name": "GenericProvider",
+    "url": "https://manga18.us",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://manga18.us",
+      "search_url": "https://manga18.us/search",
+      "manga_url_pattern": "https://manga18.us/manga/{manga_id}",
+      "chapter_url_pattern": "https://manga18.us/manga/{manga_id}/{chapter_id}",
+      "name": "MangaEighteenUS"
+    }
+  },
+  {
+    "id": "viewcomics",
+    "name": "ViewComics",
+    "class_name": "GenericProvider",
+    "url": "https://viewcomics.me",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://viewcomics.me",
+      "search_url": "https://viewcomics.me/search",
+      "manga_url_pattern": "https://viewcomics.me/comic/{manga_id}",
+      "chapter_url_pattern": "https://viewcomics.me/comic/{manga_id}/{chapter_id}",
+      "name": "ViewComics"
+    }
+  },
+  {
+    "id": "coloredmanga",
+    "name": "ColoredManga",
+    "class_name": "GenericProvider",
+    "url": "https://coloredmanga.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://coloredmanga.com",
+      "search_url": "https://coloredmanga.com/search",
+      "manga_url_pattern": "https://coloredmanga.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://coloredmanga.com/manga/{manga_id}/{chapter_id}",
+      "name": "ColoredManga"
+    }
+  },
+  {
+    "id": "crazyscans",
+    "name": "CrazyScans",
+    "class_name": "GenericProvider",
+    "url": "https://crazyscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://crazyscans.com",
+      "search_url": "https://crazyscans.com/search",
+      "manga_url_pattern": "https://crazyscans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://crazyscans.com/manga/{manga_id}/{chapter_id}",
+      "name": "CrazyScans"
+    }
+  },
+  {
+    "id": "kissmangain",
+    "name": "KissmangaIN",
+    "class_name": "GenericProvider",
+    "url": "https://kissmanga.in",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://kissmanga.in",
+      "search_url": "https://kissmanga.in/search",
+      "manga_url_pattern": "https://kissmanga.in/manga/{manga_id}",
+      "chapter_url_pattern": "https://kissmanga.in/manga/{manga_id}/{chapter_id}",
+      "name": "KissmangaIN"
+    }
+  },
+  {
+    "id": "mangadex",
+    "name": "MangaDex",
+    "class_name": "MangaDexProvider",
+    "url": "https://api.mangadex.org",
+    "supports_nsfw": true,
+    "params": {}
+  },
+  {
+    "id": "mangaplus",
+    "name": "MangaPlus",
+    "class_name": "MangaPlusProvider",
+    "url": "https://jumpg-webapi.tokyo-cdn.com/api",
+    "supports_nsfw": false,
+    "params": {}
+  },
+  {
+    "id": "mangasee",
+    "name": "MangaSee",
+    "class_name": "MangaSeeProvider",
+    "url": "https://mangasee123.com",
+    "supports_nsfw": true,
+    "params": {}
+  },
+  {
+    "id": "arcanescans",
+    "name": "ArcaneScans",
+    "class_name": "GenericProvider",
+    "url": "https://arcanescans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://arcanescans.com",
+      "search_url": "https://arcanescans.com/search",
+      "manga_url_pattern": "https://arcanescans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://arcanescans.com/manga/{manga_id}/{chapter_id}",
+      "name": "ArcaneScans"
+    }
+  },
+  {
+    "id": "hentairead",
+    "name": "HentaiRead",
+    "class_name": "GenericProvider",
+    "url": "https://hentairead.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://hentairead.com",
+      "search_url": "https://hentairead.com/search",
+      "manga_url_pattern": "https://hentairead.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://hentairead.com/manga/{manga_id}/{chapter_id}",
+      "name": "HentaiRead"
+    }
+  },
+  {
+    "id": "radiantscans",
+    "name": "RadiantScans",
+    "class_name": "GenericProvider",
+    "url": "https://radiantscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://radiantscans.com",
+      "search_url": "https://radiantscans.com/search",
+      "manga_url_pattern": "https://radiantscans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://radiantscans.com/manga/{manga_id}/{chapter_id}",
+      "name": "RadiantScans"
+    }
+  },
+  {
+    "id": "sectscans",
+    "name": "SectScans",
+    "class_name": "GenericProvider",
+    "url": "https://sectscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://sectscans.com",
+      "search_url": "https://sectscans.com/search",
+      "manga_url_pattern": "https://sectscans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://sectscans.com/manga/{manga_id}/{chapter_id}",
+      "name": "SectScans"
+    }
+  },
+  {
+    "id": "manga3s",
+    "name": "Manga3S",
+    "class_name": "GenericProvider",
+    "url": "https://manga3s.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manga3s.com",
+      "search_url": "https://manga3s.com/search",
+      "manga_url_pattern": "https://manga3s.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manga3s.com/manga/{manga_id}/{chapter_id}",
+      "name": "Manga3S"
+    }
+  },
+  {
+    "id": "vizshonenJump",
+    "name": "VizShonenJump",
+    "class_name": "GenericProvider",
+    "url": "https://www.viz.com/shonenjump",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://www.viz.com/shonenjump",
+      "search_url": "https://www.viz.com/search",
+      "manga_url_pattern": "https://www.viz.com/shonenjump/chapters/{manga_id}",
+      "chapter_url_pattern": "https://www.viz.com/shonenjump/chapters/{manga_id}/{chapter_id}",
+      "name": "VizShonenJump"
+    }
+  },
+  {
+    "id": "manhuaus",
+    "name": "ManhuaUs",
+    "class_name": "GenericProvider",
+    "url": "https://manhuaus.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manhuaus.com",
+      "search_url": "https://manhuaus.com/search",
+      "manga_url_pattern": "https://manhuaus.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuaus.com/manga/{manga_id}/{chapter_id}",
+      "name": "ManhuaUs"
+    }
+  },
+  {
+    "id": "mangahentai",
+    "name": "MangaHentai",
+    "class_name": "GenericProvider",
+    "url": "https://mangahentai.me",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://mangahentai.me",
+      "search_url": "https://mangahentai.me/search",
+      "manga_url_pattern": "https://mangahentai.me/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangahentai.me/manga/{manga_id}/{chapter_id}",
+      "name": "MangaHentai"
+    }
+  },
+  {
+    "id": "theguildscans",
+    "name": "TheGuildScans",
+    "class_name": "GenericProvider",
+    "url": "https://theguildscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://theguildscans.com",
+      "search_url": "https://theguildscans.com/search",
+      "manga_url_pattern": "https://theguildscans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://theguildscans.com/manga/{manga_id}/{chapter_id}",
+      "name": "TheGuildScans"
+    }
+  },
+  {
+    "id": "freemanga",
+    "name": "FreeManga",
+    "class_name": "GenericProvider",
+    "url": "https://freemanga.me",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://freemanga.me",
+      "search_url": "https://freemanga.me/search",
+      "manga_url_pattern": "https://freemanga.me/manga/{manga_id}",
+      "chapter_url_pattern": "https://freemanga.me/manga/{manga_id}/{chapter_id}",
+      "name": "FreeManga"
+    }
+  },
+  {
+    "id": "manhuaplus",
+    "name": "ManhuaPlus",
+    "class_name": "GenericProvider",
+    "url": "https://manhuaplus.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manhuaplus.com",
+      "search_url": "https://manhuaplus.com/search",
+      "manga_url_pattern": "https://manhuaplus.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuaplus.com/manga/{manga_id}/{chapter_id}",
+      "name": "ManhuaPlus"
+    }
+  },
+  {
+    "id": "reaperscans",
+    "name": "ReaperScans",
+    "class_name": "GenericProvider",
+    "url": "https://reaperscans.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://reaperscans.com",
+      "search_url": "https://reaperscans.com/search",
+      "manga_url_pattern": "https://reaperscans.com/series/{manga_id}",
+      "chapter_url_pattern": "https://reaperscans.com/series/{manga_id}/{chapter_id}",
+      "name": "ReaperScans"
+    }
+  },
+  {
+    "id": "hentaiwebtoon",
+    "name": "HentaiWebtoon",
+    "class_name": "GenericProvider",
+    "url": "https://hentaiwebtoon.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://hentaiwebtoon.com",
+      "search_url": "https://hentaiwebtoon.com/search",
+      "manga_url_pattern": "https://hentaiwebtoon.com/webtoon/{manga_id}",
+      "chapter_url_pattern": "https://hentaiwebtoon.com/webtoon/{manga_id}/{chapter_id}",
+      "name": "HentaiWebtoon"
+    }
+  },
+  {
+    "id": "mangaread",
+    "name": "MangaRead",
+    "class_name": "GenericProvider",
+    "url": "https://mangaread.org",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://mangaread.org",
+      "search_url": "https://mangaread.org/search",
+      "manga_url_pattern": "https://mangaread.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangaread.org/manga/{manga_id}/{chapter_id}",
+      "name": "MangaRead"
+    }
+  },
+  {
+    "id": "manytooncom",
+    "name": "ManyToonCOM",
+    "class_name": "GenericProvider",
+    "url": "https://manytoon.com",
+    "supports_nsfw": true,
+    "params": {
+      "base_url": "https://manytoon.com",
+      "search_url": "https://manytoon.com/search",
+      "manga_url_pattern": "https://manytoon.com/comic/{manga_id}",
+      "chapter_url_pattern": "https://manytoon.com/comic/{manga_id}/{chapter_id}",
+      "name": "ManyToonCOM"
+    }
+  },
+  {
+    "id": "manhuafast",
+    "name": "ManhuaFast",
+    "class_name": "GenericProvider",
+    "url": "https://manhuafast.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manhuafast.com",
+      "search_url": "https://manhuafast.com/search",
+      "manga_url_pattern": "https://manhuafast.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuafast.com/manga/{manga_id}/{chapter_id}",
+      "name": "ManhuaFast"
+    }
+  },
+  {
+    "id": "coffeemanga",
+    "name": "CoffeeManga",
+    "class_name": "GenericProvider",
+    "url": "https://coffeemanga.io",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://coffeemanga.io",
+      "search_url": "https://coffeemanga.io/search",
+      "manga_url_pattern": "https://coffeemanga.io/manga/{manga_id}",
+      "chapter_url_pattern": "https://coffeemanga.io/manga/{manga_id}/{chapter_id}",
+      "name": "CoffeeManga"
+    }
+  },
+  {
+    "id": "manganel",
+    "name": "MangaNel",
+    "class_name": "GenericProvider",
+    "url": "https://manganel.com",
+    "supports_nsfw": false,
+    "params": {
+      "base_url": "https://manganel.com",
+      "search_url": "https://manganel.com/search",
+      "manga_url_pattern": "https://manganel.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manganel.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaNel"
+    }
+  }
+]

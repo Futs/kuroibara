@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+      - manga_storage:/app/storage
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - valkey
+    env_file:
+      - .env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - kurobara-network
+
+  # Frontend (placeholder for now)
+  frontend:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    ports:
+      - "3000:80"
+    networks:
+      - kurobara-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    networks:
+      - kurobara-network
+
+  # Valkey (Redis fork) for caching
+  valkey:
+    image: valkey/valkey:latest
+    restart: unless-stopped
+    volumes:
+      - valkey_data:/data
+    ports:
+      - "6379:6379"
+    command: ["valkey-server", "--appendonly", "yes"]
+    networks:
+      - kurobara-network
+
+  # Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    networks:
+      - kurobara-network
+
+networks:
+  kurobara-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  valkey_data:
+  manga_storage:

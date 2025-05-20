@@ -9,7 +9,7 @@ from sqlalchemy import select
 from app.core.deps import get_current_user, get_db
 from app.models.user import User
 from app.models.manga import Manga, Chapter
-from app.models.library import MangaUserLibrary, Category, ReadingProgress, Bookmark
+from app.models.library import MangaUserLibrary, LibraryCategory as Category, ReadingProgress, Bookmark
 from app.schemas.library import (
     MangaUserLibrary as MangaUserLibrarySchema,
     MangaUserLibraryCreate,

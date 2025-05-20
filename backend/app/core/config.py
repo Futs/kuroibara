@@ -35,7 +35,7 @@ class Settings(BaseSettings):
             password=values.data.get("DB_PASSWORD", ""),
             host=values.data.get("DB_HOST", ""),
             port=int(values.data.get("DB_PORT", 5432)),
-            path=f"/{values.data.get('DB_DATABASE', '')}",
+            path=f"{values.data.get('DB_DATABASE', '')}",
         )
 
     # Valkey (Redis)

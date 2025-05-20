@@ -13,12 +13,12 @@ async def init_db() -> None:
         # Create tables
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        
+
         # Create initial data if needed
         async with AsyncSessionLocal() as session:
             await create_initial_data(session)
             await session.commit()
-            
+
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
         raise
@@ -27,23 +27,23 @@ async def init_db() -> None:
 async def create_initial_data(db: AsyncSession) -> None:
     """Create initial data in the database."""
     # Create default categories
-    from app.models.category import Category
+    from app.models.category import Category as CategoryModel
     from sqlalchemy import select
-    
+
     # Check if we already have categories
-    result = await db.execute(select(Category).limit(1))
+    result = await db.execute(select(CategoryModel).limit(1))
     if result.scalars().first() is None:
         # Create default categories
         default_categories = [
-            Category(name="Favorites", description="Your favorite manga", is_default=True),
-            Category(name="Reading", description="Manga you are currently reading", is_default=True),
-            Category(name="Completed", description="Manga you have completed", is_default=True),
-            Category(name="On Hold", description="Manga you have put on hold", is_default=True),
-            Category(name="Dropped", description="Manga you have dropped", is_default=True),
-            Category(name="Plan to Read", description="Manga you plan to read", is_default=True),
+            CategoryModel(name="Favorites", description="Your favorite manga", is_default=True),
+            CategoryModel(name="Reading", description="Manga you are currently reading", is_default=True),
+            CategoryModel(name="Completed", description="Manga you have completed", is_default=True),
+            CategoryModel(name="On Hold", description="Manga you have put on hold", is_default=True),
+            CategoryModel(name="Dropped", description="Manga you have dropped", is_default=True),
+            CategoryModel(name="Plan to Read", description="Manga you plan to read", is_default=True),
         ]
-        
+
         db.add_all(default_categories)
         await db.flush()
-        
+
         logger.info("Created default categories")

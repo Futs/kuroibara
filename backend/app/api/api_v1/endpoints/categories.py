@@ -1,4 +1,5 @@
 from typing import Any, List
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +7,7 @@ from sqlalchemy import select
 
 from app.core.deps import get_current_user, get_db
 from app.models.user import User
-from app.models.library import Category
+from app.models.library import LibraryCategory as Category
 from app.schemas.library import Category as CategorySchema, CategoryCreate, CategoryUpdate
 
 router = APIRouter()
@@ -52,17 +53,17 @@ async def create_category(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Category with this name already exists",
         )
-    
+
     # Create category
     category = Category(
         **category_data.model_dump(),
         user_id=current_user.id,
     )
-    
+
     db.add(category)
     await db.commit()
     await db.refresh(category)
-    
+
     return category
 
 
@@ -76,20 +77,20 @@ async def read_category(
     Get category by ID.
     """
     category = await db.get(Category, uuid.UUID(category_id))
-    
+
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found",
         )
-    
+
     # Check if category belongs to user or is a default category
     if not category.is_default and category.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     return category
 
 
@@ -104,20 +105,20 @@ async def update_category(
     Update a category.
     """
     category = await db.get(Category, uuid.UUID(category_id))
-    
+
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found",
         )
-    
+
     # Check if category belongs to user
     if category.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check if name is being updated and if it's already taken
     if category_update.name and category_update.name != category.name:
         result = await db.execute(
@@ -130,15 +131,15 @@ async def update_category(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Category with this name already exists",
             )
-    
+
     # Update category
     update_data = category_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(category, field, value)
-    
+
     await db.commit()
     await db.refresh(category)
-    
+
     return category
 
 
@@ -152,27 +153,27 @@ async def delete_category(
     Delete a category.
     """
     category = await db.get(Category, uuid.UUID(category_id))
-    
+
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found",
         )
-    
+
     # Check if category belongs to user
     if category.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check if category is a default category
     if category.is_default:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete default category",
         )
-    
+
     # Delete category
     await db.delete(category)
     await db.commit()

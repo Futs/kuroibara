@@ -10,8 +10,8 @@
             Organize your manga collection
           </p>
         </div>
-        <button 
-          @click="showAddCategoryModal = true" 
+        <button
+          @click="showAddCategoryModal = true"
           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -20,7 +20,7 @@
           Add Category
         </button>
       </div>
-      
+
       <!-- Loading State -->
       <div v-if="loading" class="px-4 py-12 flex justify-center">
         <svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       </div>
-      
+
       <!-- Error State -->
       <div v-else-if="error" class="px-4 py-5 sm:p-6">
         <div class="rounded-md bg-red-50 dark:bg-red-900 p-4">
@@ -43,8 +43,8 @@
                 {{ error }}
               </h3>
               <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-                <button 
-                  @click="fetchCategories" 
+                <button
+                  @click="fetchCategories"
                   class="font-medium underline hover:text-red-600 dark:hover:text-red-400"
                 >
                   Try again
@@ -54,7 +54,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Empty State -->
       <div v-else-if="categories.length === 0" class="px-4 py-12 text-center">
         <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,8 +65,8 @@
           Get started by creating a new category.
         </p>
         <div class="mt-6">
-          <button 
-            @click="showAddCategoryModal = true" 
+          <button
+            @click="showAddCategoryModal = true"
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,13 +76,13 @@
           </button>
         </div>
       </div>
-      
+
       <!-- Categories List -->
       <div v-else class="px-4 py-5 sm:p-6">
         <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <li 
-            v-for="category in categories" 
-            :key="category.id" 
+          <li
+            v-for="category in categories"
+            :key="category.id"
             class="col-span-1 bg-white dark:bg-dark-700 rounded-lg shadow divide-y divide-gray-200 dark:divide-dark-600"
           >
             <div class="w-full flex items-center justify-between p-6 space-x-6">
@@ -146,7 +146,7 @@
         </ul>
       </div>
     </div>
-    
+
     <!-- Add/Edit Category Modal -->
     <div v-if="showAddCategoryModal || showEditCategoryModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -167,37 +167,37 @@
                       Name
                     </label>
                     <div class="mt-1">
-                      <input 
-                        type="text" 
-                        id="category-name" 
-                        v-model="categoryForm.name" 
+                      <input
+                        type="text"
+                        id="category-name"
+                        v-model="categoryForm.name"
                         class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-700 dark:text-white"
                         placeholder="Category name"
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label for="category-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 text-left">
                       Description (optional)
                     </label>
                     <div class="mt-1">
-                      <textarea 
-                        id="category-description" 
-                        v-model="categoryForm.description" 
-                        rows="3" 
+                      <textarea
+                        id="category-description"
+                        v-model="categoryForm.description"
+                        rows="3"
                         class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-700 dark:text-white"
                         placeholder="Category description"
                       ></textarea>
                     </div>
                   </div>
-                  
+
                   <div class="flex items-start">
                     <div class="flex items-center h-5">
-                      <input 
-                        id="category-default" 
-                        v-model="categoryForm.is_default" 
-                        type="checkbox" 
+                      <input
+                        id="category-default"
+                        v-model="categoryForm.is_default"
+                        type="checkbox"
                         class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 dark:border-dark-600 rounded"
                       />
                     </div>
@@ -215,10 +215,10 @@
             </div>
           </div>
           <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-            <button 
-              type="button" 
-              @click="saveCategory" 
-              :disabled="!categoryForm.name || formSubmitting" 
+            <button
+              type="button"
+              @click="saveCategory"
+              :disabled="!categoryForm.name || formSubmitting"
               class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -227,9 +227,9 @@
               </svg>
               {{ showEditCategoryModal ? 'Update' : 'Create' }}
             </button>
-            <button 
-              type="button" 
-              @click="closeModal" 
+            <button
+              type="button"
+              @click="closeModal"
               class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-dark-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:col-start-1 sm:text-sm"
             >
               Cancel
@@ -238,7 +238,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -265,10 +265,10 @@
             </div>
           </div>
           <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button 
-              type="button" 
-              @click="confirmDeleteCategory" 
-              :disabled="deleteSubmitting" 
+            <button
+              type="button"
+              @click="confirmDeleteCategory"
+              :disabled="deleteSubmitting"
               class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg v-if="deleteSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -277,9 +277,9 @@
               </svg>
               Delete
             </button>
-            <button 
-              type="button" 
-              @click="showDeleteModal = false" 
+            <button
+              type="button"
+              @click="showDeleteModal = false"
               class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-dark-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm"
             >
               Cancel
@@ -319,9 +319,9 @@ const categoryForm = ref({
 const fetchCategories = async () => {
   loading.value = true;
   error.value = null;
-  
+
   try {
-    const response = await axios.get('/api/v1/categories');
+    const response = await axios.get('/v1/categories');
     categories.value = response.data;
   } catch (err) {
     error.value = err.response?.data?.detail || 'Failed to load categories';
@@ -348,28 +348,28 @@ const editCategory = (category) => {
 
 const deleteCategory = (category) => {
   if (category.is_default) return;
-  
+
   selectedCategory.value = category;
   showDeleteModal.value = true;
 };
 
 const saveCategory = async () => {
   if (!categoryForm.value.name) return;
-  
+
   formSubmitting.value = true;
-  
+
   try {
     if (showEditCategoryModal.value) {
       // Update existing category
-      await axios.put(`/api/v1/categories/${categoryForm.value.id}`, categoryForm.value);
+      await axios.put(`/v1/categories/${categoryForm.value.id}`, categoryForm.value);
     } else {
       // Create new category
-      await axios.post('/api/v1/categories', categoryForm.value);
+      await axios.post('/v1/categories', categoryForm.value);
     }
-    
+
     // Refresh categories
     await fetchCategories();
-    
+
     // Close modal
     closeModal();
   } catch (err) {
@@ -382,15 +382,15 @@ const saveCategory = async () => {
 
 const confirmDeleteCategory = async () => {
   if (!selectedCategory.value) return;
-  
+
   deleteSubmitting.value = true;
-  
+
   try {
-    await axios.delete(`/api/v1/categories/${selectedCategory.value.id}`);
-    
+    await axios.delete(`/v1/categories/${selectedCategory.value.id}`);
+
     // Refresh categories
     await fetchCategories();
-    
+
     // Close modal
     showDeleteModal.value = false;
     selectedCategory.value = null;
@@ -405,7 +405,7 @@ const confirmDeleteCategory = async () => {
 const closeModal = () => {
   showAddCategoryModal.value = false;
   showEditCategoryModal.value = false;
-  
+
   // Reset form
   categoryForm.value = {
     id: null,
@@ -413,7 +413,7 @@ const closeModal = () => {
     description: '',
     is_default: false,
   };
-  
+
   selectedCategory.value = null;
 };
 

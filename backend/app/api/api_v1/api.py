@@ -9,6 +9,8 @@ from app.api.api_v1.endpoints import (
     search,
     library,
     import_files,
+    providers,
+    favorites,
 )
 
 api_router = APIRouter()
@@ -22,3 +24,5 @@ api_router.include_router(reading_lists.router, prefix="/reading-lists", tags=["
 api_router.include_router(search.router, prefix="/search", tags=["Search"])
 api_router.include_router(library.router, prefix="/library", tags=["Library"])
 api_router.include_router(import_files.router, prefix="/import", tags=["Import"])
+api_router.include_router(providers.router, prefix="/providers", tags=["Providers"])
+api_router.include_router(favorites.router, prefix="/favorites", tags=["Favorites"])

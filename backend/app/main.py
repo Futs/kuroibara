@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.api_v1.api import api_router
 from app.core.events import startup_event_handler, shutdown_event_handler
+# Import provider registry to ensure it's initialized
+from app.core.providers.registry import provider_registry
 
 app = FastAPI(
     title=settings.APP_NAME,

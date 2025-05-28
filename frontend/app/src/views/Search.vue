@@ -5,7 +5,7 @@
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
           Search Manga
         </h1>
-        
+
         <div class="mt-4">
           <form @submit.prevent="search" class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:space-x-4">
@@ -14,18 +14,18 @@
                   Search Query
                 </label>
                 <div class="mt-1 relative rounded-md shadow-sm">
-                  <input 
-                    id="query" 
-                    v-model="searchQuery" 
-                    type="text" 
+                  <input
+                    id="query"
+                    v-model="searchQuery"
+                    type="text"
                     class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-4 pr-12 sm:text-sm border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-700 dark:text-white"
                     placeholder="Enter manga title, author, or keywords"
                   />
                   <div class="absolute inset-y-0 right-0 flex items-center">
-                    <button 
-                      type="button" 
-                      @click="searchQuery = ''" 
-                      v-if="searchQuery" 
+                    <button
+                      type="button"
+                      @click="searchQuery = ''"
+                      v-if="searchQuery"
                       class="p-1 focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
                     >
                       <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,14 +35,14 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="mt-4 sm:mt-0 sm:w-1/4">
                 <label for="provider" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Provider
                 </label>
-                <select 
-                  id="provider" 
-                  v-model="provider" 
+                <select
+                  id="provider"
+                  v-model="provider"
                   class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm rounded-md"
                 >
                   <option value="all">All Providers</option>
@@ -52,15 +52,15 @@
                 </select>
               </div>
             </div>
-            
+
             <div class="flex flex-col sm:flex-row sm:space-x-4">
               <div class="sm:w-1/3">
                 <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Status
                 </label>
-                <select 
-                  id="status" 
-                  v-model="filters.status" 
+                <select
+                  id="status"
+                  v-model="filters.status"
                   class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm rounded-md"
                 >
                   <option value="">Any Status</option>
@@ -70,14 +70,14 @@
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
-              
+
               <div class="mt-4 sm:mt-0 sm:w-1/3">
                 <label for="genre" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Genre
                 </label>
-                <select 
-                  id="genre" 
-                  v-model="filters.genre" 
+                <select
+                  id="genre"
+                  v-model="filters.genre"
                   class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm rounded-md"
                 >
                   <option value="">Any Genre</option>
@@ -86,11 +86,11 @@
                   </option>
                 </select>
               </div>
-              
+
               <div class="mt-4 sm:mt-0 sm:w-1/3 flex items-end">
-                <button 
-                  type="submit" 
-                  :disabled="loading || !searchQuery" 
+                <button
+                  type="submit"
+                  :disabled="loading || !searchQuery"
                   class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -106,7 +106,7 @@
             </div>
           </form>
         </div>
-        
+
         <!-- Loading State -->
         <div v-if="loading" class="mt-8 flex justify-center">
           <svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -114,7 +114,7 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         </div>
-        
+
         <!-- Error State -->
         <div v-else-if="error" class="mt-8">
           <div class="rounded-md bg-red-50 dark:bg-red-900 p-4">
@@ -129,8 +129,8 @@
                   {{ error }}
                 </h3>
                 <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-                  <button 
-                    @click="search" 
+                  <button
+                    @click="search"
                     class="font-medium underline hover:text-red-600 dark:hover:text-red-400"
                   >
                     Try again
@@ -140,7 +140,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Empty State -->
         <div v-else-if="hasSearched && results.length === 0" class="mt-8 text-center">
           <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,28 +151,28 @@
             Try adjusting your search or filter criteria.
           </p>
         </div>
-        
+
         <!-- Results -->
         <div v-else-if="results.length > 0" class="mt-8">
           <h2 class="text-lg font-medium text-gray-900 dark:text-white">
             Search Results
           </h2>
-          
+
           <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            <SearchResultCard 
-              v-for="result in results" 
-              :key="result.id" 
-              :manga="result" 
+            <SearchResultCard
+              v-for="result in results"
+              :key="result.id"
+              :manga="result"
               @add-to-library="addToLibrary"
             />
           </div>
-          
+
           <!-- Pagination -->
           <div v-if="totalPages > 1" class="mt-6 flex justify-center">
             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <button 
-                @click="prevPage" 
-                :disabled="currentPage === 1" 
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
                 class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span class="sr-only">Previous</span>
@@ -180,24 +180,24 @@
                   <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
               </button>
-              
-              <button 
-                v-for="page in paginationRange" 
-                :key="page" 
-                @click="goToPage(page)" 
+
+              <button
+                v-for="page in paginationRange"
+                :key="page"
+                @click="goToPage(page)"
                 :class="[
-                  page === currentPage 
-                    ? 'z-10 bg-primary-50 dark:bg-primary-900 border-primary-500 text-primary-600 dark:text-primary-400' 
+                  page === currentPage
+                    ? 'z-10 bg-primary-50 dark:bg-primary-900 border-primary-500 text-primary-600 dark:text-primary-400'
                     : 'bg-white dark:bg-dark-800 border-gray-300 dark:border-dark-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark-700',
                   'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
                 ]"
               >
                 {{ page }}
               </button>
-              
-              <button 
-                @click="nextPage" 
-                :disabled="currentPage === totalPages" 
+
+              <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
                 class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span class="sr-only">Next</span>
@@ -243,18 +243,18 @@ const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.
 const paginationRange = computed(() => {
   const range = [];
   const maxVisiblePages = 5;
-  
+
   let startPage = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2));
   let endPage = Math.min(totalPages.value, startPage + maxVisiblePages - 1);
-  
+
   if (endPage - startPage + 1 < maxVisiblePages) {
     startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
-  
+
   for (let i = startPage; i <= endPage; i++) {
     range.push(i);
   }
-  
+
   return range;
 });
 
@@ -267,9 +267,9 @@ watch([searchQuery, provider], () => {
 // Fetch providers
 const fetchProviders = async () => {
   providersLoading.value = true;
-  
+
   try {
-    const response = await axios.get('/api/v1/search/providers');
+    const response = await axios.get('/v1/search/providers');
     providers.value = response.data;
   } catch (error) {
     console.error('Failed to fetch providers:', error);
@@ -281,7 +281,7 @@ const fetchProviders = async () => {
 // Fetch genres
 const fetchGenres = async () => {
   try {
-    const response = await axios.get('/api/v1/search/genres');
+    const response = await axios.get('/v1/search/genres');
     genres.value = response.data;
   } catch (error) {
     console.error('Failed to fetch genres:', error);
@@ -291,7 +291,7 @@ const fetchGenres = async () => {
 // Search methods
 const search = async () => {
   if (!searchQuery.value) return;
-  
+
   hasSearched.value = true;
   await searchStore.search();
 };
@@ -321,21 +321,21 @@ const addToLibrary = async (mangaId) => {
 onMounted(() => {
   fetchProviders();
   fetchGenres();
-  
+
   // Initialize from URL query params if present
   const urlParams = new URLSearchParams(window.location.search);
   const q = urlParams.get('q');
   const p = urlParams.get('provider');
-  
+
   if (q) {
     searchQuery.value = q;
     searchStore.setQuery(q);
-    
+
     if (p) {
       provider.value = p;
       searchStore.setProvider(p);
     }
-    
+
     search();
   }
 });

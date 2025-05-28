@@ -19,7 +19,7 @@ import NotFound from '../views/NotFound.vue';
 
 // Route Guards
 const requireAuth = (to, from, next) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   if (token) {
     next();
   } else {
@@ -62,6 +62,11 @@ const routes = [
       {
         path: 'manga/:id',
         name: 'manga-details',
+        component: MangaDetails,
+      },
+      {
+        path: 'manga/external/:provider/:id',
+        name: 'external-manga-details',
         component: MangaDetails,
       },
       {

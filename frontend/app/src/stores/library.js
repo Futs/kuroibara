@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '../services/api';
 
 export const useLibraryStore = defineStore('library', {
   state: () => ({
@@ -19,24 +19,24 @@ export const useLibraryStore = defineStore('library', {
       total: 0,
     },
   }),
-  
+
   getters: {
     getManga: (state) => state.manga,
     getCurrentManga: (state) => state.currentManga,
     getFilters: (state) => state.filters,
     getPagination: (state) => state.pagination,
   },
-  
+
   actions: {
     async fetchLibrary() {
       this.loading = true;
       this.error = null;
-      
+
       try {
         const { page, limit } = this.pagination;
         const { category, status, sort, order } = this.filters;
-        
-        const response = await axios.get('/api/v1/library', {
+
+        const response = await api.get('/v1/library', {
           params: {
             page,
             limit,
@@ -46,9 +46,9 @@ export const useLibraryStore = defineStore('library', {
             order,
           },
         });
-        
-        this.manga = response.data.items;
-        this.pagination.total = response.data.total;
+
+        this.manga = response.data.items || response.data;
+        this.pagination.total = response.data.total || response.data.length;
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to fetch library';
         console.error('Library fetch error:', error);
@@ -56,13 +56,13 @@ export const useLibraryStore = defineStore('library', {
         this.loading = false;
       }
     },
-    
+
     async fetchMangaDetails(id) {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        const response = await axios.get(`/api/v1/manga/${id}`);
+        const response = await api.get(`/v1/manga/${id}`);
         this.currentManga = response.data;
         return response.data;
       } catch (error) {
@@ -72,43 +72,45 @@ export const useLibraryStore = defineStore('library', {
         this.loading = false;
       }
     },
-    
+
     async addToLibrary(mangaId) {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        await axios.post('/api/v1/library', { manga_id: mangaId });
-        this.fetchLibrary();
+        await api.post('/v1/library', { manga_id: mangaId });
+        await this.fetchLibrary();
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to add manga to library';
         console.error('Add to library error:', error);
+        throw error; // Re-throw so calling code can handle it
       } finally {
         this.loading = false;
       }
     },
-    
+
     async removeFromLibrary(mangaId) {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        await axios.delete(`/api/v1/library/${mangaId}`);
-        this.fetchLibrary();
+        await api.delete(`/v1/library/${mangaId}`);
+        await this.fetchLibrary();
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to remove manga from library';
         console.error('Remove from library error:', error);
+        throw error; // Re-throw so calling code can handle it
       } finally {
         this.loading = false;
       }
     },
-    
+
     setFilters(filters) {
       this.filters = { ...this.filters, ...filters };
       this.pagination.page = 1; // Reset to first page when filters change
       this.fetchLibrary();
     },
-    
+
     setPage(page) {
       this.pagination.page = page;
       this.fetchLibrary();

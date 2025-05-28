@@ -65,45 +65,63 @@ async def add_to_library(
     """
     Add a manga to the user's library.
     """
-    # Check if manga exists
-    manga = await db.get(Manga, library_item.manga_id)
-    if not manga:
+    try:
+        # Check if manga exists
+        manga = await db.get(Manga, library_item.manga_id)
+        if not manga:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Manga not found",
+            )
+
+        # Check if manga is already in library
+        result = await db.execute(
+            select(MangaUserLibrary).where(
+                (MangaUserLibrary.user_id == current_user.id) &
+                (MangaUserLibrary.manga_id == library_item.manga_id)
+            )
+        )
+        if result.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Manga already in library",
+            )
+
+        # Create library item
+        library_item_obj = MangaUserLibrary(
+            **library_item.model_dump(exclude={"category_ids"}),
+            user_id=current_user.id,
+        )
+
+        # Add categories
+        if library_item.category_ids:
+            for category_id in library_item.category_ids:
+                category = await db.get(Category, category_id)
+                if category and (category.is_default or category.user_id == current_user.id):
+                    library_item_obj.categories.append(category)
+
+        db.add(library_item_obj)
+        await db.commit()
+        await db.refresh(library_item_obj)
+
+        return library_item_obj
+
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Log the error and return a generic error message
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error adding manga to library: {str(e)}")
+
+        # Rollback the transaction
+        await db.rollback()
+
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Manga not found",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to add manga to library",
         )
-
-    # Check if manga is already in library
-    result = await db.execute(
-        select(MangaUserLibrary).where(
-            (MangaUserLibrary.user_id == current_user.id) &
-            (MangaUserLibrary.manga_id == library_item.manga_id)
-        )
-    )
-    if result.scalars().first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Manga already in library",
-        )
-
-    # Create library item
-    library_item_obj = MangaUserLibrary(
-        **library_item.model_dump(exclude={"category_ids"}),
-        user_id=current_user.id,
-    )
-
-    # Add categories
-    if library_item.category_ids:
-        for category_id in library_item.category_ids:
-            category = await db.get(Category, category_id)
-            if category and (category.is_default or category.user_id == current_user.id):
-                library_item_obj.categories.append(category)
-
-    db.add(library_item_obj)
-    await db.commit()
-    await db.refresh(library_item_obj)
-
-    return library_item_obj
 
 
 @router.get("/{library_item_id}", response_model=MangaUserLibrarySchema)
@@ -206,46 +224,73 @@ async def download_manga(
         external_id: The external ID of the manga on the provider
         background_tasks: FastAPI background tasks
     """
-    from app.core.services.background import download_manga_task
-    from app.core.providers.registry import provider_registry
+    try:
+        from app.core.services.background import download_manga_task
+        from app.core.providers.registry import provider_registry
 
-    # Check if provider exists
-    if not provider_registry.get_provider(provider):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Provider '{provider}' not found",
+        # Check if provider exists
+        provider_instance = provider_registry.get_provider(provider)
+        if not provider_instance:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Provider '{provider}' not found",
+            )
+
+        # Get library item
+        library_item = await db.get(MangaUserLibrary, uuid.UUID(library_item_id))
+
+        if not library_item or library_item.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Library item not found",
+            )
+
+        # Check if manga is already downloaded
+        if library_item.is_downloaded:
+            return {
+                "task_id": f"{current_user.id}_{library_item.manga_id}",
+                "manga_id": str(library_item.manga_id),
+                "user_id": str(current_user.id),
+                "provider": provider,
+                "status": "already_downloaded",
+                "message": "Manga is already downloaded"
+            }
+
+        # Create task ID
+        task_id = f"{current_user.id}_{library_item.manga_id}"
+
+        # Add download task to background tasks
+        background_tasks.add_task(
+            download_manga_task,
+            manga_id=library_item.manga_id,
+            user_id=current_user.id,
+            provider_name=provider,
+            external_id=external_id,
         )
 
-    # Get library item
-    library_item = await db.get(MangaUserLibrary, uuid.UUID(library_item_id))
+        # Return task information
+        return {
+            "task_id": task_id,
+            "manga_id": str(library_item.manga_id),
+            "user_id": str(current_user.id),
+            "provider": provider,
+            "status": "queued",
+            "message": "Download task has been queued"
+        }
 
-    if not library_item or library_item.user_id != current_user.id:
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Log the error and return a generic error message
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error starting download: {str(e)}")
+
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Library item not found",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to start download",
         )
-
-    # Create task ID
-    task_id = f"{current_user.id}_{library_item.manga_id}"
-
-    # Add download task to background tasks
-    background_tasks.add_task(
-        download_manga_task,
-        manga_id=library_item.manga_id,
-        user_id=current_user.id,
-        provider_name=provider,
-        external_id=external_id,
-    )
-
-    # Return task information
-    return {
-        "task_id": task_id,
-        "manga_id": str(library_item.manga_id),
-        "user_id": str(current_user.id),
-        "provider": provider,
-        "status": "queued",
-        "message": "Download task has been queued"
-    }
 
 
 @router.post("/progress", response_model=ReadingProgressSchema)
@@ -257,47 +302,97 @@ async def update_reading_progress(
     """
     Update reading progress for a manga chapter.
     """
-    # Check if manga and chapter exist
-    manga = await db.get(Manga, progress_data.manga_id)
-    if not manga:
+    try:
+        # Check if manga and chapter exist
+        manga = await db.get(Manga, progress_data.manga_id)
+        if not manga:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Manga not found",
+            )
+
+        chapter = await db.get(Chapter, progress_data.chapter_id)
+        if not chapter or chapter.manga_id != progress_data.manga_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Chapter not found",
+            )
+
+        # Check if progress already exists
+        result = await db.execute(
+            select(ReadingProgress).where(
+                (ReadingProgress.user_id == current_user.id) &
+                (ReadingProgress.manga_id == progress_data.manga_id) &
+                (ReadingProgress.chapter_id == progress_data.chapter_id)
+            )
+        )
+        progress = result.scalars().first()
+
+        if progress:
+            # Update existing progress
+            for field, value in progress_data.model_dump().items():
+                setattr(progress, field, value)
+        else:
+            # Create new progress
+            progress = ReadingProgress(
+                **progress_data.model_dump(),
+                user_id=current_user.id,
+            )
+            db.add(progress)
+
+        await db.commit()
+        await db.refresh(progress)
+
+        return progress
+
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Log the error and return a generic error message
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error updating reading progress: {str(e)}")
+
+        # Rollback the transaction
+        await db.rollback()
+
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Manga not found",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update reading progress",
         )
 
-    chapter = await db.get(Chapter, progress_data.chapter_id)
-    if not chapter or chapter.manga_id != progress_data.manga_id:
+
+@router.post("/{manga_id}/progress", response_model=ReadingProgressSchema)
+async def update_manga_reading_progress(
+    manga_id: str,
+    progress_data: Dict[str, Any],
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Update reading progress for a manga chapter (alternative endpoint for frontend).
+    """
+    try:
+        # Convert to proper format
+        progress_create = ReadingProgressCreate(
+            manga_id=uuid.UUID(manga_id),
+            chapter_id=uuid.UUID(progress_data.get("chapter_id")),
+            page=progress_data.get("page", 1),
+            completed=progress_data.get("completed", False),
+        )
+
+        return await update_reading_progress(progress_create, current_user, db)
+
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error updating manga reading progress: {str(e)}")
+
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Chapter not found",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update reading progress",
         )
-
-    # Check if progress already exists
-    result = await db.execute(
-        select(ReadingProgress).where(
-            (ReadingProgress.user_id == current_user.id) &
-            (ReadingProgress.manga_id == progress_data.manga_id) &
-            (ReadingProgress.chapter_id == progress_data.chapter_id)
-        )
-    )
-    progress = result.scalars().first()
-
-    if progress:
-        # Update existing progress
-        for field, value in progress_data.model_dump().items():
-            setattr(progress, field, value)
-    else:
-        # Create new progress
-        progress = ReadingProgress(
-            **progress_data.model_dump(),
-            user_id=current_user.id,
-        )
-        db.add(progress)
-
-    await db.commit()
-    await db.refresh(progress)
-
-    return progress
 
 
 @router.post("/bookmarks", response_model=BookmarkSchema)

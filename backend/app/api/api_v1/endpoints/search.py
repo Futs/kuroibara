@@ -4,25 +4,62 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
 from app.models.user import User
-from app.schemas.search import SearchQuery, SearchFilter, SearchResponse, SearchResult
+from app.models.provider import ProviderStatus
+from app.schemas.search import SearchQuery, SearchFilter, SearchResponse, SearchResult, ProviderInfo
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@router.get("/providers", response_model=List[str])
+@router.get("/providers", response_model=List[ProviderInfo])
 async def get_providers(
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
-    Get available search providers.
+    Get available search providers with health status.
     """
-    return provider_registry.get_provider_names()
+    try:
+        # Get provider info from registry
+        provider_info_list = provider_registry.get_provider_info()
+
+        # Get provider statuses from database
+        result = await db.execute(select(ProviderStatus))
+        provider_statuses = {ps.provider_id: ps for ps in result.scalars().all()}
+
+        # Combine provider info with status
+        enhanced_providers = []
+        for provider_info in provider_info_list:
+            provider_id = provider_info["id"]
+            status_record = provider_statuses.get(provider_id)
+
+            enhanced_provider = ProviderInfo(
+                id=provider_info["id"],
+                name=provider_info["name"],
+                url=provider_info["url"],
+                supports_nsfw=provider_info["supports_nsfw"],
+                status=status_record.status if status_record else "unknown",
+                is_enabled=status_record.is_enabled if status_record else True,
+                last_check=status_record.last_check if status_record else None,
+                response_time=status_record.response_time if status_record else None,
+                uptime_percentage=status_record.uptime_percentage if status_record else 100,
+                consecutive_failures=status_record.consecutive_failures if status_record else 0,
+                is_healthy=status_record.is_healthy if status_record else True,
+            )
+            enhanced_providers.append(enhanced_provider)
+
+        return enhanced_providers
+
+    except Exception as e:
+        logger.error(f"Error getting providers: {e}")
+        # Fallback to basic provider info if database query fails
+        return provider_registry.get_provider_info()
 
 
 @router.post("", response_model=SearchResponse)
@@ -74,34 +111,93 @@ async def search_manga(
             }
 
     # If no provider is specified, search across multiple providers
-    # Use a limited number of providers to avoid overwhelming the system
-    providers = provider_registry.get_all_providers()
+    all_providers = provider_registry.get_all_providers()
 
-    # Limit to 5 providers for performance
-    max_providers = 5
-    selected_providers = providers[:max_providers]
+    # Prioritize known working providers
+    priority_providers = []
+    generic_providers = []
 
-    # Search with all selected providers concurrently
+    for provider in all_providers:
+        if provider.__class__.__name__ in ["MangaDexProvider", "MangaPlusProvider", "MangaSeeProvider"]:
+            priority_providers.append(provider)
+        else:
+            generic_providers.append(provider)
+
+    # Use priority providers first, then a limited number of generic providers
+    max_generic_providers = 10  # Limit generic providers to avoid too many failures
+    selected_providers = priority_providers + generic_providers[:max_generic_providers]
+
+    # Give each provider a reasonable limit to ensure we get good results
+    # Don't divide by number of providers as this makes each provider return too few results
+    results_per_provider = min(query.limit, 10)  # Each provider can return up to 10 results
+
+    logger.info(f"Multi-provider search using {len(priority_providers)} priority providers and {min(len(generic_providers), max_generic_providers)} generic providers")
+    logger.info(f"Priority providers: {[p.name for p in priority_providers]}")
+    logger.info(f"Selected generic providers: {[p.name for p in generic_providers[:max_generic_providers]]}")
+    logger.info(f"Total providers to search: {len(selected_providers)}")
+    logger.info(f"Results per provider: {results_per_provider}")
+
+    # Search with all selected providers concurrently with timeout
     async def search_with_provider(provider):
         try:
-            results, _, _ = await provider.search(
-                query=query.query,
-                page=query.page,
-                limit=query.limit // len(selected_providers),  # Distribute limit among providers
+            logger.info(f"Starting search with provider {provider.name} (class: {provider.__class__.__name__})")
+            # Add timeout to prevent slow providers from blocking
+            results, _, _ = await asyncio.wait_for(
+                provider.search(
+                    query=query.query,
+                    page=1,  # Always use page 1 for multi-provider search
+                    limit=results_per_provider,
+                ),
+                timeout=15.0  # Increased timeout to 15 seconds
             )
+            logger.info(f"Provider {provider.name} returned {len(results)} results")
+            if len(results) == 0:
+                logger.warning(f"Provider {provider.name} returned no results for query '{query.query}'")
+            else:
+                # Log first result for debugging
+                first_result = results[0]
+                logger.info(f"First result from {provider.name}: {first_result.title} - Cover: {bool(first_result.cover_image)}")
             return results
+        except asyncio.TimeoutError:
+            logger.warning(f"Provider {provider.name} timed out after 15 seconds")
+            return []
         except Exception as e:
             logger.error(f"Error searching with provider {provider.name}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
     # Run searches concurrently
     search_tasks = [search_with_provider(provider) for provider in selected_providers]
-    all_results = await asyncio.gather(*search_tasks)
+    all_results = await asyncio.gather(*search_tasks, return_exceptions=True)
 
-    # Flatten results
+    # Flatten results and handle exceptions
     flattened_results = []
-    for results in all_results:
-        flattened_results.extend(results)
+    successful_providers = 0
+    for i, results in enumerate(all_results):
+        if isinstance(results, Exception):
+            logger.error(f"Provider {selected_providers[i].name} failed with exception: {results}")
+            continue
+        if results and isinstance(results, list):
+            logger.info(f"Adding {len(results)} results from {selected_providers[i].name}")
+            flattened_results.extend(results)
+            successful_providers += 1
+        elif results:
+            logger.warning(f"Provider {selected_providers[i].name} returned non-list results: {type(results)}")
+        else:
+            logger.info(f"Provider {selected_providers[i].name} returned no results")
+
+    logger.info(f"Multi-provider search completed: {successful_providers}/{len(selected_providers)} providers successful, {len(flattened_results)} total results")
+
+    # Sort results by relevance (title similarity to query)
+    def calculate_relevance(result):
+        title_lower = result.title.lower()
+        query_lower = query.query.lower()
+        if query_lower in title_lower:
+            return title_lower.index(query_lower)
+        return 1000  # Low relevance for non-matching titles
+
+    flattened_results.sort(key=calculate_relevance)
 
     # Limit results to requested limit
     limited_results = flattened_results[:query.limit]
@@ -112,7 +208,26 @@ async def search_manga(
         "page": query.page,
         "limit": query.limit,
         "has_next": len(flattened_results) > query.limit,
+        "providers_searched": len(selected_providers),
+        "providers_successful": successful_providers,
     }
+
+
+@router.get("/genres", response_model=List[str])
+async def get_genres(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get available manga genres.
+    """
+    # Common manga genres
+    genres = [
+        "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror", "Mystery",
+        "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller",
+        "Ecchi", "Harem", "Isekai", "Josei", "Mecha", "Military", "Music", "Parody",
+        "Psychological", "School", "Seinen", "Shoujo", "Shounen", "Yaoi", "Yuri"
+    ]
+    return sorted(genres)
 
 
 @router.post("/filter", response_model=SearchResponse)

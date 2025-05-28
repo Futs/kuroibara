@@ -47,7 +47,6 @@ class MangaUserLibrary(BaseModel):
     # Relationships
     user = relationship("User", back_populates="manga_items")
     manga = relationship("Manga", back_populates="user_libraries")
-    category_associations = relationship("MangaUserLibraryCategory", back_populates="manga_user_library", cascade="all, delete-orphan")
     categories = relationship("LibraryCategory", secondary=manga_user_library_category, back_populates="manga_items")
 
 

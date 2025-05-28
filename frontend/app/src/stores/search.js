@@ -18,7 +18,7 @@ export const useSearchStore = defineStore('search', {
       total: 0,
     },
   }),
-  
+
   getters: {
     getResults: (state) => state.results,
     getQuery: (state) => state.query,
@@ -26,30 +26,28 @@ export const useSearchStore = defineStore('search', {
     getFilters: (state) => state.filters,
     getPagination: (state) => state.pagination,
   },
-  
+
   actions: {
     async search() {
       if (!this.query) return;
-      
+
       this.loading = true;
       this.error = null;
-      
+
       try {
         const { page, limit } = this.pagination;
         const { status, genre } = this.filters;
-        
-        const response = await axios.get('/api/v1/search', {
-          params: {
-            q: this.query,
-            provider: this.provider,
-            page,
-            limit,
-            status,
-            genre,
-          },
+
+        const response = await axios.post('/v1/search', {
+          query: this.query,
+          provider: this.provider === 'all' ? null : this.provider,
+          page,
+          limit,
+          status,
+          genre,
         });
-        
-        this.results = response.data.items;
+
+        this.results = response.data.results;
         this.pagination.total = response.data.total;
       } catch (error) {
         this.error = error.response?.data?.detail || 'Search failed';
@@ -58,27 +56,27 @@ export const useSearchStore = defineStore('search', {
         this.loading = false;
       }
     },
-    
+
     setQuery(query) {
       this.query = query;
       this.pagination.page = 1; // Reset to first page when query changes
     },
-    
+
     setProvider(provider) {
       this.provider = provider;
       this.pagination.page = 1; // Reset to first page when provider changes
     },
-    
+
     setFilters(filters) {
       this.filters = { ...this.filters, ...filters };
       this.pagination.page = 1; // Reset to first page when filters change
     },
-    
+
     setPage(page) {
       this.pagination.page = page;
       this.search();
     },
-    
+
     resetSearch() {
       this.results = [];
       this.query = '';

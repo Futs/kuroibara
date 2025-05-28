@@ -17,13 +17,26 @@ from app.schemas.auth import TokenPayload
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
+# Global Redis instance (will be set during startup)
+redis_client: Optional[Redis] = None
+
+
 # Dependency to get Redis connection
 async def get_redis() -> Redis:
     """Get Redis connection."""
-    from fastapi import Request
+    if redis_client is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Redis connection not available"
+        )
+    return redis_client
 
-    request = Request.scope["app"].state.redis
-    return request
+
+# Function to set Redis client (called during startup)
+def set_redis_client(client: Redis) -> None:
+    """Set the global Redis client."""
+    global redis_client
+    redis_client = client
 
 
 # Dependency to get current user
@@ -39,6 +52,16 @@ async def get_current_user(
     )
 
     try:
+        # Check if token is blacklisted (only if Redis is available)
+        if redis_client:
+            try:
+                is_blacklisted = await redis_client.get(f"blacklist:{token}")
+                if is_blacklisted:
+                    raise credentials_exception
+            except Exception:
+                # If Redis check fails, continue without blacklist check
+                pass
+
         # Decode JWT token
         payload = jwt.decode(
             token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]

@@ -29,19 +29,19 @@
               </div>
             </div>
           </div>
-          
+
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email address
+            <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Username
             </label>
             <div class="mt-1">
-              <input 
-                id="email" 
-                v-model="email" 
-                name="email" 
-                type="email" 
-                autocomplete="email" 
-                required 
+              <input
+                id="username"
+                v-model="username"
+                name="username"
+                type="text"
+                autocomplete="username"
+                required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
               />
             </div>
@@ -52,13 +52,13 @@
               Password
             </label>
             <div class="mt-1">
-              <input 
-                id="password" 
-                v-model="password" 
-                name="password" 
-                type="password" 
-                autocomplete="current-password" 
-                required 
+              <input
+                id="password"
+                v-model="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
               />
             </div>
@@ -66,11 +66,11 @@
 
           <div class="flex items-center justify-between">
             <div class="flex items-center">
-              <input 
-                id="remember-me" 
-                v-model="rememberMe" 
-                name="remember-me" 
-                type="checkbox" 
+              <input
+                id="remember-me"
+                v-model="rememberMe"
+                name="remember-me"
+                type="checkbox"
                 class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-dark-600 rounded"
               />
               <label for="remember-me" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
@@ -86,9 +86,9 @@
           </div>
 
           <div>
-            <button 
-              type="submit" 
-              :disabled="loading" 
+            <button
+              type="submit"
+              :disabled="loading"
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@ import { useAuthStore } from '../../stores/auth';
 
 const authStore = useAuthStore();
 
-const email = ref('');
+const username = ref('');
 const password = ref('');
 const rememberMe = ref(false);
 
@@ -118,6 +118,6 @@ const loading = computed(() => authStore.loading);
 const error = computed(() => authStore.error);
 
 const handleSubmit = async () => {
-  await authStore.login(email.value, password.value);
+  await authStore.login(username.value, password.value);
 };
 </script>

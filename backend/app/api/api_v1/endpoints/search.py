@@ -8,21 +8,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
 from app.models.user import User
-from app.schemas.search import SearchQuery, SearchFilter, SearchResponse, SearchResult
+from app.schemas.search import SearchQuery, SearchFilter, SearchResponse, SearchResult, ProviderInfo
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@router.get("/providers", response_model=List[str])
+@router.get("/providers", response_model=List[ProviderInfo])
 async def get_providers(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """
     Get available search providers.
     """
-    return provider_registry.get_provider_names()
+    return provider_registry.get_provider_info()
 
 
 @router.post("", response_model=SearchResponse)

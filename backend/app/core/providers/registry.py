@@ -1,6 +1,5 @@
-import os
 import logging
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Any
 from pathlib import Path
 
 from app.core.providers.base import BaseProvider
@@ -19,20 +18,26 @@ class ProviderRegistry:
     def __init__(self):
         self._providers: Dict[str, BaseProvider] = {}
 
+        logger.info("Initializing ProviderRegistry")
+
         # Initialize provider factory
         provider_factory.register_provider_class(MangaDexProvider)
         provider_factory.register_provider_class(MangaPlusProvider)
         provider_factory.register_provider_class(MangaSeeProvider)
         provider_factory.register_provider_class(GenericProvider)
+        logger.info("Registered provider classes")
 
         # Load provider configurations
         self._load_provider_configs()
 
         # Register default providers if no configs were loaded
         if not self._providers:
+            logger.info("No providers loaded from config, registering default providers")
             self.register_provider(MangaDexProvider())
             self.register_provider(MangaPlusProvider())
             self.register_provider(MangaSeeProvider())
+
+        logger.info(f"ProviderRegistry initialized with {len(self._providers)} providers: {list(self._providers.keys())}")
 
     def register_provider(self, provider: BaseProvider) -> None:
         """Register a provider."""
@@ -48,7 +53,21 @@ class ProviderRegistry:
 
     def get_provider_names(self) -> List[str]:
         """Get the names of all registered providers."""
-        return [provider.name for provider in self._providers.values()]
+        return sorted([provider.name for provider in self._providers.values()])
+
+    def get_provider_info(self) -> List[Dict[str, Any]]:
+        """Get information about all registered providers."""
+        # Sort providers alphabetically by name
+        sorted_providers = sorted(self._providers.values(), key=lambda p: p.name.lower())
+        return [
+            {
+                "id": provider.name.lower(),
+                "name": provider.name,
+                "url": provider.url,
+                "supports_nsfw": provider.supports_nsfw,
+            }
+            for provider in sorted_providers
+        ]
 
     def _load_provider_configs(self) -> None:
         """Load provider configurations from JSON files."""

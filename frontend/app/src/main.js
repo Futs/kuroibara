@@ -6,7 +6,7 @@ import axios from 'axios';
 import './style.css';
 
 // Configure axios
-axios.defaults.baseURL = '/api/v1';
+axios.defaults.baseURL = '/api';
 
 // Check for token in localStorage
 const token = localStorage.getItem('token');

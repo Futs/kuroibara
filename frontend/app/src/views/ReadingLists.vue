@@ -10,8 +10,8 @@
             Create custom lists to organize your reading
           </p>
         </div>
-        <button 
-          @click="showAddListModal = true" 
+        <button
+          @click="showAddListModal = true"
           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -20,7 +20,7 @@
           Add Reading List
         </button>
       </div>
-      
+
       <!-- Loading State -->
       <div v-if="loading" class="px-4 py-12 flex justify-center">
         <svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       </div>
-      
+
       <!-- Error State -->
       <div v-else-if="error" class="px-4 py-5 sm:p-6">
         <div class="rounded-md bg-red-50 dark:bg-red-900 p-4">
@@ -43,8 +43,8 @@
                 {{ error }}
               </h3>
               <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-                <button 
-                  @click="fetchReadingLists" 
+                <button
+                  @click="fetchReadingLists"
                   class="font-medium underline hover:text-red-600 dark:hover:text-red-400"
                 >
                   Try again
@@ -54,7 +54,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Empty State -->
       <div v-else-if="readingLists.length === 0" class="px-4 py-12 text-center">
         <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,8 +65,8 @@
           Get started by creating a new reading list.
         </p>
         <div class="mt-6">
-          <button 
-            @click="showAddListModal = true" 
+          <button
+            @click="showAddListModal = true"
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,13 +76,13 @@
           </button>
         </div>
       </div>
-      
+
       <!-- Reading Lists -->
       <div v-else class="px-4 py-5 sm:p-6">
         <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <li 
-            v-for="list in readingLists" 
-            :key="list.id" 
+          <li
+            v-for="list in readingLists"
+            :key="list.id"
             class="col-span-1 bg-white dark:bg-dark-700 rounded-lg shadow divide-y divide-gray-200 dark:divide-dark-600"
           >
             <div class="w-full flex items-center justify-between p-6 space-x-6">
@@ -142,7 +142,7 @@
         </ul>
       </div>
     </div>
-    
+
     <!-- Add/Edit Reading List Modal -->
     <div v-if="showAddListModal || showEditListModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -163,25 +163,25 @@
                       Name
                     </label>
                     <div class="mt-1">
-                      <input 
-                        type="text" 
-                        id="list-name" 
-                        v-model="listForm.name" 
+                      <input
+                        type="text"
+                        id="list-name"
+                        v-model="listForm.name"
                         class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-700 dark:text-white"
                         placeholder="Reading list name"
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label for="list-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 text-left">
                       Description (optional)
                     </label>
                     <div class="mt-1">
-                      <textarea 
-                        id="list-description" 
-                        v-model="listForm.description" 
-                        rows="3" 
+                      <textarea
+                        id="list-description"
+                        v-model="listForm.description"
+                        rows="3"
                         class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-700 dark:text-white"
                         placeholder="Reading list description"
                       ></textarea>
@@ -192,10 +192,10 @@
             </div>
           </div>
           <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-            <button 
-              type="button" 
-              @click="saveReadingList" 
-              :disabled="!listForm.name || formSubmitting" 
+            <button
+              type="button"
+              @click="saveReadingList"
+              :disabled="!listForm.name || formSubmitting"
               class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -204,9 +204,9 @@
               </svg>
               {{ showEditListModal ? 'Update' : 'Create' }}
             </button>
-            <button 
-              type="button" 
-              @click="closeModal" 
+            <button
+              type="button"
+              @click="closeModal"
               class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-dark-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:col-start-1 sm:text-sm"
             >
               Cancel
@@ -215,7 +215,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -242,10 +242,10 @@
             </div>
           </div>
           <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button 
-              type="button" 
-              @click="confirmDeleteList" 
-              :disabled="deleteSubmitting" 
+            <button
+              type="button"
+              @click="confirmDeleteList"
+              :disabled="deleteSubmitting"
               class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg v-if="deleteSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -254,9 +254,9 @@
               </svg>
               Delete
             </button>
-            <button 
-              type="button" 
-              @click="showDeleteModal = false" 
+            <button
+              type="button"
+              @click="showDeleteModal = false"
               class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-dark-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm"
             >
               Cancel
@@ -295,9 +295,9 @@ const listForm = ref({
 const fetchReadingLists = async () => {
   loading.value = true;
   error.value = null;
-  
+
   try {
-    const response = await axios.get('/api/v1/reading-lists');
+    const response = await axios.get('/v1/reading-lists');
     readingLists.value = response.data;
   } catch (err) {
     error.value = err.response?.data?.detail || 'Failed to load reading lists';
@@ -328,21 +328,21 @@ const deleteReadingList = (list) => {
 
 const saveReadingList = async () => {
   if (!listForm.value.name) return;
-  
+
   formSubmitting.value = true;
-  
+
   try {
     if (showEditListModal.value) {
       // Update existing reading list
-      await axios.put(`/api/v1/reading-lists/${listForm.value.id}`, listForm.value);
+      await axios.put(`/v1/reading-lists/${listForm.value.id}`, listForm.value);
     } else {
       // Create new reading list
-      await axios.post('/api/v1/reading-lists', listForm.value);
+      await axios.post('/v1/reading-lists', listForm.value);
     }
-    
+
     // Refresh reading lists
     await fetchReadingLists();
-    
+
     // Close modal
     closeModal();
   } catch (err) {
@@ -355,15 +355,15 @@ const saveReadingList = async () => {
 
 const confirmDeleteList = async () => {
   if (!selectedList.value) return;
-  
+
   deleteSubmitting.value = true;
-  
+
   try {
-    await axios.delete(`/api/v1/reading-lists/${selectedList.value.id}`);
-    
+    await axios.delete(`/v1/reading-lists/${selectedList.value.id}`);
+
     // Refresh reading lists
     await fetchReadingLists();
-    
+
     // Close modal
     showDeleteModal.value = false;
     selectedList.value = null;
@@ -378,14 +378,14 @@ const confirmDeleteList = async () => {
 const closeModal = () => {
   showAddListModal.value = false;
   showEditListModal.value = false;
-  
+
   // Reset form
   listForm.value = {
     id: null,
     name: '',
     description: '',
   };
-  
+
   selectedList.value = null;
 };
 

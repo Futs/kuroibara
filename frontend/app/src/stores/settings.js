@@ -10,30 +10,30 @@ export const useSettingsStore = defineStore('settings', {
     loading: false,
     error: null,
   }),
-  
+
   getters: {
     getTheme: (state) => state.theme,
     getNsfwBlur: (state) => state.nsfwBlur,
     getDownloadQuality: (state) => state.downloadQuality,
     getDownloadPath: (state) => state.downloadPath,
   },
-  
+
   actions: {
     async fetchUserSettings() {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        const response = await axios.get('/api/v1/users/settings');
-        
+        const response = await axios.get('/v1/users/settings');
+
         // Update local settings from server
         const { theme, nsfw_blur, download_quality, download_path } = response.data;
-        
+
         this.theme = theme || this.theme;
         this.nsfwBlur = nsfw_blur !== undefined ? nsfw_blur : this.nsfwBlur;
         this.downloadQuality = download_quality || this.downloadQuality;
         this.downloadPath = download_path || this.downloadPath;
-        
+
         // Save to localStorage
         this.saveToLocalStorage();
       } catch (error) {
@@ -43,19 +43,19 @@ export const useSettingsStore = defineStore('settings', {
         this.loading = false;
       }
     },
-    
+
     async updateUserSettings() {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        await axios.put('/api/v1/users/settings', {
+        await axios.put('/v1/users/settings', {
           theme: this.theme,
           nsfw_blur: this.nsfwBlur,
           download_quality: this.downloadQuality,
           download_path: this.downloadPath,
         });
-        
+
         // Save to localStorage
         this.saveToLocalStorage();
       } catch (error) {
@@ -65,51 +65,51 @@ export const useSettingsStore = defineStore('settings', {
         this.loading = false;
       }
     },
-    
+
     setTheme(theme) {
       this.theme = theme;
       this.saveToLocalStorage();
       this.applyTheme();
     },
-    
+
     setNsfwBlur(blur) {
       this.nsfwBlur = blur;
       this.saveToLocalStorage();
     },
-    
+
     setDownloadQuality(quality) {
       this.downloadQuality = quality;
       this.saveToLocalStorage();
     },
-    
+
     setDownloadPath(path) {
       this.downloadPath = path;
       this.saveToLocalStorage();
     },
-    
+
     saveToLocalStorage() {
       localStorage.setItem('theme', this.theme);
       localStorage.setItem('nsfwBlur', this.nsfwBlur.toString());
       localStorage.setItem('downloadQuality', this.downloadQuality);
       localStorage.setItem('downloadPath', this.downloadPath);
     },
-    
+
     applyTheme() {
-      const isDark = 
-        this.theme === 'dark' || 
-        (this.theme === 'system' && 
+      const isDark =
+        this.theme === 'dark' ||
+        (this.theme === 'system' &&
          window.matchMedia('(prefers-color-scheme: dark)').matches);
-      
+
       if (isDark) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
     },
-    
+
     initSettings() {
       this.applyTheme();
-      
+
       // Listen for system theme changes if using system theme
       if (this.theme === 'system') {
         window.matchMedia('(prefers-color-scheme: dark)')

@@ -6,7 +6,7 @@
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
     </div>
-    
+
     <div v-else-if="error" class="bg-red-50 dark:bg-red-900 p-4 rounded-md">
       <div class="flex">
         <div class="flex-shrink-0">
@@ -19,8 +19,8 @@
             {{ error }}
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-            <button 
-              @click="fetchMangaDetails" 
+            <button
+              @click="fetchMangaDetails"
               class="font-medium underline hover:text-red-600 dark:hover:text-red-400"
             >
               Try again
@@ -29,19 +29,19 @@
         </div>
       </div>
     </div>
-    
+
     <div v-else-if="manga" class="bg-white dark:bg-dark-800 shadow rounded-lg overflow-hidden">
       <!-- Manga Header -->
       <div class="relative">
         <div class="h-48 sm:h-64 w-full bg-gray-200 dark:bg-dark-700">
-          <img 
-            v-if="manga.banner_url" 
-            :src="manga.banner_url" 
-            :alt="manga.title" 
+          <img
+            v-if="manga.banner_url"
+            :src="manga.banner_url"
+            :alt="manga.title"
             class="w-full h-full object-cover"
           />
         </div>
-        
+
         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
           <h1 class="text-2xl sm:text-3xl font-bold text-white">
             {{ manga.title }}
@@ -51,17 +51,17 @@
           </p>
         </div>
       </div>
-      
+
       <!-- Manga Content -->
       <div class="p-4 sm:p-6">
         <div class="flex flex-col md:flex-row gap-6">
           <!-- Left Column - Cover and Actions -->
           <div class="w-full md:w-1/3 lg:w-1/4">
             <div class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700">
-              <img 
-                v-if="manga.cover_url" 
-                :src="manga.cover_url" 
-                :alt="manga.title" 
+              <img
+                v-if="manga.cover_url"
+                :src="manga.cover_url"
+                :alt="manga.title"
                 class="w-full h-full object-center object-cover"
                 :class="{ 'blur-sm': isNsfw && blurNsfw }"
               />
@@ -70,17 +70,17 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              
+
               <!-- NSFW Badge -->
               <div v-if="isNsfw" class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                 NSFW
               </div>
             </div>
-            
+
             <div class="mt-4 space-y-3">
-              <button 
-                v-if="inLibrary" 
-                @click="removeFromLibrary" 
+              <button
+                v-if="inLibrary"
+                @click="removeFromLibrary"
                 class="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
                 <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -88,10 +88,10 @@
                 </svg>
                 Remove from Library
               </button>
-              
-              <button 
-                v-else 
-                @click="addToLibrary" 
+
+              <button
+                v-else
+                @click="addToLibrary"
                 class="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,10 +99,10 @@
                 </svg>
                 Add to Library
               </button>
-              
-              <button 
+
+              <button
                 v-if="manga.chapters && manga.chapters.length > 0"
-                @click="startReading" 
+                @click="startReading"
                 class="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-secondary-600 hover:bg-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500"
               >
                 <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,10 +110,10 @@
                 </svg>
                 Start Reading
               </button>
-              
-              <button 
+
+              <button
                 v-if="manga.chapters && manga.chapters.length > 0"
-                @click="downloadManga" 
+                @click="downloadManga"
                 class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -123,7 +123,7 @@
               </button>
             </div>
           </div>
-          
+
           <!-- Right Column - Details and Chapters -->
           <div class="w-full md:w-2/3 lg:w-3/4">
             <!-- Manga Info -->
@@ -132,62 +132,62 @@
                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Author:</span>
                 <span class="text-sm text-gray-900 dark:text-white">{{ manga.author }}</span>
               </div>
-              
+
               <div v-if="manga.artist" class="flex items-center">
                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Artist:</span>
                 <span class="text-sm text-gray-900 dark:text-white">{{ manga.artist }}</span>
               </div>
-              
+
               <div v-if="manga.status" class="flex items-center">
                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Status:</span>
                 <span class="text-sm text-gray-900 dark:text-white capitalize">{{ manga.status }}</span>
               </div>
-              
+
               <div v-if="manga.year" class="flex items-center">
                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Year:</span>
                 <span class="text-sm text-gray-900 dark:text-white">{{ manga.year }}</span>
               </div>
-              
+
               <div v-if="manga.provider" class="flex items-center">
                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Provider:</span>
                 <span class="text-sm text-gray-900 dark:text-white">{{ manga.provider }}</span>
               </div>
-              
+
               <div v-if="manga.last_updated" class="flex items-center">
                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Updated:</span>
                 <span class="text-sm text-gray-900 dark:text-white">{{ formatDate(manga.last_updated) }}</span>
               </div>
             </div>
-            
+
             <!-- Genres -->
             <div v-if="manga.genres && manga.genres.length" class="mt-4">
               <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Genres:</h3>
               <div class="mt-1 flex flex-wrap gap-2">
-                <span 
-                  v-for="genre in manga.genres" 
-                  :key="genre" 
+                <span
+                  v-for="genre in manga.genres"
+                  :key="genre"
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200"
                 >
                   {{ genre }}
                 </span>
               </div>
             </div>
-            
+
             <!-- Description -->
             <div v-if="manga.description" class="mt-4">
               <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Description:</h3>
               <div class="mt-1 text-sm text-gray-900 dark:text-white prose dark:prose-invert max-w-none" v-html="formatDescription(manga.description)"></div>
             </div>
-            
+
             <!-- Chapters -->
             <div v-if="manga.chapters && manga.chapters.length" class="mt-6">
               <div class="flex items-center justify-between">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white">Chapters</h3>
                 <div class="flex items-center space-x-2">
                   <label for="sort-chapters" class="text-sm text-gray-500 dark:text-gray-400">Sort:</label>
-                  <select 
-                    id="sort-chapters" 
-                    v-model="chapterSort" 
+                  <select
+                    id="sort-chapters"
+                    v-model="chapterSort"
                     class="text-sm border-gray-300 dark:border-dark-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white"
                   >
                     <option value="desc">Newest First</option>
@@ -195,12 +195,12 @@
                   </select>
                 </div>
               </div>
-              
+
               <div class="mt-2 border-t border-gray-200 dark:border-dark-600">
                 <ul role="list" class="divide-y divide-gray-200 dark:divide-dark-600">
-                  <li 
-                    v-for="chapter in sortedChapters" 
-                    :key="chapter.id" 
+                  <li
+                    v-for="chapter in sortedChapters"
+                    :key="chapter.id"
                     class="py-4 flex items-center justify-between"
                   >
                     <div class="flex items-center">
@@ -214,14 +214,14 @@
                       </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                      <button 
-                        @click="readChapter(chapter.id)" 
+                      <button
+                        @click="readChapter(chapter.id)"
                         class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                       >
                         Read
                       </button>
-                      <button 
-                        @click="downloadChapter(chapter.id)" 
+                      <button
+                        @click="downloadChapter(chapter.id)"
                         class="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-dark-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                       >
                         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,11 +264,11 @@ const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 
 const sortedChapters = computed(() => {
   if (!manga.value?.chapters) return [];
-  
+
   return [...manga.value.chapters].sort((a, b) => {
     const aNum = parseFloat(a.number) || 0;
     const bNum = parseFloat(b.number) || 0;
-    
+
     if (chapterSort.value === 'asc') {
       return aNum - bNum;
     } else {
@@ -280,11 +280,11 @@ const sortedChapters = computed(() => {
 const fetchMangaDetails = async () => {
   loading.value = true;
   error.value = null;
-  
+
   try {
-    const response = await axios.get(`/api/v1/manga/${mangaId.value}`);
+    const response = await axios.get(`/v1/manga/${mangaId.value}`);
     manga.value = response.data;
-    
+
     // Check if manga is in library
     checkLibraryStatus();
   } catch (err) {
@@ -297,7 +297,7 @@ const fetchMangaDetails = async () => {
 
 const checkLibraryStatus = async () => {
   try {
-    const response = await axios.get(`/api/v1/library/check/${mangaId.value}`);
+    const response = await axios.get(`/v1/library/check/${mangaId.value}`);
     inLibrary.value = response.data.in_library;
   } catch (err) {
     console.error('Error checking library status:', err);
@@ -337,12 +337,12 @@ const readChapter = (chapterId) => {
 
 const downloadManga = async () => {
   try {
-    const response = await axios.post(`/api/v1/manga/${mangaId.value}/download`, {
+    const response = await axios.post(`/v1/manga/${mangaId.value}/download`, {
       quality: settingsStore.getDownloadQuality
     }, {
       responseType: 'blob'
     });
-    
+
     // Create a download link
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
@@ -360,13 +360,13 @@ const downloadManga = async () => {
 const downloadChapter = async (chapterId) => {
   try {
     const chapter = manga.value.chapters.find(c => c.id === chapterId);
-    
-    const response = await axios.post(`/api/v1/manga/${mangaId.value}/chapters/${chapterId}/download`, {
+
+    const response = await axios.post(`/v1/manga/${mangaId.value}/chapters/${chapterId}/download`, {
       quality: settingsStore.getDownloadQuality
     }, {
       responseType: 'blob'
     });
-    
+
     // Create a download link
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
@@ -383,7 +383,7 @@ const downloadChapter = async (chapterId) => {
 
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
-  
+
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -394,7 +394,7 @@ const formatDate = (dateString) => {
 
 const formatDescription = (description) => {
   if (!description) return '';
-  
+
   // Convert newlines to <br> tags
   return description.replace(/\n/g, '<br>');
 };

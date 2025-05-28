@@ -18,7 +18,7 @@ export const useReaderStore = defineStore('reader', {
       autoAdvance: localStorage.getItem('autoAdvance') === 'true',
     },
   }),
-  
+
   getters: {
     getManga: (state) => state.manga,
     getChapter: (state) => state.chapter,
@@ -40,14 +40,14 @@ export const useReaderStore = defineStore('reader', {
       return currentIndex > 0;
     },
   },
-  
+
   actions: {
     async fetchManga(mangaId) {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        const response = await axios.get(`/api/v1/manga/${mangaId}`);
+        const response = await axios.get(`/v1/manga/${mangaId}`);
         this.manga = response.data;
         return response.data;
       } catch (error) {
@@ -57,13 +57,13 @@ export const useReaderStore = defineStore('reader', {
         this.loading = false;
       }
     },
-    
+
     async fetchChapters(mangaId) {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        const response = await axios.get(`/api/v1/manga/${mangaId}/chapters`);
+        const response = await axios.get(`/v1/manga/${mangaId}/chapters`);
         this.chapters = response.data;
         return response.data;
       } catch (error) {
@@ -73,13 +73,13 @@ export const useReaderStore = defineStore('reader', {
         this.loading = false;
       }
     },
-    
+
     async fetchChapter(mangaId, chapterId) {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        const response = await axios.get(`/api/v1/manga/${mangaId}/chapters/${chapterId}`);
+        const response = await axios.get(`/v1/manga/${mangaId}/chapters/${chapterId}`);
         this.chapter = response.data;
         return response.data;
       } catch (error) {
@@ -89,13 +89,13 @@ export const useReaderStore = defineStore('reader', {
         this.loading = false;
       }
     },
-    
+
     async fetchPages(mangaId, chapterId) {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        const response = await axios.get(`/api/v1/manga/${mangaId}/chapters/${chapterId}/pages`);
+        const response = await axios.get(`/v1/manga/${mangaId}/chapters/${chapterId}/pages`);
         this.pages = response.data;
         return response.data;
       } catch (error) {
@@ -105,10 +105,10 @@ export const useReaderStore = defineStore('reader', {
         this.loading = false;
       }
     },
-    
+
     async updateReadingProgress(mangaId, chapterId, page) {
       try {
-        await axios.post(`/api/v1/manga/${mangaId}/progress`, {
+        await axios.post(`/v1/manga/${mangaId}/progress`, {
           chapter_id: chapterId,
           page,
         });
@@ -116,14 +116,14 @@ export const useReaderStore = defineStore('reader', {
         console.error('Failed to update reading progress:', error);
       }
     },
-    
+
     setCurrentPage(page) {
       this.currentPage = page;
       if (this.manga && this.chapter) {
         this.updateReadingProgress(this.manga.id, this.chapter.id, page);
       }
     },
-    
+
     nextPage() {
       if (this.hasNextPage) {
         this.currentPage++;
@@ -131,7 +131,7 @@ export const useReaderStore = defineStore('reader', {
         this.loadNextChapter();
       }
     },
-    
+
     prevPage() {
       if (this.hasPrevPage) {
         this.currentPage--;
@@ -139,32 +139,32 @@ export const useReaderStore = defineStore('reader', {
         this.loadPrevChapter();
       }
     },
-    
+
     async loadNextChapter() {
       if (!this.hasNextChapter) return;
-      
+
       const currentIndex = this.chapters.findIndex(c => c.id === this.chapter.id);
       const nextChapter = this.chapters[currentIndex + 1];
-      
+
       await this.fetchChapter(this.manga.id, nextChapter.id);
       await this.fetchPages(this.manga.id, nextChapter.id);
       this.currentPage = 1;
     },
-    
+
     async loadPrevChapter() {
       if (!this.hasPrevChapter) return;
-      
+
       const currentIndex = this.chapters.findIndex(c => c.id === this.chapter.id);
       const prevChapter = this.chapters[currentIndex - 1];
-      
+
       await this.fetchChapter(this.manga.id, prevChapter.id);
       await this.fetchPages(this.manga.id, prevChapter.id);
       this.currentPage = this.pages.length;
     },
-    
+
     updateSettings(settings) {
       this.settings = { ...this.settings, ...settings };
-      
+
       // Save settings to localStorage
       Object.entries(this.settings).forEach(([key, value]) => {
         localStorage.setItem(key, value.toString());

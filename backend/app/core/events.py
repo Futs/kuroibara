@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.deps import set_redis_client
 from app.db.session import engine
 from app.db.init_db import init_db
+from app.core.services.provider_monitor import provider_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,15 @@ def startup_event_handler(app: FastAPI) -> Callable:
             logger.error(f"Error initializing database: {e}")
             raise
 
+        # Initialize and test providers
+        try:
+            await provider_monitor.test_all_providers_on_startup()
+            await provider_monitor.start_monitoring()
+            logger.info("Provider monitoring initialized successfully")
+        except Exception as e:
+            logger.error(f"Error initializing provider monitoring: {e}")
+            # Don't raise here as provider monitoring is not critical for app startup
+
         logger.info("Application startup complete")
 
     return start_app
@@ -57,6 +67,13 @@ def startup_event_handler(app: FastAPI) -> Callable:
 
 def shutdown_event_handler(app: FastAPI) -> Callable:
     async def stop_app() -> None:
+        # Stop provider monitoring
+        try:
+            await provider_monitor.stop_monitoring()
+            logger.info("Provider monitoring stopped")
+        except Exception as e:
+            logger.warning(f"Error stopping provider monitoring: {e}")
+
         # Close Redis connection
         if hasattr(app.state, "redis") and app.state.redis:
             try:

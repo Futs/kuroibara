@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 
 const authStore = useAuthStore();
@@ -149,4 +149,13 @@ const testFunction = () => {
   console.log('Test button clicked!');
   alert('Test button works!');
 };
+
+onMounted(() => {
+  console.log('Login.vue: Component mounted');
+  console.log('Login.vue: Auth store state:', {
+    isAuthenticated: authStore.isAuthenticated,
+    hasToken: !!authStore.token,
+    user: authStore.user
+  });
+});
 </script>

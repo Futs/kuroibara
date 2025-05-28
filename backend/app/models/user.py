@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy import Boolean, Column, String, Text
+from sqlalchemy import Boolean, Column, String, Text, Integer
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -28,6 +28,9 @@ class User(BaseModel):
     # External Account Links
     anilist_username = Column(String(100), nullable=True)
     myanimelist_username = Column(String(100), nullable=True)
+
+    # Provider monitoring preferences
+    provider_check_interval = Column(Integer, default=60, nullable=False)  # minutes: 30, 60, 120, 1440 (daily), 10080 (weekly), 43200 (monthly)
 
     # Relationships
     manga_items = relationship("MangaUserLibrary", back_populates="user", cascade="all, delete-orphan")

@@ -1,16 +1,24 @@
 from typing import Optional, List, Dict, Any
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.models.manga import MangaType, MangaStatus
 
 
 class ProviderInfo(BaseModel):
-    """Provider information schema."""
+    """Provider information schema with health status."""
 
     id: str
     name: str
     url: str
     supports_nsfw: bool
+    status: str = "unknown"
+    is_enabled: bool = True
+    last_check: Optional[datetime] = None
+    response_time: Optional[int] = None
+    uptime_percentage: int = 100
+    consecutive_failures: int = 0
+    is_healthy: bool = True
 
 
 class SearchQuery(BaseModel):

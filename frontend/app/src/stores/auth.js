@@ -113,9 +113,15 @@ export const useAuthStore = defineStore('auth', {
     },
 
     initAuth() {
+      console.log('Auth store: initAuth called');
+      console.log('Auth store: token exists:', !!this.token);
+
       if (this.token) {
+        console.log('Auth store: Setting authorization header and fetching user');
         axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
         this.fetchUser();
+      } else {
+        console.log('Auth store: No token found, user not authenticated');
       }
     },
   },

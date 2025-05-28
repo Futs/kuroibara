@@ -255,8 +255,7 @@ const logout = () => {
 };
 
 onMounted(() => {
-  // Initialize auth and settings
-  authStore.initAuth();
+  // Initialize settings (auth is already initialized in App.vue)
   settingsStore.initSettings();
 
   // Close menus when clicking outside

@@ -326,10 +326,24 @@ const checkLibraryStatus = async () => {
 
 const addToLibrary = async () => {
   try {
-    await libraryStore.addToLibrary(mangaId.value);
+    let actualMangaId = mangaId.value;
+
+    // If this is an external manga, create a local record first
+    if (isExternal.value) {
+      const response = await api.post('/v1/manga/from-external', {}, {
+        params: {
+          provider: provider.value,
+          external_id: mangaId.value
+        }
+      });
+      actualMangaId = response.data.id;
+    }
+
+    await libraryStore.addToLibrary(actualMangaId);
     inLibrary.value = true;
   } catch (err) {
     console.error('Error adding to library:', err);
+    alert('Failed to add manga to library: ' + (err.response?.data?.detail || err.message));
   }
 };
 

@@ -4,6 +4,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
 from app.models.user import User
@@ -30,6 +31,7 @@ async def read_reading_lists(
     """
     result = await db.execute(
         select(ReadingList)
+        .options(selectinload(ReadingList.manga))
         .where(ReadingList.user_id == current_user.id)
         .offset(skip)
         .limit(limit)
@@ -89,7 +91,12 @@ async def read_reading_list(
     """
     Get a reading list by ID.
     """
-    reading_list = await db.get(ReadingList, uuid.UUID(reading_list_id))
+    result = await db.execute(
+        select(ReadingList)
+        .options(selectinload(ReadingList.manga))
+        .where(ReadingList.id == uuid.UUID(reading_list_id))
+    )
+    reading_list = result.scalars().first()
 
     if not reading_list:
         raise HTTPException(

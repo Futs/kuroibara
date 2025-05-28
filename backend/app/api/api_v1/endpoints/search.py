@@ -213,6 +213,23 @@ async def search_manga(
     }
 
 
+@router.get("/genres", response_model=List[str])
+async def get_genres(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get available manga genres.
+    """
+    # Common manga genres
+    genres = [
+        "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror", "Mystery",
+        "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller",
+        "Ecchi", "Harem", "Isekai", "Josei", "Mecha", "Military", "Music", "Parody",
+        "Psychological", "School", "Seinen", "Shoujo", "Shounen", "Yaoi", "Yuri"
+    ]
+    return sorted(genres)
+
+
 @router.post("/filter", response_model=SearchResponse)
 async def filter_manga(
     filter_data: SearchFilter,

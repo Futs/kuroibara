@@ -496,3 +496,67 @@ async def get_chapter_pages(
         })
 
     return page_data
+
+
+@router.post("/from-external", response_model=MangaSchema)
+async def create_manga_from_external(
+    provider: str,
+    external_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Create a local manga record from external provider data.
+    """
+    try:
+        # Get the provider
+        provider_instance = provider_registry.get_provider(provider)
+        if not provider_instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Provider '{provider}' not found",
+            )
+
+        # Check if manga already exists
+        result = await db.execute(
+            select(Manga).where(
+                (Manga.provider == provider) &
+                (Manga.external_id == external_id)
+            )
+        )
+        existing_manga = result.scalars().first()
+        if existing_manga:
+            return existing_manga
+
+        # Get manga details from the provider
+        manga_details = await provider_instance.get_manga_details(external_id)
+
+        # Create manga record
+        manga_data = {
+            "title": manga_details.get("title", "Unknown Title"),
+            "description": manga_details.get("description", ""),
+            "author": manga_details.get("author", ""),
+            "artist": manga_details.get("artist", ""),
+            "status": manga_details.get("status", "unknown"),
+            "year": manga_details.get("year"),
+            "provider": provider,
+            "external_id": external_id,
+            "external_url": manga_details.get("url", ""),
+            "cover_image": manga_details.get("cover_image", ""),
+            "is_nsfw": manga_details.get("is_nsfw", False),
+            "is_explicit": manga_details.get("is_explicit", False),
+        }
+
+        manga = Manga(**manga_data)
+        db.add(manga)
+        await db.commit()
+        await db.refresh(manga)
+
+        return manga
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create manga from external source: {str(e)}",
+        )

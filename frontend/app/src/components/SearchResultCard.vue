@@ -120,7 +120,13 @@ const isNsfw = computed(() => props.manga.is_nsfw || props.manga.is_explicit);
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 
 const viewDetails = () => {
-  router.push(`/manga/${props.manga.id}`);
+  // For external manga from providers, use the external endpoint format
+  if (props.manga.provider) {
+    router.push(`/manga/external/${props.manga.provider}/${props.manga.id}`);
+  } else {
+    // For internal manga, use the regular format
+    router.push(`/manga/${props.manga.id}`);
+  }
 };
 
 const addToLibrary = async () => {

@@ -253,6 +253,8 @@ const libraryStore = useLibraryStore();
 const settingsStore = useSettingsStore();
 
 const mangaId = computed(() => route.params.id);
+const provider = computed(() => route.params.provider);
+const isExternal = computed(() => !!provider.value);
 const manga = ref(null);
 const loading = ref(true);
 const error = ref(null);
@@ -282,11 +284,25 @@ const fetchMangaDetails = async () => {
   error.value = null;
 
   try {
-    const response = await axios.get(`/v1/manga/${mangaId.value}`);
+    let response;
+    if (isExternal.value) {
+      // For external manga, use the external endpoint
+      response = await axios.get(`/v1/manga/external/${provider.value}/${mangaId.value}`);
+    } else {
+      // For internal manga, use the regular endpoint
+      response = await axios.get(`/v1/manga/${mangaId.value}`);
+    }
+
     manga.value = response.data;
 
-    // Check if manga is in library
-    checkLibraryStatus();
+    // Check if manga is in library (only for external manga for now)
+    if (isExternal.value) {
+      // For external manga, we might need to implement a different library check
+      // For now, set to false
+      inLibrary.value = false;
+    } else {
+      checkLibraryStatus();
+    }
   } catch (err) {
     error.value = err.response?.data?.detail || 'Failed to load manga details';
     console.error('Error fetching manga details:', err);

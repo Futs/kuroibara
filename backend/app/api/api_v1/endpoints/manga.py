@@ -1,10 +1,12 @@
 from typing import Any, List, Optional
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.deps import get_current_user, get_db
+from app.core.providers.registry import provider_registry
 from app.models.user import User
 from app.models.manga import Manga, Chapter, Page, Genre, Author
 from app.schemas.manga import (
@@ -15,6 +17,7 @@ from app.schemas.manga import (
     ChapterCreate,
     ChapterUpdate,
 )
+from app.schemas.search import SearchResult
 
 router = APIRouter()
 
@@ -45,41 +48,41 @@ async def create_manga(
     """
     # Create manga
     manga = Manga(**manga_data.model_dump(exclude={"genres", "authors"}))
-    
+
     # Add genres
     if manga_data.genres:
         for genre_name in manga_data.genres:
             # Check if genre exists
             result = await db.execute(select(Genre).where(Genre.name == genre_name))
             genre = result.scalars().first()
-            
+
             # Create genre if it doesn't exist
             if not genre:
                 genre = Genre(name=genre_name)
                 db.add(genre)
                 await db.flush()
-            
+
             manga.genres.append(genre)
-    
+
     # Add authors
     if manga_data.authors:
         for author_name in manga_data.authors:
             # Check if author exists
             result = await db.execute(select(Author).where(Author.name == author_name))
             author = result.scalars().first()
-            
+
             # Create author if it doesn't exist
             if not author:
                 author = Author(name=author_name)
                 db.add(author)
                 await db.flush()
-            
+
             manga.authors.append(author)
-    
+
     db.add(manga)
     await db.commit()
     await db.refresh(manga)
-    
+
     return manga
 
 
@@ -93,13 +96,13 @@ async def read_manga_by_id(
     Get manga by ID.
     """
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     return manga
 
 
@@ -114,59 +117,59 @@ async def update_manga(
     Update a manga.
     """
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     # Update manga fields
     update_data = manga_update.model_dump(exclude={"genres", "authors"}, exclude_unset=True)
     for field, value in update_data.items():
         setattr(manga, field, value)
-    
+
     # Update genres
     if manga_update.genres is not None:
         # Clear existing genres
         manga.genres = []
-        
+
         # Add new genres
         for genre_name in manga_update.genres:
             # Check if genre exists
             result = await db.execute(select(Genre).where(Genre.name == genre_name))
             genre = result.scalars().first()
-            
+
             # Create genre if it doesn't exist
             if not genre:
                 genre = Genre(name=genre_name)
                 db.add(genre)
                 await db.flush()
-            
+
             manga.genres.append(genre)
-    
+
     # Update authors
     if manga_update.authors is not None:
         # Clear existing authors
         manga.authors = []
-        
+
         # Add new authors
         for author_name in manga_update.authors:
             # Check if author exists
             result = await db.execute(select(Author).where(Author.name == author_name))
             author = result.scalars().first()
-            
+
             # Create author if it doesn't exist
             if not author:
                 author = Author(name=author_name)
                 db.add(author)
                 await db.flush()
-            
+
             manga.authors.append(author)
-    
+
     await db.commit()
     await db.refresh(manga)
-    
+
     return manga
 
 
@@ -180,13 +183,13 @@ async def delete_manga(
     Delete a manga.
     """
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     # Delete manga
     await db.delete(manga)
     await db.commit()
@@ -203,22 +206,22 @@ async def upload_manga_cover(
     Upload a cover image for a manga.
     """
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     # In a real implementation, this would save the cover image to a storage system
     # and update the manga's cover_image field with the path to the image
-    
+
     # For now, just update the manga with a placeholder path
     manga.cover_image = f"/covers/{manga_id}.jpg"
-    
+
     await db.commit()
     await db.refresh(manga)
-    
+
     return manga
 
 
@@ -234,13 +237,13 @@ async def read_manga_chapters(
     Get chapters for a manga.
     """
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     result = await db.execute(
         select(Chapter)
         .where(Chapter.manga_id == uuid.UUID(manga_id))
@@ -249,7 +252,7 @@ async def read_manga_chapters(
         .limit(limit)
     )
     chapters = result.scalars().all()
-    
+
     return chapters
 
 
@@ -264,18 +267,53 @@ async def create_manga_chapter(
     Create a new chapter for a manga.
     """
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     # Create chapter
     chapter = Chapter(**chapter_data.model_dump())
-    
+
     db.add(chapter)
     await db.commit()
     await db.refresh(chapter)
-    
+
     return chapter
+
+
+@router.get("/external/{provider}/{manga_id}")
+async def get_external_manga_details(
+    provider: str,
+    manga_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get details for an external manga from a provider.
+    """
+    # Get the provider
+    provider_instance = provider_registry.get_provider(provider)
+    if not provider_instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Provider '{provider}' not found",
+        )
+
+    try:
+        # Get manga details from the provider
+        manga_details = await provider_instance.get_manga_details(manga_id)
+
+        # Get chapters from the provider
+        chapters, _, _ = await provider_instance.get_chapters(manga_id)
+
+        # Add chapters to the manga details
+        manga_details["chapters"] = chapters
+
+        return manga_details
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch manga details: {str(e)}",
+        )

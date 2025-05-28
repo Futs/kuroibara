@@ -65,6 +65,11 @@ const routes = [
         component: MangaDetails,
       },
       {
+        path: 'manga/external/:provider/:id',
+        name: 'external-manga-details',
+        component: MangaDetails,
+      },
+      {
         path: 'read/:id/:chapter?/:page?',
         name: 'manga-reader',
         component: MangaReader,

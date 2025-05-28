@@ -77,6 +77,71 @@
             </div>
             <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Full Name
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+                <input
+                  v-model="formData.full_name"
+                  type="text"
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
+                  placeholder="Your full name"
+                />
+              </dd>
+            </div>
+            <div class="bg-white dark:bg-dark-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Bio
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+                <textarea
+                  v-model="formData.bio"
+                  rows="3"
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
+                  placeholder="Tell us about yourself..."
+                />
+              </dd>
+            </div>
+            <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Avatar URL
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+                <input
+                  v-model="formData.avatar"
+                  type="url"
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
+                  placeholder="https://example.com/avatar.jpg"
+                />
+              </dd>
+            </div>
+            <div class="bg-white dark:bg-dark-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                AniList Username
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+                <input
+                  v-model="formData.anilist_username"
+                  type="text"
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
+                  placeholder="Your AniList username"
+                />
+              </dd>
+            </div>
+            <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                MyAnimeList Username
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+                <input
+                  v-model="formData.myanimelist_username"
+                  type="text"
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
+                  placeholder="Your MyAnimeList username"
+                />
+              </dd>
+            </div>
+            <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 New Password
               </dt>
               <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
@@ -161,6 +226,68 @@
           </div>
           <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Full Name
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+              {{ user?.full_name || 'Not set' }}
+            </dd>
+          </div>
+          <div class="bg-white dark:bg-dark-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Bio
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+              {{ user?.bio || 'No bio provided' }}
+            </dd>
+          </div>
+          <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Avatar
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+              <div v-if="user?.avatar" class="flex items-center space-x-3">
+                <img :src="user.avatar" alt="Avatar" class="h-10 w-10 rounded-full object-cover">
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{ user.avatar }}</span>
+              </div>
+              <span v-else class="text-gray-500 dark:text-gray-400">No avatar set</span>
+            </dd>
+          </div>
+          <div class="bg-white dark:bg-dark-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              AniList Account
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+              <a v-if="user?.anilist_username"
+                 :href="`https://anilist.co/user/${user.anilist_username}`"
+                 target="_blank"
+                 class="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
+                {{ user.anilist_username }}
+                <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+              </a>
+              <span v-else class="text-gray-500 dark:text-gray-400">Not linked</span>
+            </dd>
+          </div>
+          <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              MyAnimeList Account
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+              <a v-if="user?.myanimelist_username"
+                 :href="`https://myanimelist.net/profile/${user.myanimelist_username}`"
+                 target="_blank"
+                 class="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
+                {{ user.myanimelist_username }}
+                <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+              </a>
+              <span v-else class="text-gray-500 dark:text-gray-400">Not linked</span>
+            </dd>
+          </div>
+          <div class="bg-gray-50 dark:bg-dark-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Account created
             </dt>
             <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
@@ -199,6 +326,11 @@ const updateError = ref(null);
 const formData = ref({
   username: '',
   email: '',
+  full_name: '',
+  bio: '',
+  avatar: '',
+  anilist_username: '',
+  myanimelist_username: '',
   password: '',
   confirmPassword: '',
   currentPassword: '',
@@ -223,6 +355,11 @@ const resetForm = () => {
     formData.value = {
       username: user.value.username,
       email: user.value.email,
+      full_name: user.value.full_name || '',
+      bio: user.value.bio || '',
+      avatar: user.value.avatar || '',
+      anilist_username: user.value.anilist_username || '',
+      myanimelist_username: user.value.myanimelist_username || '',
       password: '',
       confirmPassword: '',
       currentPassword: '',
@@ -240,7 +377,11 @@ const updateProfile = async () => {
     const payload = {
       username: formData.value.username,
       email: formData.value.email,
-      current_password: formData.value.currentPassword,
+      full_name: formData.value.full_name,
+      bio: formData.value.bio,
+      avatar: formData.value.avatar,
+      anilist_username: formData.value.anilist_username,
+      myanimelist_username: formData.value.myanimelist_username,
     };
 
     if (formData.value.password) {

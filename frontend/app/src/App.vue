@@ -2,9 +2,11 @@
 import { onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSettingsStore } from './stores/settings';
+import { useAuthStore } from './stores/auth';
 
 const route = useRoute();
 const settingsStore = useSettingsStore();
+const authStore = useAuthStore();
 
 // Apply theme on route change
 watch(() => route.path, () => {
@@ -14,6 +16,9 @@ watch(() => route.path, () => {
 onMounted(() => {
   // Initialize settings
   settingsStore.initSettings();
+
+  // Initialize auth
+  authStore.initAuth();
 });
 </script>
 

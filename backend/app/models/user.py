@@ -25,6 +25,10 @@ class User(BaseModel):
     avatar = Column(String(255), nullable=True)
     bio = Column(Text, nullable=True)
 
+    # External Account Links
+    anilist_username = Column(String(100), nullable=True)
+    myanimelist_username = Column(String(100), nullable=True)
+
     # Relationships
     manga_items = relationship("MangaUserLibrary", back_populates="user", cascade="all, delete-orphan")
     reading_lists = relationship("ReadingList", back_populates="user", cascade="all, delete-orphan")

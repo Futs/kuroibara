@@ -8,8 +8,8 @@ import './style.css';
 // Configure axios
 axios.defaults.baseURL = '/api';
 
-// Check for token in localStorage
-const token = localStorage.getItem('token');
+// Check for token in localStorage or sessionStorage
+const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }

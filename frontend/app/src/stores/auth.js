@@ -5,7 +5,7 @@ import router from '../router';
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
-    token: localStorage.getItem('token') || null,
+    token: localStorage.getItem('token') || sessionStorage.getItem('token') || null,
     loading: false,
     error: null,
   }),
@@ -16,7 +16,8 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async login(username, password) {
+    async login(username, password, rememberMe = false) {
+      console.log('Auth store login called with:', { username, rememberMe });
       this.loading = true;
       this.error = null;
 
@@ -31,7 +32,14 @@ export const useAuthStore = defineStore('auth', {
         this.token = access_token;
         this.user = user;
 
-        localStorage.setItem('token', access_token);
+        // Store token based on remember me preference
+        if (rememberMe) {
+          localStorage.setItem('token', access_token);
+          sessionStorage.removeItem('token'); // Clear session storage
+        } else {
+          sessionStorage.setItem('token', access_token);
+          localStorage.removeItem('token'); // Clear local storage
+        }
 
         // Set the Authorization header for all future requests
         axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
@@ -83,11 +91,22 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    logout() {
+    async logout() {
+      // Call backend logout endpoint to blacklist token
+      try {
+        if (this.token) {
+          await axios.post('/v1/auth/logout');
+        }
+      } catch (error) {
+        console.error('Logout error:', error);
+        // Continue with logout even if backend call fails
+      }
+
       this.user = null;
       this.token = null;
 
       localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
 
       router.push('/login');

@@ -24,7 +24,7 @@ from app.db.session import Base
 from app.models.base import BaseModel
 from app.models.user import User
 from app.models.manga import Manga, Chapter, Page, Genre, Author
-from app.models.library import MangaUserLibrary, Category, ReadingList, ReadingProgress, Bookmark
+from app.models.library import MangaUserLibrary, LibraryCategory, ReadingList, ReadingProgress, Bookmark
 
 target_metadata = Base.metadata
 

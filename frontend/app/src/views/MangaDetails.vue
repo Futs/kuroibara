@@ -35,8 +35,8 @@
       <div class="relative">
         <div class="h-48 sm:h-64 w-full bg-gray-200 dark:bg-dark-700">
           <img
-            v-if="manga.banner_url"
-            :src="manga.banner_url"
+            v-if="manga.cover_image"
+            :src="getCoverUrl(manga.id)"
             :alt="manga.title"
             class="w-full h-full object-cover"
           />
@@ -59,8 +59,8 @@
           <div class="w-full md:w-1/3 lg:w-1/4">
             <div class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700">
               <img
-                v-if="manga.cover_url"
-                :src="manga.cover_url"
+                v-if="manga.cover_image"
+                :src="getCoverUrl(manga.id)"
                 :alt="manga.title"
                 class="w-full h-full object-center object-cover"
                 :class="{ 'blur-sm': isNsfw && blurNsfw }"
@@ -245,7 +245,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLibraryStore } from '../stores/library';
 import { useSettingsStore } from '../stores/settings';
-import axios from 'axios';
+import api from '../services/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -279,6 +279,10 @@ const sortedChapters = computed(() => {
   });
 });
 
+const getCoverUrl = (mangaId) => {
+  return `/api/v1/manga/${mangaId}/cover`;
+};
+
 const fetchMangaDetails = async () => {
   loading.value = true;
   error.value = null;
@@ -287,10 +291,10 @@ const fetchMangaDetails = async () => {
     let response;
     if (isExternal.value) {
       // For external manga, use the external endpoint
-      response = await axios.get(`/v1/manga/external/${provider.value}/${mangaId.value}`);
+      response = await api.get(`/v1/manga/external/${provider.value}/${mangaId.value}`);
     } else {
       // For internal manga, use the regular endpoint
-      response = await axios.get(`/v1/manga/${mangaId.value}`);
+      response = await api.get(`/v1/manga/${mangaId.value}`);
     }
 
     manga.value = response.data;
@@ -313,7 +317,7 @@ const fetchMangaDetails = async () => {
 
 const checkLibraryStatus = async () => {
   try {
-    const response = await axios.get(`/v1/library/check/${mangaId.value}`);
+    const response = await api.get(`/v1/library/check/${mangaId.value}`);
     inLibrary.value = response.data.in_library;
   } catch (err) {
     console.error('Error checking library status:', err);
@@ -353,47 +357,41 @@ const readChapter = (chapterId) => {
 
 const downloadManga = async () => {
   try {
-    const response = await axios.post(`/v1/manga/${mangaId.value}/download`, {
-      quality: settingsStore.getDownloadQuality
-    }, {
-      responseType: 'blob'
+    // First, we need to add the manga to library if it's not already there
+    if (!inLibrary.value) {
+      await addToLibrary();
+    }
+
+    // Get the library item ID
+    const libraryResponse = await api.get('/v1/library');
+    const libraryItem = libraryResponse.data.find(item => item.manga_id === mangaId.value);
+
+    if (!libraryItem) {
+      throw new Error('Manga not found in library');
+    }
+
+    // Start the download
+    const response = await api.post(`/v1/library/${libraryItem.id}/download`, {}, {
+      params: {
+        provider: manga.value.provider || 'mangadex',
+        external_id: manga.value.external_id || mangaId.value
+      }
     });
 
-    // Create a download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${manga.value.title}.cbz`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    alert('Download started! Check your downloads page for progress.');
   } catch (err) {
     console.error('Error downloading manga:', err);
-    alert('Failed to download manga');
+    alert('Failed to download manga: ' + (err.response?.data?.detail || err.message));
   }
 };
 
 const downloadChapter = async (chapterId) => {
   try {
-    const chapter = manga.value.chapters.find(c => c.id === chapterId);
-
-    const response = await axios.post(`/v1/manga/${mangaId.value}/chapters/${chapterId}/download`, {
-      quality: settingsStore.getDownloadQuality
-    }, {
-      responseType: 'blob'
-    });
-
-    // Create a download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${manga.value.title} - ${chapter.title}.cbz`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    // For now, just download the whole manga
+    await downloadManga();
   } catch (err) {
     console.error('Error downloading chapter:', err);
-    alert('Failed to download chapter');
+    alert('Failed to download chapter: ' + (err.response?.data?.detail || err.message));
   }
 };
 

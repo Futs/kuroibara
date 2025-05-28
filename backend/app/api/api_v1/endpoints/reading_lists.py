@@ -1,4 +1,5 @@
 from typing import Any, List, Optional
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,7 +35,7 @@ async def read_reading_lists(
         .limit(limit)
     )
     reading_lists = result.scalars().all()
-    
+
     return reading_lists
 
 
@@ -58,24 +59,24 @@ async def create_reading_list(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Reading list with this name already exists",
         )
-    
+
     # Create reading list
     reading_list = ReadingList(
         **reading_list_data.model_dump(exclude={"manga_ids"}),
         user_id=current_user.id,
     )
-    
+
     # Add manga to reading list
     if reading_list_data.manga_ids:
         for manga_id in reading_list_data.manga_ids:
             manga = await db.get(Manga, manga_id)
             if manga:
                 reading_list.manga.append(manga)
-    
+
     db.add(reading_list)
     await db.commit()
     await db.refresh(reading_list)
-    
+
     return reading_list
 
 
@@ -89,20 +90,20 @@ async def read_reading_list(
     Get a reading list by ID.
     """
     reading_list = await db.get(ReadingList, uuid.UUID(reading_list_id))
-    
+
     if not reading_list:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reading list not found",
         )
-    
+
     # Check if reading list belongs to user or is public
     if reading_list.user_id != current_user.id and not reading_list.is_public:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     return reading_list
 
 
@@ -117,13 +118,13 @@ async def update_reading_list(
     Update a reading list.
     """
     reading_list = await db.get(ReadingList, uuid.UUID(reading_list_id))
-    
+
     if not reading_list or reading_list.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reading list not found",
         )
-    
+
     # Check if name is being updated and if it's already taken
     if reading_list_update.name and reading_list_update.name != reading_list.name:
         result = await db.execute(
@@ -136,26 +137,26 @@ async def update_reading_list(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Reading list with this name already exists",
             )
-    
+
     # Update reading list fields
     update_data = reading_list_update.model_dump(exclude={"manga_ids"}, exclude_unset=True)
     for field, value in update_data.items():
         setattr(reading_list, field, value)
-    
+
     # Update manga in reading list
     if reading_list_update.manga_ids is not None:
         # Clear existing manga
         reading_list.manga = []
-        
+
         # Add new manga
         for manga_id in reading_list_update.manga_ids:
             manga = await db.get(Manga, manga_id)
             if manga:
                 reading_list.manga.append(manga)
-    
+
     await db.commit()
     await db.refresh(reading_list)
-    
+
     return reading_list
 
 
@@ -169,13 +170,13 @@ async def delete_reading_list(
     Delete a reading list.
     """
     reading_list = await db.get(ReadingList, uuid.UUID(reading_list_id))
-    
+
     if not reading_list or reading_list.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reading list not found",
         )
-    
+
     # Delete reading list
     await db.delete(reading_list)
     await db.commit()
@@ -192,34 +193,34 @@ async def add_manga_to_reading_list(
     Add a manga to a reading list.
     """
     reading_list = await db.get(ReadingList, uuid.UUID(reading_list_id))
-    
+
     if not reading_list or reading_list.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reading list not found",
         )
-    
+
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     # Check if manga is already in reading list
     if manga in reading_list.manga:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Manga already in reading list",
         )
-    
+
     # Add manga to reading list
     reading_list.manga.append(manga)
-    
+
     await db.commit()
     await db.refresh(reading_list)
-    
+
     return reading_list
 
 
@@ -234,32 +235,32 @@ async def remove_manga_from_reading_list(
     Remove a manga from a reading list.
     """
     reading_list = await db.get(ReadingList, uuid.UUID(reading_list_id))
-    
+
     if not reading_list or reading_list.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reading list not found",
         )
-    
+
     manga = await db.get(Manga, uuid.UUID(manga_id))
-    
+
     if not manga:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     # Check if manga is in reading list
     if manga not in reading_list.manga:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Manga not in reading list",
         )
-    
+
     # Remove manga from reading list
     reading_list.manga.remove(manga)
-    
+
     await db.commit()
     await db.refresh(reading_list)
-    
+
     return reading_list

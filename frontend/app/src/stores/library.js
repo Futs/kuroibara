@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '../services/api';
 
 export const useLibraryStore = defineStore('library', {
   state: () => ({
@@ -36,7 +36,7 @@ export const useLibraryStore = defineStore('library', {
         const { page, limit } = this.pagination;
         const { category, status, sort, order } = this.filters;
 
-        const response = await axios.get('/v1/library', {
+        const response = await api.get('/v1/library', {
           params: {
             page,
             limit,
@@ -47,8 +47,8 @@ export const useLibraryStore = defineStore('library', {
           },
         });
 
-        this.manga = response.data.items;
-        this.pagination.total = response.data.total;
+        this.manga = response.data.items || response.data;
+        this.pagination.total = response.data.total || response.data.length;
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to fetch library';
         console.error('Library fetch error:', error);
@@ -62,7 +62,7 @@ export const useLibraryStore = defineStore('library', {
       this.error = null;
 
       try {
-        const response = await axios.get(`/v1/manga/${id}`);
+        const response = await api.get(`/v1/manga/${id}`);
         this.currentManga = response.data;
         return response.data;
       } catch (error) {
@@ -78,11 +78,12 @@ export const useLibraryStore = defineStore('library', {
       this.error = null;
 
       try {
-        await axios.post('/v1/library', { manga_id: mangaId });
-        this.fetchLibrary();
+        await api.post('/v1/library', { manga_id: mangaId });
+        await this.fetchLibrary();
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to add manga to library';
         console.error('Add to library error:', error);
+        throw error; // Re-throw so calling code can handle it
       } finally {
         this.loading = false;
       }
@@ -93,11 +94,12 @@ export const useLibraryStore = defineStore('library', {
       this.error = null;
 
       try {
-        await axios.delete(`/v1/library/${mangaId}`);
-        this.fetchLibrary();
+        await api.delete(`/v1/library/${mangaId}`);
+        await this.fetchLibrary();
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to remove manga from library';
         console.error('Remove from library error:', error);
+        throw error; // Re-throw so calling code can handle it
       } finally {
         this.loading = false;
       }

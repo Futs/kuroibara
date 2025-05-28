@@ -1,12 +1,15 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict
 import uuid
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
+from app.core.utils import get_cover_storage_path, get_page_storage_path
 from app.models.user import User
 from app.models.manga import Manga, Chapter, Page, Genre, Author
 from app.schemas.manga import (
@@ -317,3 +320,179 @@ async def get_external_manga_details(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch manga details: {str(e)}",
         )
+
+
+@router.get("/{manga_id}/cover")
+async def get_manga_cover(
+    manga_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> FileResponse:
+    """
+    Get the cover image for a manga.
+    """
+    # Check if manga exists
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    # Get cover path
+    cover_path = get_cover_storage_path(uuid.UUID(manga_id))
+
+    # Check if cover file exists
+    if not os.path.exists(cover_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cover image not found",
+        )
+
+    return FileResponse(
+        path=cover_path,
+        media_type="image/jpeg",
+        filename=f"cover_{manga_id}.jpg"
+    )
+
+
+@router.get("/{manga_id}/chapters/{chapter_id}/pages/{page_number}")
+async def get_manga_page(
+    manga_id: str,
+    chapter_id: str,
+    page_number: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> FileResponse:
+    """
+    Get a specific page from a manga chapter.
+    """
+    # Check if manga exists
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    # Check if chapter exists
+    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+    if not chapter or chapter.manga_id != uuid.UUID(manga_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chapter not found",
+        )
+
+    # Get page from database
+    result = await db.execute(
+        select(Page).where(
+            (Page.chapter_id == uuid.UUID(chapter_id)) &
+            (Page.number == page_number)
+        )
+    )
+    page = result.scalars().first()
+
+    if not page:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found",
+        )
+
+    # Check if page file exists
+    if not os.path.exists(page.file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page file not found",
+        )
+
+    # Determine media type based on file extension
+    file_ext = os.path.splitext(page.file_path)[1].lower()
+    media_type = "image/jpeg"
+    if file_ext == ".png":
+        media_type = "image/png"
+    elif file_ext == ".gif":
+        media_type = "image/gif"
+    elif file_ext == ".webp":
+        media_type = "image/webp"
+
+    return FileResponse(
+        path=page.file_path,
+        media_type=media_type,
+        filename=f"page_{page_number}{file_ext}"
+    )
+
+
+@router.get("/{manga_id}/chapters/{chapter_id}")
+async def get_chapter_by_id(
+    manga_id: str,
+    chapter_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ChapterSchema:
+    """
+    Get a specific chapter by ID.
+    """
+    # Check if manga exists
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    # Check if chapter exists
+    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+    if not chapter or chapter.manga_id != uuid.UUID(manga_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chapter not found",
+        )
+
+    return chapter
+
+
+@router.get("/{manga_id}/chapters/{chapter_id}/pages")
+async def get_chapter_pages(
+    manga_id: str,
+    chapter_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:
+    """
+    Get pages for a specific chapter.
+    """
+    # Check if manga exists
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    # Check if chapter exists
+    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+    if not chapter or chapter.manga_id != uuid.UUID(manga_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chapter not found",
+        )
+
+    # Get pages
+    result = await db.execute(
+        select(Page)
+        .where(Page.chapter_id == uuid.UUID(chapter_id))
+        .order_by(Page.number)
+    )
+    pages = result.scalars().all()
+
+    # Return page data with URLs
+    page_data = []
+    for page in pages:
+        page_data.append({
+            "id": str(page.id),
+            "number": page.number,
+            "url": f"/api/v1/manga/{manga_id}/chapters/{chapter_id}/pages/{page.number}",
+            "file_path": page.file_path,
+        })
+
+    return page_data

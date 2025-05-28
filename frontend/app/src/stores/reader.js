@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '../services/api';
 
 export const useReaderStore = defineStore('reader', {
   state: () => ({
@@ -47,7 +47,7 @@ export const useReaderStore = defineStore('reader', {
       this.error = null;
 
       try {
-        const response = await axios.get(`/v1/manga/${mangaId}`);
+        const response = await api.get(`/v1/manga/${mangaId}`);
         this.manga = response.data;
         return response.data;
       } catch (error) {
@@ -63,7 +63,7 @@ export const useReaderStore = defineStore('reader', {
       this.error = null;
 
       try {
-        const response = await axios.get(`/v1/manga/${mangaId}/chapters`);
+        const response = await api.get(`/v1/manga/${mangaId}/chapters`);
         this.chapters = response.data;
         return response.data;
       } catch (error) {
@@ -79,7 +79,7 @@ export const useReaderStore = defineStore('reader', {
       this.error = null;
 
       try {
-        const response = await axios.get(`/v1/manga/${mangaId}/chapters/${chapterId}`);
+        const response = await api.get(`/v1/manga/${mangaId}/chapters/${chapterId}`);
         this.chapter = response.data;
         return response.data;
       } catch (error) {
@@ -95,7 +95,7 @@ export const useReaderStore = defineStore('reader', {
       this.error = null;
 
       try {
-        const response = await axios.get(`/v1/manga/${mangaId}/chapters/${chapterId}/pages`);
+        const response = await api.get(`/v1/manga/${mangaId}/chapters/${chapterId}/pages`);
         this.pages = response.data;
         return response.data;
       } catch (error) {
@@ -108,7 +108,7 @@ export const useReaderStore = defineStore('reader', {
 
     async updateReadingProgress(mangaId, chapterId, page) {
       try {
-        await axios.post(`/v1/manga/${mangaId}/progress`, {
+        await api.post(`/v1/library/${mangaId}/progress`, {
           chapter_id: chapterId,
           page,
         });

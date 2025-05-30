@@ -531,26 +531,14 @@ async def create_manga_from_external(
         # Get manga details from the provider
         manga_details = await provider_instance.get_manga_details(external_id)
 
-        # Create manga record
-        manga_data = {
-            "title": manga_details.get("title", "Unknown Title"),
-            "description": manga_details.get("description", ""),
-            "author": manga_details.get("author", ""),
-            "artist": manga_details.get("artist", ""),
-            "status": manga_details.get("status", "unknown"),
-            "year": manga_details.get("year"),
-            "provider": provider,
-            "external_id": external_id,
-            "external_url": manga_details.get("url", ""),
-            "cover_image": manga_details.get("cover_image", ""),
-            "is_nsfw": manga_details.get("is_nsfw", False),
-            "is_explicit": manga_details.get("is_explicit", False),
-        }
-
-        manga = Manga(**manga_data)
-        db.add(manga)
-        await db.commit()
-        await db.refresh(manga)
+        # Create manga record using the service function
+        from app.core.services.import_file import create_manga_from_external_source
+        manga = await create_manga_from_external_source(
+            provider_name=provider,
+            external_id=external_id,
+            manga_details=manga_details,
+            db=db,
+        )
 
         return manga
 

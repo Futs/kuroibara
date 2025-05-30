@@ -330,14 +330,21 @@ const saveReadingList = async () => {
   if (!listForm.value.name) return;
 
   formSubmitting.value = true;
+  error.value = null; // Clear any previous errors
 
   try {
     if (showEditListModal.value) {
       // Update existing reading list
-      await axios.put(`/v1/reading-lists/${listForm.value.id}`, listForm.value);
+      await axios.put(`/v1/reading-lists/${listForm.value.id}`, {
+        name: listForm.value.name,
+        description: listForm.value.description
+      });
     } else {
       // Create new reading list
-      await axios.post('/v1/reading-lists', listForm.value);
+      await axios.post('/v1/reading-lists', {
+        name: listForm.value.name,
+        description: listForm.value.description
+      });
     }
 
     // Refresh reading lists

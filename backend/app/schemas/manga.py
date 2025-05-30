@@ -9,9 +9,9 @@ from app.schemas.base import BaseSchema
 # Genre schemas
 class GenreBase(BaseModel):
     """Base genre schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     name: str
     description: Optional[str] = None
 
@@ -23,7 +23,7 @@ class GenreCreate(GenreBase):
 
 class GenreUpdate(GenreBase):
     """Genre update schema."""
-    
+
     name: Optional[str] = None
 
 
@@ -35,9 +35,9 @@ class Genre(GenreBase, BaseSchema):
 # Author schemas
 class AuthorBase(BaseModel):
     """Base author schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     name: str
     alternative_names: Optional[Dict[str, str]] = None
     biography: Optional[str] = None
@@ -50,7 +50,7 @@ class AuthorCreate(AuthorBase):
 
 class AuthorUpdate(AuthorBase):
     """Author update schema."""
-    
+
     name: Optional[str] = None
 
 
@@ -62,9 +62,9 @@ class Author(AuthorBase, BaseSchema):
 # Chapter schemas
 class PageBase(BaseModel):
     """Base page schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     number: int
     file_path: str
     width: Optional[int] = None
@@ -78,15 +78,15 @@ class PageCreate(PageBase):
 
 class Page(PageBase, BaseSchema):
     """Page schema for responses."""
-    
+
     chapter_id: UUID
 
 
 class ChapterBase(BaseModel):
     """Base chapter schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     title: Optional[str] = None
     number: str
     volume: Optional[str] = None
@@ -99,13 +99,13 @@ class ChapterBase(BaseModel):
 
 class ChapterCreate(ChapterBase):
     """Chapter creation schema."""
-    
+
     manga_id: UUID
 
 
 class ChapterUpdate(ChapterBase):
     """Chapter update schema."""
-    
+
     title: Optional[str] = None
     number: Optional[str] = None
     volume: Optional[str] = None
@@ -118,7 +118,7 @@ class ChapterUpdate(ChapterBase):
 
 class Chapter(ChapterBase, BaseSchema):
     """Chapter schema for responses."""
-    
+
     manga_id: UUID
     pages: Optional[List[Page]] = None
 
@@ -126,9 +126,9 @@ class Chapter(ChapterBase, BaseSchema):
 # Manga schemas
 class MangaBase(BaseModel):
     """Base manga schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     title: str
     alternative_titles: Optional[Dict[str, str]] = None
     description: Optional[str] = None
@@ -137,19 +137,22 @@ class MangaBase(BaseModel):
     status: MangaStatus = MangaStatus.UNKNOWN
     year: Optional[int] = None
     is_nsfw: bool = False
+    provider: Optional[str] = None
+    external_id: Optional[str] = None
+    external_url: Optional[str] = None
     external_ids: Optional[Dict[str, str]] = None
 
 
 class MangaCreate(MangaBase):
     """Manga creation schema."""
-    
+
     genres: Optional[List[str]] = None
     authors: Optional[List[str]] = None
 
 
 class MangaUpdate(MangaBase):
     """Manga update schema."""
-    
+
     title: Optional[str] = None
     alternative_titles: Optional[Dict[str, str]] = None
     description: Optional[str] = None
@@ -158,6 +161,9 @@ class MangaUpdate(MangaBase):
     status: Optional[MangaStatus] = None
     year: Optional[int] = None
     is_nsfw: Optional[bool] = None
+    provider: Optional[str] = None
+    external_id: Optional[str] = None
+    external_url: Optional[str] = None
     external_ids: Optional[Dict[str, str]] = None
     genres: Optional[List[str]] = None
     authors: Optional[List[str]] = None
@@ -165,7 +171,7 @@ class MangaUpdate(MangaBase):
 
 class Manga(MangaBase, BaseSchema):
     """Manga schema for responses."""
-    
+
     genres: List[Genre] = []
     authors: List[Author] = []
     chapters: Optional[List[Chapter]] = None

@@ -4,7 +4,7 @@ import tempfile
 import zipfile
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 from uuid import UUID
 from pyunpack import Archive
 
@@ -329,3 +329,78 @@ async def create_manga_from_import(
     await db.refresh(library_item)
 
     return manga, library_item
+
+
+async def create_manga_from_external_source(
+    provider_name: str,
+    external_id: str,
+    manga_details: Dict[str, Any],
+    db: AsyncSession,
+) -> Manga:
+    """
+    Create a new manga from external provider data.
+
+    Args:
+        provider_name: Name of the provider
+        external_id: External ID of the manga
+        manga_details: Manga details from the provider
+        db: Database session
+
+    Returns:
+        The created manga
+    """
+    from app.models.manga import Genre, Author
+
+    # Create manga
+    manga = Manga(
+        title=manga_details.get("title", "Unknown Title"),
+        description=manga_details.get("description", ""),
+        status=manga_details.get("status", "unknown"),
+        year=manga_details.get("year"),
+        provider=provider_name,
+        external_id=external_id,
+        external_url=manga_details.get("url", ""),
+        cover_image=manga_details.get("cover_image", ""),
+        is_nsfw=manga_details.get("is_nsfw", False) or manga_details.get("is_explicit", False),
+    )
+
+    db.add(manga)
+    await db.flush()
+
+    # Add genres if provided
+    genres = manga_details.get("genres", [])
+    if genres:
+        for genre_name in genres:
+            # Check if genre exists
+            result = await db.execute(select(Genre).where(Genre.name == genre_name))
+            genre = result.scalars().first()
+
+            # Create genre if it doesn't exist
+            if not genre:
+                genre = Genre(name=genre_name)
+                db.add(genre)
+                await db.flush()
+
+            manga.genres.append(genre)
+
+    # Add authors if provided
+    authors = manga_details.get("authors", [])
+    if authors:
+        for author_name in authors:
+            # Check if author exists
+            result = await db.execute(select(Author).where(Author.name == author_name))
+            author = result.scalars().first()
+
+            # Create author if it doesn't exist
+            if not author:
+                author = Author(name=author_name)
+                db.add(author)
+                await db.flush()
+
+            manga.authors.append(author)
+
+    # Commit changes
+    await db.commit()
+    await db.refresh(manga)
+
+    return manga

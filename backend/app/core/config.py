@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True)
+    model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8", case_sensitive=True)
 
     # Application
     APP_NAME: str = "Kurobara"
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: str = "localhost,127.0.0.1"
 
     # Database
-    DB_CONNECTION: str = "postgresql"
+    DB_CONNECTION: str = "postgresql+asyncpg"
     DB_HOST: str = "postgres"
     DB_PORT: str = "5432"
     DB_DATABASE: str = "kurobara"
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return v
         return PostgresDsn.build(
-            scheme=values.data.get("DB_CONNECTION", "postgresql"),
+            scheme=values.data.get("DB_CONNECTION", "postgresql+asyncpg"),
             username=values.data.get("DB_USERNAME", ""),
             password=values.data.get("DB_PASSWORD", ""),
             host=values.data.get("DB_HOST", ""),

@@ -63,7 +63,7 @@
                 :src="getCoverUrl(manga.id)"
                 :alt="manga.title"
                 class="w-full h-full object-center object-cover"
-                :class="{ 'blur-sm': isNsfw && blurNsfw }"
+                :class="{ 'blur-md': isNsfw && blurNsfw }"
               />
               <div v-else class="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                 <svg class="h-12 w-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

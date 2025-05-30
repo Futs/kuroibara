@@ -77,6 +77,11 @@ export const useSettingsStore = defineStore('settings', {
       this.saveToLocalStorage();
     },
 
+    toggleNsfwBlur() {
+      this.nsfwBlur = !this.nsfwBlur;
+      this.saveToLocalStorage();
+    },
+
     setDownloadQuality(quality) {
       this.downloadQuality = quality;
       this.saveToLocalStorage();

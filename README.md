@@ -220,3 +220,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Vue.js Community** - For excellent frontend framework and ecosystem
 - **FastAPI** - For the high-performance backend framework
 - **Scanlation Groups** - For their dedication to manga translation
+
+![Alt](https://repobeats.axiom.co/api/embed/0d7fd2d308f59b6eeed9cadde2c02b33a9973086.svg "Repobeats analytics image")
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script to verify the fixes for Kurobara issues.
+Test script to verify the fixes for Kuroibara issues.
 """
 
 import requests
@@ -34,7 +34,7 @@ def test_endpoint(endpoint, method="GET", data=None, headers=None, expected_stat
 
 def main():
     """Test the main fixes."""
-    print("Testing Kurobara API fixes...")
+    print("Testing Kuroibara API fixes...")
     print("=" * 50)
     
     # Test 1: Check if genres endpoint exists (was missing)

@@ -3,7 +3,7 @@
     <div class="bg-white dark:bg-dark-800 shadow rounded-lg overflow-hidden">
       <div class="px-4 py-5 sm:p-6">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome to Kurobara
+          Welcome to Kuroibara
         </h1>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           Black Rose - Your Personal Manga Library

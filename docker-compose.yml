@@ -18,7 +18,7 @@ services:
       - .env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     networks:
-      - kurobara-network
+      - kuroibara-network
 
   # Frontend Vue.js application
   frontend:
@@ -31,7 +31,7 @@ services:
     depends_on:
       - backend
     networks:
-      - kurobara-network
+      - kuroibara-network
 
   # PostgreSQL Database
   postgres:
@@ -46,7 +46,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
     networks:
-      - kurobara-network
+      - kuroibara-network
 
   # Valkey (Redis fork) for caching
   valkey:
@@ -58,7 +58,7 @@ services:
       - "6379:6379"
     command: ["valkey-server", "--appendonly", "yes"]
     networks:
-      - kurobara-network
+      - kuroibara-network
 
   # Mailhog for email testing
   mailhog:
@@ -68,10 +68,10 @@ services:
       - "1025:1025"  # SMTP port
       - "8025:8025"  # Web UI port
     networks:
-      - kurobara-network
+      - kuroibara-network
 
 networks:
-  kurobara-network:
+  kuroibara-network:
     driver: bridge
 
 volumes:

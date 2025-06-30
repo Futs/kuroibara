@@ -9,7 +9,7 @@ from app.core.providers.registry import provider_registry
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="API for Kurobara manga/manhua/manhwa library",
+    description="API for Kuroibara manga/manhua/manhwa library",
     version="0.1.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",

@@ -6,7 +6,7 @@
           <div class="flex">
             <div class="flex-shrink-0 flex items-center">
               <router-link to="/" class="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                Kurobara
+                Kuroibara
               </router-link>
             </div>
             <nav class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -203,7 +203,7 @@
     <footer class="bg-white dark:bg-dark-800 shadow-sm">
       <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <div class="text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>&copy; {{ new Date().getFullYear() }} Kurobara. All rights reserved.</p>
+          <p>&copy; {{ new Date().getFullYear() }} Kuroibara. All rights reserved.</p>
         </div>
       </div>
     </footer>

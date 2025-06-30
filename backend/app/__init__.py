@@ -1,1 +1,1 @@
-# Kurobara backend application
+# Kuroibara backend application

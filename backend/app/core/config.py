@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=True)
 
     # Application
-    APP_NAME: str = "Kurobara"
+    APP_NAME: str = "Kuroibara"
     APP_ENV: str = "development"
     APP_DEBUG: bool = True
     APP_URL: str = "http://localhost:8000"
@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     DB_CONNECTION: str = "postgresql+asyncpg"
     DB_HOST: str = "postgres"
     DB_PORT: str = "5432"
-    DB_DATABASE: str = "kurobara"
-    DB_USERNAME: str = "kurobara"
+    DB_DATABASE: str = "kuroibara"
+    DB_USERNAME: str = "kuroibara"
     DB_PASSWORD: str = "password"
 
     @property
@@ -54,11 +54,11 @@ class Settings(BaseSettings):
     MAIL_USERNAME: Optional[str] = None
     MAIL_PASSWORD: Optional[str] = None
     MAIL_ENCRYPTION: Optional[str] = None
-    MAIL_FROM_ADDRESS: str = "noreply@kurobara.app"
-    MAIL_FROM_NAME: str = "Kurobara"
+    MAIL_FROM_ADDRESS: str = "noreply@kuroibara.app"
+    MAIL_FROM_NAME: str = "Kuroibara"
 
     # 2FA
-    TWO_FA_ISSUER: str = "Kurobara"
+    TWO_FA_ISSUER: str = "Kuroibara"
 
 
 settings = Settings()

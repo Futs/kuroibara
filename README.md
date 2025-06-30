@@ -1,6 +1,6 @@
-# Kurobara (Black Rose) 🌹
+# Kuroibara (Black Rose) 🌹
 
-A modern, full-featured web application for manga, manhua, and manhwa enthusiasts. Kurobara provides a comprehensive platform for discovering, managing, and reading manga from multiple online sources.
+A modern, full-featured web application for manga, manhua, and manhwa enthusiasts. Kuroibara provides a comprehensive platform for discovering, managing, and reading manga from multiple online sources.
 
 ## ✨ Features
 
@@ -60,8 +60,8 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 ### Production Deployment
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Futs/kurobara.git
-   cd kurobara
+   git clone https://github.com/Futs/kuroibara.git
+   cd kuroibara
    ```
 
 2. **Configure environment**
@@ -112,7 +112,7 @@ alembic revision --autogenerate -m "Description"  # Create new migration
 
 ## 📖 Manga Providers
 
-Kurobara supports 100+ manga providers, including:
+Kuroibara supports 100+ manga providers, including:
 
 ### Popular Providers
 - **MangaDex** - Large community-driven manga database
@@ -142,9 +142,9 @@ Key configuration options in `.env`:
 ```bash
 # Database
 DB_HOST=postgres
-DB_USERNAME=kurobara
+DB_USERNAME=kuroibara
 DB_PASSWORD=your_password
-DB_DATABASE=kurobara
+DB_DATABASE=kuroibara
 
 # Cache
 VALKEY_HOST=valkey
@@ -220,3 +220,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Vue.js Community** - For excellent frontend framework and ecosystem
 - **FastAPI** - For the high-performance backend framework
 - **Scanlation Groups** - For their dedication to manga translation
+
+![Alt](https://repobeats.axiom.co/api/embed/0d7fd2d308f59b6eeed9cadde2c02b33a9973086.svg "Repobeats analytics image")
+

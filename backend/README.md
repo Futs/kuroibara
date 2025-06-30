@@ -1,6 +1,6 @@
-# Kurobara Backend
+# Kuroibara Backend
 
-The backend API for the Kurobara manga/manhua/manhwa library application.
+The backend API for the Kuroibara manga/manhua/manhwa library application.
 
 ## Features
 

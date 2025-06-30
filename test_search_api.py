@@ -137,7 +137,7 @@ def test_health_check():
 def main():
     """Run all tests."""
     print("=" * 60)
-    print("KUROBARA SEARCH API TEST")
+    print("KUROIBARA SEARCH API TEST")
     print("=" * 60)
     
     tests = [

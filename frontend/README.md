@@ -1,6 +1,6 @@
-# Kurobara Frontend
+# Kuroibara Frontend
 
-The frontend for the Kurobara manga/manhua/manhwa library application.
+The frontend for the Kuroibara manga/manhua/manhwa library application.
 
 ## Features
 

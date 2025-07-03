@@ -38,3 +38,4 @@ class User(BaseModel):
     categories = relationship("LibraryCategory", back_populates="user", cascade="all, delete-orphan")
     bookmarks = relationship("Bookmark", back_populates="user", cascade="all, delete-orphan")
     reading_progress = relationship("ReadingProgress", back_populates="user", cascade="all, delete-orphan")
+    provider_preferences = relationship("UserProviderPreference", back_populates="user", cascade="all, delete-orphan")

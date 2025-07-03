@@ -36,20 +36,39 @@
                 </div>
               </div>
 
-              <div class="mt-4 sm:mt-0 sm:w-1/4">
-                <label for="provider" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Provider
-                </label>
-                <select
-                  id="provider"
-                  v-model="provider"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm rounded-md"
-                >
-                  <option value="all">All Providers</option>
-                  <option v-for="p in providers" :key="p.id" :value="p.id">
-                    {{ p.name }}
-                  </option>
-                </select>
+              <div class="mt-4 sm:mt-0 sm:w-1/4 flex space-x-2">
+                <div class="flex-1">
+                  <label for="provider" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Provider
+                  </label>
+                  <select
+                    id="provider"
+                    v-model="provider"
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm rounded-md"
+                  >
+                    <option value="all">All Providers</option>
+                    <option v-for="p in enhancedProviders" :key="p.id" :value="p.id">
+                      {{ getProviderDisplayName(p) }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Quick favorite toggle for selected provider -->
+                <div v-if="provider !== 'all'" class="flex flex-col justify-end">
+                  <button
+                    @click="toggleProviderFavorite"
+                    class="mt-1 p-2 rounded-md border border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-600 transition-colors"
+                    :class="{
+                      'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700': isCurrentProviderFavorite,
+                      'text-gray-400 hover:text-gray-500': !isCurrentProviderFavorite
+                    }"
+                    :title="isCurrentProviderFavorite ? 'Remove from favorites' : 'Add to favorites'"
+                  >
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" :fill="isCurrentProviderFavorite ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -217,11 +236,13 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useSearchStore } from '../stores/search';
 import { useLibraryStore } from '../stores/library';
+import { useProviderPreferencesStore } from '../stores/providerPreferences';
 import SearchResultCard from '../components/SearchResultCard.vue';
 import axios from 'axios';
 
 const searchStore = useSearchStore();
 const libraryStore = useLibraryStore();
+const providerPreferencesStore = useProviderPreferencesStore();
 
 const searchQuery = ref('');
 const provider = ref('all');
@@ -258,6 +279,31 @@ const paginationRange = computed(() => {
   return range;
 });
 
+// Enhanced providers with preference data
+const enhancedProviders = computed(() => {
+  return providers.value.map(provider => {
+    const prefInfo = providerPreferencesStore.getProviderDisplayInfo(provider.id);
+    return {
+      ...provider,
+      ...prefInfo,
+    };
+  }).sort((a, b) => {
+    // Sort favorites first, then by name
+    if (a.isFavorite && !b.isFavorite) return -1;
+    if (!a.isFavorite && b.isFavorite) return 1;
+    if (a.isFavorite && b.isFavorite) {
+      return (a.priorityOrder || 999) - (b.priorityOrder || 999);
+    }
+    return a.name.localeCompare(b.name);
+  });
+});
+
+// Check if current provider is favorite
+const isCurrentProviderFavorite = computed(() => {
+  if (provider.value === 'all') return false;
+  return providerPreferencesStore.isProviderFavorite(provider.value);
+});
+
 // Watch for changes in the query and provider
 watch([searchQuery, provider], () => {
   searchStore.setQuery(searchQuery.value);
@@ -285,6 +331,38 @@ const fetchGenres = async () => {
     genres.value = response.data;
   } catch (error) {
     console.error('Failed to fetch genres:', error);
+  }
+};
+
+// Get provider display name with indicators
+const getProviderDisplayName = (provider) => {
+  let name = provider.name;
+
+  if (provider.isFavorite) {
+    name = `⭐ ${name}`;
+    if (provider.priorityOrder) {
+      name += ` (${provider.priorityOrder})`;
+    }
+  }
+
+  if (!provider.isEnabled) {
+    name += ' (Disabled)';
+  } else if (provider.status === 'unhealthy') {
+    name += ' (Unhealthy)';
+  } else if (provider.status === 'degraded') {
+    name += ' (Degraded)';
+  }
+
+  return name;
+};
+
+// Toggle favorite status of current provider
+const toggleProviderFavorite = async () => {
+  if (provider.value === 'all') return;
+
+  const success = await providerPreferencesStore.toggleProviderFavorite(provider.value);
+  if (!success) {
+    console.error('Failed to toggle provider favorite status');
   }
 };
 
@@ -321,6 +399,8 @@ const addToLibrary = async (mangaId) => {
 onMounted(() => {
   fetchProviders();
   fetchGenres();
+  // Fetch provider preferences to show favorites and status
+  providerPreferencesStore.fetchProviderPreferences();
 
   // Initialize from URL query params if present
   const urlParams = new URLSearchParams(window.location.search);

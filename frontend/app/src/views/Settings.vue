@@ -77,6 +77,11 @@
             </div>
           </div>
 
+          <!-- Provider Preferences -->
+          <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
+            <ProviderPreferences />
+          </div>
+
           <!-- Content Settings -->
           <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
@@ -211,6 +216,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useSettingsStore } from '../stores/settings';
+import ProviderPreferences from '../components/ProviderPreferences.vue';
 
 const settingsStore = useSettingsStore();
 

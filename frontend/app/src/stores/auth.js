@@ -46,8 +46,36 @@ export const useAuthStore = defineStore('auth', {
 
         router.push('/library');
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Login failed';
-        console.error('Login error:', error);
+        // Extract detailed error message from API response
+        if (error.response?.data?.detail) {
+          // Handle validation errors (array format)
+          if (Array.isArray(error.response.data.detail)) {
+            const validationErrors = error.response.data.detail.map(err => {
+              const field = err.loc?.[err.loc.length - 1] || 'field';
+              return `${field}: ${err.msg}`;
+            }).join(', ');
+            this.error = `Login failed: ${validationErrors}`;
+          } else {
+            // Handle custom error messages (string format)
+            this.error = error.response.data.detail;
+          }
+        } else if (error.response?.status === 500) {
+          this.error = 'Login failed: Server error. Please try again later.';
+        } else if (error.response?.status === 401) {
+          this.error = 'Login failed: Invalid username or password.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          this.error = 'Login failed: Unable to connect to server. Please check your internet connection and try again.';
+        } else {
+          this.error = `Login failed: ${error.message || 'An unexpected error occurred. Please try again.'}`;
+        }
+
+        console.error('Login error:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message,
+          code: error.code
+        });
       } finally {
         this.loading = false;
       }
@@ -66,8 +94,36 @@ export const useAuthStore = defineStore('auth', {
 
         router.push('/login');
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Registration failed';
-        console.error('Registration error:', error);
+        // Extract detailed error message from API response
+        if (error.response?.data?.detail) {
+          // Handle validation errors (array format)
+          if (Array.isArray(error.response.data.detail)) {
+            const validationErrors = error.response.data.detail.map(err => {
+              const field = err.loc?.[err.loc.length - 1] || 'field';
+              return `${field}: ${err.msg}`;
+            }).join(', ');
+            this.error = `Registration failed: ${validationErrors}`;
+          } else {
+            // Handle custom error messages (string format)
+            this.error = error.response.data.detail;
+          }
+        } else if (error.response?.status === 500) {
+          this.error = 'Registration failed: Server error. Please try again later.';
+        } else if (error.response?.status === 400) {
+          this.error = 'Registration failed: Invalid input data. Please check your information and try again.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          this.error = 'Registration failed: Unable to connect to server. Please check your internet connection and try again.';
+        } else {
+          this.error = `Registration failed: ${error.message || 'An unexpected error occurred. Please try again.'}`;
+        }
+
+        console.error('Registration error:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message,
+          code: error.code
+        });
       } finally {
         this.loading = false;
       }

@@ -57,6 +57,16 @@ async def get_user_provider_preferences(
             status_record = provider_statuses.get(provider_id)
             user_pref = user_preferences.get(provider_id)
             
+            # Compute health status to avoid greenlet issues with property access
+            is_healthy = True
+            if status_record:
+                from app.models.provider import ProviderStatusEnum
+                is_healthy = (
+                    status_record.status == ProviderStatusEnum.ACTIVE.value and
+                    status_record.consecutive_failures < status_record.max_consecutive_failures and
+                    status_record.is_enabled
+                )
+
             # Build enhanced provider info
             provider_with_pref = ProviderWithPreference(
                 # Provider info
@@ -70,8 +80,8 @@ async def get_user_provider_preferences(
                 response_time=status_record.response_time if status_record else None,
                 uptime_percentage=status_record.uptime_percentage if status_record else 100,
                 consecutive_failures=status_record.consecutive_failures if status_record else 0,
-                is_healthy=status_record.is_healthy if status_record else True,
-                
+                is_healthy=is_healthy,
+
                 # User preference data
                 is_favorite=user_pref.is_favorite if user_pref else False,
                 priority_order=user_pref.priority_order if user_pref else None,

@@ -3,7 +3,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, insert
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
@@ -68,18 +68,46 @@ async def create_reading_list(
         user_id=current_user.id,
     )
 
-    # Add manga to reading list
+    # Add manga to reading list using direct SQL to avoid greenlet issues
     if reading_list_data.manga_ids:
+        from app.models.library import reading_list_manga
+
         for manga_id in reading_list_data.manga_ids:
             manga = await db.get(Manga, manga_id)
             if manga:
-                reading_list.manga.append(manga)
+                # Check if relationship already exists before inserting
+                existing_rel = await db.execute(
+                    select(reading_list_manga).where(
+                        (reading_list_manga.c.reading_list_id == reading_list.id) &
+                        (reading_list_manga.c.manga_id == manga.id)
+                    )
+                )
+                if not existing_rel.first():
+                    # Insert into association table directly only if it doesn't exist
+                    await db.execute(
+                        insert(reading_list_manga).values(
+                            reading_list_id=reading_list.id,
+                            manga_id=manga.id
+                        )
+                    )
 
     db.add(reading_list)
     await db.commit()
     await db.refresh(reading_list)
 
-    return reading_list
+    # Load relationships explicitly to avoid greenlet issues during response serialization
+    result = await db.execute(
+        select(ReadingList)
+        .options(
+            selectinload(ReadingList.manga).selectinload(Manga.genres),
+            selectinload(ReadingList.manga).selectinload(Manga.authors),
+            selectinload(ReadingList.manga).selectinload(Manga.chapters)
+        )
+        .where(ReadingList.id == reading_list.id)
+    )
+    reading_list_with_relationships = result.scalars().first()
+
+    return reading_list_with_relationships
 
 
 @router.get("/{reading_list_id}", response_model=ReadingListSchema)
@@ -215,20 +243,43 @@ async def add_manga_to_reading_list(
             detail="Manga not found",
         )
 
-    # Check if manga is already in reading list
-    if manga in reading_list.manga:
+    # Check if manga is already in reading list using direct SQL
+    from app.models.library import reading_list_manga
+    existing_rel = await db.execute(
+        select(reading_list_manga).where(
+            (reading_list_manga.c.reading_list_id == reading_list.id) &
+            (reading_list_manga.c.manga_id == manga.id)
+        )
+    )
+    if existing_rel.first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Manga already in reading list",
         )
 
-    # Add manga to reading list
-    reading_list.manga.append(manga)
+    # Add manga to reading list using direct SQL to avoid greenlet issues
+    await db.execute(
+        insert(reading_list_manga).values(
+            reading_list_id=reading_list.id,
+            manga_id=manga.id
+        )
+    )
 
     await db.commit()
-    await db.refresh(reading_list)
 
-    return reading_list
+    # Load relationships explicitly to avoid greenlet issues during response serialization
+    result = await db.execute(
+        select(ReadingList)
+        .options(
+            selectinload(ReadingList.manga).selectinload(Manga.genres),
+            selectinload(ReadingList.manga).selectinload(Manga.authors),
+            selectinload(ReadingList.manga).selectinload(Manga.chapters)
+        )
+        .where(ReadingList.id == reading_list.id)
+    )
+    reading_list_with_relationships = result.scalars().first()
+
+    return reading_list_with_relationships
 
 
 @router.delete("/{reading_list_id}/manga/{manga_id}", response_model=ReadingListSchema)

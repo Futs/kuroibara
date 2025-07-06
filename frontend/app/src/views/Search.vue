@@ -240,6 +240,7 @@ import { useProviderPreferencesStore } from '../stores/providerPreferences';
 import { useAuthStore } from '../stores/auth';
 import SearchResultCard from '../components/SearchResultCard.vue';
 import axios from 'axios';
+import api from '../services/api';
 
 const searchStore = useSearchStore();
 const libraryStore = useLibraryStore();
@@ -395,7 +396,32 @@ const goToPage = (page) => {
 
 // Add manga to library
 const addToLibrary = async (mangaId) => {
-  await libraryStore.addToLibrary(mangaId);
+  try {
+    // Find the manga object from search results
+    const manga = results.value.find(m => m.id === mangaId);
+    if (!manga) {
+      console.error('Manga not found in search results');
+      return;
+    }
+
+    let actualMangaId = mangaId;
+
+    // If this is an external manga (has provider field), create a local record first
+    if (manga.provider) {
+      const response = await api.post('/v1/manga/from-external', {}, {
+        params: {
+          provider: manga.provider,
+          external_id: mangaId
+        }
+      });
+      actualMangaId = response.data.id;
+    }
+
+    await libraryStore.addToLibrary(actualMangaId);
+  } catch (error) {
+    console.error('Failed to add manga to library:', error);
+    alert('Failed to add manga to library: ' + (error.response?.data?.detail || error.message));
+  }
 };
 
 onMounted(() => {

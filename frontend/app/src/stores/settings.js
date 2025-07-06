@@ -6,7 +6,7 @@ export const useSettingsStore = defineStore('settings', {
     theme: localStorage.getItem('theme') || 'light', // light, dark, system
     nsfwBlur: localStorage.getItem('nsfwBlur') === 'true',
     downloadQuality: localStorage.getItem('downloadQuality') || 'high', // low, medium, high
-    downloadPath: localStorage.getItem('downloadPath') || 'default',
+    downloadPath: localStorage.getItem('downloadPath') || '/app/storage',
     loading: false,
     error: null,
   }),
@@ -34,11 +34,17 @@ export const useSettingsStore = defineStore('settings', {
         this.downloadQuality = download_quality || this.downloadQuality;
         this.downloadPath = download_path || this.downloadPath;
 
-        // Save to localStorage
+        // Save to localStorage and apply theme
         this.saveToLocalStorage();
+        this.applyTheme();
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch settings';
-        console.error('Settings fetch error:', error);
+        // Don't set error for authentication issues, just log them
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.log('User not authenticated, using local settings');
+        } else {
+          this.error = error.response?.data?.detail || 'Failed to fetch settings';
+          console.error('Settings fetch error:', error);
+        }
       } finally {
         this.loading = false;
       }

@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
-from app.core.utils import get_cover_storage_path, get_page_storage_path
+from app.core.utils import get_cover_storage_path, get_page_storage_path, get_manga_storage_path
 from app.models.user import User
 from app.models.manga import Manga, Chapter, Page, Genre, Author
 from app.schemas.manga import (
@@ -98,7 +98,18 @@ async def read_manga_by_id(
     """
     Get manga by ID.
     """
-    manga = await db.get(Manga, uuid.UUID(manga_id))
+    # Load manga with relationships explicitly to avoid greenlet issues during response serialization
+    from sqlalchemy.orm import selectinload
+    result = await db.execute(
+        select(Manga)
+        .options(
+            selectinload(Manga.genres),
+            selectinload(Manga.authors),
+            selectinload(Manga.chapters)
+        )
+        .where(Manga.id == uuid.UUID(manga_id))
+    )
+    manga = result.scalars().first()
 
     if not manga:
         raise HTTPException(
@@ -325,7 +336,6 @@ async def get_external_manga_details(
 @router.get("/{manga_id}/cover")
 async def get_manga_cover(
     manga_id: str,
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> FileResponse:
     """
@@ -339,20 +349,54 @@ async def get_manga_cover(
             detail="Manga not found",
         )
 
-    # Get cover path
+    # First, check if we have a local cover file
     cover_path = get_cover_storage_path(uuid.UUID(manga_id))
 
-    # Check if cover file exists
-    if not os.path.exists(cover_path):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cover image not found",
+    if os.path.exists(cover_path):
+        # Return local cover file
+        return FileResponse(
+            path=cover_path,
+            media_type="image/jpeg",
+            filename=f"cover_{manga_id}.jpg"
         )
 
-    return FileResponse(
-        path=cover_path,
-        media_type="image/jpeg",
-        filename=f"cover_{manga_id}.jpg"
+    # If no local file, check if we have an external cover URL
+    if manga.cover_image and (manga.cover_image.startswith('http://') or manga.cover_image.startswith('https://')):
+        # Download and cache the external cover
+        import httpx
+        import tempfile
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(manga.cover_image, timeout=10.0)
+                response.raise_for_status()
+
+                # Create manga storage directory if it doesn't exist
+                manga_storage_path = get_manga_storage_path(uuid.UUID(manga_id))
+                os.makedirs(manga_storage_path, exist_ok=True)
+
+                # Save the cover locally for future requests
+                with open(cover_path, "wb") as f:
+                    f.write(response.content)
+
+                # Determine media type from response headers or file extension
+                media_type = response.headers.get("content-type", "image/jpeg")
+                if not media_type.startswith("image/"):
+                    media_type = "image/jpeg"
+
+                return FileResponse(
+                    path=cover_path,
+                    media_type=media_type,
+                    filename=f"cover_{manga_id}.jpg"
+                )
+        except Exception as e:
+            # If download fails, fall through to 404
+            pass
+
+    # No cover available
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Cover image not found",
     )
 
 
@@ -518,8 +562,15 @@ async def create_manga_from_external(
             )
 
         # Check if manga already exists
+        from sqlalchemy.orm import selectinload
         result = await db.execute(
-            select(Manga).where(
+            select(Manga)
+            .options(
+                selectinload(Manga.genres),
+                selectinload(Manga.authors),
+                selectinload(Manga.chapters)
+            )
+            .where(
                 (Manga.provider == provider) &
                 (Manga.external_id == external_id)
             )

@@ -181,8 +181,17 @@
                   placeholder="Default download location"
                 />
                 <button
-                  @click="resetDownloadPath"
+                  @click="browseDownloadPath"
                   class="ml-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                >
+                  <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-5l-2-2H6a2 2 0 00-2 2z" />
+                  </svg>
+                  Browse
+                </button>
+                <button
+                  @click="resetDownloadPath"
+                  class="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Reset
                 </button>
@@ -233,6 +242,9 @@ const error = computed(() => settingsStore.error);
 // Methods
 const setTheme = (newTheme) => {
   theme.value = newTheme;
+  // Apply theme immediately
+  settingsStore.setTheme(newTheme);
+  console.log('Theme changed to:', newTheme);
 };
 
 const toggleNsfwBlur = () => {
@@ -244,8 +256,26 @@ const setDownloadQuality = (quality) => {
   downloadQuality.value = quality;
 };
 
+const browseDownloadPath = async () => {
+  try {
+    // Use the File System Access API if available (modern browsers)
+    if ('showDirectoryPicker' in window) {
+      const dirHandle = await window.showDirectoryPicker();
+      downloadPath.value = dirHandle.name; // This will show the folder name
+      // Note: In a real implementation, you'd need to handle the full path
+      // For now, we'll just show the folder name as a placeholder
+    } else {
+      // Fallback for browsers that don't support the File System Access API
+      alert('Directory browsing is not supported in this browser. Please enter the path manually.');
+    }
+  } catch (error) {
+    // User cancelled the picker or an error occurred
+    console.log('Directory picker cancelled or error:', error);
+  }
+};
+
 const resetDownloadPath = () => {
-  downloadPath.value = 'default';
+  downloadPath.value = '/app/storage';
 };
 
 const saveSettings = async () => {
@@ -258,11 +288,22 @@ const saveSettings = async () => {
 };
 
 onMounted(async () => {
-  await settingsStore.fetchUserSettings();
-  // Update local state with store values
+  // Initialize local state with store values first
   theme.value = settingsStore.getTheme;
   nsfwBlur.value = settingsStore.getNsfwBlur;
   downloadQuality.value = settingsStore.getDownloadQuality;
   downloadPath.value = settingsStore.getDownloadPath;
+
+  // Try to fetch user settings from backend (will fail gracefully if not authenticated)
+  try {
+    await settingsStore.fetchUserSettings();
+    // Update local state with fetched values
+    theme.value = settingsStore.getTheme;
+    nsfwBlur.value = settingsStore.getNsfwBlur;
+    downloadQuality.value = settingsStore.getDownloadQuality;
+    downloadPath.value = settingsStore.getDownloadPath;
+  } catch (error) {
+    console.log('Could not fetch user settings from backend, using local storage values');
+  }
 });
 </script>

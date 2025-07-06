@@ -20,6 +20,10 @@ class UserBase(BaseModel):
     two_fa_enabled: bool = False
     anilist_username: Optional[str] = None
     myanimelist_username: Optional[str] = None
+    theme: str = 'light'
+    nsfw_blur: bool = True
+    download_quality: str = 'high'
+    download_path: str = '/app/storage'
 
 
 # Properties to receive via API on creation
@@ -44,6 +48,10 @@ class UserUpdate(BaseModel):
     bio: Optional[str] = None
     anilist_username: Optional[str] = None
     myanimelist_username: Optional[str] = None
+    theme: Optional[str] = None
+    nsfw_blur: Optional[bool] = None
+    download_quality: Optional[str] = None
+    download_path: Optional[str] = None
 
 
 # Properties to return via API
@@ -58,3 +66,24 @@ class UserInDB(User):
 
     hashed_password: str
     two_fa_secret: Optional[str] = None
+
+
+# User settings schemas
+class UserSettings(BaseModel):
+    """User settings schema for responses."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    theme: str = 'light'
+    nsfw_blur: bool = True
+    download_quality: str = 'high'
+    download_path: str = '/app/storage'
+
+
+class UserSettingsUpdate(BaseModel):
+    """User settings update schema."""
+
+    theme: Optional[str] = None
+    nsfw_blur: Optional[bool] = None
+    download_quality: Optional[str] = None
+    download_path: Optional[str] = None

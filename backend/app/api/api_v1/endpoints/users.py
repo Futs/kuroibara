@@ -1,4 +1,5 @@
 from typing import Any, List
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +8,7 @@ from sqlalchemy import select
 from app.core.deps import get_current_user, get_current_active_superuser, get_db
 from app.core.security import get_password_hash
 from app.models.user import User
-from app.schemas.user import User as UserSchema, UserUpdate
+from app.schemas.user import User as UserSchema, UserUpdate, UserSettings, UserSettingsUpdate
 
 router = APIRouter()
 
@@ -98,3 +99,45 @@ async def read_user(
         )
     
     return user
+
+
+@router.get("/settings", response_model=UserSettings)
+async def get_user_settings(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get current user's settings.
+    """
+    return UserSettings(
+        theme=current_user.theme,
+        nsfw_blur=current_user.nsfw_blur,
+        download_quality=current_user.download_quality,
+        download_path=current_user.download_path,
+    )
+
+
+@router.put("/settings", response_model=UserSettings)
+async def update_user_settings(
+    settings_update: UserSettingsUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Update current user's settings.
+    """
+    # Update user settings fields
+    update_data = settings_update.model_dump(exclude_unset=True)
+
+    # Update user
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    await db.commit()
+    await db.refresh(current_user)
+
+    return UserSettings(
+        theme=current_user.theme,
+        nsfw_blur=current_user.nsfw_blur,
+        download_quality=current_user.download_quality,
+        download_path=current_user.download_path,
+    )

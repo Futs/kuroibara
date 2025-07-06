@@ -43,23 +43,26 @@
           </svg>
           Favorite Providers ({{ favoriteProviders.length }})
         </h4>
-        <draggable
-          v-model="favoriteProviders"
-          group="providers"
-          @change="onFavoritesReorder"
-          item-key="id"
-          class="space-y-2"
-        >
-          <template #item="{ element: provider }">
-            <ProviderCard
-              :provider="provider"
-              :is-favorite="true"
-              @toggle-favorite="toggleFavorite"
-              @toggle-enabled="toggleEnabled"
-              :draggable="true"
-            />
-          </template>
-        </draggable>
+        <!-- Scrollable container for favorite providers (max 10 items visible) -->
+        <div class="overflow-y-auto border border-gray-200 dark:border-dark-600 rounded-lg p-3 bg-gray-50 dark:bg-dark-800 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent" style="max-height: 800px;">
+          <draggable
+            v-model="favoriteProviders"
+            group="providers"
+            @change="onFavoritesReorder"
+            item-key="id"
+            class="space-y-2"
+          >
+            <template #item="{ element: provider }">
+              <ProviderCard
+                :provider="provider"
+                :is-favorite="true"
+                @toggle-favorite="toggleFavorite"
+                @toggle-enabled="toggleEnabled"
+                :draggable="true"
+              />
+            </template>
+          </draggable>
+        </div>
       </div>
 
       <!-- Regular Providers Section -->
@@ -67,15 +70,18 @@
         <h4 class="text-md font-medium text-gray-900 dark:text-white mb-3">
           Available Providers ({{ regularProviders.length }})
         </h4>
-        <div class="space-y-2">
-          <ProviderCard
-            v-for="provider in regularProviders"
-            :key="provider.id"
-            :provider="provider"
-            :is-favorite="false"
-            @toggle-favorite="toggleFavorite"
-            @toggle-enabled="toggleEnabled"
-          />
+        <!-- Scrollable container for available providers (max 5 items visible) -->
+        <div class="overflow-y-auto border border-gray-200 dark:border-dark-600 rounded-lg p-3 bg-gray-50 dark:bg-dark-800 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent" style="max-height: 400px;">
+          <div class="space-y-2">
+            <ProviderCard
+              v-for="provider in regularProviders"
+              :key="provider.id"
+              :provider="provider"
+              :is-favorite="false"
+              @toggle-favorite="toggleFavorite"
+              @toggle-enabled="toggleEnabled"
+            />
+          </div>
         </div>
       </div>
 
@@ -131,14 +137,18 @@ const regularProviders = computed(() =>
 const fetchProviderPreferences = async () => {
   loading.value = true;
   error.value = null;
-  
+
   try {
-    const response = await api.get('/v1/users/me/provider-preferences');
+    const response = await api.get('/v1/users/me/provider-preferences/');
     providers.value = response.data.providers;
     originalProviders.value = JSON.parse(JSON.stringify(response.data.providers));
     hasChanges.value = false;
   } catch (err) {
-    error.value = err.response?.data?.detail || 'Failed to load provider preferences';
+    if (err.response?.status === 401 || err.response?.status === 403) {
+      error.value = 'Please log in to manage provider preferences';
+    } else {
+      error.value = err.response?.data?.detail || 'Failed to load provider preferences';
+    }
     console.error('Error fetching provider preferences:', err);
   } finally {
     loading.value = false;
@@ -200,7 +210,7 @@ const savePreferences = async () => {
       is_enabled: provider.user_enabled,
     }));
     
-    await api.post('/v1/users/me/provider-preferences/bulk', {
+    await api.post('/v1/users/me/provider-preferences/bulk/', {
       preferences
     });
     
@@ -227,5 +237,36 @@ onMounted(() => {
 <style scoped>
 .provider-preferences {
   /* Add any custom styles here */
+}
+
+/* Custom scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.8);
+}
+
+/* Dark mode scrollbar */
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(75, 85, 99, 0.8);
 }
 </style>

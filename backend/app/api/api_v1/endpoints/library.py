@@ -5,6 +5,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
 from app.models.user import User
@@ -37,7 +38,7 @@ async def read_library(
     """
     Retrieve user's library.
     """
-    query = select(MangaUserLibrary).where(MangaUserLibrary.user_id == current_user.id)
+    query = select(MangaUserLibrary).options(selectinload(MangaUserLibrary.manga)).where(MangaUserLibrary.user_id == current_user.id)
 
     # Filter by category
     if category_id:

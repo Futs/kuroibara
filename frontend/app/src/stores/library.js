@@ -34,21 +34,33 @@ export const useLibraryStore = defineStore('library', {
 
       try {
         const { page, limit } = this.pagination;
-        const { category, status, sort, order } = this.filters;
+        const { category, status } = this.filters;
 
-        const response = await api.get('/v1/library', {
-          params: {
-            page,
-            limit,
-            category,
-            status,
-            sort,
-            order,
-          },
-        });
+        // Calculate skip from page
+        const skip = (page - 1) * limit;
 
-        this.manga = response.data.items || response.data;
-        this.pagination.total = response.data.total || response.data.length;
+        // Prepare params for backend API
+        const params = {
+          skip,
+          limit,
+        };
+
+        // Add category filter if specified
+        if (category) {
+          params.category_id = category;
+        }
+
+        // Add favorite filter if status is 'favorite'
+        if (status === 'favorite') {
+          params.is_favorite = true;
+        } else if (status === 'not_favorite') {
+          params.is_favorite = false;
+        }
+
+        const response = await api.get('/v1/library', { params });
+
+        this.manga = response.data || [];
+        this.pagination.total = response.data.length || 0;
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to fetch library';
         console.error('Library fetch error:', error);

@@ -104,7 +104,7 @@
 import { ref, computed, onMounted } from 'vue';
 import draggable from 'vuedraggable';
 import ProviderCard from './ProviderCard.vue';
-import axios from 'axios';
+import api from '../services/api';
 
 // State
 const loading = ref(true);
@@ -133,7 +133,7 @@ const fetchProviderPreferences = async () => {
   error.value = null;
   
   try {
-    const response = await axios.get('/v1/users/me/provider-preferences');
+    const response = await api.get('/v1/users/me/provider-preferences');
     providers.value = response.data.providers;
     originalProviders.value = JSON.parse(JSON.stringify(response.data.providers));
     hasChanges.value = false;
@@ -200,7 +200,7 @@ const savePreferences = async () => {
       is_enabled: provider.user_enabled,
     }));
     
-    await axios.post('/v1/users/me/provider-preferences/bulk', {
+    await api.post('/v1/users/me/provider-preferences/bulk', {
       preferences
     });
     

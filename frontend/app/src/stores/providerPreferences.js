@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '../services/api';
 
 export const useProviderPreferencesStore = defineStore('providerPreferences', {
   state: () => ({
@@ -44,7 +44,7 @@ export const useProviderPreferencesStore = defineStore('providerPreferences', {
       this.error = null;
 
       try {
-        const response = await axios.get('/v1/users/me/provider-preferences');
+        const response = await api.get('/v1/users/me/provider-preferences');
         this.providers = response.data.providers;
         this.lastFetched = Date.now();
       } catch (error) {
@@ -57,14 +57,14 @@ export const useProviderPreferencesStore = defineStore('providerPreferences', {
 
     async updateProviderPreference(providerId, updates) {
       try {
-        await axios.put(`/v1/users/me/provider-preferences/${providerId}`, updates);
-        
+        await api.put(`/v1/users/me/provider-preferences/${providerId}`, updates);
+
         // Update local state
         const provider = this.providers.find(p => p.id === providerId);
         if (provider) {
           Object.assign(provider, updates);
         }
-        
+
         return true;
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to update provider preference';
@@ -75,10 +75,10 @@ export const useProviderPreferencesStore = defineStore('providerPreferences', {
 
     async bulkUpdateProviderPreferences(preferences) {
       try {
-        await axios.post('/v1/users/me/provider-preferences/bulk', {
+        await api.post('/v1/users/me/provider-preferences/bulk', {
           preferences
         });
-        
+
         // Update local state
         preferences.forEach(pref => {
           const provider = this.providers.find(p => p.id === pref.provider_id);
@@ -88,7 +88,7 @@ export const useProviderPreferencesStore = defineStore('providerPreferences', {
             provider.user_enabled = pref.is_enabled;
           }
         });
-        
+
         return true;
       } catch (error) {
         this.error = error.response?.data?.detail || 'Failed to bulk update provider preferences';

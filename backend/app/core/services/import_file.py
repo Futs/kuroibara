@@ -351,56 +351,71 @@ async def create_manga_from_external_source(
     """
     from app.models.manga import Genre, Author
 
-    # Create manga
-    manga = Manga(
-        title=manga_details.get("title", "Unknown Title"),
-        description=manga_details.get("description", ""),
-        status=manga_details.get("status", "unknown"),
-        year=manga_details.get("year"),
-        provider=provider_name,
-        external_id=external_id,
-        external_url=manga_details.get("url", ""),
-        cover_image=manga_details.get("cover_image", ""),
-        is_nsfw=manga_details.get("is_nsfw", False) or manga_details.get("is_explicit", False),
-    )
+    try:
+        # Create manga
+        manga = Manga(
+            title=manga_details.get("title", "Unknown Title"),
+            description=manga_details.get("description", ""),
+            status=manga_details.get("status", "unknown"),
+            year=manga_details.get("year"),
+            provider=provider_name,
+            external_id=external_id,
+            external_url=manga_details.get("url", ""),
+            cover_image=manga_details.get("cover_image", ""),
+            is_nsfw=manga_details.get("is_nsfw", False) or manga_details.get("is_explicit", False),
+        )
 
-    db.add(manga)
-    await db.flush()
+        db.add(manga)
+        await db.flush()
 
-    # Add genres if provided
-    genres = manga_details.get("genres", [])
-    if genres:
-        for genre_name in genres:
-            # Check if genre exists
-            result = await db.execute(select(Genre).where(Genre.name == genre_name))
-            genre = result.scalars().first()
+        # Collect genre and author objects
+        genre_objects = []
+        author_objects = []
 
-            # Create genre if it doesn't exist
-            if not genre:
-                genre = Genre(name=genre_name)
-                db.add(genre)
-                await db.flush()
+        # Add genres if provided
+        genres = manga_details.get("genres", [])
+        if genres:
+            for genre_name in genres:
+                # Check if genre exists
+                result = await db.execute(select(Genre).where(Genre.name == genre_name))
+                genre = result.scalars().first()
 
-            manga.genres.append(genre)
+                # Create genre if it doesn't exist
+                if not genre:
+                    genre = Genre(name=genre_name)
+                    db.add(genre)
+                    await db.flush()
 
-    # Add authors if provided
-    authors = manga_details.get("authors", [])
-    if authors:
-        for author_name in authors:
-            # Check if author exists
-            result = await db.execute(select(Author).where(Author.name == author_name))
-            author = result.scalars().first()
+                genre_objects.append(genre)
 
-            # Create author if it doesn't exist
-            if not author:
-                author = Author(name=author_name)
-                db.add(author)
-                await db.flush()
+        # Add authors if provided
+        authors = manga_details.get("authors", [])
+        if authors:
+            for author_name in authors:
+                # Check if author exists
+                result = await db.execute(select(Author).where(Author.name == author_name))
+                author = result.scalars().first()
 
-            manga.authors.append(author)
+                # Create author if it doesn't exist
+                if not author:
+                    author = Author(name=author_name)
+                    db.add(author)
+                    await db.flush()
 
-    # Commit changes
-    await db.commit()
-    await db.refresh(manga)
+                author_objects.append(author)
 
-    return manga
+        # Assign relationships after all objects are created
+        if genre_objects:
+            manga.genres = genre_objects
+        if author_objects:
+            manga.authors = author_objects
+
+        # Commit changes
+        await db.commit()
+        await db.refresh(manga)
+
+        return manga
+
+    except Exception as e:
+        await db.rollback()
+        raise e

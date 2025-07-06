@@ -219,6 +219,7 @@ const savePreferences = async () => {
 
 // Lifecycle
 onMounted(() => {
+  // Only fetch if we're in an authenticated context (Settings page)
   fetchProviderPreferences();
 });
 </script>

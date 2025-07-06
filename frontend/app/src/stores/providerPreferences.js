@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import api from '../services/api';
+import { useAuthStore } from './auth';
 
 export const useProviderPreferencesStore = defineStore('providerPreferences', {
   state: () => ({
@@ -35,6 +36,13 @@ export const useProviderPreferencesStore = defineStore('providerPreferences', {
 
   actions: {
     async fetchProviderPreferences(force = false) {
+      // Check if user is authenticated
+      const authStore = useAuthStore();
+      if (!authStore.isAuthenticated) {
+        console.log('Provider preferences: User not authenticated, skipping fetch');
+        return;
+      }
+
       // Don't fetch if we have recent data and not forcing
       if (!force && this.lastFetched && Date.now() - this.lastFetched < 5 * 60 * 1000) {
         return;
@@ -48,8 +56,14 @@ export const useProviderPreferencesStore = defineStore('providerPreferences', {
         this.providers = response.data.providers;
         this.lastFetched = Date.now();
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch provider preferences';
-        console.error('Error fetching provider preferences:', error);
+        // Don't show error if it's an authentication issue
+        if (error.response?.status === 401) {
+          console.log('Provider preferences: Authentication error, user may not be logged in');
+          this.error = null;
+        } else {
+          this.error = error.response?.data?.detail || 'Failed to fetch provider preferences';
+          console.error('Error fetching provider preferences:', error);
+        }
       } finally {
         this.loading = false;
       }

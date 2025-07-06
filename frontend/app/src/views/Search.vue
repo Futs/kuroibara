@@ -237,12 +237,14 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useSearchStore } from '../stores/search';
 import { useLibraryStore } from '../stores/library';
 import { useProviderPreferencesStore } from '../stores/providerPreferences';
+import { useAuthStore } from '../stores/auth';
 import SearchResultCard from '../components/SearchResultCard.vue';
 import axios from 'axios';
 
 const searchStore = useSearchStore();
 const libraryStore = useLibraryStore();
 const providerPreferencesStore = useProviderPreferencesStore();
+const authStore = useAuthStore();
 
 const searchQuery = ref('');
 const provider = ref('all');
@@ -399,8 +401,11 @@ const addToLibrary = async (mangaId) => {
 onMounted(() => {
   fetchProviders();
   fetchGenres();
-  // Fetch provider preferences to show favorites and status
-  providerPreferencesStore.fetchProviderPreferences();
+
+  // Fetch provider preferences only if user is authenticated
+  if (authStore.isAuthenticated) {
+    providerPreferencesStore.fetchProviderPreferences();
+  }
 
   // Initialize from URL query params if present
   const urlParams = new URLSearchParams(window.location.search);
@@ -417,6 +422,13 @@ onMounted(() => {
     }
 
     search();
+  }
+});
+
+// Watch for authentication changes and fetch provider preferences when user logs in
+watch(() => authStore.isAuthenticated, (isAuthenticated) => {
+  if (isAuthenticated) {
+    providerPreferencesStore.fetchProviderPreferences();
   }
 });
 </script>

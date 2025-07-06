@@ -3,9 +3,9 @@
     <div class="relative group">
       <div class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700">
         <img
-          v-if="manga.cover_url"
-          :src="manga.cover_url"
-          :alt="manga.title"
+          v-if="getMangaCover"
+          :src="getMangaCover"
+          :alt="getMangaTitle"
           class="w-full h-full object-center object-cover"
           :class="{ 'blur-md': isNsfw && blurNsfw }"
         />
@@ -31,7 +31,7 @@
         <!-- Hover Actions -->
         <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
           <router-link
-            :to="`/manga/${manga.id}`"
+            :to="`/manga/${getMangaId}`"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400"
             title="View Details"
           >
@@ -41,8 +41,8 @@
           </router-link>
 
           <router-link
-            v-if="manga.chapters && manga.chapters.length > 0"
-            :to="`/read/${manga.id}/${manga.reading_progress?.current_chapter || manga.chapters[0].id}`"
+            v-if="getChapters && getChapters.length > 0"
+            :to="`/read/${getMangaId}/${manga.reading_progress?.current_chapter || getChapters[0].id}`"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400"
             title="Read"
           >
@@ -52,7 +52,7 @@
           </router-link>
 
           <button
-            @click="$emit('remove', manga.id)"
+            @click="$emit('remove', getLibraryItemId)"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400"
             title="Remove from Library"
           >
@@ -64,11 +64,11 @@
       </div>
 
       <div class="mt-2">
-        <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate" :title="manga.title">
-          {{ manga.title }}
+        <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate" :title="getMangaTitle">
+          {{ getMangaTitle }}
         </h3>
-        <p v-if="manga.author" class="text-xs text-gray-500 dark:text-gray-400 truncate">
-          {{ manga.author }}
+        <p v-if="getMangaAuthor" class="text-xs text-gray-500 dark:text-gray-400 truncate">
+          {{ getMangaAuthor }}
         </p>
       </div>
     </div>
@@ -88,7 +88,83 @@ const props = defineProps({
 
 const settingsStore = useSettingsStore();
 
-const isNsfw = computed(() => props.manga.is_nsfw || props.manga.is_explicit);
+// Handle both library items (MangaUserLibrary) and direct manga objects
+const getMangaId = computed(() => {
+  // If this is a library item, use manga_id or manga.id
+  if (props.manga.manga_id) {
+    return props.manga.manga_id;
+  }
+  // If this is a nested manga object, use manga.id
+  if (props.manga.manga && props.manga.manga.id) {
+    return props.manga.manga.id;
+  }
+  // Otherwise, it's a direct manga object
+  return props.manga.id;
+});
+
+const getLibraryItemId = computed(() => {
+  // For library items, the main ID is the library item ID
+  // For direct manga objects, there's no library item ID
+  return props.manga.id;
+});
+
+const getMangaTitle = computed(() => {
+  // Check for custom title first (library items)
+  if (props.manga.custom_title) {
+    return props.manga.custom_title;
+  }
+  // Check nested manga object
+  if (props.manga.manga && props.manga.manga.title) {
+    return props.manga.manga.title;
+  }
+  // Direct manga object
+  return props.manga.title;
+});
+
+const getMangaCover = computed(() => {
+  // Check for custom cover first (library items)
+  if (props.manga.custom_cover) {
+    return props.manga.custom_cover;
+  }
+  // Check nested manga object
+  if (props.manga.manga && props.manga.manga.cover_image) {
+    return props.manga.manga.cover_image;
+  }
+  // Direct manga object
+  return props.manga.cover_image || props.manga.cover_url;
+});
+
+const getMangaAuthor = computed(() => {
+  // Check nested manga object first
+  if (props.manga.manga && props.manga.manga.authors && props.manga.manga.authors.length > 0) {
+    return props.manga.manga.authors[0].name;
+  }
+  // Direct manga object
+  if (props.manga.authors && props.manga.authors.length > 0) {
+    return props.manga.authors[0].name;
+  }
+  // Fallback to author field
+  return props.manga.author;
+});
+
+const getChapters = computed(() => {
+  // Check nested manga object
+  if (props.manga.manga && props.manga.manga.chapters) {
+    return props.manga.manga.chapters;
+  }
+  // Direct manga object
+  return props.manga.chapters;
+});
+
+const isNsfw = computed(() => {
+  // Check nested manga object
+  if (props.manga.manga) {
+    return props.manga.manga.is_nsfw || props.manga.manga.is_explicit;
+  }
+  // Direct manga object
+  return props.manga.is_nsfw || props.manga.is_explicit;
+});
+
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 
 defineEmits(['remove']);

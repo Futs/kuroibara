@@ -313,28 +313,49 @@ jobs:
 
       - name: Set up Docker Compose
         run: |
-          # Create test environment file
+          # Create test environment file for Docker Compose network
           cat > .env << EOF
-          POSTGRES_PASSWORD=testpass
-          POSTGRES_USER=testuser
-          POSTGRES_DB=testdb
-          SECRET_KEY=test-secret-key-for-integration
-          JWT_SECRET_KEY=test-jwt-secret-key-for-integration
-          JWT_ALGORITHM=HS256
-          JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
-          JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
-          ENVIRONMENT=testing
-          APP_ENV=testing
-          APP_DEBUG=false
-          VALKEY_HOST=valkey
-          VALKEY_PORT=6379
-          VALKEY_DB=0
+          # Database configuration for Docker Compose network
           DB_HOST=postgres
           DB_PORT=5432
           DB_DATABASE=testdb
           DB_USERNAME=testuser
           DB_PASSWORD=testpass
           DB_CONNECTION=postgresql+asyncpg
+          DATABASE_URL=postgresql+asyncpg://testuser:testpass@postgres:5432/testdb
+          TEST_DATABASE_URL=postgresql+asyncpg://testuser:testpass@postgres:5432/test_testdb
+
+          # PostgreSQL service environment
+          POSTGRES_PASSWORD=testpass
+          POSTGRES_USER=testuser
+          POSTGRES_DB=testdb
+
+          # JWT and Security
+          SECRET_KEY=test-secret-key-for-integration
+          JWT_SECRET_KEY=test-jwt-secret-key-for-integration
+          JWT_ALGORITHM=HS256
+          JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+          JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+
+          # Valkey (Redis) configuration for Docker Compose network
+          VALKEY_HOST=valkey
+          VALKEY_PORT=6379
+          VALKEY_DB=0
+
+          # Application settings
+          APP_NAME=Kuroibara
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost:8000
+          ENVIRONMENT=testing
+          ALLOWED_HOSTS=localhost,127.0.0.1
+          CORS_ORIGINS=http://localhost:3000,http://localhost:8080
+
+          # Storage
+          STORAGE_TYPE=local
+          STORAGE_PATH=/app/storage
+
+          # Disable features for testing
           ENABLE_DB_INIT=false
           ENABLE_PROVIDER_MONITORING=false
           EOF

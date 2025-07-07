@@ -1,4 +1,3 @@
-<!-- BADGIE TIME -->
 [![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Futs/kuroibara/releases)
 [![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
@@ -9,7 +8,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/stargazers)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-<!-- END BADGIE TIME -->
+
 
 # Kuroibara (Black Rose) 🌹
 

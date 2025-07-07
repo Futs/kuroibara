@@ -210,7 +210,7 @@ const savePreferences = async () => {
       is_enabled: provider.user_enabled,
     }));
     
-    await api.post('/v1/users/me/provider-preferences/bulk/', {
+    await api.post('/v1/users/me/provider-preferences/bulk', {
       preferences
     });
     

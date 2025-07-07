@@ -6,8 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-def test_endpoint(endpoint, client: TestClient, method="GET", data=None, headers=None, expected_status=None):
-    """Test an API endpoint."""
+def call_endpoint(endpoint, client: TestClient, method="GET", data=None, headers=None, expected_status=None):
+    """Call an API endpoint and return the response."""
     try:
         if method == "GET":
             response = client.get(endpoint, headers=headers)
@@ -26,40 +26,40 @@ def test_endpoint(endpoint, client: TestClient, method="GET", data=None, headers
 @pytest.mark.asyncio
 async def test_genres_endpoint_requires_auth(client: TestClient):
     """Test that genres endpoint exists and requires authentication."""
-    response = test_endpoint("/api/v1/search/genres", client, expected_status=401)
+    response = call_endpoint("/api/v1/search/genres", client, expected_status=401)
     assert response is not None
 
 
 @pytest.mark.asyncio
 async def test_api_docs_accessible(client: TestClient):
     """Test that API docs are accessible."""
-    response = test_endpoint("/docs", client, expected_status=200)
+    response = call_endpoint("/api/docs", client, expected_status=200)
     assert response is not None
 
 
 @pytest.mark.asyncio
 async def test_providers_endpoint_requires_auth(client: TestClient):
     """Test that providers endpoint exists and requires authentication."""
-    response = test_endpoint("/api/v1/search/providers", client, expected_status=401)
+    response = call_endpoint("/api/v1/search/providers", client, expected_status=401)
     assert response is not None
 
 
 @pytest.mark.asyncio
 async def test_reading_lists_endpoint_requires_auth(client: TestClient):
     """Test that reading lists endpoint exists and requires authentication."""
-    response = test_endpoint("/api/v1/reading-lists", client, expected_status=401)
+    response = call_endpoint("/api/v1/reading-lists", client, expected_status=401)
     assert response is not None
 
 
 @pytest.mark.asyncio
 async def test_library_endpoint_requires_auth(client: TestClient):
     """Test that library endpoint exists and requires authentication."""
-    response = test_endpoint("/api/v1/library", client, expected_status=401)
+    response = call_endpoint("/api/v1/library", client, expected_status=401)
     assert response is not None
 
 
 @pytest.mark.asyncio
 async def test_manga_from_external_endpoint_requires_auth(client: TestClient):
     """Test that manga from external endpoint exists and requires authentication."""
-    response = test_endpoint("/api/v1/manga/from-external", client, method="POST", expected_status=401)
+    response = call_endpoint("/api/v1/manga/from-external", client, method="POST", expected_status=401)
     assert response is not None

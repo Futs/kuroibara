@@ -67,5 +67,11 @@ class Settings(BaseSettings):
     # 2FA
     TWO_FA_ISSUER: str = "Kuroibara"
 
+    # Provider monitoring
+    ENABLE_PROVIDER_MONITORING: bool = True
+
+    # Database initialization
+    ENABLE_DB_INIT: bool = True
+
 
 settings = Settings()

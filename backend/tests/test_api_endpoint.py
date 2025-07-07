@@ -3,8 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-@pytest.mark.asyncio
-async def test_provider_preferences_api(client: TestClient, token: str):
+def test_provider_preferences_api(client: TestClient, token: str):
     """Test the provider preferences API endpoint."""
     headers = {"Authorization": f"Bearer {token}"}
 

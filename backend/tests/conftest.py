@@ -1,5 +1,9 @@
-import asyncio
+# Disable provider monitoring and database initialization for tests - MUST be set before any imports
 import os
+os.environ["ENABLE_PROVIDER_MONITORING"] = "false"
+os.environ["ENABLE_DB_INIT"] = "false"
+
+import asyncio
 import pytest
 import asyncpg
 from typing import AsyncGenerator, Generator
@@ -12,7 +16,6 @@ from sqlalchemy.pool import NullPool
 from app.main import app
 from app.core.config import settings
 from app.db.session import get_db, Base
-
 
 # Use test database configuration from environment variables or construct from settings
 # For local testing (outside Docker), use localhost instead of postgres container name
@@ -108,14 +111,19 @@ async def get_test_db(session: AsyncSession):
     return session
 
 
+# Database dependency override
+async def override_get_db():
+    """Override database dependency for tests."""
+    async with TestingAsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
 # Test client
 @pytest.fixture(scope="function")
-def client(db: AsyncSession) -> Generator[TestClient, None, None]:
-    # Create a dependency override that returns the test session
-    def override_get_db():
-        return db
-
-    # Override the dependencies
+def client() -> Generator[TestClient, None, None]:
+    # Override the dependencies to use test database
     app.dependency_overrides[get_db] = override_get_db
 
     with TestClient(app) as test_client:
@@ -127,35 +135,41 @@ def client(db: AsyncSession) -> Generator[TestClient, None, None]:
 
 # Authentication fixtures
 @pytest.fixture(scope="function")
-async def test_user(db: AsyncSession):
-    """Create a test user."""
-    from app.models.user import User
-    from app.core.security import get_password_hash
+def test_user(client: TestClient, db: AsyncSession) -> dict:
+    """Create a test user via API."""
     import uuid
 
     # Use a unique email for each test to avoid conflicts
     unique_id = str(uuid.uuid4())[:8]
-    user = User(
-        username=f"testuser_{unique_id}",
-        email=f"test_{unique_id}@example.com",
-        hashed_password=get_password_hash("password123"),
-        full_name="Test User",
-        is_superuser=True,
-    )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user
+    user_data = {
+        "username": f"testuser_{unique_id}",
+        "email": f"test_{unique_id}@example.com",
+        "password": "password123",
+        "full_name": "Test User",
+    }
+
+    # Register the user via API
+    response = client.post("/api/v1/auth/register", json=user_data)
+    if response.status_code != 201:
+        print(f"Registration failed with status {response.status_code}: {response.text}")
+        print(f"Response headers: {response.headers}")
+        # For debugging, let's also try a simple health check
+        health_response = client.get("/health")
+        print(f"Health check status: {health_response.status_code}")
+    assert response.status_code in [200, 201]  # Accept both 200 and 201 for user creation
+
+    # Return user data for use in other fixtures
+    return user_data
 
 
 @pytest.fixture(scope="function")
-async def token(client: TestClient, test_user) -> str:
+def token(client: TestClient, test_user: dict) -> str:
     """Get authentication token for test user."""
     response = client.post(
         "/api/v1/auth/login",
         json={
-            "username": test_user.username,
-            "password": "password123",
+            "username": test_user["username"],
+            "password": test_user["password"],
         },
     )
     assert response.status_code == 200

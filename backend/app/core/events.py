@@ -55,22 +55,28 @@ def startup_event_handler(app: FastAPI) -> Callable:
             app.state.redis = None
             set_redis_client(None)
 
-        # Initialize database if needed
-        try:
-            await init_db()
-            logger.info("Database initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing database: {e}")
-            raise
+        # Initialize database if needed (only if enabled)
+        if settings.ENABLE_DB_INIT:
+            try:
+                await init_db()
+                logger.info("Database initialized successfully")
+            except Exception as e:
+                logger.error(f"Error initializing database: {e}")
+                raise
+        else:
+            logger.info("Database initialization disabled by configuration")
 
-        # Initialize and test providers
-        try:
-            await provider_monitor.test_all_providers_on_startup()
-            await provider_monitor.start_monitoring()
-            logger.info("Provider monitoring initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing provider monitoring: {e}")
-            # Don't raise here as provider monitoring is not critical for app startup
+        # Initialize and test providers (only if enabled)
+        if settings.ENABLE_PROVIDER_MONITORING:
+            try:
+                await provider_monitor.test_all_providers_on_startup()
+                await provider_monitor.start_monitoring()
+                logger.info("Provider monitoring initialized successfully")
+            except Exception as e:
+                logger.error(f"Error initializing provider monitoring: {e}")
+                # Don't raise here as provider monitoring is not critical for app startup
+        else:
+            logger.info("Provider monitoring disabled by configuration")
 
         logger.info("Application startup complete")
 

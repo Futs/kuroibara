@@ -47,13 +47,23 @@ async def test_import_archive(mock_os, mock_shutil, mock_is_image_file, mock_get
     ]
     
     # Create test data
-    manga_id = uuid.uuid4()
     user_id = uuid.uuid4()
-    
+
+    # Create a test manga first
+    manga = Manga(
+        title="Test Manga",
+        description="Test description",
+        type=MangaType.MANGA,
+        status=MangaStatus.ONGOING,
+    )
+    db.add(manga)
+    await db.flush()
+    manga_id = manga.id
+
     # Create a temporary zip file
     with tempfile.NamedTemporaryFile(suffix=".cbz", delete=False) as temp_file:
         file_path = temp_file.name
-    
+
     # Patch zipfile.ZipFile
     with patch("zipfile.ZipFile", return_value=mock_zip):
         # Call import_archive
@@ -107,9 +117,19 @@ async def test_import_directory(mock_os, mock_shutil, mock_is_image_file, mock_g
     ]
     
     # Create test data
-    manga_id = uuid.uuid4()
     user_id = uuid.uuid4()
-    
+
+    # Create a test manga first
+    manga = Manga(
+        title="Test Manga",
+        description="Test description",
+        type=MangaType.MANGA,
+        status=MangaStatus.ONGOING,
+    )
+    db.add(manga)
+    await db.flush()
+    manga_id = manga.id
+
     # Call import_directory
     chapter = await import_directory(
         directory_path="/tmp",
@@ -144,9 +164,18 @@ async def test_create_manga_from_import(mock_os, mock_shutil, db: AsyncSession):
     # Mock os.makedirs
     mock_os.makedirs.return_value = None
     
-    # Create test data
-    user_id = uuid.uuid4()
-    
+    # Create test data - need to create a user first
+    from app.models.user import User
+    user = User(
+        username="testuser",
+        email="test@example.com",
+        hashed_password="hashedpassword",
+        full_name="Test User",
+    )
+    db.add(user)
+    await db.flush()
+    user_id = user.id
+
     # Call create_manga_from_import
     manga, library_item = await create_manga_from_import(
         title="Test Manga",

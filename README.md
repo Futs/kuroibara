@@ -1,6 +1,11 @@
+<!-- BADGIE TIME -->
+<!-- END BADGIE TIME -->
+
 # Kuroibara (Black Rose) 🌹
 
 A modern, full-featured web application for manga, manhua, and manhwa enthusiasts. Kuroibara provides a comprehensive platform for discovering, managing, and reading manga from multiple online sources.
+
+> **⚠️ Development Status**: Kuroibara is currently in active development (v0.1.0). While the core features are functional, expect regular updates and potential breaking changes until v1.0.0 release.
 
 ## ✨ Features
 
@@ -195,6 +200,29 @@ The API is fully documented with OpenAPI/Swagger:
 - `POST /api/v1/favorites/{manga_id}` - Add to favorites
 - `GET /api/v1/providers/status` - Provider health status
 - `GET /api/v1/user/profile` - User profile management
+
+## 🗺️ Development Roadmap
+
+### Current Version: 0.1.0 (Alpha)
+- ✅ Core API functionality
+- ✅ Basic manga search and management
+- ✅ User authentication system
+- ✅ Provider health monitoring
+- ✅ Docker deployment
+
+### Planned for 0.2.0 (Beta)
+- 🔄 Enhanced manga reader interface
+- 🔄 Advanced search filters
+- 🔄 Improved mobile responsiveness
+- 🔄 Background task optimization
+- 🔄 Admin dashboard enhancements
+
+### Planned for 1.0.0 (Stable)
+- 📋 Complete test coverage
+- 📋 Production-ready documentation
+- 📋 Performance optimizations
+- 📋 Security audit and hardening
+- 📋 Migration tools and guides
 
 ## 🤝 Contributing
 

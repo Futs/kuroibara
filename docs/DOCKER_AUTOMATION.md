@@ -177,17 +177,17 @@ echo "🔧 Building Kuroibara v$VERSION"
 echo "📅 Build Date: $BUILD_DATE"
 echo "🔗 Git SHA: $GIT_SHA"
 
-# Export variables for docker-compose
+# Export variables for docker compose
 export VERSION
 export BUILD_DATE
 export GIT_SHA
 
 # Build with version information
-docker-compose build --build-arg VERSION="$VERSION" --build-arg BUILD_DATE="$BUILD_DATE" --build-arg GIT_SHA="$GIT_SHA"
+docker compose build --build-arg VERSION="$VERSION" --build-arg BUILD_DATE="$BUILD_DATE" --build-arg GIT_SHA="$GIT_SHA"
 
 echo "✅ Build complete!"
 echo "🏷️  Images tagged with version: $VERSION"
-echo "📦 To run: docker-compose up -d"
+echo "📦 To run: docker compose up -d"
 ```
 
 ### **4. Health Check Endpoints with Version**
@@ -343,15 +343,15 @@ echo "🧪 Running tests in Docker containers..."
 
 # Backend tests
 echo "🐍 Running backend tests..."
-docker-compose -f docker-compose.test.yml run --rm backend-test
+docker compose -f docker-compose.test.yml run --rm backend-test
 
 # Frontend tests
 echo "🌐 Running frontend tests..."
-docker-compose -f docker-compose.test.yml run --rm frontend-test
+docker compose -f docker-compose.test.yml run --rm frontend-test
 
 # Integration tests
 echo "🔗 Running integration tests..."
-docker-compose -f docker-compose.test.yml run --rm integration-test
+docker compose -f docker-compose.test.yml run --rm integration-test
 
 echo "✅ All tests passed!"
 ```

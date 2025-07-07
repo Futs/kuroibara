@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start the development environment
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 
 echo "Development environment started!"
 echo "Frontend: http://localhost:3000"

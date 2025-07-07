@@ -1,0 +1,329 @@
+name: Deploy
+
+on:
+  push:
+    branches: [dev, main]
+    tags: ['v*']
+  pull_request:
+    branches: [dev, main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  versioning:
+    name: Generate Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_release: ${{ steps.version.outputs.is_release }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version
+        id: version
+        run: |
+          chmod +x ./version.sh
+          
+          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            VERSION=$(QUIET=true ./version.sh dev)
+            IS_RELEASE="false"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            VERSION=$(QUIET=true ./version.sh release)
+            IS_RELEASE="true"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            IS_RELEASE="true"
+          else
+            # Handle pull requests and other branches
+            BASE_VERSION=$(QUIET=true ./version.sh current)
+            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.number }}" != "" ]]; then
+              VERSION="$BASE_VERSION-pr.${{ github.event.number }}"
+            else
+              VERSION="$BASE_VERSION-branch.${GITHUB_SHA::8}"
+            fi
+            IS_RELEASE="false"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: versioning
+    if: github.ref == 'refs/heads/dev' || github.event_name == 'pull_request'
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: testuser
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      valkey:
+        image: valkey/valkey:latest
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Set up environment variables
+        run: |
+          cd backend
+          cat > .env << EOF
+          DATABASE_URL=postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
+          SECRET_KEY=test-secret-key-for-ci-1234567890abcdef
+          JWT_SECRET_KEY=test-jwt-secret-key-for-ci-1234567890abcdef
+          JWT_ALGORITHM=HS256
+          JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+          JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+          APP_NAME=Kuroibara
+          APP_ENV=testing
+          APP_DEBUG=false
+          VALKEY_HOST=localhost
+          VALKEY_PORT=6379
+          VALKEY_DB=0
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_DATABASE=testdb
+          DB_USERNAME=testuser
+          DB_PASSWORD=testpass
+          DB_CONNECTION=postgresql
+          EOF
+
+      - name: Initialize database and run migrations
+        run: |
+          cd backend
+          # Initialize the database with base schema
+          python init_test_db.py
+          # Then run any additional migrations
+          alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
+          SECRET_KEY: test-secret-key-for-ci-1234567890abcdef
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-1234567890abcdef
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: testdb
+          DB_USERNAME: testuser
+          DB_PASSWORD: testpass
+          DB_CONNECTION: postgresql
+
+      - name: Run Backend Tests
+        run: |
+          cd backend
+          echo "🧪 Running backend tests..."
+          echo "Version: ${{ needs.versioning.outputs.version }}"
+          pytest -v tests/
+        continue-on-error: false
+        env:
+          DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
+          SECRET_KEY: test-secret-key-for-ci-1234567890abcdef
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-1234567890abcdef
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: testdb
+          DB_USERNAME: testuser
+          DB_PASSWORD: testpass
+          DB_CONNECTION: postgresql
+          
+      - name: Run Frontend Tests  
+        run: |
+          echo "🧪 Running frontend tests..."
+          echo "Frontend tests are currently placeholder"
+          # TODO: Add actual frontend tests
+          # cd frontend/app && npm install && npm test
+
+  build-and-push:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+    needs: [versioning, test]
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      matrix:
+        component: [backend, frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
+          tags: |
+            type=raw,value=${{ needs.versioning.outputs.version }}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+          labels: |
+            org.opencontainers.image.version=${{ needs.versioning.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.component }}
+          file: ./${{ matrix.component }}/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ needs.versioning.outputs.version }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            GIT_SHA=${{ github.sha }}
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/dev'
+    environment: staging
+    
+    steps:
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          # Add your staging deployment commands here
+          # For example, updating a Kubernetes deployment, 
+          # or triggering a webhook to your staging server
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    environment: production
+    
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production environment..."
+          # Add your production deployment commands here
+          # For example, updating a Kubernetes deployment,
+          # or triggering a webhook to your production server
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [versioning, deploy-production]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Generate changelog from git commits
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          
+          # Check if there are any previous tags
+          if git describe --tags --abbrev=0 HEAD~1 >/dev/null 2>&1; then
+            git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD~1)..HEAD >> $GITHUB_OUTPUT
+          else
+            # If no previous tags, show recent commits
+            git log --pretty=format:"- %s" --max-count=10 >> $GITHUB_OUTPUT
+          fi
+          
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## What's Changed
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ## Docker Images
+            
+            - Backend: `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.ref_name }}`
+            - Frontend: `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.ref_name }}`
+            
+            ## Version Information
+            
+            - Version: ${{ needs.versioning.outputs.version }}
+            - Git SHA: ${{ github.sha }}
+            - Build Date: ${{ github.event.head_commit.timestamp }}
+          draft: false
+          prerelease: false
+
+  promote-to-main:
+    name: Promote to Main
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    environment: 
+      name: promote-to-main
+      url: https://github.com/${{ github.repository }}/compare/main...dev
+    
+    steps:
+      - name: Ready for Main Branch
+        run: |
+          echo "✅ Staging deployment successful!"
+          echo "🚀 Ready to promote to main branch"
+          echo "Create a PR from dev to main when ready for production"

@@ -5,7 +5,7 @@ from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.config import settings
 from app.core.security import verify_totp
@@ -73,7 +73,7 @@ async def get_current_user(
             raise credentials_exception
 
         # Check if token is expired
-        if token_data.exp < int(datetime.utcnow().timestamp()):
+        if token_data.exp < int(datetime.now(timezone.utc).timestamp()):
             raise credentials_exception
 
         # Get user ID from token

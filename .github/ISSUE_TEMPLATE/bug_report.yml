@@ -1,0 +1,81 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: [ "bug", "needs-triage" ]
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thanks for taking the time to fill out this bug report!
+
+- type: textarea
+  id: what-happened
+  attributes:
+    label: What happened?
+    description: A clear and concise description of what the bug is.
+    placeholder: Tell us what you see!
+  validations:
+    required: true
+
+- type: textarea
+  id: expected-behavior
+  attributes:
+    label: Expected behavior
+    description: A clear and concise description of what you expected to happen.
+    placeholder: Tell us what you expected to see!
+  validations:
+    required: true
+
+- type: textarea
+  id: steps-to-reproduce
+  attributes:
+    label: Steps to reproduce
+    description: Steps to reproduce the behavior
+    placeholder: |
+      1. Go to '...'
+      2. Click on '....'
+      3. Scroll down to '....'
+      4. See error
+  validations:
+    required: true
+
+- type: dropdown
+  id: component
+  attributes:
+    label: Component
+    description: Which component does this bug affect?
+    options:
+    - Frontend
+    - Backend API
+    - Database
+    - Authentication
+    - Search functionality
+    - User interface
+    - Other
+  validations:
+    required: true
+
+- type: textarea
+  id: environment
+  attributes:
+    label: Environment
+    description: |
+      Please provide information about your environment:
+      - Browser (if frontend issue)
+      - Operating System
+      - Version of the application
+    placeholder: |
+      - Browser: Chrome 120.0.0.0
+      - OS: Ubuntu 22.04
+      - App version: v1.0.0
+  validations:
+    required: true
+
+- type: textarea
+  id: additional-context
+  attributes:
+    label: Additional context
+    description: Add any other context about the problem here, including screenshots if applicable.
+    placeholder: Any additional information that might help us resolve this issue.
+  validations:
+    required: false

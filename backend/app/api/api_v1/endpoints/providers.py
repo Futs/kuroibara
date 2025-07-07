@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -190,7 +190,7 @@ async def test_provider(
             is_success=is_success,
             response_time=response_time,
             error_message=error_message,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
 
     except HTTPException:

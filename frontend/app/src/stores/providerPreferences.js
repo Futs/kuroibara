@@ -52,7 +52,7 @@ export const useProviderPreferencesStore = defineStore('providerPreferences', {
       this.error = null;
 
       try {
-        const response = await api.get('/v1/users/me/provider-preferences');
+        const response = await api.get('/v1/users/me/provider-preferences/');
         this.providers = response.data.providers;
         this.lastFetched = Date.now();
       } catch (error) {

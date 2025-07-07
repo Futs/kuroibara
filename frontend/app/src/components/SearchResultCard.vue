@@ -1,6 +1,6 @@
 <template>
   <div class="search-result-card">
-    <div class="relative group">
+    <div class="relative group cursor-pointer" @click="viewDetails">
       <div class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700">
         <img
           v-if="manga.cover_image || manga.cover_url"
@@ -32,19 +32,9 @@
         </div>
 
         <!-- Hover Actions -->
-        <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+        <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button
-            @click="viewDetails"
-            class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400"
-            title="View Details"
-          >
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-
-          <button
-            @click="addToLibrary"
+            @click.stop="addToLibrary"
             :disabled="inLibrary || adding"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 disabled:opacity-50 disabled:cursor-not-allowed"
             :title="inLibrary ? 'Already in Library' : 'Add to Library'"
@@ -124,7 +114,12 @@ const isNsfw = computed(() => {
 });
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 
-const viewDetails = () => {
+const viewDetails = (event) => {
+  // Prevent navigation if clicking on action buttons
+  if (event.target.closest('button') || event.target.closest('a')) {
+    return;
+  }
+
   // For external manga from providers, use the external endpoint format
   if (props.manga.provider) {
     router.push(`/manga/external/${props.manga.provider}/${props.manga.id}`);

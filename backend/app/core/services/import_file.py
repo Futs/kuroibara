@@ -287,6 +287,7 @@ async def create_manga_from_import(
 
     # Add genres
     if genres:
+        from app.models.manga import manga_genre
         for genre_name in genres:
             # Check if genre exists
             result = await db.execute(select(Genre).where(Genre.name == genre_name))
@@ -298,10 +299,17 @@ async def create_manga_from_import(
                 db.add(genre)
                 await db.flush()
 
-            manga.genres.append(genre)
+            # Insert into association table directly to avoid lazy loading issues
+            await db.execute(
+                insert(manga_genre).values(
+                    manga_id=manga.id,
+                    genre_id=genre.id
+                )
+            )
 
     # Add authors
     if authors:
+        from app.models.manga import manga_author
         for author_name in authors:
             # Check if author exists
             result = await db.execute(select(Author).where(Author.name == author_name))
@@ -313,7 +321,13 @@ async def create_manga_from_import(
                 db.add(author)
                 await db.flush()
 
-            manga.authors.append(author)
+            # Insert into association table directly to avoid lazy loading issues
+            await db.execute(
+                insert(manga_author).values(
+                    manga_id=manga.id,
+                    author_id=author.id
+                )
+            )
 
     # Create library item
     library_item = MangaUserLibrary(

@@ -5,8 +5,17 @@
         <div class="flex justify-between h-16">
           <div class="flex">
             <div class="flex-shrink-0 flex items-center">
-              <router-link to="/" class="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                Kuroibara
+              <router-link to="/" class="flex items-center space-x-3">
+                <img
+                  src="/assets/logo/logo.png"
+                  alt="Kuroibara Logo"
+                  class="h-8 w-8"
+                />
+                <img
+                  src="/assets/logo/name.png"
+                  alt="Kuroibara"
+                  class="h-6"
+                />
               </router-link>
             </div>
             <nav class="hidden sm:ml-6 sm:flex sm:space-x-8">

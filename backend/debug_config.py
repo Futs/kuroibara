@@ -12,7 +12,7 @@ from app.core.config import settings
 
 
 def main():
-    print(f"Database configuration:")
+    print("Database configuration:")
     print(f"DB_HOST: {settings.DB_HOST}")
     print(f"DB_PORT: {settings.DB_PORT}")
     print(f"DB_USERNAME: {settings.DB_USERNAME}")

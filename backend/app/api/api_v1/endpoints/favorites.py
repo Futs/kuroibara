@@ -45,7 +45,7 @@ async def get_user_favorites(
             .where(
                 and_(
                     MangaUserLibraryModel.user_id == current_user.id,
-                    MangaUserLibraryModel.is_favorite == True,
+                    MangaUserLibraryModel.is_favorite is True,
                 )
             )
         )
@@ -251,7 +251,7 @@ async def get_favorites_count(
             select(MangaUserLibraryModel).where(
                 and_(
                     MangaUserLibraryModel.user_id == current_user.id,
-                    MangaUserLibraryModel.is_favorite == True,
+                    MangaUserLibraryModel.is_favorite is True,
                 )
             )
         )
@@ -344,7 +344,7 @@ async def export_favorites(
             .where(
                 and_(
                     MangaUserLibraryModel.user_id == current_user.id,
-                    MangaUserLibraryModel.is_favorite == True,
+                    MangaUserLibraryModel.is_favorite is True,
                 )
             )
             .order_by(MangaUserLibraryModel.updated_at.desc())

@@ -59,8 +59,6 @@ async def create_initial_data(db: AsyncSession) -> None:
         # Create default categories
         from sqlalchemy import select
 
-        from app.models.library import LibraryCategory
-
         # Check if we already have categories
         logger.info("Checking for existing categories...")
         result = await db.execute(select(LibraryCategory).limit(1))

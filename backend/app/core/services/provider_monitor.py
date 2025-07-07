@@ -163,7 +163,7 @@ class ProviderMonitorService:
 
                     result = await db.execute(
                         select(ProviderStatus).where(
-                            ProviderStatus.is_enabled == True,
+                            ProviderStatus.is_enabled is True,
                             func.extract("epoch", now - ProviderStatus.last_check) / 60
                             >= ProviderStatus.check_interval,
                         )

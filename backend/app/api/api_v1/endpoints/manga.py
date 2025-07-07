@@ -400,7 +400,7 @@ async def get_manga_cover(
                     media_type=media_type,
                     filename=f"cover_{manga_id}.jpg",
                 )
-        except Exception as e:
+        except Exception:
             # If download fails, fall through to 404
             pass
 

@@ -318,7 +318,7 @@ class MangaSeeProvider(BaseProvider):
             # The first digit is the season, the next 4 digits are the chapter number
             # For example, "10100" means season 1, chapter 100
             # URL format: /read-online/{manga_id}-chapter-{chapter_number}-index-{page}
-            season = chapter_id[0]
+            # season = chapter_id[0]  # Not used currently
             chapter_number = str(int(chapter_id[1:-3]))
             chapter_decimal = chapter_id[-3:]
 

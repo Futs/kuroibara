@@ -30,7 +30,7 @@ async def read_categories(
     # Get default categories and user's categories
     result = await db.execute(
         select(Category)
-        .where((Category.is_default == True) | (Category.user_id == current_user.id))
+        .where((Category.is_default is True) | (Category.user_id == current_user.id))
         .offset(skip)
         .limit(limit)
     )

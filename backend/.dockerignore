@@ -75,10 +75,10 @@ Thumbs.db
 .gitignore
 README.md
 
-# Testing
-tests/
-test_*.py
-*_test.py
+# Testing (commented out for integration tests)
+# tests/
+# test_*.py
+# *_test.py
 
 # Documentation
 docs/

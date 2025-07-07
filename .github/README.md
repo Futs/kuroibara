@@ -1,3 +1,4 @@
+[![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
 # GitHub Actions CI/CD Documentation
 
 This directory contains the CI/CD configuration for the Kuroibara project using GitHub Actions.

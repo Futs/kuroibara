@@ -28,6 +28,7 @@ def upgrade() -> None:
             op.add_column('users', sa.Column('provider_check_interval', sa.Integer(), nullable=False, server_default='60'))
     
     # Create provider_status table only if it doesn't exist
+    table_created = False
     if 'provider_status' not in inspector.get_table_names():
         op.create_table('provider_status',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -48,22 +49,53 @@ def upgrade() -> None:
         sa.Column('check_interval', sa.Integer(), nullable=False, server_default='60'),
         sa.Column('max_consecutive_failures', sa.Integer(), nullable=False, server_default='3'),
         sa.PrimaryKeyConstraint('id')
-    )
+        )
+        table_created = True
     
-    # Create indexes
-    op.create_index(op.f('ix_provider_status_provider_id'), 'provider_status', ['provider_id'], unique=True)
-    op.create_index(op.f('ix_provider_status_status'), 'provider_status', ['status'])
-    op.create_index(op.f('ix_provider_status_is_enabled'), 'provider_status', ['is_enabled'])
-    op.create_index(op.f('ix_provider_status_last_check'), 'provider_status', ['last_check'])
+    # Create indexes only if table was just created or indexes don't exist
+    if table_created or 'provider_status' in inspector.get_table_names():
+        existing_indexes = [idx['name'] for idx in inspector.get_indexes('provider_status')]
+        
+        if 'ix_provider_status_provider_id' not in existing_indexes:
+            op.create_index(op.f('ix_provider_status_provider_id'), 'provider_status', ['provider_id'], unique=True)
+        
+        if 'ix_provider_status_status' not in existing_indexes:
+            op.create_index(op.f('ix_provider_status_status'), 'provider_status', ['status'])
+        
+        if 'ix_provider_status_is_enabled' not in existing_indexes:
+            op.create_index(op.f('ix_provider_status_is_enabled'), 'provider_status', ['is_enabled'])
+        
+        if 'ix_provider_status_last_check' not in existing_indexes:
+            op.create_index(op.f('ix_provider_status_last_check'), 'provider_status', ['last_check'])
 
 
 def downgrade() -> None:
-    # Drop provider_status table and indexes
-    op.drop_index(op.f('ix_provider_status_last_check'), table_name='provider_status')
-    op.drop_index(op.f('ix_provider_status_is_enabled'), table_name='provider_status')
-    op.drop_index(op.f('ix_provider_status_status'), table_name='provider_status')
-    op.drop_index(op.f('ix_provider_status_provider_id'), table_name='provider_status')
-    op.drop_table('provider_status')
+    # Check if table exists before attempting to drop indexes and table
+    from alembic import context
+    conn = context.get_bind()
+    inspector = sa.inspect(conn)
     
-    # Remove provider_check_interval from users table
-    op.drop_column('users', 'provider_check_interval')
+    if 'provider_status' in inspector.get_table_names():
+        # Check which indexes exist before dropping them
+        existing_indexes = [idx['name'] for idx in inspector.get_indexes('provider_status')]
+        
+        if 'ix_provider_status_last_check' in existing_indexes:
+            op.drop_index(op.f('ix_provider_status_last_check'), table_name='provider_status')
+        
+        if 'ix_provider_status_is_enabled' in existing_indexes:
+            op.drop_index(op.f('ix_provider_status_is_enabled'), table_name='provider_status')
+        
+        if 'ix_provider_status_status' in existing_indexes:
+            op.drop_index(op.f('ix_provider_status_status'), table_name='provider_status')
+        
+        if 'ix_provider_status_provider_id' in existing_indexes:
+            op.drop_index(op.f('ix_provider_status_provider_id'), table_name='provider_status')
+        
+        # Drop the table
+        op.drop_table('provider_status')
+    
+    # Remove provider_check_interval from users table if it exists
+    if 'users' in inspector.get_table_names():
+        existing_columns = [col['name'] for col in inspector.get_columns('users')]
+        if 'provider_check_interval' in existing_columns:
+            op.drop_column('users', 'provider_check_interval')

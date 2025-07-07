@@ -62,7 +62,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:13
+        image: postgres:16-alpine
         env:
           POSTGRES_PASSWORD: testpass
           POSTGRES_USER: testuser
@@ -75,10 +75,10 @@ jobs:
         ports:
           - 5432:5432
 
-      redis:
-        image: redis:7
+      valkey:
+        image: valkey/valkey:latest
         options: >-
-          --health-cmd "redis-cli ping"
+          --health-cmd "valkey-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -119,6 +119,12 @@ jobs:
           VALKEY_HOST=localhost
           VALKEY_PORT=6379
           VALKEY_DB=0
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_DATABASE=testdb
+          DB_USERNAME=testuser
+          DB_PASSWORD=testpass
+          DB_CONNECTION=postgresql
           EOF
 
       - name: Initialize database and run migrations
@@ -132,17 +138,30 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
           SECRET_KEY: test-secret-key-for-ci-1234567890abcdef
           JWT_SECRET_KEY: test-jwt-secret-key-for-ci-1234567890abcdef
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: testdb
+          DB_USERNAME: testuser
+          DB_PASSWORD: testpass
+          DB_CONNECTION: postgresql
 
       - name: Run Backend Tests
         run: |
           cd backend
           echo "🧪 Running backend tests..."
           echo "Version: ${{ needs.versioning.outputs.version }}"
-          pytest -v tests/ || echo "Tests completed with some failures"
+          pytest -v tests/
+        continue-on-error: false
         env:
           DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
           SECRET_KEY: test-secret-key-for-ci-1234567890abcdef
           JWT_SECRET_KEY: test-jwt-secret-key-for-ci-1234567890abcdef
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: testdb
+          DB_USERNAME: testuser
+          DB_PASSWORD: testpass
+          DB_CONNECTION: postgresql
           
       - name: Run Frontend Tests  
         run: |
@@ -269,12 +288,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: |
             ## What's Changed
             

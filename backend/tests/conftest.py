@@ -7,6 +7,7 @@ from typing import AsyncGenerator, Generator
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.main import app
 from app.core.config import settings
@@ -18,7 +19,7 @@ from app.db.session import get_db, Base
 db_host = "localhost" if settings.DB_HOST == "postgres" else settings.DB_HOST
 test_db_name = f"test_{settings.DB_DATABASE}"
 TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL", 
+    "TEST_DATABASE_URL",
     f"postgresql+asyncpg://{settings.DB_USERNAME}:{settings.DB_PASSWORD}@{db_host}:{settings.DB_PORT}/{test_db_name}"
 )
 
@@ -55,9 +56,8 @@ async def create_test_database_if_not_exists():
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
     echo=False,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=0
+    poolclass=NullPool,  # Use NullPool to avoid connection pool issues in tests
+    connect_args={"server_settings": {"jit": "off"}}  # Disable JIT for tests
 )
 TestingAsyncSessionLocal = sessionmaker(
     test_engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
@@ -78,28 +78,98 @@ async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
 async def db() -> AsyncGenerator[AsyncSession, None]:
     # Ensure test database exists before trying to connect
     await create_test_database_if_not_exists()
-    
+
     # Create tables in test database
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
-    # Use the session
-    async with TestingAsyncSessionLocal() as session:
+
+    # Create a new session for the test
+    session = TestingAsyncSessionLocal()
+    try:
         yield session
-    
-    # Clean up tables after test
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        # Rollback any uncommitted changes
+        await session.rollback()
+    except Exception:
+        # Rollback on any exception
+        await session.rollback()
+        raise
+    finally:
+        # Always close the session
+        await session.close()
+
+        # Clean up tables after test
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+
+
+# Override the get_db dependency for tests
+async def get_test_db(session: AsyncSession):
+    """Get test database session."""
+    return session
 
 
 # Test client
 @pytest.fixture(scope="function")
 def client(db: AsyncSession) -> Generator[TestClient, None, None]:
+    # Create a dependency override that returns the test session
+    def override_get_db():
+        return db
+
     # Override the dependencies
-    app.dependency_overrides[get_db] = lambda: db
-    
+    app.dependency_overrides[get_db] = override_get_db
+
     with TestClient(app) as test_client:
         yield test_client
-    
+
     # Reset the dependencies
     app.dependency_overrides = {}
+
+
+# Authentication fixtures
+@pytest.fixture(scope="function")
+async def test_user(db: AsyncSession):
+    """Create a test user."""
+    from app.models.user import User
+    from app.core.security import get_password_hash
+    import uuid
+
+    # Use a unique email for each test to avoid conflicts
+    unique_id = str(uuid.uuid4())[:8]
+    user = User(
+        username=f"testuser_{unique_id}",
+        email=f"test_{unique_id}@example.com",
+        hashed_password=get_password_hash("password123"),
+        full_name="Test User",
+        is_superuser=True,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@pytest.fixture(scope="function")
+async def token(client: TestClient, test_user) -> str:
+    """Get authentication token for test user."""
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "username": test_user.username,
+            "password": "password123",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    return data["access_token"]
+
+
+# Test endpoint fixture for parameterized tests
+@pytest.fixture(params=[
+    "/api/v1/search/genres",
+    "/api/v1/search/providers",
+    "/api/v1/reading-lists",
+    "/api/v1/library",
+])
+def endpoint(request):
+    """Provide test endpoints."""
+    return request.param

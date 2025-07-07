@@ -1,58 +1,59 @@
 # Web Framework
-fastapi>=0.104.0
-uvicorn[standard]>=0.23.2
-pydantic>=2.4.2
-pydantic-settings>=2.0.3
-python-multipart>=0.0.6
-email-validator>=2.0.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+python-multipart>=0.0.20
+email-validator>=2.1.2
 
 # Database
-sqlalchemy>=2.0.22
-alembic>=1.12.0
-psycopg2-binary>=2.9.9
-asyncpg>=0.28.0
-greenlet>=2.0.0
+sqlalchemy>=2.0.36
+alembic>=1.14.0
+psycopg2-binary>=2.9.10
+asyncpg>=0.30.0
+greenlet>=3.1.1
 
 # Authentication & Security
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 pyotp>=2.9.0
-qrcode>=7.4.2
-pillow>=10.0.1
+qrcode>=8.0.0
+pillow>=11.0.0
 
 # Caching
-redis>=5.0.1
+redis>=5.2.0
 
 # HTTP Client
-httpx>=0.25.0
-aiohttp>=3.8.6
-beautifulsoup4>=4.12.2
+httpx>=0.28.0
+aiohttp>=3.12.13
+beautifulsoup4>=4.12.3
 
 # File Processing
 python-magic>=0.4.27
 pyunpack>=0.3.0
 patool>=1.12
 zipfile36>=0.1.3
+zipp==3.19.1
 py7zr>=0.20.5
 
 # Image Processing
-pillow>=10.0.1
+pillow>=11.0.0
 
 # Utilities
-python-dotenv>=1.0.0
-pyyaml>=6.0.1
-tenacity>=8.2.3
-structlog>=23.2.0
-rich>=13.6.0
+python-dotenv>=1.0.1
+pyyaml>=6.0.2
+tenacity>=9.0.0
+structlog>=24.5.0
+rich>=13.9.0
 
 # Testing
-pytest>=7.4.2
-pytest-asyncio>=0.21.1
-pytest-cov>=4.1.0
-httpx>=0.25.0
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+httpx>=0.28.0
 
 # Development
-black>=23.9.1
-isort>=5.12.0
-flake8>=6.1.0
-mypy>=1.6.1
+black>=24.10.0
+isort>=5.13.2
+flake8>=7.1.1
+mypy>=1.13.0

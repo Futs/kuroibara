@@ -332,8 +332,15 @@ jobs:
           # Wait for services to be ready
           sleep 20
 
-          # Run a basic integration test
-          docker compose -f docker-compose.yml run --rm backend pytest -v -k "not slow" --tb=short
+          # Debug: Check what's in the container
+          echo "=== Container contents ==="
+          docker compose -f docker-compose.yml run --rm backend ls -la
+          echo "=== Tests directory ==="
+          docker compose -f docker-compose.yml run --rm backend ls -la tests/
+          echo "=== Running pytest ==="
+
+          # Run integration tests with explicit path
+          docker compose -f docker-compose.yml run --rm backend pytest tests/ -v -k "not slow" --tb=short
 
       - name: Cleanup
         if: always()

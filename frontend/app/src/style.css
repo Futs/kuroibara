@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Fonts */
+@font-face {
+  font-family: 'Debra';
+  src: url('/assets/fonts/Debra.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Debra';
+  src: url('/assets/fonts/Debra-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-synthesis: none;
@@ -32,5 +47,10 @@
 
   .card {
     @apply bg-white dark:bg-dark-800 rounded-lg shadow-md p-4;
+  }
+
+  .brand-name {
+    font-family: 'Debra', system-ui, sans-serif;
+    font-weight: bold;
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="manga-card">
-    <div class="relative group">
+    <div class="relative group cursor-pointer" @click="viewDetails">
       <div class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700">
         <img
           v-if="getMangaCover"
@@ -31,20 +31,11 @@
         <!-- Hover Actions -->
         <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
           <router-link
-            :to="`/manga/${getMangaId}`"
-            class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400"
-            title="View Details"
-          >
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </router-link>
-
-          <router-link
             v-if="getChapters && getChapters.length > 0"
             :to="`/read/${getMangaId}/${manga.reading_progress?.current_chapter || getChapters[0].id}`"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400"
             title="Read"
+            @click.stop
           >
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -52,7 +43,7 @@
           </router-link>
 
           <button
-            @click="$emit('remove', getLibraryItemId)"
+            @click.stop="$emit('remove', getLibraryItemId)"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400"
             title="Remove from Library"
           >
@@ -77,6 +68,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
@@ -86,6 +78,7 @@ const props = defineProps({
   },
 });
 
+const router = useRouter();
 const settingsStore = useSettingsStore();
 
 // Handle both library items (MangaUserLibrary) and direct manga objects
@@ -166,6 +159,16 @@ const isNsfw = computed(() => {
 });
 
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
+
+// Methods
+const viewDetails = (event) => {
+  // Prevent navigation if clicking on action buttons
+  if (event.target.closest('button') || event.target.closest('a')) {
+    return;
+  }
+
+  router.push(`/manga/${getMangaId.value}`);
+};
 
 defineEmits(['remove']);
 </script>

@@ -368,6 +368,10 @@ jobs:
           # Wait for services to be ready
           sleep 20
 
+          # Create test database
+          echo "=== Creating test database ==="
+          docker compose -f docker-compose.yml exec -T postgres psql -U testuser -d testdb -c "CREATE DATABASE test_testdb;" || echo "Test database might already exist"
+
           # Debug: Check what's in the container
           echo "=== Container contents ==="
           docker compose -f docker-compose.yml run --rm backend ls -la

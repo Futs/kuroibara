@@ -4,7 +4,8 @@ import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, insert
+from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
 from app.models.user import User
@@ -37,7 +38,12 @@ async def read_library(
     """
     Retrieve user's library.
     """
-    query = select(MangaUserLibrary).where(MangaUserLibrary.user_id == current_user.id)
+    query = select(MangaUserLibrary).options(
+        selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
+        selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
+        selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
+        selectinload(MangaUserLibrary.categories)
+    ).where(MangaUserLibrary.user_id == current_user.id)
 
     # Filter by category
     if category_id:
@@ -93,18 +99,40 @@ async def add_to_library(
             user_id=current_user.id,
         )
 
-        # Add categories
+        # Add categories using direct SQL to avoid greenlet issues
         if library_item.category_ids:
+            from app.models.library import manga_user_library_category
+
             for category_id in library_item.category_ids:
                 category = await db.get(Category, category_id)
                 if category and (category.is_default or category.user_id == current_user.id):
-                    library_item_obj.categories.append(category)
+                    # Use direct SQL insert instead of relationship append
+                    await db.execute(
+                        insert(manga_user_library_category).values(
+                            manga_user_library_id=library_item_obj.id,
+                            category_id=category.id
+                        )
+                    )
 
         db.add(library_item_obj)
         await db.commit()
         await db.refresh(library_item_obj)
 
-        return library_item_obj
+        # Load relationships explicitly to avoid greenlet issues during response serialization
+        from sqlalchemy.orm import selectinload
+        result = await db.execute(
+            select(MangaUserLibrary)
+            .options(
+                selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
+                selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
+                selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
+                selectinload(MangaUserLibrary.categories)
+            )
+            .where(MangaUserLibrary.id == library_item_obj.id)
+        )
+        library_item_with_relationships = result.scalars().first()
+
+        return library_item_with_relationships
 
     except HTTPException:
         # Re-raise HTTP exceptions

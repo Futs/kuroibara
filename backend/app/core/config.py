@@ -1,12 +1,10 @@
-import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional
 
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True)
+    model_config = SettingsConfigDict(case_sensitive=True)
 
     # Application
     APP_NAME: str = "Kuroibara"
@@ -17,26 +15,17 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: str = "localhost,127.0.0.1"
 
     # Database
-    DB_CONNECTION: str = "postgresql"
+    DB_CONNECTION: str = "postgresql+asyncpg"
     DB_HOST: str = "postgres"
     DB_PORT: str = "5432"
     DB_DATABASE: str = "kuroibara"
     DB_USERNAME: str = "kuroibara"
     DB_PASSWORD: str = "password"
-    DATABASE_URI: Optional[PostgresDsn] = None
 
-    @field_validator("DATABASE_URI", mode="before")
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return PostgresDsn.build(
-            scheme=values.data.get("DB_CONNECTION", "postgresql"),
-            username=values.data.get("DB_USERNAME", ""),
-            password=values.data.get("DB_PASSWORD", ""),
-            host=values.data.get("DB_HOST", ""),
-            port=int(values.data.get("DB_PORT", 5432)),
-            path=f"{values.data.get('DB_DATABASE', '')}",
-        )
+    @property
+    def DATABASE_URI(self) -> str:
+        """Construct database URI from individual components."""
+        return f"{self.DB_CONNECTION}://{self.DB_USERNAME}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
 
     # Valkey (Redis)
     VALKEY_HOST: str = "valkey"

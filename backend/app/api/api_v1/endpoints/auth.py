@@ -163,35 +163,47 @@ async def register(
     """
     Register a new user.
     """
-    # Check if username already exists
-    result = await db.execute(select(User).where(User.username == user_data.username))
-    if result.scalars().first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered",
+    try:
+        # Check if username already exists
+        result = await db.execute(select(User).where(User.username == user_data.username))
+        if result.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Registration failed: Username '{user_data.username}' is already taken. Please choose a different username.",
+            )
+
+        # Check if email already exists
+        result = await db.execute(select(User).where(User.email == user_data.email))
+        if result.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Registration failed: Email '{user_data.email}' is already registered. Please use a different email address or try logging in.",
+            )
+
+        # Create new user
+        user = User(
+            username=user_data.username,
+            email=user_data.email,
+            hashed_password=get_password_hash(user_data.password),
+            full_name=user_data.full_name,
         )
 
-    # Check if email already exists
-    result = await db.execute(select(User).where(User.email == user_data.email))
-    if result.scalars().first():
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+        return user
+
+    except HTTPException:
+        # Re-raise HTTP exceptions (validation errors)
+        raise
+    except Exception as e:
+        # Handle any other database or system errors
+        await db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Registration failed: An unexpected error occurred while creating your account. Please try again later. Error: {str(e)}",
         )
-
-    # Create new user
-    user = User(
-        username=user_data.username,
-        email=user_data.email,
-        hashed_password=get_password_hash(user_data.password),
-        full_name=user_data.full_name,
-    )
-
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-
-    return user
 
 
 @router.post("/2fa/setup", response_model=TwoFactorSetup)

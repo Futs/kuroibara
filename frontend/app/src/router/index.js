@@ -103,6 +103,18 @@ const routes = [
         name: 'not-found',
         component: NotFound,
       },
+      {
+        path: '/profile/edit',
+        name: 'EditProfilePicture',
+        component: () => import('../views/auth/EditProfilePicture.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/profile/accounts',
+        name: 'LinkAccounts',
+        component: () => import('../views/auth/LinkAccounts.vue'),
+        meta: { requiresAuth: true }
+      },
     ],
   },
 ];

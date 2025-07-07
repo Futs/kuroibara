@@ -4,12 +4,12 @@ import tempfile
 import zipfile
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 from uuid import UUID
 from pyunpack import Archive
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, insert
 
 from app.core.utils import (
     get_manga_storage_path,
@@ -329,3 +329,129 @@ async def create_manga_from_import(
     await db.refresh(library_item)
 
     return manga, library_item
+
+
+async def create_manga_from_external_source(
+    provider_name: str,
+    external_id: str,
+    manga_details: Dict[str, Any],
+    db: AsyncSession,
+) -> Manga:
+    """
+    Create a new manga from external provider data.
+
+    Args:
+        provider_name: Name of the provider
+        external_id: External ID of the manga
+        manga_details: Manga details from the provider
+        db: Database session
+
+    Returns:
+        The created manga
+    """
+    from app.models.manga import Manga, Genre, Author, manga_genre, manga_author
+
+    try:
+        # Create manga without relationships first
+        manga = Manga(
+            title=manga_details.get("title", "Unknown Title"),
+            description=manga_details.get("description", ""),
+            status=manga_details.get("status", "unknown"),
+            year=manga_details.get("year"),
+            provider=provider_name,
+            external_id=external_id,
+            external_url=manga_details.get("url", ""),
+            cover_image=manga_details.get("cover_image", ""),
+            is_nsfw=manga_details.get("is_nsfw", False) or manga_details.get("is_explicit", False),
+        )
+
+        db.add(manga)
+        await db.flush()  # Get the manga ID
+        await db.refresh(manga)
+
+        # Handle genres using direct SQL inserts to avoid relationship issues
+        genres = manga_details.get("genres", [])
+        if genres:
+            for genre_name in genres:
+                # Check if genre exists
+                result = await db.execute(select(Genre).where(Genre.name == genre_name))
+                genre = result.scalars().first()
+
+                # Create genre if it doesn't exist
+                if not genre:
+                    genre = Genre(name=genre_name)
+                    db.add(genre)
+                    await db.flush()
+                    await db.refresh(genre)
+
+                # Check if relationship already exists before inserting
+                existing_rel = await db.execute(
+                    select(manga_genre).where(
+                        (manga_genre.c.manga_id == manga.id) &
+                        (manga_genre.c.genre_id == genre.id)
+                    )
+                )
+                if not existing_rel.first():
+                    # Insert into association table directly only if it doesn't exist
+                    await db.execute(
+                        insert(manga_genre).values(
+                            manga_id=manga.id,
+                            genre_id=genre.id
+                        )
+                    )
+
+        # Handle authors using direct SQL inserts to avoid relationship issues
+        authors = manga_details.get("authors", [])
+        if authors:
+            for author_name in authors:
+                # Check if author exists
+                result = await db.execute(select(Author).where(Author.name == author_name))
+                author = result.scalars().first()
+
+                # Create author if it doesn't exist
+                if not author:
+                    author = Author(name=author_name)
+                    db.add(author)
+                    await db.flush()
+                    await db.refresh(author)
+
+                # Check if relationship already exists before inserting
+                existing_rel = await db.execute(
+                    select(manga_author).where(
+                        (manga_author.c.manga_id == manga.id) &
+                        (manga_author.c.author_id == author.id)
+                    )
+                )
+                if not existing_rel.first():
+                    # Insert into association table directly only if it doesn't exist
+                    await db.execute(
+                        insert(manga_author).values(
+                            manga_id=manga.id,
+                            author_id=author.id
+                        )
+                    )
+
+        # Commit all changes
+        await db.commit()
+
+        # Refresh and load relationships explicitly to avoid greenlet issues
+        await db.refresh(manga)
+
+        # Load relationships explicitly using selectinload to avoid lazy loading
+        from sqlalchemy.orm import selectinload
+        result = await db.execute(
+            select(Manga)
+            .options(
+                selectinload(Manga.genres),
+                selectinload(Manga.authors),
+                selectinload(Manga.chapters)
+            )
+            .where(Manga.id == manga.id)
+        )
+        manga_with_relationships = result.scalars().first()
+
+        return manga_with_relationships
+
+    except Exception as e:
+        await db.rollback()
+        raise e

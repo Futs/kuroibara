@@ -9,7 +9,7 @@
           Customize your Kuroibara experience
         </p>
       </div>
-      
+
       <div class="border-t border-gray-200 dark:border-dark-600 px-4 py-5 sm:p-6">
         <div class="space-y-6">
           <!-- Theme Settings -->
@@ -17,18 +17,18 @@
             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
               Appearance
             </h3>
-            
+
             <div class="mt-4">
               <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Theme
               </label>
               <div class="mt-2 grid grid-cols-3 gap-3">
-                <button 
-                  @click="setTheme('light')" 
+                <button
+                  @click="setTheme('light')"
                   class="relative px-4 py-3 border rounded-md shadow-sm focus:outline-none"
                   :class="[
-                    theme === 'light' 
-                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500' 
+                    theme === 'light'
+                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500'
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800'
                   ]"
                 >
@@ -39,13 +39,13 @@
                     Light
                   </span>
                 </button>
-                
-                <button 
-                  @click="setTheme('dark')" 
+
+                <button
+                  @click="setTheme('dark')"
                   class="relative px-4 py-3 border rounded-md shadow-sm focus:outline-none"
                   :class="[
-                    theme === 'dark' 
-                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500' 
+                    theme === 'dark'
+                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500'
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800'
                   ]"
                 >
@@ -56,13 +56,13 @@
                     Dark
                   </span>
                 </button>
-                
-                <button 
-                  @click="setTheme('system')" 
+
+                <button
+                  @click="setTheme('system')"
                   class="relative px-4 py-3 border rounded-md shadow-sm focus:outline-none"
                   :class="[
-                    theme === 'system' 
-                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500' 
+                    theme === 'system'
+                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500'
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800'
                   ]"
                 >
@@ -76,13 +76,18 @@
               </div>
             </div>
           </div>
-          
+
+          <!-- Provider Preferences -->
+          <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
+            <ProviderPreferences />
+          </div>
+
           <!-- Content Settings -->
           <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
               Content
             </h3>
-            
+
             <div class="mt-4 flex items-center justify-between">
               <div>
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -92,36 +97,36 @@
                   Blur images marked as NSFW or explicit
                 </p>
               </div>
-              <button 
-                @click="toggleNsfwBlur" 
+              <button
+                @click="toggleNsfwBlur"
                 class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 :class="nsfwBlur ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'"
               >
-                <span 
+                <span
                   class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
                   :class="nsfwBlur ? 'translate-x-5' : 'translate-x-0'"
                 ></span>
               </button>
             </div>
           </div>
-          
+
           <!-- Download Settings -->
           <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
               Downloads
             </h3>
-            
+
             <div class="mt-4">
               <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Download Quality
               </label>
               <div class="mt-2 grid grid-cols-3 gap-3">
-                <button 
-                  @click="setDownloadQuality('low')" 
+                <button
+                  @click="setDownloadQuality('low')"
                   class="relative px-4 py-3 border rounded-md shadow-sm focus:outline-none"
                   :class="[
-                    downloadQuality === 'low' 
-                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500' 
+                    downloadQuality === 'low'
+                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500'
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800'
                   ]"
                 >
@@ -129,13 +134,13 @@
                     Low
                   </span>
                 </button>
-                
-                <button 
-                  @click="setDownloadQuality('medium')" 
+
+                <button
+                  @click="setDownloadQuality('medium')"
                   class="relative px-4 py-3 border rounded-md shadow-sm focus:outline-none"
                   :class="[
-                    downloadQuality === 'medium' 
-                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500' 
+                    downloadQuality === 'medium'
+                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500'
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800'
                   ]"
                 >
@@ -143,13 +148,13 @@
                     Medium
                   </span>
                 </button>
-                
-                <button 
-                  @click="setDownloadQuality('high')" 
+
+                <button
+                  @click="setDownloadQuality('high')"
                   class="relative px-4 py-3 border rounded-md shadow-sm focus:outline-none"
                   :class="[
-                    downloadQuality === 'high' 
-                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500' 
+                    downloadQuality === 'high'
+                      ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 ring-2 ring-primary-500'
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800'
                   ]"
                 >
@@ -162,22 +167,31 @@
                 Higher quality downloads will use more storage space.
               </p>
             </div>
-            
+
             <div class="mt-6">
               <label for="downloadPath" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Download Path
               </label>
               <div class="mt-1 flex rounded-md shadow-sm">
-                <input 
-                  id="downloadPath" 
-                  v-model="downloadPath" 
-                  type="text" 
+                <input
+                  id="downloadPath"
+                  v-model="downloadPath"
+                  type="text"
                   class="flex-1 min-w-0 block w-full px-3 py-2 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm border-gray-300 dark:border-dark-600 dark:bg-dark-700 dark:text-white"
                   placeholder="Default download location"
                 />
-                <button 
-                  @click="resetDownloadPath" 
+                <button
+                  @click="browseDownloadPath"
                   class="ml-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                >
+                  <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-5l-2-2H6a2 2 0 00-2 2z" />
+                  </svg>
+                  Browse
+                </button>
+                <button
+                  @click="resetDownloadPath"
+                  class="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   Reset
                 </button>
@@ -187,12 +201,12 @@
               </p>
             </div>
           </div>
-          
+
           <!-- Save Button -->
           <div class="pt-6 border-t border-gray-200 dark:border-dark-600 flex justify-end">
-            <button 
-              @click="saveSettings" 
-              :disabled="loading" 
+            <button
+              @click="saveSettings"
+              :disabled="loading"
               class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -211,6 +225,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useSettingsStore } from '../stores/settings';
+import ProviderPreferences from '../components/ProviderPreferences.vue';
 
 const settingsStore = useSettingsStore();
 
@@ -227,18 +242,40 @@ const error = computed(() => settingsStore.error);
 // Methods
 const setTheme = (newTheme) => {
   theme.value = newTheme;
+  // Apply theme immediately
+  settingsStore.setTheme(newTheme);
+  console.log('Theme changed to:', newTheme);
 };
 
 const toggleNsfwBlur = () => {
-  nsfwBlur.value = !nsfwBlur.value;
+  settingsStore.toggleNsfwBlur();
+  nsfwBlur.value = settingsStore.getNsfwBlur;
 };
 
 const setDownloadQuality = (quality) => {
   downloadQuality.value = quality;
 };
 
+const browseDownloadPath = async () => {
+  try {
+    // Use the File System Access API if available (modern browsers)
+    if ('showDirectoryPicker' in window) {
+      const dirHandle = await window.showDirectoryPicker();
+      downloadPath.value = dirHandle.name; // This will show the folder name
+      // Note: In a real implementation, you'd need to handle the full path
+      // For now, we'll just show the folder name as a placeholder
+    } else {
+      // Fallback for browsers that don't support the File System Access API
+      alert('Directory browsing is not supported in this browser. Please enter the path manually.');
+    }
+  } catch (error) {
+    // User cancelled the picker or an error occurred
+    console.log('Directory picker cancelled or error:', error);
+  }
+};
+
 const resetDownloadPath = () => {
-  downloadPath.value = 'default';
+  downloadPath.value = '/app/storage';
 };
 
 const saveSettings = async () => {
@@ -246,11 +283,27 @@ const saveSettings = async () => {
   settingsStore.setNsfwBlur(nsfwBlur.value);
   settingsStore.setDownloadQuality(downloadQuality.value);
   settingsStore.setDownloadPath(downloadPath.value);
-  
+
   await settingsStore.updateUserSettings();
 };
 
-onMounted(() => {
-  settingsStore.fetchUserSettings();
+onMounted(async () => {
+  // Initialize local state with store values first
+  theme.value = settingsStore.getTheme;
+  nsfwBlur.value = settingsStore.getNsfwBlur;
+  downloadQuality.value = settingsStore.getDownloadQuality;
+  downloadPath.value = settingsStore.getDownloadPath;
+
+  // Try to fetch user settings from backend (will fail gracefully if not authenticated)
+  try {
+    await settingsStore.fetchUserSettings();
+    // Update local state with fetched values
+    theme.value = settingsStore.getTheme;
+    nsfwBlur.value = settingsStore.getNsfwBlur;
+    downloadQuality.value = settingsStore.getDownloadQuality;
+    downloadPath.value = settingsStore.getDownloadPath;
+  } catch (error) {
+    console.log('Could not fetch user settings from backend, using local storage values');
+  }
 });
 </script>

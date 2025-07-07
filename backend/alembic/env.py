@@ -1,7 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import pool
+from sqlalchemy import pool, create_engine
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -25,6 +25,7 @@ from app.models.base import BaseModel
 from app.models.user import User
 from app.models.manga import Manga, Chapter, Page, Genre, Author
 from app.models.library import MangaUserLibrary, LibraryCategory, ReadingList, ReadingProgress, Bookmark
+from app.models.user_provider_preference import UserProviderPreference
 
 target_metadata = Base.metadata
 
@@ -36,7 +37,9 @@ target_metadata = Base.metadata
 from app.core.config import settings
 
 # Override sqlalchemy.url with actual database URL from settings
-config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URI))
+# Convert async URL to sync URL for alembic migrations
+sync_database_uri = str(settings.DATABASE_URI).replace("postgresql+asyncpg://", "postgresql://")
+config.set_main_option("sqlalchemy.url", sync_database_uri)
 
 
 def run_migrations_offline() -> None:
@@ -70,26 +73,25 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 
-async def run_migrations_online() -> None:
+def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
+    connectable = create_engine(
+        config.get_main_option("sqlalchemy.url"),
         poolclass=pool.NullPool,
     )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        do_run_migrations(connection)
 
-    await connectable.dispose()
+    connectable.dispose()
 
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    run_migrations_online()

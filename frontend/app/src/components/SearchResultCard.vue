@@ -7,7 +7,7 @@
           :src="manga.cover_image || manga.cover_url"
           :alt="manga.title"
           class="w-full h-full object-center object-cover"
-          :class="{ 'blur-sm': isNsfw && blurNsfw }"
+          :class="{ 'blur-md': isNsfw && blurNsfw }"
           @error="onImageError"
         />
         <div v-else class="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
@@ -116,7 +116,12 @@ const settingsStore = useSettingsStore();
 const adding = ref(false);
 const inLibrary = ref(props.manga.in_library || false);
 
-const isNsfw = computed(() => props.manga.is_nsfw || props.manga.is_explicit);
+const isNsfw = computed(() => {
+  return props.manga.is_nsfw === true ||
+         props.manga.is_explicit === true ||
+         props.manga.nsfw === true ||
+         props.manga.explicit === true;
+});
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 
 const viewDetails = () => {

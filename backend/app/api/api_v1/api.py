@@ -11,6 +11,7 @@ from app.api.api_v1.endpoints import (
     import_files,
     providers,
     favorites,
+    user_provider_preferences,
 )
 
 api_router = APIRouter()
@@ -26,3 +27,4 @@ api_router.include_router(library.router, prefix="/library", tags=["Library"])
 api_router.include_router(import_files.router, prefix="/import", tags=["Import"])
 api_router.include_router(providers.router, prefix="/providers", tags=["Providers"])
 api_router.include_router(favorites.router, prefix="/favorites", tags=["Favorites"])
+api_router.include_router(user_provider_preferences.router, prefix="/users/me/provider-preferences", tags=["User Provider Preferences"])

@@ -46,9 +46,9 @@ manga_author = Table(
 
 class Manga(BaseModel):
     """Manga model."""
-    
+
     __tablename__ = "manga"
-    
+
     title = Column(String(255), nullable=False, index=True)
     alternative_titles = Column(JSONB, nullable=True)  # Store alternative titles in different languages
     description = Column(Text, nullable=True)
@@ -57,10 +57,15 @@ class Manga(BaseModel):
     status = Column(Enum(MangaStatus), default=MangaStatus.UNKNOWN, nullable=False)
     year = Column(Integer, nullable=True)
     is_nsfw = Column(Boolean, default=False, nullable=False)
-    
-    # External IDs from different sources
+
+    # External provider information
+    provider = Column(String(50), nullable=True, index=True)  # Provider name (e.g., 'mangadex', 'mangasee')
+    external_id = Column(String(255), nullable=True, index=True)  # External ID on the provider
+    external_url = Column(String(500), nullable=True)  # External URL
+
+    # External IDs from different sources (for backward compatibility)
     external_ids = Column(JSONB, nullable=True)
-    
+
     # Relationships
     genres = relationship("Genre", secondary=manga_genre, back_populates="manga")
     authors = relationship("Author", secondary=manga_author, back_populates="manga")
@@ -70,34 +75,34 @@ class Manga(BaseModel):
 
 class Genre(BaseModel):
     """Genre model."""
-    
+
     __tablename__ = "genre"
-    
+
     name = Column(String(50), nullable=False, unique=True, index=True)
     description = Column(Text, nullable=True)
-    
+
     # Relationships
     manga = relationship("Manga", secondary=manga_genre, back_populates="genres")
 
 
 class Author(BaseModel):
     """Author model."""
-    
+
     __tablename__ = "author"
-    
+
     name = Column(String(100), nullable=False, index=True)
     alternative_names = Column(JSONB, nullable=True)
     biography = Column(Text, nullable=True)
-    
+
     # Relationships
     manga = relationship("Manga", secondary=manga_author, back_populates="authors")
 
 
 class Chapter(BaseModel):
     """Chapter model."""
-    
+
     __tablename__ = "chapter"
-    
+
     manga_id = Column(UUID(as_uuid=True), ForeignKey("manga.id"), nullable=False)
     title = Column(String(255), nullable=True)
     number = Column(String(20), nullable=False)  # String to support formats like "12.5", "Extra", etc.
@@ -107,7 +112,7 @@ class Chapter(BaseModel):
     file_path = Column(String(255), nullable=True)  # Path to the chapter file (CBZ, directory, etc.)
     file_size = Column(Integer, nullable=True)  # Size in bytes
     source = Column(String(50), nullable=True)  # Source of the chapter (website, scanner, etc.)
-    
+
     # Relationships
     manga = relationship("Manga", back_populates="chapters")
     pages = relationship("Page", back_populates="chapter", cascade="all, delete-orphan")
@@ -117,14 +122,14 @@ class Chapter(BaseModel):
 
 class Page(BaseModel):
     """Page model."""
-    
+
     __tablename__ = "page"
-    
+
     chapter_id = Column(UUID(as_uuid=True), ForeignKey("chapter.id"), nullable=False)
     number = Column(Integer, nullable=False)
     file_path = Column(String(255), nullable=False)
     width = Column(Integer, nullable=True)
     height = Column(Integer, nullable=True)
-    
+
     # Relationships
     chapter = relationship("Chapter", back_populates="pages")

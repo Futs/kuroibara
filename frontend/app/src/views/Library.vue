@@ -226,3 +226,101 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue';
+import { useLibraryStore } from '../stores/library';
+import MangaCard from '../components/MangaCard.vue';
+
+// Store
+const libraryStore = useLibraryStore();
+
+// Reactive data
+const showFilters = ref(false);
+const categories = ref([]);
+
+// Computed properties
+const manga = computed(() => libraryStore.getManga);
+const loading = computed(() => libraryStore.loading);
+const error = computed(() => libraryStore.error);
+const filters = computed(() => libraryStore.getFilters);
+const pagination = computed(() => libraryStore.getPagination);
+const currentPage = computed(() => pagination.value.page);
+const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.limit));
+
+// Pagination range for display
+const paginationRange = computed(() => {
+  const range = [];
+  const start = Math.max(1, currentPage.value - 2);
+  const end = Math.min(totalPages.value, currentPage.value + 2);
+
+  for (let i = start; i <= end; i++) {
+    range.push(i);
+  }
+
+  return range;
+});
+
+// Methods
+const fetchLibrary = async () => {
+  await libraryStore.fetchLibrary();
+};
+
+const fetchCategories = async () => {
+  try {
+    // This would need to be implemented in a categories store or API call
+    // For now, we'll leave it empty
+    categories.value = [];
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+  }
+};
+
+const applyFilters = () => {
+  libraryStore.setFilters(filters.value);
+};
+
+const resetFilters = () => {
+  libraryStore.setFilters({
+    category: null,
+    status: null,
+    sort: 'title',
+    order: 'asc',
+  });
+};
+
+const removeManga = async (mangaId) => {
+  try {
+    await libraryStore.removeFromLibrary(mangaId);
+  } catch (error) {
+    console.error('Failed to remove manga:', error);
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    libraryStore.setPage(currentPage.value - 1);
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    libraryStore.setPage(currentPage.value + 1);
+  }
+};
+
+const goToPage = (page) => {
+  libraryStore.setPage(page);
+};
+
+// Watch for filter changes
+watch(filters, () => {
+  applyFilters();
+}, { deep: true });
+
+// Lifecycle
+onMounted(async () => {
+  await fetchLibrary();
+  await fetchCategories();
+});
+</script>

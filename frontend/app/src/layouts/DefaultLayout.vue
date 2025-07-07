@@ -26,7 +26,7 @@
             </nav>
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:items-center">
-            <div class="ml-3 relative">
+            <div class="ml-3 relative user-menu">
               <div v-if="isAuthenticated">
                 <button
                   @click="userMenuOpen = !userMenuOpen"
@@ -157,6 +157,20 @@
               @click="mobileMenuOpen = false"
             >
               Your Profile
+            </router-link>
+            <router-link
+              to="/profile/edit"
+              class="block px-4 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-dark-700"
+              @click="mobileMenuOpen = false"
+            >
+              Edit Profile Picture
+            </router-link>
+            <router-link
+              to="/profile/accounts"
+              class="block px-4 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-dark-700"
+              @click="mobileMenuOpen = false"
+            >
+              Link External Accounts
             </router-link>
             <router-link
               to="/settings"

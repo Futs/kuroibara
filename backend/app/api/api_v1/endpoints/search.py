@@ -8,6 +8,11 @@ from sqlalchemy import select
 
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
+from app.core.providers.user_preferences import (
+    get_user_provider_preferences,
+    prioritize_providers_by_user_preferences,
+    apply_fallback_prioritization
+)
 from app.models.user import User
 from app.models.provider import ProviderStatus
 from app.schemas.search import SearchQuery, SearchFilter, SearchResponse, SearchResult, ProviderInfo
@@ -113,28 +118,32 @@ async def search_manga(
     # If no provider is specified, search across multiple providers
     all_providers = provider_registry.get_all_providers()
 
-    # Prioritize known working providers
-    priority_providers = []
-    generic_providers = []
+    # Get user's provider preferences
+    user_preferences = await get_user_provider_preferences(db, current_user.id)
 
-    for provider in all_providers:
-        if provider.__class__.__name__ in ["MangaDexProvider", "MangaPlusProvider", "MangaSeeProvider"]:
-            priority_providers.append(provider)
-        else:
-            generic_providers.append(provider)
+    if user_preferences:
+        # Use user preferences for prioritization
+        priority_providers, regular_providers = prioritize_providers_by_user_preferences(
+            all_providers, user_preferences
+        )
+        # Limit regular providers to avoid too many requests
+        max_regular_providers = 10
+        selected_providers = priority_providers + regular_providers[:max_regular_providers]
 
-    # Use priority providers first, then a limited number of generic providers
-    max_generic_providers = 10  # Limit generic providers to avoid too many failures
-    selected_providers = priority_providers + generic_providers[:max_generic_providers]
+        logger.info(f"Using user preferences: {len(priority_providers)} favorite providers, {min(len(regular_providers), max_regular_providers)} regular providers")
+    else:
+        # Fallback to hardcoded prioritization for users without preferences
+        priority_providers, generic_providers = apply_fallback_prioritization(all_providers)
+        selected_providers = priority_providers + generic_providers
+
+        logger.info(f"Using fallback prioritization: {len(priority_providers)} priority providers, {len(generic_providers)} generic providers")
 
     # Give each provider a reasonable limit to ensure we get good results
     # Don't divide by number of providers as this makes each provider return too few results
     results_per_provider = min(query.limit, 10)  # Each provider can return up to 10 results
 
-    logger.info(f"Multi-provider search using {len(priority_providers)} priority providers and {min(len(generic_providers), max_generic_providers)} generic providers")
-    logger.info(f"Priority providers: {[p.name for p in priority_providers]}")
-    logger.info(f"Selected generic providers: {[p.name for p in generic_providers[:max_generic_providers]]}")
     logger.info(f"Total providers to search: {len(selected_providers)}")
+    logger.info(f"Selected providers: {[p.name for p in selected_providers]}")
     logger.info(f"Results per provider: {results_per_provider}")
 
     # Search with all selected providers concurrently with timeout

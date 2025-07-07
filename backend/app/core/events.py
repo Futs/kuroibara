@@ -1,5 +1,6 @@
 import logging
 from typing import Callable
+import asyncio
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
@@ -15,6 +16,17 @@ logger = logging.getLogger(__name__)
 
 def startup_event_handler(app: FastAPI) -> Callable:
     async def start_app() -> None:
+        # Initialize greenlet context for SQLAlchemy async operations
+        try:
+            import greenlet
+            # Ensure greenlet context is properly initialized
+            if not hasattr(greenlet.getcurrent(), '_greenlet_spawn_called'):
+                greenlet.getcurrent()._greenlet_spawn_called = True
+            logger.info("Greenlet context initialized")
+        except ImportError:
+            logger.warning("Greenlet not available - some async operations may fail")
+        except Exception as e:
+            logger.warning(f"Error initializing greenlet context: {e}")
         # Set up Redis connection
         try:
             redis_kwargs = {

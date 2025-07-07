@@ -40,7 +40,13 @@ jobs:
             VERSION="${{ github.ref_name }}"
             IS_RELEASE="true"
           else
-            VERSION=$(./version.sh current)-pr.${{ github.event.number }}
+            # Handle pull requests and other branches
+            BASE_VERSION=$(QUIET=true ./version.sh current)
+            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.number }}" != "" ]]; then
+              VERSION="$BASE_VERSION-pr.${{ github.event.number }}"
+            else
+              VERSION="$BASE_VERSION-branch.${GITHUB_SHA::8}"
+            fi
             IS_RELEASE="false"
           fi
           
@@ -177,7 +183,15 @@ jobs:
         run: |
           # Generate changelog from git commits
           echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD~1)..HEAD >> $GITHUB_OUTPUT
+          
+          # Check if there are any previous tags
+          if git describe --tags --abbrev=0 HEAD~1 >/dev/null 2>&1; then
+            git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD~1)..HEAD >> $GITHUB_OUTPUT
+          else
+            # If no previous tags, show recent commits
+            git log --pretty=format:"- %s" --max-count=10 >> $GITHUB_OUTPUT
+          fi
+          
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release

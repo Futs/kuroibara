@@ -121,9 +121,12 @@ jobs:
           VALKEY_DB=0
           EOF
 
-      - name: Run database migrations
+      - name: Initialize database and run migrations
         run: |
           cd backend
+          # Initialize the database with base schema
+          python init_test_db.py
+          # Then run any additional migrations
           alembic upgrade head
         env:
           DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb

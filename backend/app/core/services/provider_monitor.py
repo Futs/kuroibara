@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from typing import Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
@@ -146,7 +146,7 @@ class ProviderMonitorService:
             try:
                 async with AsyncSessionLocal() as db:
                     # Get providers that need to be checked
-                    now = datetime.utcnow()
+                    now = datetime.now(timezone.utc)
                     
                     result = await db.execute(
                         select(ProviderStatus).where(

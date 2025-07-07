@@ -1,4 +1,14 @@
 <!-- BADGIE TIME -->
+[![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Futs/kuroibara/releases)
+[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+[![Vue.js](https://img.shields.io/badge/vue.js-3.5-4FC08D.svg)](https://vuejs.org/)
+[![FastAPI](https://img.shields.io/badge/fastapi-latest-009688.svg)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/stargazers)
+[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 <!-- END BADGIE TIME -->
 
 # Kuroibara (Black Rose) 🌹
@@ -248,6 +258,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Vue.js Community** - For excellent frontend framework and ecosystem
 - **FastAPI** - For the high-performance backend framework
 - **Scanlation Groups** - For their dedication to manga translation
-
-![Alt](https://repobeats.axiom.co/api/embed/0d7fd2d308f59b6eeed9cadde2c02b33a9973086.svg "Repobeats analytics image")
-

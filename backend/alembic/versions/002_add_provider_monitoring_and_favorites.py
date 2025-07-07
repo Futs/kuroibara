@@ -17,11 +17,19 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add provider_check_interval to users table
-    op.add_column('users', sa.Column('provider_check_interval', sa.Integer(), nullable=False, server_default='60'))
+    # Check if users table exists and add column only if it doesn't exist
+    from alembic import context
+    conn = context.get_bind()
+    inspector = sa.inspect(conn)
     
-    # Create provider_status table
-    op.create_table('provider_status',
+    if 'users' in inspector.get_table_names():
+        existing_columns = [col['name'] for col in inspector.get_columns('users')]
+        if 'provider_check_interval' not in existing_columns:
+            op.add_column('users', sa.Column('provider_check_interval', sa.Integer(), nullable=False, server_default='60'))
+    
+    # Create provider_status table only if it doesn't exist
+    if 'provider_status' not in inspector.get_table_names():
+        op.create_table('provider_status',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),

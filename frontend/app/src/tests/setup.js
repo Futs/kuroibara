@@ -1,5 +1,6 @@
 import { config } from '@vue/test-utils'
 import { vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 
 // Mock global objects
 global.ResizeObserver = vi.fn(() => ({
@@ -54,3 +55,10 @@ config.global.stubs = {
   'router-link': true,
   'router-view': true,
 }
+
+// Initialize Pinia for tests
+const pinia = createPinia()
+setActivePinia(pinia)
+
+// Configure global plugins
+config.global.plugins = [pinia]

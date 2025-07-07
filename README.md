@@ -146,7 +146,7 @@ Kuroibara supports 100+ manga providers, including:
 - **Manhua** - Chinese comics and web novels
 - **NSFW Content** - Adult content with blur controls
 
-*For a complete list of supported providers, see the [provider documentation](PROVIDER_MONITORING_AND_FAVORITES_README.md).*
+*For a complete list of supported providers, check the provider monitoring system in the application.*
 
 ## 🔧 Configuration
 

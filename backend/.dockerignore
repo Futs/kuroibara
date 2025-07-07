@@ -52,7 +52,6 @@ uploads/
 downloads/
 
 # Database
-*.sqlite3
 *.db
 
 # Environment variables

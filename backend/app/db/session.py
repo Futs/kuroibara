@@ -12,9 +12,11 @@ try:
 except ImportError:
     pass
 
-# Create async engine
+# Create async engine for PostgreSQL
+database_url = str(settings.DATABASE_URI).replace("postgresql://", "postgresql+asyncpg://")
+
 engine = create_async_engine(
-    str(settings.DATABASE_URI).replace("postgresql://", "postgresql+asyncpg://"),
+    database_url,
     echo=settings.APP_DEBUG,
     future=True,
     pool_pre_ping=True,

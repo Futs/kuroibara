@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: str = "localhost,127.0.0.1"
 
     # Database
+    DATABASE_URL: Optional[str] = None  # Direct database URL (takes precedence)
     DB_CONNECTION: str = "postgresql+asyncpg"
     DB_HOST: str = "postgres"
     DB_PORT: str = "5432"
@@ -24,7 +25,9 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URI(self) -> str:
-        """Construct database URI from individual components."""
+        """Construct database URI from individual components or use direct URL."""
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
         return f"{self.DB_CONNECTION}://{self.DB_USERNAME}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
 
     # Valkey (Redis)

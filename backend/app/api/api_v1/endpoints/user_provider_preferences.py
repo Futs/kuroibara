@@ -189,8 +189,11 @@ async def bulk_update_provider_preferences(
     Bulk update provider preferences for the current user.
     """
     try:
+        logger.info(f"Bulk updating {len(bulk_update.preferences)} provider preferences for user {current_user.id}")
+
         # Validate all providers exist
         for pref in bulk_update.preferences:
+            logger.debug(f"Validating provider: {pref.provider_id}")
             provider = provider_registry.get_provider(pref.provider_id)
             if not provider:
                 raise HTTPException(
@@ -244,11 +247,11 @@ async def bulk_update_provider_preferences(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error bulk updating provider preferences: {e}")
+        logger.error(f"Error bulk updating provider preferences: {e}", exc_info=True)
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to bulk update provider preferences"
+            detail=f"Failed to bulk update provider preferences: {str(e)}"
         )
 
 

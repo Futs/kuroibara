@@ -66,7 +66,6 @@ uploads/
 downloads/
 
 # Database
-*.sqlite3
 *.db
 
 # Compiled files

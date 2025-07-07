@@ -11,12 +11,18 @@ from app.core.config import settings
 from app.db.session import get_db, Base
 
 
-# Use an in-memory SQLite database for testing
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+# Use PostgreSQL test database for testing
+TEST_DATABASE_URL = "postgresql+asyncpg://test:test@localhost:5432/test_kuroibara"
 
 
 # Create async engine and session for testing
-test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+test_engine = create_async_engine(
+    TEST_DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=0
+)
 TestingAsyncSessionLocal = sessionmaker(
     test_engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
 )

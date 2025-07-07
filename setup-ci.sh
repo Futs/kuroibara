@@ -115,9 +115,10 @@ run_tests() {
     
     # Create test environment file
     cat > .env << EOF
-DATABASE_URL=sqlite+aiosqlite:///test.db
+DATABASE_URL=postgresql+asyncpg://test:test@localhost:5432/test_kuroibara
 SECRET_KEY=test-secret-key-for-local-testing
-ALGORITHM=HS256
+JWT_SECRET_KEY=test-jwt-secret-key-for-local-testing
+JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ENVIRONMENT=testing
 EOF

@@ -5,8 +5,9 @@ import os
 sys.path.append('/app')
 
 # Set environment variables
-os.environ.setdefault('DATABASE_URL', 'postgresql://user:password@localhost/db')
+os.environ.setdefault('DATABASE_URL', 'postgresql+asyncpg://user:password@localhost/db')
 os.environ.setdefault('SECRET_KEY', 'test-secret-key')
+os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key')
 
 from app.core.providers.registry import provider_registry
 

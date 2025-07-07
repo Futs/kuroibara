@@ -1,0 +1,92 @@
+# Snyk configuration file
+# This file configures how Snyk scans your project
+
+# Language settings
+language-settings:
+  python:
+    # Skip dev dependencies in Python
+    skip-unresolved: true
+    # Use specific Python version
+    python-version: "3.11"
+
+  javascript:
+    # Skip dev dependencies in production scans
+    dev-dependencies: false
+
+# Exclude specific paths from scanning
+exclude:
+  global:
+  - "**/*.pyc"
+  - "**/node_modules/**"
+  - "**/.git/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/__pycache__/**"
+  - "**/venv/**"
+  - "**/.venv/**"
+  - "**/htmlcov/**"
+  - "**/coverage/**"
+  - "**/.pytest_cache/**"
+  - "**/.mypy_cache/**"
+  - "**/alembic/versions/**"
+  - "**/migrations/**"
+  - "**/.github/**"
+  - "**/docs/**"
+  - "**/*.md"
+  - "**/*.txt"
+  - "**/*.log"
+
+# Severity threshold - only report issues of this severity or higher
+severity-threshold: medium
+
+# Fail the build on these severity levels
+fail-on:
+- high
+- critical
+
+# Snyk Code specific settings
+code:
+  # Enable or disable specific rules
+  rules:
+    # Example: disable specific rules if needed
+    # javascript:
+    #   - rule-id: "RULE_ID"
+    #     disabled: true
+
+    # Container scanning settings
+container:
+  # Base image recommendations
+  base-image-recommendations: true
+  # Dockerfile instructions analysis
+  dockerfile-analysis: true
+
+# License policy (optional)
+license-policy:
+  # Allow these license types
+  allow:
+  - MIT
+  - Apache-2.0
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - ISC
+  - GPL-2.0-with-classpath-exception
+  # Deny these license types
+  deny:
+  - GPL-2.0
+  - GPL-3.0
+  - AGPL-1.0
+  - AGPL-3.0
+  - LGPL-2.0
+  - LGPL-2.1
+  - LGPL-3.0
+
+# Custom patches (if any)
+patches: {}
+
+# Ignore specific vulnerabilities (use with caution)
+ignore:
+  # Example format for ignoring specific vulnerabilities
+  # "SNYK-JS-LODASH-567746":
+  #   - "*":
+  #       reason: "This vulnerability does not affect our usage"
+  #       expires: "2024-12-31T23:59:59.999Z"

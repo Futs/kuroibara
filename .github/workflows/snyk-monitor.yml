@@ -1,0 +1,167 @@
+name: Snyk Security Monitoring
+
+on:
+  schedule:
+    # Run Snyk monitoring every week on Monday at 8 AM UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    inputs:
+      severity:
+        description: 'Minimum severity level to report'
+        required: false
+        default: 'medium'
+        type: choice
+        options:
+          - low
+          - medium
+          - high
+          - critical
+
+jobs:
+  snyk-monitor:
+    name: Snyk Monitor
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend/app
+          npm install
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/setup@master
+
+      - name: Snyk Auth
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Monitor - Backend Dependencies
+        run: |
+          cd backend
+          snyk monitor --file=requirements.txt --package-manager=pip --project-name="kuroibara-backend-deps"
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Snyk Monitor - Frontend Dependencies
+        run: |
+          cd frontend/app
+          snyk monitor --file=package.json --project-name="kuroibara-frontend-deps"
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Build Docker images for monitoring
+        run: |
+          docker build -t kuroibara-backend:latest ./backend
+          docker build -t kuroibara-frontend:latest ./frontend
+
+      - name: Snyk Monitor - Backend Container
+        run: |
+          snyk container monitor kuroibara-backend:latest --file=backend/Dockerfile --project-name="kuroibara-backend-container"
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Snyk Monitor - Frontend Container
+        run: |
+          snyk container monitor kuroibara-frontend:latest --file=frontend/Dockerfile --project-name="kuroibara-frontend-container"
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Snyk Monitor - Code Analysis
+        run: |
+          snyk code test --json-file-output=snyk-code-results.json
+          # Extract high and critical issues
+          HIGH_CRITICAL=$(jq -r '.vulnerabilities | map(select(.severity == "high" or .severity == "critical")) | length' snyk-code-results.json || echo "0")
+          echo "HIGH_CRITICAL_ISSUES=$HIGH_CRITICAL" >> $GITHUB_ENV
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Create Security Report Issue
+        if: env.HIGH_CRITICAL_ISSUES > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issueTitle = `🔒 Security Alert: High/Critical Vulnerabilities Detected - ${new Date().toISOString().split('T')[0]}`;
+            
+            let issueBody = `# Security Alert Report\n\n`;
+            issueBody += `**Scan Date:** ${new Date().toISOString()}\n`;
+            issueBody += `**High/Critical Issues Found:** ${process.env.HIGH_CRITICAL_ISSUES}\n\n`;
+            issueBody += `## Summary\n\n`;
+            issueBody += `Snyk has detected ${process.env.HIGH_CRITICAL_ISSUES} high or critical severity vulnerabilities in the codebase.\n\n`;
+            issueBody += `## Action Required\n\n`;
+            issueBody += `1. 🔍 Review the vulnerabilities in your [Snyk dashboard](https://app.snyk.io/)\n`;
+            issueBody += `2. 🔧 Prioritize fixing high and critical severity issues\n`;
+            issueBody += `3. 📋 Update dependencies and apply security patches\n`;
+            issueBody += `4. ✅ Re-run security scans after fixes\n\n`;
+            issueBody += `## Snyk Dashboard\n\n`;
+            issueBody += `Visit your Snyk dashboard for detailed vulnerability information and remediation advice.\n\n`;
+            issueBody += `---\n`;
+            issueBody += `*This issue was automatically created by the Snyk Security Monitoring workflow.*`;
+            
+            // Check if similar issue already exists
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'security,snyk'
+            });
+            
+            const hasExistingSecurityIssue = existingIssues.data.some(issue => 
+              issue.title.includes('Security Alert') && 
+              issue.created_at > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+            );
+            
+            if (!hasExistingSecurityIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['security', 'snyk', 'high-priority']
+              });
+            }
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "# 🔒 Snyk Security Monitoring Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Monitoring Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Projects monitored successfully in Snyk dashboard**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **High/Critical Issues Found:** ${HIGH_CRITICAL_ISSUES:-0}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **View detailed results:** [Snyk Dashboard](https://app.snyk.io/)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${HIGH_CRITICAL_ISSUES:-0}" -gt 0 ]; then
+            echo "⚠️ **Action Required:** High or critical vulnerabilities detected. Please review and remediate." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **No high or critical vulnerabilities detected.**" >> $GITHUB_STEP_SUMMARY
+          fi

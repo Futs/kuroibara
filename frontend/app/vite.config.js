@@ -18,4 +18,19 @@ export default defineConfig({
   define: {
     __VUE_PROD_DEVTOOLS__: false,
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/tests/setup.js'],
+    coverage: {
+      reporter: ['text', 'json', 'html', 'clover'],
+      exclude: [
+        'node_modules/',
+        'src/tests/',
+        '**/*.d.ts',
+        '**/*.config.js',
+        '**/*.config.ts',
+      ],
+    },
+  },
 })

@@ -45,8 +45,7 @@ class ProviderStatus(ProviderStatusBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class ProviderInfo(BaseModel):
@@ -80,12 +79,13 @@ class ProviderCheckIntervalUpdate(BaseModel):
     
     interval: int = Field(..., description="Check interval in minutes (30, 60, 120, 1440, 10080, 43200)")
     
-    class Config:
-        schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "interval": 60
             }
         }
+    }
 
 
 class ProviderMonitoringSettings(BaseModel):

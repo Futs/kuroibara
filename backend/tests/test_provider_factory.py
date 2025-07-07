@@ -9,8 +9,8 @@ from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.generic import GenericProvider
 
 
-class TestProvider(BaseProvider):
-    """Test provider for testing."""
+class MockProvider(BaseProvider):
+    """Mock provider for testing."""
     
     def __init__(self, name="Test", url="https://test.com", supports_nsfw=False):
         self._name = name
@@ -51,22 +51,22 @@ class TestProvider(BaseProvider):
 def test_provider_factory_register_provider_class():
     """Test registering a provider class."""
     factory = ProviderFactory()
-    factory.register_provider_class(TestProvider)
+    factory.register_provider_class(MockProvider)
     
-    assert "TestProvider" in factory._provider_classes
-    assert factory._provider_classes["TestProvider"] == TestProvider
+    assert "MockProvider" in factory._provider_classes
+    assert factory._provider_classes["MockProvider"] == MockProvider
 
 
 def test_provider_factory_create_provider():
     """Test creating a provider."""
     factory = ProviderFactory()
-    factory.register_provider_class(TestProvider)
+    factory.register_provider_class(MockProvider)
     
     # Add provider config
     factory._provider_configs["test"] = {
         "id": "test",
         "name": "Test Provider",
-        "class_name": "TestProvider",
+        "class_name": "MockProvider",
         "url": "https://test.com",
         "supports_nsfw": False,
         "params": {
@@ -80,7 +80,7 @@ def test_provider_factory_create_provider():
     provider = factory.create_provider("test")
     
     assert provider is not None
-    assert isinstance(provider, TestProvider)
+    assert isinstance(provider, MockProvider)
     assert provider.name == "Test Provider"
     assert provider.url == "https://test.com"
     assert provider.supports_nsfw is False
@@ -89,13 +89,13 @@ def test_provider_factory_create_provider():
 def test_provider_factory_create_all_providers():
     """Test creating all providers."""
     factory = ProviderFactory()
-    factory.register_provider_class(TestProvider)
+    factory.register_provider_class(MockProvider)
     
     # Add provider configs
     factory._provider_configs["test1"] = {
         "id": "test1",
         "name": "Test Provider 1",
-        "class_name": "TestProvider",
+        "class_name": "MockProvider",
         "url": "https://test1.com",
         "supports_nsfw": False,
         "params": {
@@ -107,7 +107,7 @@ def test_provider_factory_create_all_providers():
     factory._provider_configs["test2"] = {
         "id": "test2",
         "name": "Test Provider 2",
-        "class_name": "TestProvider",
+        "class_name": "MockProvider",
         "url": "https://test2.com",
         "supports_nsfw": True,
         "params": {
@@ -121,7 +121,7 @@ def test_provider_factory_create_all_providers():
     providers = factory.create_all_providers()
     
     assert len(providers) == 2
-    assert all(isinstance(provider, TestProvider) for provider in providers)
+    assert all(isinstance(provider, MockProvider) for provider in providers)
     assert any(provider.name == "Test Provider 1" for provider in providers)
     assert any(provider.name == "Test Provider 2" for provider in providers)
 
@@ -129,14 +129,14 @@ def test_provider_factory_create_all_providers():
 def test_provider_factory_load_provider_configs():
     """Test loading provider configs from a file."""
     factory = ProviderFactory()
-    factory.register_provider_class(TestProvider)
+    factory.register_provider_class(MockProvider)
     
     # Create a temporary config file
     config = [
         {
             "id": "test1",
             "name": "Test Provider 1",
-            "class_name": "TestProvider",
+            "class_name": "MockProvider",
             "url": "https://test1.com",
             "supports_nsfw": False,
             "params": {
@@ -148,7 +148,7 @@ def test_provider_factory_load_provider_configs():
         {
             "id": "test2",
             "name": "Test Provider 2",
-            "class_name": "TestProvider",
+            "class_name": "MockProvider",
             "url": "https://test2.com",
             "supports_nsfw": True,
             "params": {
@@ -185,11 +185,11 @@ def test_provider_factory_discover_provider_classes():
          patch("pathlib.Path.parent", MagicMock()), \
          patch("builtins.__import__", return_value=mock_module):
         
-        # Add TestProvider to mock module
-        mock_module.TestProvider = TestProvider
+        # Add MockProvider to mock module
+        mock_module.MockProvider = MockProvider
         
         # Discover provider classes
         factory.discover_provider_classes("app.core.providers")
     
-    assert "TestProvider" in factory._provider_classes
-    assert factory._provider_classes["TestProvider"] == TestProvider
+    assert "MockProvider" in factory._provider_classes
+    assert factory._provider_classes["MockProvider"] == MockProvider

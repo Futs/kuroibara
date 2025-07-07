@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import get_password_hash
 from app.models.user import User
 from app.models.manga import Manga, Genre, Author
-from app.models.library import Category
+from app.models.library import LibraryCategory
 
 
 @pytest.mark.asyncio

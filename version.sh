@@ -27,12 +27,16 @@ usage() {
     echo "  release                    Create release version (main branch only)"
     echo "  tag                        Create git tag for current version"
     echo ""
+    echo "Environment Variables:"
+    echo "  QUIET=true                 Suppress colored output (for CI/CD)"
+    echo ""
     echo "Examples:"
     echo "  $0 current"
     echo "  $0 bump patch"
     echo "  $0 dev"
     echo "  $0 rc"
     echo "  $0 release"
+    echo "  QUIET=true $0 dev          # For CI/CD usage"
 }
 
 get_current_version() {
@@ -146,7 +150,9 @@ update_frontend_version() {
     if [[ -f "$package_json" ]]; then
         # Update package.json version
         sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$version\"/" "$package_json"
-        echo -e "${GREEN}Updated frontend version to $version${NC}"
+        if [[ "${QUIET:-}" != "true" ]]; then
+            echo -e "${GREEN}Updated frontend version to $version${NC}"
+        fi
     fi
 }
 
@@ -157,7 +163,9 @@ update_backend_version() {
     # Create or update __init__.py with version
     mkdir -p "$(dirname "$init_file")"
     echo "__version__ = \"$version\"" > "$init_file"
-    echo -e "${GREEN}Updated backend version to $version${NC}"
+    if [[ "${QUIET:-}" != "true" ]]; then
+        echo -e "${GREEN}Updated backend version to $version${NC}"
+    fi
 }
 
 main() {
@@ -179,21 +187,33 @@ main() {
             ;;
         "dev")
             dev_version=$(create_dev_version)
-            echo -e "${BLUE}Dev version: $dev_version${NC}"
+            if [[ "${QUIET:-}" == "true" ]]; then
+                echo "$dev_version"
+            else
+                echo -e "${BLUE}Dev version: $dev_version${NC}"
+            fi
             update_frontend_version "$dev_version"
             update_backend_version "$dev_version"
             ;;
         "rc")
             rc_version=$(create_rc_version)
             echo "$rc_version" > "$VERSION_FILE"
-            echo -e "${YELLOW}Release candidate: $rc_version${NC}"
+            if [[ "${QUIET:-}" == "true" ]]; then
+                echo "$rc_version"
+            else
+                echo -e "${YELLOW}Release candidate: $rc_version${NC}"
+            fi
             update_frontend_version "$rc_version"
             update_backend_version "$rc_version"
             ;;
         "release")
             release_version=$(create_release_version)
             echo "$release_version" > "$VERSION_FILE"
-            echo -e "${GREEN}Release version: $release_version${NC}"
+            if [[ "${QUIET:-}" == "true" ]]; then
+                echo "$release_version"
+            else
+                echo -e "${GREEN}Release version: $release_version${NC}"
+            fi
             update_frontend_version "$release_version"
             update_backend_version "$release_version"
             ;;

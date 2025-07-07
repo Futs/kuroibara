@@ -31,10 +31,10 @@ jobs:
           chmod +x ./version.sh
           
           if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            VERSION=$(./version.sh dev)
+            VERSION=$(QUIET=true ./version.sh dev)
             IS_RELEASE="false"
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            VERSION=$(./version.sh release)
+            VERSION=$(QUIET=true ./version.sh release)
             IS_RELEASE="true"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION="${{ github.ref_name }}"

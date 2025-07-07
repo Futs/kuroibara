@@ -1,11 +1,12 @@
-from typing import Generator, Optional
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
-from sqlalchemy.ext.asyncio import AsyncSession
-from redis.asyncio import Redis
 import uuid
 from datetime import datetime, timezone
+from typing import Generator, Optional
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import verify_totp
@@ -27,7 +28,7 @@ async def get_redis() -> Redis:
     if redis_client is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Redis connection not available"
+            detail="Redis connection not available",
         )
     return redis_client
 

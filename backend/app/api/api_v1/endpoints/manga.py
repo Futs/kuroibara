@@ -1,24 +1,30 @@
-from typing import Any, List, Optional, Dict
-import uuid
 import os
+import uuid
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
-from app.core.utils import get_cover_storage_path, get_page_storage_path, get_manga_storage_path
+from app.core.utils import (
+    get_cover_storage_path,
+    get_manga_storage_path,
+    get_page_storage_path,
+)
+from app.models.manga import Author, Chapter, Genre, Manga, Page
 from app.models.user import User
-from app.models.manga import Manga, Chapter, Page, Genre, Author
+from app.schemas.manga import Chapter as ChapterSchema
 from app.schemas.manga import (
-    Manga as MangaSchema,
-    MangaCreate,
-    MangaUpdate,
-    Chapter as ChapterSchema,
     ChapterCreate,
     ChapterUpdate,
+)
+from app.schemas.manga import Manga as MangaSchema
+from app.schemas.manga import (
+    MangaCreate,
+    MangaUpdate,
 )
 from app.schemas.search import SearchResult
 
@@ -100,12 +106,13 @@ async def read_manga_by_id(
     """
     # Load manga with relationships explicitly to avoid greenlet issues during response serialization
     from sqlalchemy.orm import selectinload
+
     result = await db.execute(
         select(Manga)
         .options(
             selectinload(Manga.genres),
             selectinload(Manga.authors),
-            selectinload(Manga.chapters)
+            selectinload(Manga.chapters),
         )
         .where(Manga.id == uuid.UUID(manga_id))
     )
@@ -139,7 +146,9 @@ async def update_manga(
         )
 
     # Update manga fields
-    update_data = manga_update.model_dump(exclude={"genres", "authors"}, exclude_unset=True)
+    update_data = manga_update.model_dump(
+        exclude={"genres", "authors"}, exclude_unset=True
+    )
     for field, value in update_data.items():
         setattr(manga, field, value)
 
@@ -355,16 +364,18 @@ async def get_manga_cover(
     if os.path.exists(cover_path):
         # Return local cover file
         return FileResponse(
-            path=cover_path,
-            media_type="image/jpeg",
-            filename=f"cover_{manga_id}.jpg"
+            path=cover_path, media_type="image/jpeg", filename=f"cover_{manga_id}.jpg"
         )
 
     # If no local file, check if we have an external cover URL
-    if manga.cover_image and (manga.cover_image.startswith('http://') or manga.cover_image.startswith('https://')):
+    if manga.cover_image and (
+        manga.cover_image.startswith("http://")
+        or manga.cover_image.startswith("https://")
+    ):
         # Download and cache the external cover
-        import httpx
         import tempfile
+
+        import httpx
 
         try:
             async with httpx.AsyncClient() as client:
@@ -387,7 +398,7 @@ async def get_manga_cover(
                 return FileResponse(
                     path=cover_path,
                     media_type=media_type,
-                    filename=f"cover_{manga_id}.jpg"
+                    filename=f"cover_{manga_id}.jpg",
                 )
         except Exception as e:
             # If download fails, fall through to 404
@@ -430,8 +441,7 @@ async def get_manga_page(
     # Get page from database
     result = await db.execute(
         select(Page).where(
-            (Page.chapter_id == uuid.UUID(chapter_id)) &
-            (Page.number == page_number)
+            (Page.chapter_id == uuid.UUID(chapter_id)) & (Page.number == page_number)
         )
     )
     page = result.scalars().first()
@@ -462,7 +472,7 @@ async def get_manga_page(
     return FileResponse(
         path=page.file_path,
         media_type=media_type,
-        filename=f"page_{page_number}{file_ext}"
+        filename=f"page_{page_number}{file_ext}",
     )
 
 
@@ -532,12 +542,14 @@ async def get_chapter_pages(
     # Return page data with URLs
     page_data = []
     for page in pages:
-        page_data.append({
-            "id": str(page.id),
-            "number": page.number,
-            "url": f"/api/v1/manga/{manga_id}/chapters/{chapter_id}/pages/{page.number}",
-            "file_path": page.file_path,
-        })
+        page_data.append(
+            {
+                "id": str(page.id),
+                "number": page.number,
+                "url": f"/api/v1/manga/{manga_id}/chapters/{chapter_id}/pages/{page.number}",
+                "file_path": page.file_path,
+            }
+        )
 
     return page_data
 
@@ -563,17 +575,15 @@ async def create_manga_from_external(
 
         # Check if manga already exists
         from sqlalchemy.orm import selectinload
+
         result = await db.execute(
             select(Manga)
             .options(
                 selectinload(Manga.genres),
                 selectinload(Manga.authors),
-                selectinload(Manga.chapters)
+                selectinload(Manga.chapters),
             )
-            .where(
-                (Manga.provider == provider) &
-                (Manga.external_id == external_id)
-            )
+            .where((Manga.provider == provider) & (Manga.external_id == external_id))
         )
         existing_manga = result.scalars().first()
         if existing_manga:
@@ -584,6 +594,7 @@ async def create_manga_from_external(
 
         # Create manga record using the service function
         from app.core.services.import_file import create_manga_from_external_source
+
         manga = await create_manga_from_external_source(
             provider_name=provider,
             external_id=external_id,

@@ -1,22 +1,32 @@
 import os
-import tempfile
 import shutil
-from typing import Any, List, Optional, Dict
+import tempfile
 import uuid
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
-from app.models.user import User
-from app.models.manga import Manga, MangaType, MangaStatus
-from app.models.library import MangaUserLibrary
-from app.schemas.manga import Manga as MangaSchema, Chapter as ChapterSchema
 from app.core.services.import_file import (
+    create_manga_from_import,
     import_archive,
     import_directory,
-    create_manga_from_import,
 )
+from app.models.library import MangaUserLibrary
+from app.models.manga import Manga, MangaStatus, MangaType
+from app.models.user import User
+from app.schemas.manga import Chapter as ChapterSchema
+from app.schemas.manga import Manga as MangaSchema
 
 router = APIRouter()
 
@@ -37,7 +47,7 @@ async def import_new_manga(
 ) -> Any:
     """
     Import a new manga.
-    
+
     Args:
         title: Manga title
         description: Manga description (optional)
@@ -52,14 +62,14 @@ async def import_new_manga(
     # Parse genres and authors
     genre_list = genres.split(",") if genres else []
     author_list = authors.split(",") if authors else []
-    
+
     # Save cover image to temporary file if provided
     cover_path = None
     if cover:
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             cover_path = temp_file.name
             shutil.copyfileobj(cover.file, temp_file)
-    
+
     try:
         # Create manga
         manga, library_item = await create_manga_from_import(
@@ -75,7 +85,7 @@ async def import_new_manga(
             genres=genre_list,
             authors=author_list,
         )
-        
+
         return manga
     finally:
         # Clean up temporary file
@@ -96,7 +106,7 @@ async def import_chapter(
 ) -> Any:
     """
     Import a chapter from a CBZ/CBR/7Z file.
-    
+
     Args:
         manga_id: ID of the manga
         chapter_number: Chapter number
@@ -112,12 +122,12 @@ async def import_chapter(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Manga not found",
         )
-    
+
     # Check if user has access to manga
     result = await db.execute(
         select(MangaUserLibrary).where(
-            (MangaUserLibrary.user_id == current_user.id) &
-            (MangaUserLibrary.manga_id == uuid.UUID(manga_id))
+            (MangaUserLibrary.user_id == current_user.id)
+            & (MangaUserLibrary.manga_id == uuid.UUID(manga_id))
         )
     )
     library_item = result.scalars().first()
@@ -126,7 +136,7 @@ async def import_chapter(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check file extension
     file_ext = os.path.splitext(chapter_file.filename)[1].lower()
     if file_ext not in [".zip", ".cbz", ".rar", ".cbr", ".7z"]:
@@ -134,12 +144,12 @@ async def import_chapter(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unsupported file format. Only CBZ, CBR, and 7Z files are supported.",
         )
-    
+
     # Save file to temporary file
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         file_path = temp_file.name
         shutil.copyfileobj(chapter_file.file, temp_file)
-    
+
     try:
         # Import chapter
         chapter = await import_archive(
@@ -152,7 +162,7 @@ async def import_chapter(
             volume=volume,
             language=language,
         )
-        
+
         return chapter
     finally:
         # Clean up temporary file

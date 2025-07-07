@@ -2,10 +2,11 @@ import os
 import shutil
 import uuid
 import zipfile
-import magic
 from pathlib import Path
 from typing import List, Optional, Tuple
-from fastapi import UploadFile, HTTPException, status
+
+import magic
+from fastapi import HTTPException, UploadFile, status
 from PIL import Image
 from pyunpack import Archive
 
@@ -90,9 +91,13 @@ def get_cover_storage_path(manga_id: uuid.UUID) -> str:
     return os.path.join(get_manga_storage_path(manga_id), "cover.jpg")
 
 
-def get_page_storage_path(manga_id: uuid.UUID, chapter_id: uuid.UUID, page_number: int, file_ext: str = ".jpg") -> str:
+def get_page_storage_path(
+    manga_id: uuid.UUID, chapter_id: uuid.UUID, page_number: int, file_ext: str = ".jpg"
+) -> str:
     """Get the storage path for a page."""
-    return os.path.join(get_chapter_storage_path(manga_id, chapter_id), f"{page_number:04d}{file_ext}")
+    return os.path.join(
+        get_chapter_storage_path(manga_id, chapter_id), f"{page_number:04d}{file_ext}"
+    )
 
 
 def create_cbz_from_directory(directory_path: str, output_path: str) -> str:

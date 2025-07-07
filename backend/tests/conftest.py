@@ -1,21 +1,22 @@
 # Disable provider monitoring and database initialization for tests - MUST be set before any imports
 import os
+
 os.environ["ENABLE_PROVIDER_MONITORING"] = "false"
 os.environ["ENABLE_DB_INIT"] = "false"
 
 import asyncio
-import pytest
-import asyncpg
 from typing import AsyncGenerator, Generator
 
+import asyncpg
+import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from app.main import app
 from app.core.config import settings
-from app.db.session import get_db, Base
+from app.db.session import Base, get_db
+from app.main import app
 
 # Use test database configuration from environment variables or construct from settings
 # For local testing (outside Docker), use localhost instead of postgres container name
@@ -23,7 +24,7 @@ db_host = "localhost" if settings.DB_HOST == "postgres" else settings.DB_HOST
 test_db_name = f"test_{settings.DB_DATABASE}"
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    f"postgresql+asyncpg://{settings.DB_USERNAME}:{settings.DB_PASSWORD}@{db_host}:{settings.DB_PORT}/{test_db_name}"
+    f"postgresql+asyncpg://{settings.DB_USERNAME}:{settings.DB_PASSWORD}@{db_host}:{settings.DB_PORT}/{test_db_name}",
 )
 
 
@@ -36,18 +37,18 @@ async def create_test_database_if_not_exists():
             port=int(settings.DB_PORT),
             user=settings.DB_USERNAME,
             password=settings.DB_PASSWORD,
-            database="postgres"
+            database="postgres",
         )
-        
+
         # Check if test database exists
         result = await admin_conn.fetchval(
             "SELECT 1 FROM pg_database WHERE datname = $1", test_db_name
         )
-        
+
         if not result:
             # Create test database
             await admin_conn.execute(f"CREATE DATABASE {test_db_name}")
-        
+
         await admin_conn.close()
     except Exception:
         # If we can't create the database, tests will fail anyway
@@ -60,7 +61,7 @@ test_engine = create_async_engine(
     TEST_DATABASE_URL,
     echo=False,
     poolclass=NullPool,  # Use NullPool to avoid connection pool issues in tests
-    connect_args={"server_settings": {"jit": "off"}}  # Disable JIT for tests
+    connect_args={"server_settings": {"jit": "off"}},  # Disable JIT for tests
 )
 TestingAsyncSessionLocal = sessionmaker(
     test_engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
@@ -120,6 +121,7 @@ async def override_get_db():
         finally:
             await session.close()
 
+
 # Test client
 @pytest.fixture(scope="function")
 def client() -> Generator[TestClient, None, None]:
@@ -151,12 +153,17 @@ def test_user(client: TestClient, db: AsyncSession) -> dict:
     # Register the user via API
     response = client.post("/api/v1/auth/register", json=user_data)
     if response.status_code != 201:
-        print(f"Registration failed with status {response.status_code}: {response.text}")
+        print(
+            f"Registration failed with status {response.status_code}: {response.text}"
+        )
         print(f"Response headers: {response.headers}")
         # For debugging, let's also try a simple health check
         health_response = client.get("/health")
         print(f"Health check status: {health_response.status_code}")
-    assert response.status_code in [200, 201]  # Accept both 200 and 201 for user creation
+    assert response.status_code in [
+        200,
+        201,
+    ]  # Accept both 200 and 201 for user creation
 
     # Return user data for use in other fixtures
     return user_data
@@ -178,12 +185,14 @@ def token(client: TestClient, test_user: dict) -> str:
 
 
 # Test endpoint fixture for parameterized tests
-@pytest.fixture(params=[
-    "/api/v1/search/genres",
-    "/api/v1/search/providers",
-    "/api/v1/reading-lists",
-    "/api/v1/library",
-])
+@pytest.fixture(
+    params=[
+        "/api/v1/search/genres",
+        "/api/v1/search/providers",
+        "/api/v1/reading-lists",
+        "/api/v1/library",
+    ]
+)
 def endpoint(request):
     """Provide test endpoints."""
     return request.param

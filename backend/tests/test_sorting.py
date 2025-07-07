@@ -14,12 +14,12 @@ for p in providers:
     print(f"- {p['name']}")
 
 print("\nSorted order:")
-sorted_providers = sorted(providers, key=lambda p: p['name'].lower())
+sorted_providers = sorted(providers, key=lambda p: p["name"].lower())
 for p in sorted_providers:
     print(f"- {p['name']}")
 
 print("\nSorted names only:")
-names = [p['name'] for p in providers]
+names = [p["name"] for p in providers]
 sorted_names = sorted(names)
 for name in sorted_names:
     print(f"- {name}")

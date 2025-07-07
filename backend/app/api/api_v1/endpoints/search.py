@@ -1,21 +1,27 @@
-from typing import Any, List, Optional, Dict
 import asyncio
 import logging
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
 from app.core.providers.user_preferences import (
+    apply_fallback_prioritization,
     get_user_provider_preferences,
     prioritize_providers_by_user_preferences,
-    apply_fallback_prioritization
 )
-from app.models.user import User
 from app.models.provider import ProviderStatus
-from app.schemas.search import SearchQuery, SearchFilter, SearchResponse, SearchResult, ProviderInfo
+from app.models.user import User
+from app.schemas.search import (
+    ProviderInfo,
+    SearchFilter,
+    SearchQuery,
+    SearchResponse,
+    SearchResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +59,12 @@ async def get_providers(
                 is_enabled=status_record.is_enabled if status_record else True,
                 last_check=status_record.last_check if status_record else None,
                 response_time=status_record.response_time if status_record else None,
-                uptime_percentage=status_record.uptime_percentage if status_record else 100,
-                consecutive_failures=status_record.consecutive_failures if status_record else 0,
+                uptime_percentage=(
+                    status_record.uptime_percentage if status_record else 100
+                ),
+                consecutive_failures=(
+                    status_record.consecutive_failures if status_record else 0
+                ),
                 is_healthy=status_record.is_healthy if status_record else True,
             )
             enhanced_providers.append(enhanced_provider)
@@ -123,24 +133,34 @@ async def search_manga(
 
     if user_preferences:
         # Use user preferences for prioritization
-        priority_providers, regular_providers = prioritize_providers_by_user_preferences(
-            all_providers, user_preferences
+        priority_providers, regular_providers = (
+            prioritize_providers_by_user_preferences(all_providers, user_preferences)
         )
         # Limit regular providers to avoid too many requests
         max_regular_providers = 10
-        selected_providers = priority_providers + regular_providers[:max_regular_providers]
+        selected_providers = (
+            priority_providers + regular_providers[:max_regular_providers]
+        )
 
-        logger.info(f"Using user preferences: {len(priority_providers)} favorite providers, {min(len(regular_providers), max_regular_providers)} regular providers")
+        logger.info(
+            f"Using user preferences: {len(priority_providers)} favorite providers, {min(len(regular_providers), max_regular_providers)} regular providers"
+        )
     else:
         # Fallback to hardcoded prioritization for users without preferences
-        priority_providers, generic_providers = apply_fallback_prioritization(all_providers)
+        priority_providers, generic_providers = apply_fallback_prioritization(
+            all_providers
+        )
         selected_providers = priority_providers + generic_providers
 
-        logger.info(f"Using fallback prioritization: {len(priority_providers)} priority providers, {len(generic_providers)} generic providers")
+        logger.info(
+            f"Using fallback prioritization: {len(priority_providers)} priority providers, {len(generic_providers)} generic providers"
+        )
 
     # Give each provider a reasonable limit to ensure we get good results
     # Don't divide by number of providers as this makes each provider return too few results
-    results_per_provider = min(query.limit, 10)  # Each provider can return up to 10 results
+    results_per_provider = min(
+        query.limit, 10
+    )  # Each provider can return up to 10 results
 
     logger.info(f"Total providers to search: {len(selected_providers)}")
     logger.info(f"Selected providers: {[p.name for p in selected_providers]}")
@@ -149,7 +169,9 @@ async def search_manga(
     # Search with all selected providers concurrently with timeout
     async def search_with_provider(provider):
         try:
-            logger.info(f"Starting search with provider {provider.name} (class: {provider.__class__.__name__})")
+            logger.info(
+                f"Starting search with provider {provider.name} (class: {provider.__class__.__name__})"
+            )
             # Add timeout to prevent slow providers from blocking
             results, _, _ = await asyncio.wait_for(
                 provider.search(
@@ -157,15 +179,19 @@ async def search_manga(
                     page=1,  # Always use page 1 for multi-provider search
                     limit=results_per_provider,
                 ),
-                timeout=15.0  # Increased timeout to 15 seconds
+                timeout=15.0,  # Increased timeout to 15 seconds
             )
             logger.info(f"Provider {provider.name} returned {len(results)} results")
             if len(results) == 0:
-                logger.warning(f"Provider {provider.name} returned no results for query '{query.query}'")
+                logger.warning(
+                    f"Provider {provider.name} returned no results for query '{query.query}'"
+                )
             else:
                 # Log first result for debugging
                 first_result = results[0]
-                logger.info(f"First result from {provider.name}: {first_result.title} - Cover: {bool(first_result.cover_image)}")
+                logger.info(
+                    f"First result from {provider.name}: {first_result.title} - Cover: {bool(first_result.cover_image)}"
+                )
             return results
         except asyncio.TimeoutError:
             logger.warning(f"Provider {provider.name} timed out after 15 seconds")
@@ -173,6 +199,7 @@ async def search_manga(
         except Exception as e:
             logger.error(f"Error searching with provider {provider.name}: {e}")
             import traceback
+
             logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
@@ -185,18 +212,26 @@ async def search_manga(
     successful_providers = 0
     for i, results in enumerate(all_results):
         if isinstance(results, Exception):
-            logger.error(f"Provider {selected_providers[i].name} failed with exception: {results}")
+            logger.error(
+                f"Provider {selected_providers[i].name} failed with exception: {results}"
+            )
             continue
         if results and isinstance(results, list):
-            logger.info(f"Adding {len(results)} results from {selected_providers[i].name}")
+            logger.info(
+                f"Adding {len(results)} results from {selected_providers[i].name}"
+            )
             flattened_results.extend(results)
             successful_providers += 1
         elif results:
-            logger.warning(f"Provider {selected_providers[i].name} returned non-list results: {type(results)}")
+            logger.warning(
+                f"Provider {selected_providers[i].name} returned non-list results: {type(results)}"
+            )
         else:
             logger.info(f"Provider {selected_providers[i].name} returned no results")
 
-    logger.info(f"Multi-provider search completed: {successful_providers}/{len(selected_providers)} providers successful, {len(flattened_results)} total results")
+    logger.info(
+        f"Multi-provider search completed: {successful_providers}/{len(selected_providers)} providers successful, {len(flattened_results)} total results"
+    )
 
     # Sort results by relevance (title similarity to query)
     def calculate_relevance(result):
@@ -209,7 +244,7 @@ async def search_manga(
     flattened_results.sort(key=calculate_relevance)
 
     # Limit results to requested limit
-    limited_results = flattened_results[:query.limit]
+    limited_results = flattened_results[: query.limit]
 
     return {
         "results": limited_results,
@@ -231,10 +266,34 @@ async def get_genres(
     """
     # Common manga genres
     genres = [
-        "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror", "Mystery",
-        "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller",
-        "Ecchi", "Harem", "Isekai", "Josei", "Mecha", "Military", "Music", "Parody",
-        "Psychological", "School", "Seinen", "Shoujo", "Shounen", "Yaoi", "Yuri"
+        "Action",
+        "Adventure",
+        "Comedy",
+        "Drama",
+        "Fantasy",
+        "Horror",
+        "Mystery",
+        "Romance",
+        "Sci-Fi",
+        "Slice of Life",
+        "Sports",
+        "Supernatural",
+        "Thriller",
+        "Ecchi",
+        "Harem",
+        "Isekai",
+        "Josei",
+        "Mecha",
+        "Military",
+        "Music",
+        "Parody",
+        "Psychological",
+        "School",
+        "Seinen",
+        "Shoujo",
+        "Shounen",
+        "Yaoi",
+        "Yuri",
     ]
     return sorted(genres)
 

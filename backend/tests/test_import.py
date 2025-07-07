@@ -1,17 +1,18 @@
-import pytest
 import os
 import tempfile
-import zipfile
 import uuid
-from unittest.mock import patch, MagicMock
+import zipfile
+from unittest.mock import MagicMock, patch
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.services.import_file import (
+    create_manga_from_import,
     import_archive,
     import_directory,
-    create_manga_from_import,
 )
-from app.models.manga import Manga, Chapter, Page, MangaType, MangaStatus
+from app.models.manga import Chapter, Manga, MangaStatus, MangaType, Page
 
 
 @pytest.mark.asyncio
@@ -19,33 +20,39 @@ from app.models.manga import Manga, Chapter, Page, MangaType, MangaStatus
 @patch("app.core.services.import_file.is_image_file")
 @patch("app.core.services.import_file.shutil")
 @patch("app.core.services.import_file.os")
-async def test_import_archive(mock_os, mock_shutil, mock_is_image_file, mock_get_image_dimensions, db: AsyncSession):
+async def test_import_archive(
+    mock_os,
+    mock_shutil,
+    mock_is_image_file,
+    mock_get_image_dimensions,
+    db: AsyncSession,
+):
     """Test import_archive function."""
     # Mock os.path.splitext
     mock_os.path.splitext.return_value = ("test", ".cbz")
-    
+
     # Mock os.path.join
     mock_os.path.join.side_effect = lambda *args: "/".join(args)
-    
+
     # Mock os.makedirs
     mock_os.makedirs.return_value = None
-    
+
     # Mock is_image_file
     mock_is_image_file.return_value = True
-    
+
     # Mock get_image_dimensions
     mock_get_image_dimensions.return_value = (800, 1200)
-    
+
     # Mock zipfile.ZipFile
     mock_zip = MagicMock()
     mock_zip.__enter__.return_value = mock_zip
     mock_zip.extractall.return_value = None
-    
+
     # Mock os.walk
     mock_os.walk.return_value = [
         ("/tmp", [], ["page1.jpg", "page2.jpg"]),
     ]
-    
+
     # Create test data
     user_id = uuid.uuid4()
 
@@ -77,7 +84,7 @@ async def test_import_archive(mock_os, mock_shutil, mock_is_image_file, mock_get
             volume="1",
             language="en",
         )
-    
+
     # Check if chapter was created
     assert chapter is not None
     assert chapter.manga_id == manga_id
@@ -87,7 +94,7 @@ async def test_import_archive(mock_os, mock_shutil, mock_is_image_file, mock_get
     assert chapter.language == "en"
     assert chapter.pages_count == 2
     assert chapter.source == "import"
-    
+
     # Clean up
     os.unlink(file_path)
 
@@ -97,25 +104,31 @@ async def test_import_archive(mock_os, mock_shutil, mock_is_image_file, mock_get
 @patch("app.core.services.import_file.is_image_file")
 @patch("app.core.services.import_file.shutil")
 @patch("app.core.services.import_file.os")
-async def test_import_directory(mock_os, mock_shutil, mock_is_image_file, mock_get_image_dimensions, db: AsyncSession):
+async def test_import_directory(
+    mock_os,
+    mock_shutil,
+    mock_is_image_file,
+    mock_get_image_dimensions,
+    db: AsyncSession,
+):
     """Test import_directory function."""
     # Mock os.path.join
     mock_os.path.join.side_effect = lambda *args: "/".join(args)
-    
+
     # Mock os.makedirs
     mock_os.makedirs.return_value = None
-    
+
     # Mock is_image_file
     mock_is_image_file.return_value = True
-    
+
     # Mock get_image_dimensions
     mock_get_image_dimensions.return_value = (800, 1200)
-    
+
     # Mock os.walk
     mock_os.walk.return_value = [
         ("/tmp", [], ["page1.jpg", "page2.jpg"]),
     ]
-    
+
     # Create test data
     user_id = uuid.uuid4()
 
@@ -141,7 +154,7 @@ async def test_import_directory(mock_os, mock_shutil, mock_is_image_file, mock_g
         volume="1",
         language="en",
     )
-    
+
     # Check if chapter was created
     assert chapter is not None
     assert chapter.manga_id == manga_id
@@ -160,12 +173,13 @@ async def test_create_manga_from_import(mock_os, mock_shutil, db: AsyncSession):
     """Test create_manga_from_import function."""
     # Mock os.path.join
     mock_os.path.join.side_effect = lambda *args: "/".join(args)
-    
+
     # Mock os.makedirs
     mock_os.makedirs.return_value = None
-    
+
     # Create test data - need to create a user first
     from app.models.user import User
+
     user = User(
         username="testuser",
         email="test@example.com",
@@ -190,7 +204,7 @@ async def test_create_manga_from_import(mock_os, mock_shutil, db: AsyncSession):
         genres=["Action", "Adventure"],
         authors=["Test Author"],
     )
-    
+
     # Check if manga was created
     assert manga is not None
     assert manga.title == "Test Manga"
@@ -199,7 +213,7 @@ async def test_create_manga_from_import(mock_os, mock_shutil, db: AsyncSession):
     assert manga.status == MangaStatus.ONGOING
     assert manga.year == 2023
     assert manga.is_nsfw is False
-    
+
     # Check if library item was created
     assert library_item is not None
     assert library_item.user_id == user_id

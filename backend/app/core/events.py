@@ -1,15 +1,15 @@
+import asyncio
 import logging
 from typing import Callable
-import asyncio
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
 
 from app.core.config import settings
 from app.core.deps import set_redis_client
-from app.db.session import engine
-from app.db.init_db import init_db
 from app.core.services.provider_monitor import provider_monitor
+from app.db.init_db import init_db
+from app.db.session import engine
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +19,9 @@ def startup_event_handler(app: FastAPI) -> Callable:
         # Initialize greenlet context for SQLAlchemy async operations
         try:
             import greenlet
+
             # Ensure greenlet context is properly initialized
-            if not hasattr(greenlet.getcurrent(), '_greenlet_spawn_called'):
+            if not hasattr(greenlet.getcurrent(), "_greenlet_spawn_called"):
                 greenlet.getcurrent()._greenlet_spawn_called = True
             logger.info("Greenlet context initialized")
         except ImportError:
@@ -51,7 +52,9 @@ def startup_event_handler(app: FastAPI) -> Callable:
             logger.info("Redis connection established successfully")
 
         except Exception as e:
-            logger.warning(f"Redis connection failed: {e}. Token blacklisting will be disabled.")
+            logger.warning(
+                f"Redis connection failed: {e}. Token blacklisting will be disabled."
+            )
             app.state.redis = None
             set_redis_client(None)
 

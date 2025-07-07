@@ -1,37 +1,38 @@
+import uuid
 from datetime import timedelta
 from typing import Any
-import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from jose import jwt, JWTError
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
 from redis.asyncio import Redis
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.deps import get_current_user, get_db, oauth2_scheme, redis_client
 from app.core.security import (
     create_access_token,
     create_refresh_token,
-    verify_password,
-    get_password_hash,
-    generate_totp_secret,
-    get_totp_uri,
-    verify_totp,
     generate_qr_code,
+    generate_totp_secret,
+    get_password_hash,
+    get_totp_uri,
+    verify_password,
+    verify_totp,
 )
-from app.core.deps import get_current_user, get_db, oauth2_scheme, redis_client
 from app.models.user import User
 from app.schemas.auth import (
-    Token,
     Login,
     LoginResponse,
     RefreshToken,
+    Token,
+    TokenPayload,
     TwoFactorSetup,
     TwoFactorVerify,
-    TokenPayload,
 )
-from app.schemas.user import UserCreate, User as UserSchema
+from app.schemas.user import User as UserSchema
+from app.schemas.user import UserCreate
 
 router = APIRouter()
 
@@ -165,7 +166,9 @@ async def register(
     """
     try:
         # Check if username already exists
-        result = await db.execute(select(User).where(User.username == user_data.username))
+        result = await db.execute(
+            select(User).where(User.username == user_data.username)
+        )
         if result.scalars().first():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -310,6 +313,7 @@ async def logout(
 
         # Calculate TTL for blacklist (time until token expires)
         import time
+
         current_time = int(time.time())
         ttl = token_data.exp - current_time
 

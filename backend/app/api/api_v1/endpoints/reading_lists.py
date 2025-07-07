@@ -1,17 +1,17 @@
-from typing import Any, List, Optional
 import uuid
+from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
-from app.models.user import User
-from app.models.manga import Manga
 from app.models.library import ReadingList
+from app.models.manga import Manga
+from app.models.user import User
+from app.schemas.library import ReadingList as ReadingListSchema
 from app.schemas.library import (
-    ReadingList as ReadingListSchema,
     ReadingListCreate,
     ReadingListUpdate,
 )
@@ -53,7 +53,8 @@ async def create_reading_list(
     # Check if reading list with same name already exists for this user
     result = await db.execute(
         select(ReadingList).where(
-            (ReadingList.name == reading_list_data.name) & (ReadingList.user_id == current_user.id)
+            (ReadingList.name == reading_list_data.name)
+            & (ReadingList.user_id == current_user.id)
         )
     )
     if result.scalars().first():
@@ -78,16 +79,15 @@ async def create_reading_list(
                 # Check if relationship already exists before inserting
                 existing_rel = await db.execute(
                     select(reading_list_manga).where(
-                        (reading_list_manga.c.reading_list_id == reading_list.id) &
-                        (reading_list_manga.c.manga_id == manga.id)
+                        (reading_list_manga.c.reading_list_id == reading_list.id)
+                        & (reading_list_manga.c.manga_id == manga.id)
                     )
                 )
                 if not existing_rel.first():
                     # Insert into association table directly only if it doesn't exist
                     await db.execute(
                         insert(reading_list_manga).values(
-                            reading_list_id=reading_list.id,
-                            manga_id=manga.id
+                            reading_list_id=reading_list.id, manga_id=manga.id
                         )
                     )
 
@@ -101,7 +101,7 @@ async def create_reading_list(
         .options(
             selectinload(ReadingList.manga).selectinload(Manga.genres),
             selectinload(ReadingList.manga).selectinload(Manga.authors),
-            selectinload(ReadingList.manga).selectinload(Manga.chapters)
+            selectinload(ReadingList.manga).selectinload(Manga.chapters),
         )
         .where(ReadingList.id == reading_list.id)
     )
@@ -164,7 +164,8 @@ async def update_reading_list(
     if reading_list_update.name and reading_list_update.name != reading_list.name:
         result = await db.execute(
             select(ReadingList).where(
-                (ReadingList.name == reading_list_update.name) & (ReadingList.user_id == current_user.id)
+                (ReadingList.name == reading_list_update.name)
+                & (ReadingList.user_id == current_user.id)
             )
         )
         if result.scalars().first():
@@ -174,7 +175,9 @@ async def update_reading_list(
             )
 
     # Update reading list fields
-    update_data = reading_list_update.model_dump(exclude={"manga_ids"}, exclude_unset=True)
+    update_data = reading_list_update.model_dump(
+        exclude={"manga_ids"}, exclude_unset=True
+    )
     for field, value in update_data.items():
         setattr(reading_list, field, value)
 
@@ -245,10 +248,11 @@ async def add_manga_to_reading_list(
 
     # Check if manga is already in reading list using direct SQL
     from app.models.library import reading_list_manga
+
     existing_rel = await db.execute(
         select(reading_list_manga).where(
-            (reading_list_manga.c.reading_list_id == reading_list.id) &
-            (reading_list_manga.c.manga_id == manga.id)
+            (reading_list_manga.c.reading_list_id == reading_list.id)
+            & (reading_list_manga.c.manga_id == manga.id)
         )
     )
     if existing_rel.first():
@@ -260,8 +264,7 @@ async def add_manga_to_reading_list(
     # Add manga to reading list using direct SQL to avoid greenlet issues
     await db.execute(
         insert(reading_list_manga).values(
-            reading_list_id=reading_list.id,
-            manga_id=manga.id
+            reading_list_id=reading_list.id, manga_id=manga.id
         )
     )
 
@@ -273,7 +276,7 @@ async def add_manga_to_reading_list(
         .options(
             selectinload(ReadingList.manga).selectinload(Manga.genres),
             selectinload(ReadingList.manga).selectinload(Manga.authors),
-            selectinload(ReadingList.manga).selectinload(Manga.chapters)
+            selectinload(ReadingList.manga).selectinload(Manga.chapters),
         )
         .where(ReadingList.id == reading_list.id)
     )

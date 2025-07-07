@@ -1,25 +1,26 @@
-from typing import Any, List, Optional
 import logging
 from datetime import datetime, timezone
+from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import select
-
-from app.db.session import AsyncSessionLocal
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
-from app.models.user import User
-from app.models.provider import ProviderStatus
-from app.schemas.provider import (
-    ProviderInfo,
-    ProviderStatus as ProviderStatusSchema,
-    ProviderStatusUpdate,
-    ProviderCheckIntervalUpdate,
-    ProviderHealthCheck
-)
 from app.core.providers.registry import provider_registry
 from app.core.services.provider_monitor import provider_monitor
+from app.db.session import AsyncSessionLocal
+from app.models.provider import ProviderStatus
+from app.models.user import User
+from app.schemas.provider import (
+    ProviderCheckIntervalUpdate,
+    ProviderHealthCheck,
+    ProviderInfo,
+)
+from app.schemas.provider import ProviderStatus as ProviderStatusSchema
+from app.schemas.provider import (
+    ProviderStatusUpdate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +58,12 @@ async def get_providers(
                 is_enabled=status_record.is_enabled if status_record else True,
                 last_check=status_record.last_check if status_record else None,
                 response_time=status_record.response_time if status_record else None,
-                uptime_percentage=status_record.uptime_percentage if status_record else 100,
-                consecutive_failures=status_record.consecutive_failures if status_record else 0,
+                uptime_percentage=(
+                    status_record.uptime_percentage if status_record else 100
+                ),
+                consecutive_failures=(
+                    status_record.consecutive_failures if status_record else 0
+                ),
                 is_healthy=status_record.is_healthy if status_record else True,
             )
             enhanced_providers.append(enhanced_provider)
@@ -69,7 +74,7 @@ async def get_providers(
         logger.error(f"Error getting providers: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get providers"
+            detail="Failed to get providers",
         )
 
 
@@ -88,7 +93,7 @@ async def get_provider_statuses(
         logger.error(f"Error getting provider statuses: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get provider statuses"
+            detail="Failed to get provider statuses",
         )
 
 
@@ -106,7 +111,7 @@ async def update_provider_status(
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only superusers can modify provider settings"
+            detail="Only superusers can modify provider settings",
         )
 
     try:
@@ -119,7 +124,7 @@ async def update_provider_status(
         if not provider_status:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Provider '{provider_id}' not found"
+                detail=f"Provider '{provider_id}' not found",
             )
 
         # Update fields
@@ -130,12 +135,16 @@ async def update_provider_status(
         if status_update.check_interval is not None:
             provider_status.check_interval = status_update.check_interval
         if status_update.max_consecutive_failures is not None:
-            provider_status.max_consecutive_failures = status_update.max_consecutive_failures
+            provider_status.max_consecutive_failures = (
+                status_update.max_consecutive_failures
+            )
 
         await db.commit()
         await db.refresh(provider_status)
 
-        logger.info(f"Updated provider {provider_id} settings by user {current_user.username}")
+        logger.info(
+            f"Updated provider {provider_id} settings by user {current_user.username}"
+        )
         return provider_status
 
     except HTTPException:
@@ -145,7 +154,7 @@ async def update_provider_status(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update provider status"
+            detail="Failed to update provider status",
         )
 
 
@@ -165,22 +174,28 @@ async def test_provider(
         if not provider:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Provider '{provider_id}' not found"
+                detail=f"Provider '{provider_id}' not found",
             )
 
         # Perform health check
-        is_success, response_time, error_message = await provider.health_check(timeout=30)
+        is_success, response_time, error_message = await provider.health_check(
+            timeout=30
+        )
 
         # Update provider status in background
         async def update_status():
             async with AsyncSessionLocal() as bg_db:
                 result = await bg_db.execute(
-                    select(ProviderStatus).where(ProviderStatus.provider_id == provider_id)
+                    select(ProviderStatus).where(
+                        ProviderStatus.provider_id == provider_id
+                    )
                 )
                 provider_status = result.scalar_one_or_none()
 
                 if provider_status:
-                    provider_status.update_status(is_success, response_time, error_message)
+                    provider_status.update_status(
+                        is_success, response_time, error_message
+                    )
                     await bg_db.commit()
 
         background_tasks.add_task(update_status)
@@ -190,7 +205,7 @@ async def test_provider(
             is_success=is_success,
             response_time=response_time,
             error_message=error_message,
-            timestamp=datetime.now(timezone.utc)
+            timestamp=datetime.now(timezone.utc),
         )
 
     except HTTPException:
@@ -199,7 +214,7 @@ async def test_provider(
         logger.error(f"Error testing provider {provider_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to test provider"
+            detail="Failed to test provider",
         )
 
 
@@ -213,22 +228,31 @@ async def update_user_check_interval(
     Update user's provider check interval preference.
     """
     # Validate interval values
-    valid_intervals = [30, 60, 120, 1440, 10080, 43200]  # 30min, 1h, 2h, daily, weekly, monthly
+    valid_intervals = [
+        30,
+        60,
+        120,
+        1440,
+        10080,
+        43200,
+    ]  # 30min, 1h, 2h, daily, weekly, monthly
     if interval_update.interval not in valid_intervals:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid interval. Must be one of: {valid_intervals}"
+            detail=f"Invalid interval. Must be one of: {valid_intervals}",
         )
 
     try:
         current_user.provider_check_interval = interval_update.interval
         await db.commit()
 
-        logger.info(f"Updated check interval for user {current_user.username} to {interval_update.interval} minutes")
+        logger.info(
+            f"Updated check interval for user {current_user.username} to {interval_update.interval} minutes"
+        )
 
         return {
             "message": "Check interval updated successfully",
-            "interval": interval_update.interval
+            "interval": interval_update.interval,
         }
 
     except Exception as e:
@@ -236,7 +260,7 @@ async def update_user_check_interval(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update check interval"
+            detail="Failed to update check interval",
         )
 
 
@@ -259,12 +283,26 @@ async def get_provider_statistics(
         enabled_providers = len([s for s in statuses if s.is_enabled])
 
         # Calculate average uptime
-        avg_uptime = sum(s.uptime_percentage for s in statuses) / total_providers if total_providers > 0 else 0
+        avg_uptime = (
+            sum(s.uptime_percentage for s in statuses) / total_providers
+            if total_providers > 0
+            else 0
+        )
 
         # Get fastest and slowest providers
-        providers_with_response_time = [s for s in statuses if s.response_time is not None]
-        fastest_provider = min(providers_with_response_time, key=lambda x: x.response_time) if providers_with_response_time else None
-        slowest_provider = max(providers_with_response_time, key=lambda x: x.response_time) if providers_with_response_time else None
+        providers_with_response_time = [
+            s for s in statuses if s.response_time is not None
+        ]
+        fastest_provider = (
+            min(providers_with_response_time, key=lambda x: x.response_time)
+            if providers_with_response_time
+            else None
+        )
+        slowest_provider = (
+            max(providers_with_response_time, key=lambda x: x.response_time)
+            if providers_with_response_time
+            else None
+        )
 
         return {
             "total_providers": total_providers,
@@ -274,24 +312,32 @@ async def get_provider_statistics(
             "enabled_providers": enabled_providers,
             "disabled_providers": total_providers - enabled_providers,
             "average_uptime_percentage": round(avg_uptime, 2),
-            "fastest_provider": {
-                "name": fastest_provider.provider_name,
-                "response_time": fastest_provider.response_time
-            } if fastest_provider else None,
-            "slowest_provider": {
-                "name": slowest_provider.provider_name,
-                "response_time": slowest_provider.response_time
-            } if slowest_provider else None,
+            "fastest_provider": (
+                {
+                    "name": fastest_provider.provider_name,
+                    "response_time": fastest_provider.response_time,
+                }
+                if fastest_provider
+                else None
+            ),
+            "slowest_provider": (
+                {
+                    "name": slowest_provider.provider_name,
+                    "response_time": slowest_provider.response_time,
+                }
+                if slowest_provider
+                else None
+            ),
             "health_distribution": {
                 "active": active_providers,
                 "down": down_providers,
-                "unknown": unknown_providers
-            }
+                "unknown": unknown_providers,
+            },
         }
 
     except Exception as e:
         logger.error(f"Error getting provider statistics: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get provider statistics"
+            detail="Failed to get provider statistics",
         )

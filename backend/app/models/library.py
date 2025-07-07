@@ -1,18 +1,35 @@
-from sqlalchemy import Boolean, Column, String, Text, Integer, ForeignKey, Table, Enum, Float
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
 import enum
 
-from app.models.base import BaseModel
-from app.db.session import Base
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
 
+from app.db.session import Base
+from app.models.base import BaseModel
 
 # Association table for manga user library and categories
 manga_user_library_category = Table(
     "manga_user_library_category",
     Base.metadata,
-    Column("manga_user_library_id", UUID(as_uuid=True), ForeignKey("manga_user_library.id"), primary_key=True),
-    Column("category_id", UUID(as_uuid=True), ForeignKey("category.id"), primary_key=True),
+    Column(
+        "manga_user_library_id",
+        UUID(as_uuid=True),
+        ForeignKey("manga_user_library.id"),
+        primary_key=True,
+    ),
+    Column(
+        "category_id", UUID(as_uuid=True), ForeignKey("category.id"), primary_key=True
+    ),
 )
 
 
@@ -20,7 +37,12 @@ manga_user_library_category = Table(
 reading_list_manga = Table(
     "reading_list_manga",
     Base.metadata,
-    Column("reading_list_id", UUID(as_uuid=True), ForeignKey("reading_list.id"), primary_key=True),
+    Column(
+        "reading_list_id",
+        UUID(as_uuid=True),
+        ForeignKey("reading_list.id"),
+        primary_key=True,
+    ),
     Column("manga_id", UUID(as_uuid=True), ForeignKey("manga.id"), primary_key=True),
 )
 
@@ -47,25 +69,35 @@ class MangaUserLibrary(BaseModel):
     # Relationships
     user = relationship("User", back_populates="manga_items")
     manga = relationship("Manga", back_populates="user_libraries")
-    categories = relationship("LibraryCategory", secondary=manga_user_library_category, back_populates="manga_items")
+    categories = relationship(
+        "LibraryCategory",
+        secondary=manga_user_library_category,
+        back_populates="manga_items",
+    )
 
 
 class LibraryCategory(BaseModel):
     """Category model."""
 
     __tablename__ = "category"
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True}
 
     name = Column(String(50), nullable=False, index=True)
     description = Column(Text, nullable=True)
     color = Column(String(7), nullable=True)  # Hex color code
     icon = Column(String(50), nullable=True)
     is_default = Column(Boolean, default=False, nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # Null for system categories
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )  # Null for system categories
 
     # Relationships
     user = relationship("User", back_populates="categories")
-    manga_items = relationship("MangaUserLibrary", secondary=manga_user_library_category, back_populates="categories")
+    manga_items = relationship(
+        "MangaUserLibrary",
+        secondary=manga_user_library_category,
+        back_populates="categories",
+    )
 
 
 class ReadingList(BaseModel):

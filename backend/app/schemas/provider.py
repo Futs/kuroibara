@@ -1,5 +1,6 @@
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 from app.models.provider import ProviderStatusEnum
@@ -7,7 +8,7 @@ from app.models.provider import ProviderStatusEnum
 
 class ProviderStatusBase(BaseModel):
     """Base provider status schema."""
-    
+
     provider_id: str
     provider_name: str
     provider_url: str
@@ -19,12 +20,13 @@ class ProviderStatusBase(BaseModel):
 
 class ProviderStatusCreate(ProviderStatusBase):
     """Provider status creation schema."""
+
     pass
 
 
 class ProviderStatusUpdate(BaseModel):
     """Provider status update schema."""
-    
+
     status: Optional[str] = None
     is_enabled: Optional[bool] = None
     check_interval: Optional[int] = None
@@ -33,7 +35,7 @@ class ProviderStatusUpdate(BaseModel):
 
 class ProviderStatus(ProviderStatusBase):
     """Provider status schema."""
-    
+
     id: str
     last_check: datetime
     response_time: Optional[int] = None
@@ -44,13 +46,13 @@ class ProviderStatus(ProviderStatusBase):
     uptime_percentage: int = 100
     created_at: datetime
     updated_at: datetime
-    
+
     model_config = {"from_attributes": True}
 
 
 class ProviderInfo(BaseModel):
     """Enhanced provider information schema with status."""
-    
+
     id: str
     name: str
     url: str
@@ -66,7 +68,7 @@ class ProviderInfo(BaseModel):
 
 class ProviderHealthCheck(BaseModel):
     """Provider health check result schema."""
-    
+
     provider_id: str
     is_success: bool
     response_time: Optional[int] = None
@@ -76,21 +78,17 @@ class ProviderHealthCheck(BaseModel):
 
 class ProviderCheckIntervalUpdate(BaseModel):
     """Schema for updating user's provider check interval preference."""
-    
-    interval: int = Field(..., description="Check interval in minutes (30, 60, 120, 1440, 10080, 43200)")
-    
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "interval": 60
-            }
-        }
-    }
+
+    interval: int = Field(
+        ..., description="Check interval in minutes (30, 60, 120, 1440, 10080, 43200)"
+    )
+
+    model_config = {"json_schema_extra": {"example": {"interval": 60}}}
 
 
 class ProviderMonitoringSettings(BaseModel):
     """Provider monitoring settings schema."""
-    
+
     enabled: bool = True
     global_check_interval: int = 60
     max_concurrent_checks: int = 10

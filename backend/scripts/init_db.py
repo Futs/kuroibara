@@ -12,7 +12,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from app.db.init_db import init_db
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

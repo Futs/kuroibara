@@ -5,8 +5,8 @@ This script initializes the database schema before running migrations.
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 # Add the current directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +24,7 @@ async def setup_test_db():
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

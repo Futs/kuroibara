@@ -3,8 +3,8 @@
 Script to run database migrations.
 """
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 # Add parent directory to path
@@ -15,13 +15,13 @@ def main() -> None:
     """Run database migrations."""
     # Change to the backend directory
     os.chdir(Path(__file__).parent.parent)
-    
+
     # Run the migrations
     subprocess.run(
         ["alembic", "upgrade", "head"],
         check=True,
     )
-    
+
     print("Migrations completed successfully.")
 
 

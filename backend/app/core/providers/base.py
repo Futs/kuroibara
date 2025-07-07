@@ -1,12 +1,13 @@
-from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional, Tuple
 import asyncio
-import aiohttp
-import time
 import logging
+import time
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional, Tuple
 
-from app.models.manga import MangaType, MangaStatus
-from app.schemas.search import SearchResult, SearchFilter
+import aiohttp
+
+from app.models.manga import MangaStatus, MangaType
+from app.schemas.search import SearchFilter, SearchResult
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +126,9 @@ class BaseProvider(ABC):
         """
         pass
 
-    async def health_check(self, timeout: int = 30) -> Tuple[bool, Optional[int], Optional[str]]:
+    async def health_check(
+        self, timeout: int = 30
+    ) -> Tuple[bool, Optional[int], Optional[str]]:
         """
         Perform a health check on the provider.
 
@@ -141,16 +144,22 @@ class BaseProvider(ABC):
         start_time = time.time()
 
         try:
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
+            async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=timeout)
+            ) as session:
                 async with session.get(self.url) as response:
                     response_time = int((time.time() - start_time) * 1000)
 
                     if response.status == 200:
-                        logger.debug(f"Health check successful for {self.name}: {response_time}ms")
+                        logger.debug(
+                            f"Health check successful for {self.name}: {response_time}ms"
+                        )
                         return True, response_time, None
                     else:
                         error_msg = f"HTTP {response.status}"
-                        logger.warning(f"Health check failed for {self.name}: {error_msg}")
+                        logger.warning(
+                            f"Health check failed for {self.name}: {error_msg}"
+                        )
                         return False, response_time, error_msg
 
         except asyncio.TimeoutError:

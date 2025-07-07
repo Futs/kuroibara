@@ -1,5 +1,6 @@
 from typing import List, Optional
-from sqlalchemy import Boolean, Column, String, Text, Integer
+
+from sqlalchemy import Boolean, Column, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -30,18 +31,34 @@ class User(BaseModel):
     myanimelist_username = Column(String(100), nullable=True)
 
     # Provider monitoring preferences
-    provider_check_interval = Column(Integer, default=60, nullable=False)  # minutes: 30, 60, 120, 1440 (daily), 10080 (weekly), 43200 (monthly)
+    provider_check_interval = Column(
+        Integer, default=60, nullable=False
+    )  # minutes: 30, 60, 120, 1440 (daily), 10080 (weekly), 43200 (monthly)
 
     # User settings
-    theme = Column(String(20), default='light', nullable=False)  # light, dark, system
+    theme = Column(String(20), default="light", nullable=False)  # light, dark, system
     nsfw_blur = Column(Boolean, default=True, nullable=False)
-    download_quality = Column(String(20), default='high', nullable=False)  # low, medium, high
-    download_path = Column(String(500), default='/app/storage', nullable=False)
+    download_quality = Column(
+        String(20), default="high", nullable=False
+    )  # low, medium, high
+    download_path = Column(String(500), default="/app/storage", nullable=False)
 
     # Relationships
-    manga_items = relationship("MangaUserLibrary", back_populates="user", cascade="all, delete-orphan")
-    reading_lists = relationship("ReadingList", back_populates="user", cascade="all, delete-orphan")
-    categories = relationship("LibraryCategory", back_populates="user", cascade="all, delete-orphan")
-    bookmarks = relationship("Bookmark", back_populates="user", cascade="all, delete-orphan")
-    reading_progress = relationship("ReadingProgress", back_populates="user", cascade="all, delete-orphan")
-    provider_preferences = relationship("UserProviderPreference", back_populates="user", cascade="all, delete-orphan")
+    manga_items = relationship(
+        "MangaUserLibrary", back_populates="user", cascade="all, delete-orphan"
+    )
+    reading_lists = relationship(
+        "ReadingList", back_populates="user", cascade="all, delete-orphan"
+    )
+    categories = relationship(
+        "LibraryCategory", back_populates="user", cascade="all, delete-orphan"
+    )
+    bookmarks = relationship(
+        "Bookmark", back_populates="user", cascade="all, delete-orphan"
+    )
+    reading_progress = relationship(
+        "ReadingProgress", back_populates="user", cascade="all, delete-orphan"
+    )
+    provider_preferences = relationship(
+        "UserProviderPreference", back_populates="user", cascade="all, delete-orphan"
+    )

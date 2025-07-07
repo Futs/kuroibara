@@ -1,14 +1,18 @@
-from typing import Any, List
 import uuid
+from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
-from app.models.user import User
 from app.models.library import LibraryCategory as Category
-from app.schemas.library import Category as CategorySchema, CategoryCreate, CategoryUpdate
+from app.models.user import User
+from app.schemas.library import Category as CategorySchema
+from app.schemas.library import (
+    CategoryCreate,
+    CategoryUpdate,
+)
 
 router = APIRouter()
 
@@ -25,9 +29,10 @@ async def read_categories(
     """
     # Get default categories and user's categories
     result = await db.execute(
-        select(Category).where(
-            (Category.is_default == True) | (Category.user_id == current_user.id)
-        ).offset(skip).limit(limit)
+        select(Category)
+        .where((Category.is_default == True) | (Category.user_id == current_user.id))
+        .offset(skip)
+        .limit(limit)
     )
     categories = result.scalars().all()
     return categories
@@ -45,7 +50,8 @@ async def create_category(
     # Check if category with same name already exists for this user
     result = await db.execute(
         select(Category).where(
-            (Category.name == category_data.name) & (Category.user_id == current_user.id)
+            (Category.name == category_data.name)
+            & (Category.user_id == current_user.id)
         )
     )
     if result.scalars().first():
@@ -123,7 +129,8 @@ async def update_category(
     if category_update.name and category_update.name != category.name:
         result = await db.execute(
             select(Category).where(
-                (Category.name == category_update.name) & (Category.user_id == current_user.id)
+                (Category.name == category_update.name)
+                & (Category.user_id == current_user.id)
             )
         )
         if result.scalars().first():

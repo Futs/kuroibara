@@ -1,11 +1,12 @@
+import base64
+import io
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional, Union
-from jose import jwt
-from passlib.context import CryptContext
+
 import pyotp
 import qrcode
-import io
-import base64
+from jose import jwt
+from passlib.context import CryptContext
 
 from app.core.config import settings
 
@@ -16,27 +17,39 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 totp = pyotp.TOTP
 
 
-def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    subject: Union[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
     """Create a JWT access token."""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+
     to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
     return encoded_jwt
 
 
-def create_refresh_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_refresh_token(
+    subject: Union[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
     """Create a JWT refresh token."""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
-    
+        expire = datetime.now(timezone.utc) + timedelta(
+            days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS
+        )
+
     to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -57,7 +70,9 @@ def generate_totp_secret() -> str:
 
 def get_totp_uri(secret: str, username: str) -> str:
     """Get the TOTP URI for QR code generation."""
-    return totp(secret).provisioning_uri(name=username, issuer_name=settings.TWO_FA_ISSUER)
+    return totp(secret).provisioning_uri(
+        name=username, issuer_name=settings.TWO_FA_ISSUER
+    )
 
 
 def verify_totp(secret: str, code: str) -> bool:
@@ -75,9 +90,9 @@ def generate_qr_code(uri: str) -> str:
     )
     qr.add_data(uri)
     qr.make(fit=True)
-    
+
     img = qr.make_image(fill_color="black", back_color="white")
-    
+
     # Convert to base64
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")

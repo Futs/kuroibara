@@ -1,36 +1,39 @@
-import pytest
-import httpx
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.core.providers.registry import provider_registry
+import httpx
+import pytest
+
 from app.core.providers.mangaplus import MangaPlusProvider
 from app.core.providers.mangasee import MangaSeeProvider
+from app.core.providers.registry import provider_registry
 
 
 @pytest.mark.asyncio
 async def test_provider_registry_additional_providers():
     """Test the provider registry with additional providers."""
     # Check if MangaPlus provider is registered
-    assert "mangaplus" in [p.name.lower() for p in provider_registry.get_all_providers()]
-    
+    assert "mangaplus" in [
+        p.name.lower() for p in provider_registry.get_all_providers()
+    ]
+
     # Check if MangaSee provider is registered
     assert "mangasee" in [p.name.lower() for p in provider_registry.get_all_providers()]
-    
+
     # Get MangaPlus provider
     provider = provider_registry.get_provider("mangaplus")
     assert provider is not None
     assert isinstance(provider, MangaPlusProvider)
-    
+
     # Check provider properties
     assert provider.name == "MangaPlus"
     assert provider.url == "https://jumpg-webapi.tokyo-cdn.com/api"
     assert provider.supports_nsfw is False
-    
+
     # Get MangaSee provider
     provider = provider_registry.get_provider("mangasee")
     assert provider is not None
     assert isinstance(provider, MangaSeeProvider)
-    
+
     # Check provider properties
     assert provider.name == "MangaSee"
     assert provider.url == "https://mangasee123.com"
@@ -59,21 +62,21 @@ async def test_mangaplus_search(mock_get):
                     }
                 ]
             }
-        ]
+        ],
     }
     mock_get.return_value = mock_response
-    
+
     # Get MangaPlus provider
     provider = provider_registry.get_provider("mangaplus")
-    
+
     # Search for manga
     results, total, has_next = await provider.search("test", page=1, limit=20)
-    
+
     # Check results
     assert len(results) == 1
     assert total == 1
     assert has_next is False
-    
+
     # Check first result
     result = results[0]
     assert result.id == "123"
@@ -104,18 +107,18 @@ async def test_mangasee_search(mock_get_all_manga, mock_get):
             "g": ["Action", "Adventure"],
         }
     ]
-    
+
     # Get MangaSee provider
     provider = provider_registry.get_provider("mangasee")
-    
+
     # Search for manga
     results, total, has_next = await provider.search("test", page=1, limit=20)
-    
+
     # Check results
     assert len(results) == 1
     assert total == 1
     assert has_next is False
-    
+
     # Check first result
     result = results[0]
     assert result.id == "test-manga-id"
@@ -148,16 +151,16 @@ async def test_mangaplus_get_manga_details(mock_get):
                 "overview": "Test description",
                 "isCompleted": False,
             }
-        }
+        },
     }
     mock_get.return_value = mock_response
-    
+
     # Get MangaPlus provider
     provider = provider_registry.get_provider("mangaplus")
-    
+
     # Get manga details
     manga_details = await provider.get_manga_details("123")
-    
+
     # Check manga details
     assert manga_details["id"] == "123"
     assert manga_details["title"] == "Test Manga"
@@ -180,19 +183,19 @@ async def test_mangasee_get_manga_details(mock_re_search, mock_get):
     mock_match = MagicMock()
     mock_match.group.return_value = '{"SeriesName":"Test Manga","AlternativeNames":"Alternative Title","Description":"Test description","Author":"Test Author","Genres":["Action","Adventure"],"Type":"Manga","Status":"Ongoing","YearOfRelease":"2023"}'
     mock_re_search.return_value = mock_match
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.raise_for_status = MagicMock()
     mock_response.text = "vm.SeriesJSON = {};"
     mock_get.return_value = mock_response
-    
+
     # Get MangaSee provider
     provider = provider_registry.get_provider("mangasee")
-    
+
     # Get manga details
     manga_details = await provider.get_manga_details("test-manga-id")
-    
+
     # Check manga details
     assert manga_details["id"] == "test-manga-id"
     assert manga_details["title"] == "Test Manga"
@@ -206,4 +209,7 @@ async def test_mangasee_get_manga_details(mock_re_search, mock_get):
     assert manga_details["authors"] == ["Test Author"]
     assert manga_details["provider"] == "MangaSee"
     assert manga_details["url"] == "https://mangasee123.com/manga/test-manga-id"
-    assert manga_details["cover_image"] == "https://temp.compsci88.com/cover/test-manga-id.jpg"
+    assert (
+        manga_details["cover_image"]
+        == "https://temp.compsci88.com/cover/test-manga-id.jpg"
+    )

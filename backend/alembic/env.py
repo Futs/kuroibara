@@ -1,7 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import pool, create_engine
+from sqlalchemy import create_engine, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -22,9 +22,15 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 from app.db.session import Base
 from app.models.base import BaseModel
+from app.models.library import (
+    Bookmark,
+    LibraryCategory,
+    MangaUserLibrary,
+    ReadingList,
+    ReadingProgress,
+)
+from app.models.manga import Author, Chapter, Genre, Manga, Page
 from app.models.user import User
-from app.models.manga import Manga, Chapter, Page, Genre, Author
-from app.models.library import MangaUserLibrary, LibraryCategory, ReadingList, ReadingProgress, Bookmark
 from app.models.user_provider_preference import UserProviderPreference
 
 target_metadata = Base.metadata
@@ -38,7 +44,9 @@ from app.core.config import settings
 
 # Override sqlalchemy.url with actual database URL from settings
 # Convert async URL to sync URL for alembic migrations
-sync_database_uri = str(settings.DATABASE_URI).replace("postgresql+asyncpg://", "postgresql://")
+sync_database_uri = str(settings.DATABASE_URI).replace(
+    "postgresql+asyncpg://", "postgresql://"
+)
 config.set_main_option("sqlalchemy.url", sync_database_uri)
 
 

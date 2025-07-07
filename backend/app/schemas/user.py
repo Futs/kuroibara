@@ -1,5 +1,6 @@
-from typing import Optional, List
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.schemas.base import BaseSchema
 
@@ -20,10 +21,10 @@ class UserBase(BaseModel):
     two_fa_enabled: bool = False
     anilist_username: Optional[str] = None
     myanimelist_username: Optional[str] = None
-    theme: str = 'light'
+    theme: str = "light"
     nsfw_blur: bool = True
-    download_quality: str = 'high'
-    download_path: str = '/app/storage'
+    download_quality: str = "high"
+    download_path: str = "/app/storage"
 
 
 # Properties to receive via API on creation
@@ -57,6 +58,7 @@ class UserUpdate(BaseModel):
 # Properties to return via API
 class User(UserBase, BaseSchema):
     """User schema for responses."""
+
     pass
 
 
@@ -74,10 +76,10 @@ class UserSettings(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    theme: str = 'light'
+    theme: str = "light"
     nsfw_blur: bool = True
-    download_quality: str = 'high'
-    download_path: str = '/app/storage'
+    download_quality: str = "high"
+    download_path: str = "/app/storage"
 
 
 class UserSettingsUpdate(BaseModel):

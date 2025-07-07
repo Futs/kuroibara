@@ -1,22 +1,22 @@
-import os
 import asyncio
 import logging
-from typing import List, Dict, Any, Optional
+import os
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.providers.registry import provider_registry
 from app.core.utils import (
-    get_manga_storage_path,
+    create_cbz_from_directory,
     get_chapter_storage_path,
     get_cover_storage_path,
+    get_manga_storage_path,
     get_page_storage_path,
-    create_cbz_from_directory,
 )
-from app.models.manga import Manga, Chapter, Page
 from app.models.library import MangaUserLibrary
+from app.models.manga import Chapter, Manga, Page
 
 logger = logging.getLogger(__name__)
 
@@ -186,8 +186,8 @@ async def download_manga(
         # Check if chapter already exists
         result = await db.execute(
             select(Chapter).where(
-                (Chapter.manga_id == manga_id) &
-                (Chapter.number == chapter_data["number"])
+                (Chapter.manga_id == manga_id)
+                & (Chapter.number == chapter_data["number"])
             )
         )
         chapter = result.scalars().first()
@@ -220,8 +220,8 @@ async def download_manga(
     # Update user library
     result = await db.execute(
         select(MangaUserLibrary).where(
-            (MangaUserLibrary.user_id == user_id) &
-            (MangaUserLibrary.manga_id == manga_id)
+            (MangaUserLibrary.user_id == user_id)
+            & (MangaUserLibrary.manga_id == manga_id)
         )
     )
     library_item = result.scalars().first()

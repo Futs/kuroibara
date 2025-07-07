@@ -3,8 +3,8 @@
 Script to create the initial database migration.
 """
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 # Add parent directory to path
@@ -15,13 +15,13 @@ def main() -> None:
     """Create the initial database migration."""
     # Change to the backend directory
     os.chdir(Path(__file__).parent.parent)
-    
+
     # Create the initial migration
     subprocess.run(
         ["alembic", "revision", "--autogenerate", "-m", "Initial migration"],
         check=True,
     )
-    
+
     print("Initial migration created successfully.")
 
 

@@ -15,32 +15,34 @@ def test_provider_preferences_api(client: TestClient, token: str):
                 "provider_id": "anigliscans",
                 "is_enabled": False,  # Disable this provider
                 "is_favorite": False,
-                "priority_order": None
+                "priority_order": None,
             },
             {
                 "provider_id": "anshscans",
                 "is_enabled": True,
                 "is_favorite": True,
-                "priority_order": 1
+                "priority_order": 1,
             },
             {
                 "provider_id": "arcanescans",
                 "is_enabled": False,  # Disable this provider
                 "is_favorite": False,
-                "priority_order": None
-            }
+                "priority_order": None,
+            },
         ]
     }
 
     # Test bulk update
     response = client.post(
-        "/api/v1/users/me/provider-preferences/bulk",
-        json=test_data,
-        headers=headers
+        "/api/v1/users/me/provider-preferences/bulk", json=test_data, headers=headers
     )
 
     # The endpoint might not exist yet, so we'll accept 404 as well
-    assert response.status_code in [200, 404, 422], f"Unexpected status code: {response.status_code}"
+    assert response.status_code in [
+        200,
+        404,
+        422,
+    ], f"Unexpected status code: {response.status_code}"
 
     if response.status_code == 200:
         # Test updating the same preferences again
@@ -50,27 +52,27 @@ def test_provider_preferences_api(client: TestClient, token: str):
                     "provider_id": "anigliscans",
                     "is_enabled": True,  # Re-enable this provider
                     "is_favorite": True,
-                    "priority_order": 1
+                    "priority_order": 1,
                 },
                 {
                     "provider_id": "anshscans",
                     "is_enabled": False,  # Disable this one
                     "is_favorite": False,
-                    "priority_order": None
+                    "priority_order": None,
                 },
                 {
                     "provider_id": "arcanescans",
                     "is_enabled": True,  # Re-enable this provider
                     "is_favorite": True,
-                    "priority_order": 2
-                }
+                    "priority_order": 2,
+                },
             ]
         }
 
         response2 = client.post(
             "/api/v1/users/me/provider-preferences/bulk",
             json=updated_data,
-            headers=headers
+            headers=headers,
         )
 
         assert response2.status_code == 200

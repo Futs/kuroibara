@@ -1,19 +1,27 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session
-from sqlalchemy.orm import sessionmaker, declarative_base
 import asyncio
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_scoped_session,
+    create_async_engine,
+)
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.core.config import settings
 
 # Initialize greenlet context early
 try:
     import greenlet
+
     # Ensure greenlet is properly initialized
     greenlet.getcurrent()
 except ImportError:
     pass
 
 # Create async engine for PostgreSQL
-database_url = str(settings.DATABASE_URI).replace("postgresql://", "postgresql+asyncpg://")
+database_url = str(settings.DATABASE_URI).replace(
+    "postgresql://", "postgresql+asyncpg://"
+)
 
 engine = create_async_engine(
     database_url,
@@ -27,7 +35,7 @@ engine = create_async_engine(
         "server_settings": {
             "application_name": "kuroibara",
         }
-    }
+    },
 )
 
 # Create async session factory

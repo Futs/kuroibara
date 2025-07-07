@@ -1,13 +1,14 @@
-from typing import List, Dict, Any, Optional, Tuple
-import httpx
-import re
 import json
 import logging
-from urllib.parse import urlencode, quote
+import re
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import quote, urlencode
+
+import httpx
 from bs4 import BeautifulSoup
 
 from app.core.providers.base import BaseProvider
-from app.models.manga import MangaType, MangaStatus
+from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
 
 logger = logging.getLogger(__name__)
@@ -74,44 +75,95 @@ class GenericProvider(BaseProvider):
         # Search-specific selectors (fallback to main selectors if not provided)
         self._search_title_selector = search_title_selector or title_selector
         self._search_cover_selector = search_cover_selector or cover_selector
-        self._search_description_selector = search_description_selector or description_selector
+        self._search_description_selector = (
+            search_description_selector or description_selector
+        )
 
         # Fallback selectors for common patterns
         self._fallback_selectors = fallback_selectors or {
             "search_item": [
-                ".manga-item", ".manga", ".series", ".book", ".comic",
-                ".entry", ".post", ".item", ".result", ".card",
-                "[class*='manga']", "[class*='series']", "[class*='book']",
-                "[class*='comic']", "[class*='entry']", "[class*='item']",
-                "article", ".media", ".thumbnail"
+                ".manga-item",
+                ".manga",
+                ".series",
+                ".book",
+                ".comic",
+                ".entry",
+                ".post",
+                ".item",
+                ".result",
+                ".card",
+                "[class*='manga']",
+                "[class*='series']",
+                "[class*='book']",
+                "[class*='comic']",
+                "[class*='entry']",
+                "[class*='item']",
+                "article",
+                ".media",
+                ".thumbnail",
             ],
             "title": [
-                ".manga-title", ".title", ".name", ".series-title",
-                ".entry-title", ".post-title", ".book-title",
-                "h1", "h2", "h3", "h4", ".heading",
-                "[class*='title']", "[class*='name']", "[class*='heading']",
-                "a[title]", ".link"
+                ".manga-title",
+                ".title",
+                ".name",
+                ".series-title",
+                ".entry-title",
+                ".post-title",
+                ".book-title",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                ".heading",
+                "[class*='title']",
+                "[class*='name']",
+                "[class*='heading']",
+                "a[title]",
+                ".link",
             ],
             "cover": [
-                ".manga-cover img", ".cover img", ".thumbnail img",
-                ".poster img", ".image img", ".avatar img",
-                "img[class*='cover']", "img[class*='thumb']",
-                "img[class*='poster']", "img[class*='image']",
-                "img[class*='avatar']", "img[src*='cover']",
-                "img[src*='thumb']", "img", ".img"
+                ".manga-cover img",
+                ".cover img",
+                ".thumbnail img",
+                ".poster img",
+                ".image img",
+                ".avatar img",
+                "img[class*='cover']",
+                "img[class*='thumb']",
+                "img[class*='poster']",
+                "img[class*='image']",
+                "img[class*='avatar']",
+                "img[src*='cover']",
+                "img[src*='thumb']",
+                "img",
+                ".img",
             ],
             "description": [
-                ".manga-description", ".description", ".summary",
-                ".synopsis", ".content", ".excerpt", ".abstract",
-                "[class*='description']", "[class*='summary']",
-                "[class*='synopsis']", "[class*='content']",
-                "p", ".text"
+                ".manga-description",
+                ".description",
+                ".summary",
+                ".synopsis",
+                ".content",
+                ".excerpt",
+                ".abstract",
+                "[class*='description']",
+                "[class*='summary']",
+                "[class*='synopsis']",
+                "[class*='content']",
+                "p",
+                ".text",
             ],
             "link": [
-                "a[href*='manga']", "a[href*='series']", "a[href*='book']",
-                "a[href*='comic']", "a[href*='read']", "a[href*='view']",
-                "a", ".link", "[href]"
-            ]
+                "a[href*='manga']",
+                "a[href*='series']",
+                "a[href*='book']",
+                "a[href*='comic']",
+                "a[href*='read']",
+                "a[href*='view']",
+                "a",
+                ".link",
+                "[href]",
+            ],
         }
 
     @property
@@ -132,7 +184,9 @@ class GenericProvider(BaseProvider):
         """Search for manga."""
         try:
             # Build search URL
-            search_url = f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+            search_url = (
+                f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+            )
 
             # Make request
             async with httpx.AsyncClient() as client:
@@ -154,22 +208,34 @@ class GenericProvider(BaseProvider):
 
                 # If no items found with primary selector, try fallback selectors
                 if not manga_items:
-                    logger.warning(f"No items found with primary selector '{self._search_selector}' for {self.name}")
-                    for fallback_selector in self._fallback_selectors.get("search_item", []):
+                    logger.warning(
+                        f"No items found with primary selector '{self._search_selector}' for {self.name}"
+                    )
+                    for fallback_selector in self._fallback_selectors.get(
+                        "search_item", []
+                    ):
                         try:
                             manga_items = soup.select(fallback_selector)
                             if manga_items:
-                                logger.info(f"Found {len(manga_items)} items with fallback selector '{fallback_selector}' for {self.name}")
+                                logger.info(
+                                    f"Found {len(manga_items)} items with fallback selector '{fallback_selector}' for {self.name}"
+                                )
                                 break
                         except Exception as e:
-                            logger.debug(f"Fallback selector '{fallback_selector}' failed for {self.name}: {e}")
+                            logger.debug(
+                                f"Fallback selector '{fallback_selector}' failed for {self.name}: {e}"
+                            )
                             continue
 
                 if not manga_items:
-                    logger.warning(f"No manga items found on {self.name} for query '{query}'")
+                    logger.warning(
+                        f"No manga items found on {self.name} for query '{query}'"
+                    )
                     return [], 0, False
 
-                logger.info(f"Found {len(manga_items)} potential manga items on {self.name}")
+                logger.info(
+                    f"Found {len(manga_items)} potential manga items on {self.name}"
+                )
 
                 # Parse results
                 results = []
@@ -179,7 +245,9 @@ class GenericProvider(BaseProvider):
                         manga_link = item.select_one("a")
                         if not manga_link:
                             # Try fallback link selectors
-                            for link_selector in self._fallback_selectors.get("link", []):
+                            for link_selector in self._fallback_selectors.get(
+                                "link", []
+                            ):
                                 try:
                                     manga_link = item.select_one(link_selector)
                                     if manga_link:
@@ -200,15 +268,21 @@ class GenericProvider(BaseProvider):
                             continue
 
                         # Get title using fallback selectors
-                        title = self._extract_text_with_fallback(item, "title", self._search_title_selector)
+                        title = self._extract_text_with_fallback(
+                            item, "title", self._search_title_selector
+                        )
                         if not title:
                             continue
 
                         # Get cover using fallback selectors
-                        cover_url = self._extract_image_with_fallback(item, "cover", self._search_cover_selector)
+                        cover_url = self._extract_image_with_fallback(
+                            item, "cover", self._search_cover_selector
+                        )
 
                         # Get description using fallback selectors
-                        description = self._extract_text_with_fallback(item, "description", self._search_description_selector)
+                        description = self._extract_text_with_fallback(
+                            item, "description", self._search_description_selector
+                        )
 
                         # Try to extract additional metadata from the search result
                         genres = self._extract_genres(item)
@@ -220,7 +294,9 @@ class GenericProvider(BaseProvider):
                             title=title,
                             alternative_titles={},
                             description=description or "",
-                            cover_image=self._normalize_url(cover_url) if cover_url else "",
+                            cover_image=(
+                                self._normalize_url(cover_url) if cover_url else ""
+                            ),
                             type=MangaType.UNKNOWN,
                             status=MangaStatus.UNKNOWN,
                             year=None,
@@ -243,7 +319,9 @@ class GenericProvider(BaseProvider):
         except Exception as e:
             logger.error(f"Error searching for manga on {self.name}: {e}")
             # For debugging, let's also log the search URL that failed
-            search_url = f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+            search_url = (
+                f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+            )
             logger.error(f"Failed search URL: {search_url}")
             return [], 0, False
 
@@ -402,7 +480,11 @@ class GenericProvider(BaseProvider):
                             chapter_title_elem = item.select_one(".chapter-title")
                             if chapter_title_elem:
                                 chapter_title = chapter_title_elem.text.strip()
-                                match = re.search(r"chapter\s+(\d+(\.\d+)?)", chapter_title, re.IGNORECASE)
+                                match = re.search(
+                                    r"chapter\s+(\d+(\.\d+)?)",
+                                    chapter_title,
+                                    re.IGNORECASE,
+                                )
                                 if match:
                                     chapter_number = match.group(1)
 
@@ -413,15 +495,17 @@ class GenericProvider(BaseProvider):
                             chapter_title = chapter_title_elem.text.strip()
 
                         # Create chapter
-                        chapters.append({
-                            "id": chapter_id,
-                            "title": chapter_title,
-                            "number": chapter_number or "0",
-                            "volume": None,
-                            "language": "en",
-                            "pages_count": 0,  # We don't know the page count yet
-                            "manga_id": manga_id,
-                        })
+                        chapters.append(
+                            {
+                                "id": chapter_id,
+                                "title": chapter_title,
+                                "number": chapter_number or "0",
+                                "volume": None,
+                                "language": "en",
+                                "pages_count": 0,  # We don't know the page count yet
+                                "manga_id": manga_id,
+                            }
+                        )
                     except Exception as e:
                         logger.error(f"Error parsing chapter item: {e}")
 
@@ -441,7 +525,9 @@ class GenericProvider(BaseProvider):
         """Get pages for a chapter."""
         try:
             # Build chapter URL
-            chapter_url = self._chapter_url_pattern.format(manga_id=manga_id, chapter_id=chapter_id)
+            chapter_url = self._chapter_url_pattern.format(
+                manga_id=manga_id, chapter_id=chapter_id
+            )
 
             # Make request
             async with httpx.AsyncClient() as client:
@@ -551,7 +637,9 @@ class GenericProvider(BaseProvider):
         # Return the last part of the path
         return path[-1] if path else ""
 
-    def _extract_text_with_fallback(self, element, field_type: str, primary_selector: str) -> str:
+    def _extract_text_with_fallback(
+        self, element, field_type: str, primary_selector: str
+    ) -> str:
         """Extract text using primary selector with fallback options."""
         # Try primary selector first
         if primary_selector:
@@ -571,7 +659,9 @@ class GenericProvider(BaseProvider):
 
         return ""
 
-    def _extract_image_with_fallback(self, element, field_type: str, primary_selector: str) -> str:
+    def _extract_image_with_fallback(
+        self, element, field_type: str, primary_selector: str
+    ) -> str:
         """Extract image URL using primary selector with fallback options."""
         # Try primary selector first
         if primary_selector:
@@ -599,8 +689,13 @@ class GenericProvider(BaseProvider):
         """Extract genres from element."""
         genres = []
         genre_selectors = [
-            ".genre", ".genres .genre", ".tag", ".tags .tag",
-            "[class*='genre']", "[class*='tag']", ".category"
+            ".genre",
+            ".genres .genre",
+            ".tag",
+            ".tags .tag",
+            "[class*='genre']",
+            "[class*='tag']",
+            ".category",
         ]
 
         for selector in genre_selectors:
@@ -621,8 +716,13 @@ class GenericProvider(BaseProvider):
         """Extract authors from element."""
         authors = []
         author_selectors = [
-            ".author", ".authors .author", ".creator", ".artist",
-            "[class*='author']", "[class*='creator']", "[class*='artist']"
+            ".author",
+            ".authors .author",
+            ".creator",
+            ".artist",
+            "[class*='author']",
+            "[class*='creator']",
+            "[class*='artist']",
         ]
 
         for selector in author_selectors:

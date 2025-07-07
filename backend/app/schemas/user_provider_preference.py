@@ -1,15 +1,16 @@
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.base import BaseSchema
 
 
 class UserProviderPreferenceBase(BaseModel):
     """Base user provider preference schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     provider_id: str
     is_favorite: bool = False
     priority_order: Optional[int] = None
@@ -18,12 +19,13 @@ class UserProviderPreferenceBase(BaseModel):
 
 class UserProviderPreferenceCreate(UserProviderPreferenceBase):
     """User provider preference creation schema."""
+
     pass
 
 
 class UserProviderPreferenceUpdate(BaseModel):
     """User provider preference update schema."""
-    
+
     is_favorite: Optional[bool] = None
     priority_order: Optional[int] = None
     is_enabled: Optional[bool] = None
@@ -31,24 +33,23 @@ class UserProviderPreferenceUpdate(BaseModel):
 
 class UserProviderPreference(UserProviderPreferenceBase, BaseSchema):
     """User provider preference schema for responses."""
-    
+
     user_id: UUID
 
 
 class UserProviderPreferenceBulkUpdate(BaseModel):
     """Schema for bulk updating user provider preferences."""
-    
+
     preferences: List[UserProviderPreferenceBase] = Field(
-        ..., 
-        description="List of provider preferences to update"
+        ..., description="List of provider preferences to update"
     )
 
 
 class ProviderWithPreference(BaseModel):
     """Enhanced provider info with user preference data."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     # Provider info
     id: str
     name: str
@@ -61,7 +62,7 @@ class ProviderWithPreference(BaseModel):
     uptime_percentage: int = 100
     consecutive_failures: int = 0
     is_healthy: bool = True
-    
+
     # User preference data
     is_favorite: bool = False
     priority_order: Optional[int] = None
@@ -70,7 +71,7 @@ class ProviderWithPreference(BaseModel):
 
 class UserProviderPreferencesResponse(BaseModel):
     """Response schema for user provider preferences."""
-    
+
     providers: List[ProviderWithPreference]
     total_providers: int
     favorite_count: int

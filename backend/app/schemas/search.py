@@ -1,8 +1,9 @@
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
-from app.models.manga import MangaType, MangaStatus
+from app.models.manga import MangaStatus, MangaType
 
 
 class ProviderInfo(BaseModel):

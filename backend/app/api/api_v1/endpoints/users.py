@@ -1,14 +1,19 @@
-from typing import Any, List
 import uuid
+from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_user, get_current_active_superuser, get_db
+from app.core.deps import get_current_active_superuser, get_current_user, get_db
 from app.core.security import get_password_hash
 from app.models.user import User
-from app.schemas.user import User as UserSchema, UserUpdate, UserSettings, UserSettingsUpdate
+from app.schemas.user import User as UserSchema
+from app.schemas.user import (
+    UserSettings,
+    UserSettingsUpdate,
+    UserUpdate,
+)
 
 router = APIRouter()
 
@@ -34,13 +39,15 @@ async def update_current_user(
     """
     # Check if username is being updated and if it's already taken
     if user_update.username and user_update.username != current_user.username:
-        result = await db.execute(select(User).where(User.username == user_update.username))
+        result = await db.execute(
+            select(User).where(User.username == user_update.username)
+        )
         if result.scalars().first():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username already taken",
             )
-    
+
     # Check if email is being updated and if it's already taken
     if user_update.email and user_update.email != current_user.email:
         result = await db.execute(select(User).where(User.email == user_update.email))
@@ -49,21 +56,21 @@ async def update_current_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered",
             )
-    
+
     # Update user fields
     update_data = user_update.model_dump(exclude_unset=True)
-    
+
     # Hash password if it's being updated
     if "password" in update_data:
         update_data["hashed_password"] = get_password_hash(update_data.pop("password"))
-    
+
     # Update user
     for field, value in update_data.items():
         setattr(current_user, field, value)
-    
+
     await db.commit()
     await db.refresh(current_user)
-    
+
     return current_user
 
 
@@ -97,7 +104,7 @@ async def read_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     return user
 
 

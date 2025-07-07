@@ -1,26 +1,46 @@
-from typing import Any, List, Optional, Dict
-import uuid
 import asyncio
+import uuid
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
+from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
+from app.models.library import (
+    Bookmark,
+)
+from app.models.library import LibraryCategory as Category
+from app.models.library import (
+    MangaUserLibrary,
+    ReadingProgress,
+)
+from app.models.manga import Chapter, Manga
 from app.models.user import User
-from app.models.manga import Manga, Chapter
-from app.models.library import MangaUserLibrary, LibraryCategory as Category, ReadingProgress, Bookmark
+from app.schemas.library import Bookmark as BookmarkSchema
 from app.schemas.library import (
-    MangaUserLibrary as MangaUserLibrarySchema,
-    MangaUserLibraryCreate,
-    MangaUserLibraryUpdate,
-    ReadingProgress as ReadingProgressSchema,
-    ReadingProgressCreate,
-    ReadingProgressUpdate,
-    Bookmark as BookmarkSchema,
     BookmarkCreate,
     BookmarkUpdate,
+)
+from app.schemas.library import MangaUserLibrary as MangaUserLibrarySchema
+from app.schemas.library import (
+    MangaUserLibraryCreate,
+    MangaUserLibraryUpdate,
+)
+from app.schemas.library import ReadingProgress as ReadingProgressSchema
+from app.schemas.library import (
+    ReadingProgressCreate,
+    ReadingProgressUpdate,
 )
 
 router = APIRouter()
@@ -38,16 +58,22 @@ async def read_library(
     """
     Retrieve user's library.
     """
-    query = select(MangaUserLibrary).options(
-        selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
-        selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
-        selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
-        selectinload(MangaUserLibrary.categories)
-    ).where(MangaUserLibrary.user_id == current_user.id)
+    query = (
+        select(MangaUserLibrary)
+        .options(
+            selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
+            selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
+            selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
+            selectinload(MangaUserLibrary.categories),
+        )
+        .where(MangaUserLibrary.user_id == current_user.id)
+    )
 
     # Filter by category
     if category_id:
-        query = query.join(MangaUserLibrary.categories).where(Category.id == uuid.UUID(category_id))
+        query = query.join(MangaUserLibrary.categories).where(
+            Category.id == uuid.UUID(category_id)
+        )
 
     # Filter by favorite
     if is_favorite is not None:
@@ -83,8 +109,8 @@ async def add_to_library(
         # Check if manga is already in library
         result = await db.execute(
             select(MangaUserLibrary).where(
-                (MangaUserLibrary.user_id == current_user.id) &
-                (MangaUserLibrary.manga_id == library_item.manga_id)
+                (MangaUserLibrary.user_id == current_user.id)
+                & (MangaUserLibrary.manga_id == library_item.manga_id)
             )
         )
         if result.scalars().first():
@@ -105,12 +131,14 @@ async def add_to_library(
 
             for category_id in library_item.category_ids:
                 category = await db.get(Category, category_id)
-                if category and (category.is_default or category.user_id == current_user.id):
+                if category and (
+                    category.is_default or category.user_id == current_user.id
+                ):
                     # Use direct SQL insert instead of relationship append
                     await db.execute(
                         insert(manga_user_library_category).values(
                             manga_user_library_id=library_item_obj.id,
-                            category_id=category.id
+                            category_id=category.id,
                         )
                     )
 
@@ -120,13 +148,14 @@ async def add_to_library(
 
         # Load relationships explicitly to avoid greenlet issues during response serialization
         from sqlalchemy.orm import selectinload
+
         result = await db.execute(
             select(MangaUserLibrary)
             .options(
                 selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
                 selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
                 selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
-                selectinload(MangaUserLibrary.categories)
+                selectinload(MangaUserLibrary.categories),
             )
             .where(MangaUserLibrary.id == library_item_obj.id)
         )
@@ -140,6 +169,7 @@ async def add_to_library(
     except Exception as e:
         # Log the error and return a generic error message
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error adding manga to library: {str(e)}")
 
@@ -191,7 +221,9 @@ async def update_library_item(
         )
 
     # Update library item fields
-    update_data = library_item_update.model_dump(exclude={"category_ids"}, exclude_unset=True)
+    update_data = library_item_update.model_dump(
+        exclude={"category_ids"}, exclude_unset=True
+    )
     for field, value in update_data.items():
         setattr(library_item, field, value)
 
@@ -203,7 +235,9 @@ async def update_library_item(
         # Add new categories
         for category_id in library_item_update.category_ids:
             category = await db.get(Category, category_id)
-            if category and (category.is_default or category.user_id == current_user.id):
+            if category and (
+                category.is_default or category.user_id == current_user.id
+            ):
                 library_item.categories.append(category)
 
     await db.commit()
@@ -253,8 +287,8 @@ async def download_manga(
         background_tasks: FastAPI background tasks
     """
     try:
-        from app.core.services.background import download_manga_task
         from app.core.providers.registry import provider_registry
+        from app.core.services.background import download_manga_task
 
         # Check if provider exists
         provider_instance = provider_registry.get_provider(provider)
@@ -281,7 +315,7 @@ async def download_manga(
                 "user_id": str(current_user.id),
                 "provider": provider,
                 "status": "already_downloaded",
-                "message": "Manga is already downloaded"
+                "message": "Manga is already downloaded",
             }
 
         # Create task ID
@@ -303,7 +337,7 @@ async def download_manga(
             "user_id": str(current_user.id),
             "provider": provider,
             "status": "queued",
-            "message": "Download task has been queued"
+            "message": "Download task has been queued",
         }
 
     except HTTPException:
@@ -312,6 +346,7 @@ async def download_manga(
     except Exception as e:
         # Log the error and return a generic error message
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error starting download: {str(e)}")
 
@@ -349,9 +384,9 @@ async def update_reading_progress(
         # Check if progress already exists
         result = await db.execute(
             select(ReadingProgress).where(
-                (ReadingProgress.user_id == current_user.id) &
-                (ReadingProgress.manga_id == progress_data.manga_id) &
-                (ReadingProgress.chapter_id == progress_data.chapter_id)
+                (ReadingProgress.user_id == current_user.id)
+                & (ReadingProgress.manga_id == progress_data.manga_id)
+                & (ReadingProgress.chapter_id == progress_data.chapter_id)
             )
         )
         progress = result.scalars().first()
@@ -379,6 +414,7 @@ async def update_reading_progress(
     except Exception as e:
         # Log the error and return a generic error message
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error updating reading progress: {str(e)}")
 
@@ -414,6 +450,7 @@ async def update_manga_reading_progress(
 
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error updating manga reading progress: {str(e)}")
 
@@ -503,10 +540,7 @@ async def get_download_tasks(
     # Get user's download tasks
     tasks = get_user_download_tasks(current_user.id)
 
-    return {
-        "tasks": tasks,
-        "count": len(tasks)
-    }
+    return {"tasks": tasks, "count": len(tasks)}
 
 
 @router.get("/downloads/{task_id}", response_model=Dict[str, Any])
@@ -546,7 +580,10 @@ async def cancel_download_task(
     """
     Cancel a download task.
     """
-    from app.core.services.background import get_download_task, cancel_download_task as cancel_task
+    from app.core.services.background import cancel_download_task as cancel_task
+    from app.core.services.background import (
+        get_download_task,
+    )
 
     # Get task
     task = get_download_task(task_id)

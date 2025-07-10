@@ -183,8 +183,15 @@ class TestBackupService:
                 f.write("-- Mock database dump\nCREATE TABLE test (id INTEGER);")
             return True
 
+        # Mock storage archive creation that actually creates the file
+        async def mock_create_storage_archive(output_path: str) -> bool:
+            # Create a dummy storage archive file
+            with open(output_path, 'w') as f:
+                f.write("dummy storage archive content")
+            return True
+
         with patch.object(self.service, 'create_database_dump', side_effect=mock_create_database_dump):
-            with patch.object(self.service, 'create_storage_archive', return_value=True):
+            with patch.object(self.service, 'create_storage_archive', side_effect=mock_create_storage_archive):
 
                 success, backup_path = await self.service.create_full_backup(
                     backup_name="test_backup",

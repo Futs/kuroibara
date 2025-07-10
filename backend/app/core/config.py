@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     STORAGE_PATH: str = "/app/storage"
     MAX_UPLOAD_SIZE: str = "100MB"
 
+    # Backup settings
+    BACKUP_PATH: str = "/app/backups"
+    MAX_BACKUPS: int = 30
+    BACKUP_DAILY_ENABLED: bool = True
+    BACKUP_WEEKLY_ENABLED: bool = True
+    BACKUP_MONTHLY_ENABLED: bool = True
+
     # Email
     MAIL_MAILER: str = "smtp"
     MAIL_HOST: str = "mailhog"

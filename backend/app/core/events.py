@@ -7,6 +7,7 @@ from redis.asyncio import Redis
 
 from app.core.config import settings
 from app.core.deps import set_redis_client
+from app.core.services.backup import scheduled_backup_service
 from app.core.services.provider_monitor import provider_monitor
 from app.db.init_db import init_db
 from app.db.session import engine
@@ -81,6 +82,14 @@ def startup_event_handler(app: FastAPI) -> Callable:
         else:
             logger.info("Provider monitoring disabled by configuration")
 
+        # Start backup scheduler
+        try:
+            scheduled_backup_service.start()
+            logger.info("Backup scheduler started successfully")
+        except Exception as e:
+            logger.error(f"Error starting backup scheduler: {e}")
+            # Don't raise here as backup scheduling is not critical for app startup
+
         logger.info("Application startup complete")
 
     return start_app
@@ -88,6 +97,13 @@ def startup_event_handler(app: FastAPI) -> Callable:
 
 def shutdown_event_handler(app: FastAPI) -> Callable:
     async def stop_app() -> None:
+        # Stop backup scheduler
+        try:
+            scheduled_backup_service.stop()
+            logger.info("Backup scheduler stopped")
+        except Exception as e:
+            logger.warning(f"Error stopping backup scheduler: {e}")
+
         # Stop provider monitoring
         try:
             await provider_monitor.stop_monitoring()

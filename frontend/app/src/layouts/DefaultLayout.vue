@@ -68,6 +68,20 @@
                   >
                     Settings
                   </router-link>
+                  <router-link
+                    to="/recovery"
+                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-600"
+                    @click="userMenuOpen = false"
+                  >
+                    Storage Recovery
+                  </router-link>
+                  <router-link
+                    to="/backup"
+                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-600"
+                    @click="userMenuOpen = false"
+                  >
+                    Backup & Restore
+                  </router-link>
                   <button
                     @click="logout"
                     class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-600"
@@ -187,6 +201,20 @@
               @click="mobileMenuOpen = false"
             >
               Settings
+            </router-link>
+            <router-link
+              to="/recovery"
+              class="block px-4 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-dark-700"
+              @click="mobileMenuOpen = false"
+            >
+              Storage Recovery
+            </router-link>
+            <router-link
+              to="/backup"
+              class="block px-4 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-dark-700"
+              @click="mobileMenuOpen = false"
+            >
+              Backup & Restore
             </router-link>
             <button
               @click="logout"

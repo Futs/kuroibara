@@ -15,6 +15,8 @@ import Search from '../views/Search.vue';
 import Categories from '../views/Categories.vue';
 import ReadingLists from '../views/ReadingLists.vue';
 import Settings from '../views/Settings.vue';
+import Recovery from '../views/Recovery.vue';
+import Backup from '../views/Backup.vue';
 import NotFound from '../views/NotFound.vue';
 
 // Route Guards
@@ -96,6 +98,18 @@ const routes = [
         path: 'settings',
         name: 'settings',
         component: Settings,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: 'recovery',
+        name: 'recovery',
+        component: Recovery,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: 'backup',
+        name: 'backup',
+        component: Backup,
         beforeEnter: requireAuth,
       },
       {

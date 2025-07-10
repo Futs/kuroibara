@@ -328,7 +328,8 @@ class StorageRecoveryService:
             library_item = MangaUserLibrary(
                 user_id=user_id,
                 manga_id=manga.id,
-                status="reading",  # Default status for recovered manga
+                is_favorite=False,  # Default to not favorite for recovered manga
+                is_downloaded=True,  # Mark as downloaded since we're recovering from storage
             )
             db.add(library_item)
             

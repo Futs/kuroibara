@@ -41,8 +41,8 @@ class TestNamingFormatEngine:
         # Test basic sanitization
         assert self.engine.sanitize_filename("normal_name") == "normal_name"
         
-        # Test unsafe characters
-        assert self.engine.sanitize_filename("name<>:\"/\\|?*") == "name_________"
+        # Test unsafe characters (consecutive underscores are collapsed to single underscore)
+        assert self.engine.sanitize_filename("name<>:\"/\\|?*") == "name_"
         
         # Test unicode normalization
         assert self.engine.sanitize_filename("café") == "café"

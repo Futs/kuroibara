@@ -69,6 +69,11 @@ class BackupService:
     
     def get_database_config(self) -> Dict[str, str]:
         """Extract database configuration from settings."""
+        # Validate that we're using PostgreSQL
+        if hasattr(settings, 'DATABASE_URL') and settings.DATABASE_URL:
+            if not settings.DATABASE_URL.startswith('postgresql://'):
+                raise ValueError("Only PostgreSQL databases are supported for backup operations")
+
         # Use individual database settings instead of DATABASE_URL
         return {
             'host': settings.DB_HOST,

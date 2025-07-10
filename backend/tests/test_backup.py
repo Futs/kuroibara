@@ -176,19 +176,25 @@ class TestBackupService:
     @pytest.mark.asyncio
     async def test_create_full_backup(self):
         """Test creating a full backup."""
-        # Mock database dump creation
-        with patch.object(self.service, 'create_database_dump', return_value=True):
+        # Mock database dump creation that actually creates the file
+        async def mock_create_database_dump(output_path: str) -> bool:
+            # Create a dummy database dump file
+            with open(output_path, 'w') as f:
+                f.write("-- Mock database dump\nCREATE TABLE test (id INTEGER);")
+            return True
+
+        with patch.object(self.service, 'create_database_dump', side_effect=mock_create_database_dump):
             with patch.object(self.service, 'create_storage_archive', return_value=True):
-                
+
                 success, backup_path = await self.service.create_full_backup(
                     backup_name="test_backup",
                     include_storage=True
                 )
-                
+
                 assert success is True
                 assert backup_path is not None
                 assert os.path.exists(backup_path)
-                
+
                 # Verify backup archive contents
                 with tarfile.open(backup_path, 'r:gz') as tar:
                     names = tar.getnames()
@@ -199,17 +205,24 @@ class TestBackupService:
     @pytest.mark.asyncio
     async def test_create_full_backup_database_only(self):
         """Test creating a database-only backup."""
-        with patch.object(self.service, 'create_database_dump', return_value=True):
-            
+        # Mock database dump creation that actually creates the file
+        async def mock_create_database_dump(output_path: str) -> bool:
+            # Create a dummy database dump file
+            with open(output_path, 'w') as f:
+                f.write("-- Mock database dump\nCREATE TABLE test (id INTEGER);")
+            return True
+
+        with patch.object(self.service, 'create_database_dump', side_effect=mock_create_database_dump):
+
             success, backup_path = await self.service.create_full_backup(
                 backup_name="test_db_backup",
                 include_storage=False
             )
-            
+
             assert success is True
             assert backup_path is not None
             assert os.path.exists(backup_path)
-            
+
             # Verify backup archive contents (no storage)
             with tarfile.open(backup_path, 'r:gz') as tar:
                 names = tar.getnames()
@@ -219,9 +232,9 @@ class TestBackupService:
     
     def test_list_backups(self):
         """Test listing available backups."""
-        # Create test backup files
-        backup1_path = os.path.join(self.backup_path, "backup1.tar.gz")
-        backup2_path = os.path.join(self.backup_path, "backup2.tar.gz")
+        # Create test backup files in the correct directory (backups_dir)
+        backup1_path = os.path.join(self.service.backups_dir, "backup1.tar.gz")
+        backup2_path = os.path.join(self.service.backups_dir, "backup2.tar.gz")
         
         # Create backup with metadata
         with tarfile.open(backup1_path, 'w:gz') as tar:
@@ -259,10 +272,10 @@ class TestBackupService:
         """Test cleaning up old backups."""
         # Set max backups to 2
         self.service.max_backups = 2
-        
-        # Create 4 test backup files
+
+        # Create 4 test backup files in the correct directory (backups_dir)
         for i in range(4):
-            backup_path = os.path.join(self.backup_path, f"backup{i}.tar.gz")
+            backup_path = os.path.join(self.service.backups_dir, f"backup{i}.tar.gz")
             with open(backup_path, "w") as f:
                 f.write(f"backup {i}")
         

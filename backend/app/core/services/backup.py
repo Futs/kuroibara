@@ -57,6 +57,7 @@ class BackupService:
         self.retention_monthly = getattr(settings, 'BACKUP_RETENTION_MONTHLY', 12)
         self.retention_yearly = getattr(settings, 'BACKUP_RETENTION_YEARLY', 5)
         self.retention_max_total = getattr(settings, 'BACKUP_RETENTION_MAX_TOTAL', 50)
+        self.max_backups = getattr(settings, 'BACKUP_MAX_BACKUPS', 10)  # Default max backups
 
         # Ensure backup directories exist (with error handling for testing)
         try:
@@ -447,12 +448,15 @@ class BackupService:
         """
         try:
             backups = self.list_backups()
-            
+
             if len(backups) <= self.max_backups:
                 return 0
-            
+
+            # Sort backups by creation time (oldest first)
+            backups.sort(key=lambda x: x['created_at'])
+
             # Remove oldest backups
-            backups_to_remove = backups[self.max_backups:]
+            backups_to_remove = backups[:-self.max_backups]
             removed_count = 0
             
             for backup in backups_to_remove:

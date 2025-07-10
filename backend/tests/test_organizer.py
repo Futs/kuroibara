@@ -44,8 +44,10 @@ class TestNamingFormatEngine:
         # Test unsafe characters (consecutive underscores are collapsed to single underscore)
         assert self.engine.sanitize_filename("name<>:\"/\\|?*") == "name_"
         
-        # Test unicode normalization
-        assert self.engine.sanitize_filename("café") == "café"
+        # Test unicode normalization (NFKD normalization decomposes characters)
+        import unicodedata
+        expected = unicodedata.normalize('NFKD', "café")
+        assert self.engine.sanitize_filename("café") == expected
         
         # Test empty string
         assert self.engine.sanitize_filename("") == "Unknown"

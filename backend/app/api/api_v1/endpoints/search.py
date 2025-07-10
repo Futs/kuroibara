@@ -137,7 +137,7 @@ async def search_manga(
             prioritize_providers_by_user_preferences(all_providers, user_preferences)
         )
         # Limit regular providers to avoid too many requests
-        max_regular_providers = 10
+        max_regular_providers = 20
         selected_providers = (
             priority_providers + regular_providers[:max_regular_providers]
         )

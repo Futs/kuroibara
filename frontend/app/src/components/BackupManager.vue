@@ -99,6 +99,57 @@
           </div>
         </div>
 
+        <!-- Retention Policy Section -->
+        <div class="px-4 py-4 bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-dark-600">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+              Backup Retention Policy
+            </h3>
+            <button
+              @click="applyRetentionPolicy"
+              :disabled="loading"
+              class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-yellow-800 dark:text-yellow-200 dark:hover:bg-yellow-700"
+            >
+              <svg class="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clean Up Now
+            </button>
+          </div>
+
+          <div v-if="retentionSettings" class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+            <div class="text-center p-2 bg-white dark:bg-dark-800 rounded">
+              <div class="font-medium text-gray-900 dark:text-white">Daily</div>
+              <div class="text-gray-600 dark:text-gray-300">{{ retentionSettings.retention_daily }}</div>
+            </div>
+            <div class="text-center p-2 bg-white dark:bg-dark-800 rounded">
+              <div class="font-medium text-gray-900 dark:text-white">Weekly</div>
+              <div class="text-gray-600 dark:text-gray-300">{{ retentionSettings.retention_weekly }}</div>
+            </div>
+            <div class="text-center p-2 bg-white dark:bg-dark-800 rounded">
+              <div class="font-medium text-gray-900 dark:text-white">Monthly</div>
+              <div class="text-gray-600 dark:text-gray-300">{{ retentionSettings.retention_monthly }}</div>
+            </div>
+            <div class="text-center p-2 bg-white dark:bg-dark-800 rounded">
+              <div class="font-medium text-gray-900 dark:text-white">Yearly</div>
+              <div class="text-gray-600 dark:text-gray-300">{{ retentionSettings.retention_yearly }}</div>
+            </div>
+            <div class="text-center p-2 bg-white dark:bg-dark-800 rounded">
+              <div class="font-medium text-gray-900 dark:text-white">Max Total</div>
+              <div class="text-gray-600 dark:text-gray-300">{{ retentionSettings.retention_max_total }}</div>
+            </div>
+          </div>
+
+          <div v-if="retentionResult" class="mt-3 p-2 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded text-sm">
+            <div class="text-green-800 dark:text-green-200">
+              {{ retentionResult.message || `Cleaned up ${retentionResult.deleted_count} old backups` }}
+            </div>
+            <div v-if="retentionResult.deleted_files && retentionResult.deleted_files.length > 0" class="mt-1 text-xs text-green-600 dark:text-green-300">
+              Deleted: {{ retentionResult.deleted_files.join(', ') }}
+            </div>
+          </div>
+        </div>
+
         <!-- Backup List -->
         <div v-if="backupList && backupList.backups.length > 0" class="divide-y divide-gray-200 dark:divide-dark-600">
           <div
@@ -227,7 +278,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import api from '@/services/api.js';
 
 // Reactive state
 const loading = ref(false);
@@ -239,6 +290,8 @@ const showCreateModal = ref(false);
 const newBackupName = ref('');
 const includeStorage = ref(true);
 const fileInput = ref(null);
+const retentionSettings = ref(null);
+const retentionResult = ref(null);
 
 // Methods
 const refreshBackups = async () => {
@@ -246,7 +299,7 @@ const refreshBackups = async () => {
   error.value = null;
   
   try {
-    const response = await axios.get('/api/v1/backup/list');
+    const response = await api.get('/v1/backup/list');
     backupList.value = response.data;
   } catch (err) {
     error.value = err.response?.data?.detail || 'Failed to load backups';
@@ -267,7 +320,7 @@ const confirmCreateBackup = async () => {
   error.value = null;
   
   try {
-    const response = await axios.post('/api/v1/backup/create', {
+    const response = await api.post('/v1/backup/create', {
       backup_name: newBackupName.value || null,
       include_storage: includeStorage.value
     });
@@ -290,7 +343,7 @@ const confirmCreateBackup = async () => {
 
 const downloadBackup = async (backup) => {
   try {
-    const response = await axios.get(`/api/v1/backup/download/${backup.filename}`, {
+    const response = await api.get(`/v1/backup/download/${backup.filename}`, {
       responseType: 'blob'
     });
     
@@ -318,7 +371,7 @@ const deleteBackup = async (backup) => {
   }
   
   try {
-    await axios.delete(`/api/v1/backup/delete/${backup.filename}`);
+    await api.delete(`/v1/backup/delete/${backup.filename}`);
     successMessage.value = `Deleted ${backup.filename}`;
     refreshBackups();
     
@@ -347,7 +400,7 @@ const handleFileUpload = async (event) => {
   
   try {
     loading.value = true;
-    const response = await axios.post('/api/v1/backup/upload-restore', formData, {
+    const response = await api.post('/v1/backup/upload-restore', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -361,6 +414,40 @@ const handleFileUpload = async (event) => {
   } catch (err) {
     error.value = err.response?.data?.detail || 'Failed to upload and restore backup';
     console.error('Backup restore error:', err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const loadRetentionSettings = async () => {
+  try {
+    const response = await api.get('/v1/backup/retention-settings');
+    retentionSettings.value = response.data;
+  } catch (err) {
+    console.error('Failed to load retention settings:', err);
+  }
+};
+
+const applyRetentionPolicy = async () => {
+  loading.value = true;
+  error.value = null;
+  retentionResult.value = null;
+
+  try {
+    const response = await api.post('/v1/backup/apply-retention');
+    retentionResult.value = response.data;
+
+    // Refresh backup list to show updated counts
+    await refreshBackups();
+
+    // Clear result after 10 seconds
+    setTimeout(() => {
+      retentionResult.value = null;
+    }, 10000);
+
+  } catch (err) {
+    console.error('Failed to apply retention policy:', err);
+    error.value = err.response?.data?.detail || 'Failed to apply retention policy';
   } finally {
     loading.value = false;
   }
@@ -397,5 +484,6 @@ watch([error, successMessage], () => {
 // Load backups on mount
 onMounted(() => {
   refreshBackups();
+  loadRetentionSettings();
 });
 </script>

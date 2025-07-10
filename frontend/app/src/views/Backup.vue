@@ -192,7 +192,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import api from '@/services/api.js';
 import BackupManager from '@/components/BackupManager.vue';
 
 // Set page title
@@ -215,7 +215,7 @@ const orphanedCheck = ref(null);
 // Methods
 const loadScheduleInfo = async () => {
   try {
-    const response = await axios.get('/api/v1/backup/schedule');
+    const response = await api.get('/v1/backup/schedule');
     scheduleInfo.value = response.data;
   } catch (err) {
     console.error('Failed to load schedule info:', err);
@@ -224,7 +224,7 @@ const loadScheduleInfo = async () => {
 
 const checkOrphanedStorage = async () => {
   try {
-    const response = await axios.get('/api/v1/backup/check-orphaned');
+    const response = await api.get('/v1/backup/check-orphaned');
     orphanedCheck.value = response.data;
   } catch (err) {
     console.error('Failed to check orphaned storage:', err);

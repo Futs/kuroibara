@@ -45,7 +45,7 @@ class MangaMetadata(BaseModel):
     custom_metadata = Column(JSONB, nullable=True)  # Additional custom metadata
     
     # Relationships
-    manga = relationship("Manga", back_populates="metadata")
+    manga = relationship("Manga", back_populates="manga_metadata")
     user = relationship("User")
 
 
@@ -80,7 +80,7 @@ class ChapterMetadata(BaseModel):
     custom_metadata = Column(JSONB, nullable=True)  # Additional custom metadata
     
     # Relationships
-    chapter = relationship("Chapter", back_populates="metadata")
+    chapter = relationship("Chapter", back_populates="chapter_metadata")
     user = relationship("User")
 
 

@@ -248,20 +248,6 @@
     }
   },
   {
-    "id": "coffeemanga",
-    "name": "CoffeeManga",
-    "class_name": "GenericProvider",
-    "url": "https://coffeemanga.io",
-    "supports_nsfw": false,
-    "params": {
-      "base_url": "https://coffeemanga.io",
-      "search_url": "https://coffeemanga.io/search",
-      "manga_url_pattern": "https://coffeemanga.io/manga/{manga_id}",
-      "chapter_url_pattern": "https://coffeemanga.io/manga/{manga_id}/{chapter_id}",
-      "name": "CoffeeManga"
-    }
-  },
-  {
     "id": "manganel",
     "name": "MangaNel",
     "class_name": "GenericProvider",

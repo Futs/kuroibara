@@ -65,6 +65,12 @@ media/
 uploads/
 downloads/
 
+# Storage and Backup directories
+storage/
+backups/
+backend/storage/
+backend/backups/
+
 # Database
 *.db
 

@@ -111,7 +111,7 @@ async def download_backup(
                 detail="Invalid filename"
             )
         
-        backup_path = os.path.join(backup_service.backup_path, filename)
+        backup_path = os.path.join(backup_service.backups_dir, filename)
         
         if not os.path.exists(backup_path):
             raise HTTPException(
@@ -203,7 +203,7 @@ async def delete_backup(
                 detail="Invalid filename"
             )
         
-        backup_path = os.path.join(backup_service.backup_path, filename)
+        backup_path = os.path.join(backup_service.backups_dir, filename)
         
         if not os.path.exists(backup_path):
             raise HTTPException(
@@ -348,3 +348,52 @@ async def restore_backup_background(
         # Clean up temporary file on error
         if os.path.exists(backup_path):
             os.remove(backup_path)
+
+
+@router.post("/apply-retention")
+async def apply_retention_policy(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Manually apply backup retention policy to clean up old backups.
+    """
+    try:
+        result = await backup_service.apply_retention_policy()
+        return result
+    except Exception as e:
+        logger.error(f"Error applying retention policy: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to apply retention policy: {str(e)}"
+        )
+
+
+@router.get("/retention-settings")
+async def get_retention_settings(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get current backup retention settings.
+    """
+    try:
+        return {
+            "retention_enabled": backup_service.retention_enabled,
+            "retention_daily": backup_service.retention_daily,
+            "retention_weekly": backup_service.retention_weekly,
+            "retention_monthly": backup_service.retention_monthly,
+            "retention_yearly": backup_service.retention_yearly,
+            "retention_max_total": backup_service.retention_max_total,
+            "description": {
+                "daily": f"Keep {backup_service.retention_daily} daily backups (last 7 days)",
+                "weekly": f"Keep {backup_service.retention_weekly} weekly backups (last month)",
+                "monthly": f"Keep {backup_service.retention_monthly} monthly backups (last year)",
+                "yearly": f"Keep {backup_service.retention_yearly} yearly backups (older than 1 year)",
+                "max_total": f"Maximum {backup_service.retention_max_total} total backups regardless of age"
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting retention settings: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get retention settings: {str(e)}"
+        )

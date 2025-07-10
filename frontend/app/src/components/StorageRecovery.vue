@@ -175,7 +175,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import axios from 'axios';
+import api from '@/services/api.js';
 
 // Reactive state
 const loading = ref(false);
@@ -193,7 +193,7 @@ const scanStorage = async () => {
   successMessage.value = null;
   
   try {
-    const response = await axios.get('/api/v1/organizer/recovery/scan-storage');
+    const response = await api.get('/v1/organizer/recovery/scan-storage');
     recoverableManga.value = response.data;
     scanned.value = true;
     
@@ -215,7 +215,7 @@ const recoverSingle = async (manga) => {
   error.value = null;
   
   try {
-    const response = await axios.post('/api/v1/organizer/recovery/recover-manga', {
+    const response = await api.post('/v1/organizer/recovery/recover-manga', {
       storage_uuid: manga.storage_uuid,
       manga_title: manga.extracted_title,
       custom_metadata: manga.metadata
@@ -247,7 +247,7 @@ const recoverAll = async () => {
       custom_metadata: manga.metadata
     }));
     
-    const response = await axios.post('/api/v1/organizer/recovery/batch-recover', {
+    const response = await api.post('/v1/organizer/recovery/batch-recover', {
       recovery_items: recoveryItems,
       skip_errors: true
     });

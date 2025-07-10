@@ -16,9 +16,9 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any, Set
 from uuid import UUID, uuid4
 
 from sqlalchemy import text
@@ -37,49 +37,34 @@ class BackupService:
         """Initialize the backup service."""
         self.backup_path = getattr(settings, 'BACKUP_PATH', '/app/backups')
         self.storage_path = settings.STORAGE_PATH
-        self.max_backups = getattr(settings, 'MAX_BACKUPS', 30)  # Keep 30 backups by default
-        
-        # Ensure backup directory exists
-        os.makedirs(self.backup_path, exist_ok=True)
+
+        # Organized backup subdirectories
+        self.backups_dir = os.path.join(self.backup_path, 'archives')
+        self.restore_temp_dir = os.path.join(self.backup_path, 'restore_temp')
+        self.logs_dir = os.path.join(self.backup_path, 'logs')
+
+        # Retention settings
+        self.retention_enabled = getattr(settings, 'BACKUP_RETENTION_ENABLED', True)
+        self.retention_daily = getattr(settings, 'BACKUP_RETENTION_DAILY', 7)
+        self.retention_weekly = getattr(settings, 'BACKUP_RETENTION_WEEKLY', 4)
+        self.retention_monthly = getattr(settings, 'BACKUP_RETENTION_MONTHLY', 12)
+        self.retention_yearly = getattr(settings, 'BACKUP_RETENTION_YEARLY', 5)
+        self.retention_max_total = getattr(settings, 'BACKUP_RETENTION_MAX_TOTAL', 50)
+
+        # Ensure backup directories exist
+        os.makedirs(self.backups_dir, exist_ok=True)
+        os.makedirs(self.restore_temp_dir, exist_ok=True)
+        os.makedirs(self.logs_dir, exist_ok=True)
     
     def get_database_config(self) -> Dict[str, str]:
-        """Extract database configuration from DATABASE_URL."""
-        db_url = settings.DATABASE_URL
-        
-        # Parse postgresql://user:password@host:port/database
-        if not db_url.startswith('postgresql://'):
-            raise ValueError("Only PostgreSQL databases are supported for backup")
-        
-        # Remove protocol
-        db_url = db_url.replace('postgresql://', '')
-        
-        # Split user:password@host:port/database
-        if '@' in db_url:
-            auth_part, host_part = db_url.split('@', 1)
-            if ':' in auth_part:
-                username, password = auth_part.split(':', 1)
-            else:
-                username, password = auth_part, ''
-        else:
-            username, password = '', ''
-            host_part = db_url
-        
-        if '/' in host_part:
-            host_port, database = host_part.split('/', 1)
-        else:
-            host_port, database = host_part, ''
-        
-        if ':' in host_port:
-            host, port = host_port.split(':', 1)
-        else:
-            host, port = host_port, '5432'
-        
+        """Extract database configuration from settings."""
+        # Use individual database settings instead of DATABASE_URL
         return {
-            'host': host,
-            'port': port,
-            'username': username,
-            'password': password,
-            'database': database
+            'host': settings.DB_HOST,
+            'port': settings.DB_PORT,
+            'username': settings.DB_USERNAME,
+            'password': settings.DB_PASSWORD,
+            'database': settings.DB_DATABASE
         }
     
     async def create_database_dump(self, output_path: str) -> bool:
@@ -95,7 +80,7 @@ class BackupService:
         try:
             db_config = self.get_database_config()
             
-            # Prepare pg_dump command
+            # Use pg_dump with --no-sync to allow version mismatches
             cmd = [
                 'pg_dump',
                 '-h', db_config['host'],
@@ -103,18 +88,18 @@ class BackupService:
                 '-U', db_config['username'],
                 '-d', db_config['database'],
                 '--no-password',
-                '--verbose',
+                '--no-sync',  # Allow version mismatches
                 '--clean',
                 '--if-exists',
                 '--create',
                 '-f', output_path
             ]
-            
+
             # Set environment variables
             env = os.environ.copy()
             if db_config['password']:
                 env['PGPASSWORD'] = db_config['password']
-            
+
             # Execute pg_dump
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -124,7 +109,7 @@ class BackupService:
             )
             
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode == 0:
                 logger.info(f"Database dump created successfully: {output_path}")
                 return True
@@ -297,8 +282,8 @@ class BackupService:
                 with open(metadata_path, 'w') as f:
                     json.dump(metadata, f, indent=2)
                 
-                # Create final backup archive
-                backup_file_path = os.path.join(self.backup_path, f"{backup_name}.tar.gz")
+                # Create final backup archive in organized structure
+                backup_file_path = os.path.join(self.backups_dir, f"{backup_name}.tar.gz")
                 
                 with tarfile.open(backup_file_path, 'w:gz') as tar:
                     tar.add(db_dump_path, arcname='database.sql')
@@ -308,6 +293,16 @@ class BackupService:
                         tar.add(storage_archive_path, arcname='storage.tar.gz')
                 
                 logger.info(f"Full backup created successfully: {backup_file_path}")
+
+                # Apply retention policy after successful backup creation
+                if self.retention_enabled:
+                    try:
+                        retention_result = await self.apply_retention_policy()
+                        if retention_result.get('deleted_count', 0) > 0:
+                            logger.info(f"Retention policy applied: deleted {retention_result['deleted_count']} old backups")
+                    except Exception as e:
+                        logger.error(f"Failed to apply retention policy: {e}")
+
                 return True, backup_file_path
                 
         except Exception as e:
@@ -353,9 +348,10 @@ class BackupService:
                 # Restore storage if present
                 storage_archive_path = os.path.join(temp_dir, 'storage.tar.gz')
                 if os.path.exists(storage_archive_path):
-                    # Backup current storage
+                    # Backup current storage to organized location
                     if os.path.exists(self.storage_path):
-                        backup_storage_path = f"{self.storage_path}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        backup_storage_name = f"storage_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        backup_storage_path = os.path.join(self.restore_temp_dir, backup_storage_name)
                         shutil.move(self.storage_path, backup_storage_path)
                         logger.info(f"Current storage backed up to: {backup_storage_path}")
                     
@@ -388,12 +384,12 @@ class BackupService:
         backups = []
         
         try:
-            if not os.path.exists(self.backup_path):
+            if not os.path.exists(self.backups_dir):
                 return backups
-            
-            for filename in os.listdir(self.backup_path):
+
+            for filename in os.listdir(self.backups_dir):
                 if filename.endswith('.tar.gz'):
-                    file_path = os.path.join(self.backup_path, filename)
+                    file_path = os.path.join(self.backups_dir, filename)
                     stat = os.stat(file_path)
                     
                     # Try to extract metadata
@@ -524,8 +520,13 @@ class ScheduledBackupService:
 
             if success:
                 logger.info(f"Daily backup completed: {backup_path}")
-                # Cleanup old daily backups (keep last 7)
-                self._cleanup_backup_type('daily', keep=7)
+                # Apply retention policy after backup
+                try:
+                    retention_result = await self.backup_service.apply_retention_policy()
+                    if retention_result.get('deleted_count', 0) > 0:
+                        logger.info(f"Retention policy applied: deleted {retention_result['deleted_count']} old backups")
+                except Exception as e:
+                    logger.error(f"Failed to apply retention policy after daily backup: {e}")
             else:
                 logger.error("Daily backup failed")
 
@@ -543,8 +544,13 @@ class ScheduledBackupService:
 
             if success:
                 logger.info(f"Weekly backup completed: {backup_path}")
-                # Cleanup old weekly backups (keep last 4)
-                self._cleanup_backup_type('weekly', keep=4)
+                # Apply retention policy after backup
+                try:
+                    retention_result = await self.backup_service.apply_retention_policy()
+                    if retention_result.get('deleted_count', 0) > 0:
+                        logger.info(f"Retention policy applied: deleted {retention_result['deleted_count']} old backups")
+                except Exception as e:
+                    logger.error(f"Failed to apply retention policy after weekly backup: {e}")
             else:
                 logger.error("Weekly backup failed")
 
@@ -562,8 +568,13 @@ class ScheduledBackupService:
 
             if success:
                 logger.info(f"Monthly backup completed: {backup_path}")
-                # Cleanup old monthly backups (keep last 12)
-                self._cleanup_backup_type('monthly', keep=12)
+                # Apply retention policy after backup
+                try:
+                    retention_result = await self.backup_service.apply_retention_policy()
+                    if retention_result.get('deleted_count', 0) > 0:
+                        logger.info(f"Retention policy applied: deleted {retention_result['deleted_count']} old backups")
+                except Exception as e:
+                    logger.error(f"Failed to apply retention policy after monthly backup: {e}")
             else:
                 logger.error("Monthly backup failed")
 
@@ -612,6 +623,146 @@ class ScheduledBackupService:
             next_times[job.id] = next_run.isoformat() if next_run else None
 
         return next_times
+
+    async def apply_retention_policy(self) -> Dict[str, Any]:
+        """Apply backup retention policy to clean up old backups."""
+        if not self.retention_enabled:
+            return {"retention_enabled": False, "message": "Retention policy is disabled"}
+
+        try:
+            backups = await self.list_backups()
+            if not backups:
+                return {"deleted_count": 0, "message": "No backups to clean up"}
+
+            # Sort backups by creation time (newest first)
+            backups.sort(key=lambda x: x['created_at'], reverse=True)
+
+            # Apply retention rules
+            to_delete = self._determine_backups_to_delete(backups)
+
+            deleted_count = 0
+            deleted_files = []
+
+            for backup in to_delete:
+                try:
+                    backup_path = os.path.join(self.backups_dir, backup['filename'])
+                    if os.path.exists(backup_path):
+                        os.remove(backup_path)
+                        deleted_count += 1
+                        deleted_files.append(backup['filename'])
+                        logger.info(f"Deleted old backup: {backup['filename']}")
+                except Exception as e:
+                    logger.error(f"Failed to delete backup {backup['filename']}: {e}")
+
+            return {
+                "deleted_count": deleted_count,
+                "deleted_files": deleted_files,
+                "total_backups_before": len(backups),
+                "total_backups_after": len(backups) - deleted_count,
+                "retention_policy": {
+                    "daily": self.retention_daily,
+                    "weekly": self.retention_weekly,
+                    "monthly": self.retention_monthly,
+                    "yearly": self.retention_yearly,
+                    "max_total": self.retention_max_total
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Error applying retention policy: {e}")
+            return {"error": str(e)}
+
+    def _determine_backups_to_delete(self, backups: List[Dict]) -> List[Dict]:
+        """Determine which backups should be deleted based on retention policy."""
+        if not backups:
+            return []
+
+        # Convert creation times to datetime objects
+        for backup in backups:
+            backup['created_datetime'] = datetime.fromisoformat(backup['created_at'].replace('Z', '+00:00'))
+
+        now = datetime.now(timezone.utc)
+        to_keep = set()
+
+        # Group backups by time periods
+        daily_backups = []
+        weekly_backups = []
+        monthly_backups = []
+        yearly_backups = []
+
+        for backup in backups:
+            age_days = (now - backup['created_datetime']).days
+
+            if age_days <= 1:  # Last 24 hours - keep all
+                to_keep.add(backup['filename'])
+            elif age_days <= 7:  # Last week - daily retention
+                daily_backups.append(backup)
+            elif age_days <= 30:  # Last month - weekly retention
+                weekly_backups.append(backup)
+            elif age_days <= 365:  # Last year - monthly retention
+                monthly_backups.append(backup)
+            else:  # Older than a year - yearly retention
+                yearly_backups.append(backup)
+
+        # Apply retention policies for each period
+        to_keep.update(self._select_backups_for_period(daily_backups, self.retention_daily, 'daily'))
+        to_keep.update(self._select_backups_for_period(weekly_backups, self.retention_weekly, 'weekly'))
+        to_keep.update(self._select_backups_for_period(monthly_backups, self.retention_monthly, 'monthly'))
+        to_keep.update(self._select_backups_for_period(yearly_backups, self.retention_yearly, 'yearly'))
+
+        # If we still have too many backups, remove the oldest ones
+        if len(to_keep) > self.retention_max_total:
+            backups_to_keep = [b for b in backups if b['filename'] in to_keep]
+            backups_to_keep.sort(key=lambda x: x['created_datetime'], reverse=True)
+            to_keep = {b['filename'] for b in backups_to_keep[:self.retention_max_total]}
+
+        # Return backups that should be deleted
+        return [backup for backup in backups if backup['filename'] not in to_keep]
+
+    def _select_backups_for_period(self, backups: List[Dict], retention_count: int, period: str) -> Set[str]:
+        """Select backups to keep for a specific time period."""
+        if not backups or retention_count <= 0:
+            return set()
+
+        # Group backups by the appropriate time unit
+        if period == 'daily':
+            # Keep one backup per day
+            grouped = {}
+            for backup in backups:
+                day_key = backup['created_datetime'].date()
+                if day_key not in grouped or backup['created_datetime'] > grouped[day_key]['created_datetime']:
+                    grouped[day_key] = backup
+            candidates = list(grouped.values())
+        elif period == 'weekly':
+            # Keep one backup per week (Monday as start of week)
+            grouped = {}
+            for backup in backups:
+                week_key = backup['created_datetime'].isocalendar()[:2]  # (year, week)
+                if week_key not in grouped or backup['created_datetime'] > grouped[week_key]['created_datetime']:
+                    grouped[week_key] = backup
+            candidates = list(grouped.values())
+        elif period == 'monthly':
+            # Keep one backup per month
+            grouped = {}
+            for backup in backups:
+                month_key = (backup['created_datetime'].year, backup['created_datetime'].month)
+                if month_key not in grouped or backup['created_datetime'] > grouped[month_key]['created_datetime']:
+                    grouped[month_key] = backup
+            candidates = list(grouped.values())
+        elif period == 'yearly':
+            # Keep one backup per year
+            grouped = {}
+            for backup in backups:
+                year_key = backup['created_datetime'].year
+                if year_key not in grouped or backup['created_datetime'] > grouped[year_key]['created_datetime']:
+                    grouped[year_key] = backup
+            candidates = list(grouped.values())
+        else:
+            candidates = backups
+
+        # Sort by creation time (newest first) and take the specified number
+        candidates.sort(key=lambda x: x['created_datetime'], reverse=True)
+        return {backup['filename'] for backup in candidates[:retention_count]}
 
 
 # Global instances

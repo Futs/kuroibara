@@ -145,7 +145,7 @@ class ProviderMonitorService:
         """
         try:
             # Auto-disable criteria
-            if provider_status.is_enabled:
+            if bool(provider_status.is_enabled):
                 # Disable if uptime is 0% and has been checked multiple times
                 if (float(provider_status.uptime_percentage or 0) == 0.0 and
                     int(provider_status.total_checks or 0) >= 3):
@@ -157,7 +157,7 @@ class ProviderMonitorService:
                     return ("disable", f"{provider_status.consecutive_failures} consecutive failures")
 
                 # Disable if no successful check in 48+ hours
-                if (provider_status.last_check and
+                if (provider_status.last_check is not None and
                     int(provider_status.successful_checks or 0) == 0 and
                     provider_status.last_check < datetime.now(timezone.utc) - timedelta(hours=48)):
                     return ("disable", "No successful checks in 48+ hours")

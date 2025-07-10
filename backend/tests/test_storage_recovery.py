@@ -6,7 +6,7 @@ import json
 import os
 import tempfile
 import zipfile
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, AsyncMock, patch
 from uuid import uuid4
 
 import pytest
@@ -183,7 +183,7 @@ class TestStorageRecoveryService:
         self.create_test_organized_structure(manga_uuid, manga_title)
         
         # Mock database session
-        mock_db = Mock()
+        mock_db = AsyncMock()
         mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = []  # No existing manga
         mock_db.execute.return_value = mock_result
@@ -208,11 +208,12 @@ class TestStorageRecoveryService:
         self.create_test_organized_structure(manga_uuid, manga_title)
         
         # Mock database session
-        mock_db = Mock()
+        mock_db = AsyncMock()
         mock_db.add = Mock()
-        mock_db.flush = Mock()
-        mock_db.commit = Mock()
-        mock_db.refresh = Mock()
+        mock_db.flush = AsyncMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+        mock_db.rollback = AsyncMock()
         
         # Mock get_manga_storage_path
         new_uuid = uuid4()

@@ -47,33 +47,48 @@ class TestBackupService:
         # Mock DATABASE_URL
         with patch('app.core.services.backup.settings') as mock_settings:
             mock_settings.DATABASE_URL = "postgresql://user:pass@localhost:5432/testdb"
-            
+            mock_settings.DB_HOST = 'localhost'
+            mock_settings.DB_PORT = '5432'
+            mock_settings.DB_USERNAME = 'user'
+            mock_settings.DB_PASSWORD = 'pass'
+            mock_settings.DB_DATABASE = 'testdb'
+
             config = self.service.get_database_config()
-            
+
             assert config['host'] == 'localhost'
             assert config['port'] == '5432'
             assert config['username'] == 'user'
             assert config['password'] == 'pass'
             assert config['database'] == 'testdb'
-    
+
     def test_get_database_config_no_auth(self):
         """Test database configuration parsing without authentication."""
         with patch('app.core.services.backup.settings') as mock_settings:
             mock_settings.DATABASE_URL = "postgresql://localhost:5432/testdb"
-            
+            mock_settings.DB_HOST = 'localhost'
+            mock_settings.DB_PORT = '5432'
+            mock_settings.DB_USERNAME = ''
+            mock_settings.DB_PASSWORD = ''
+            mock_settings.DB_DATABASE = 'testdb'
+
             config = self.service.get_database_config()
-            
+
             assert config['host'] == 'localhost'
             assert config['port'] == '5432'
             assert config['username'] == ''
             assert config['password'] == ''
             assert config['database'] == 'testdb'
-    
+
     def test_get_database_config_invalid_url(self):
         """Test database configuration with invalid URL."""
         with patch('app.core.services.backup.settings') as mock_settings:
             mock_settings.DATABASE_URL = "mysql://localhost/testdb"
-            
+            mock_settings.DB_HOST = 'localhost'
+            mock_settings.DB_PORT = '3306'
+            mock_settings.DB_USERNAME = 'user'
+            mock_settings.DB_PASSWORD = 'pass'
+            mock_settings.DB_DATABASE = 'testdb'
+
             with pytest.raises(ValueError, match="Only PostgreSQL databases are supported"):
                 self.service.get_database_config()
     

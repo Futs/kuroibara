@@ -133,33 +133,41 @@ class NamingFormatEngine:
     def apply_template(self, template: str, context: Dict[str, str]) -> str:
         """
         Apply a template with the given context variables.
-        
+
         Args:
             template: The template string with variables
             context: Dictionary of variable values
-            
+
         Returns:
             Formatted string with variables substituted
         """
         if not template:
             return ""
-        
+
         result = template
-        
+
         # Replace each variable in the template
         for variable_match in self.VARIABLE_PATTERN.finditer(template):
             variable_name = variable_match.group(1).strip()
             variable_placeholder = variable_match.group(0)
-            
+
             # Get the value from context, with fallback
             value = context.get(variable_name, f"Unknown_{variable_name.replace(' ', '_')}")
-            
+
             # Replace the placeholder with the value
             result = result.replace(variable_placeholder, value)
-        
-        # Clean up the result
-        result = self.sanitize_filename(result)
-        
+
+        # Clean up the result by sanitizing each path component separately
+        # This preserves path separators while sanitizing individual components
+        if '/' in result:
+            # Split by path separator, sanitize each component, then rejoin
+            components = result.split('/')
+            sanitized_components = [self.sanitize_filename(comp) for comp in components]
+            result = '/'.join(sanitized_components)
+        else:
+            # No path separators, sanitize the whole thing
+            result = self.sanitize_filename(result)
+
         return result
     
     def generate_manga_path(

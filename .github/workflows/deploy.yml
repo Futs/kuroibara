@@ -220,7 +220,7 @@ jobs:
             type=raw,value=${{ needs.versioning.outputs.version }}
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix={{branch}}-
+            type=sha,prefix=sha-
           labels: |
             org.opencontainers.image.version=${{ needs.versioning.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}

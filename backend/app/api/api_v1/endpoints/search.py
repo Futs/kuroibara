@@ -28,6 +28,39 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+async def get_enabled_providers(db: AsyncSession):
+    """Get only enabled providers based on database status."""
+    try:
+        # Get all providers from registry
+        all_providers = provider_registry.get_all_providers()
+
+        # Get provider statuses from database
+        result = await db.execute(select(ProviderStatus))
+        provider_statuses = {ps.provider_id: ps for ps in result.scalars().all()}
+
+        # Filter to only enabled providers
+        enabled_providers = []
+        for provider in all_providers:
+            provider_id = provider.name.lower()
+            status_record = provider_statuses.get(provider_id)
+
+            # Include provider if:
+            # 1. No status record exists (default to enabled)
+            # 2. Status record exists and is_enabled is True
+            if not status_record or status_record.is_enabled:
+                enabled_providers.append(provider)
+            else:
+                logger.debug(f"Excluding disabled provider: {provider.name}")
+
+        logger.info(f"Using {len(enabled_providers)}/{len(all_providers)} enabled providers")
+        return enabled_providers
+
+    except Exception as e:
+        logger.error(f"Error filtering enabled providers: {e}")
+        # Fallback to all providers if database query fails
+        return provider_registry.get_all_providers()
+
+
 @router.get("/providers", response_model=List[ProviderInfo])
 async def get_providers(
     current_user: User = Depends(get_current_user),
@@ -100,6 +133,26 @@ async def search_manga(
                 detail=f"Provider '{query.provider}' not found",
             )
 
+        # Check if provider is enabled
+        try:
+            result = await db.execute(
+                select(ProviderStatus).where(
+                    ProviderStatus.provider_id == provider.name.lower()
+                )
+            )
+            provider_status = result.scalar_one_or_none()
+
+            if provider_status and not provider_status.is_enabled:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Provider '{query.provider}' is currently disabled due to health issues",
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"Could not check provider status for {query.provider}: {e}")
+            # Continue anyway if we can't check status
+
         # Search using the provider
         try:
             results, total, has_next = await provider.search(
@@ -126,7 +179,7 @@ async def search_manga(
             }
 
     # If no provider is specified, search across multiple providers
-    all_providers = provider_registry.get_all_providers()
+    all_providers = await get_enabled_providers(db)
 
     # Get user's provider preferences
     user_preferences = await get_user_provider_preferences(db, current_user.id)

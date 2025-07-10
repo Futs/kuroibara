@@ -341,3 +341,199 @@ async def get_provider_statistics(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get provider statistics",
         )
+
+
+@router.post("/health-check/daily")
+async def trigger_daily_health_check(
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Manually trigger a daily provider health check.
+    This will check all providers and auto-disable/enable based on health criteria.
+    """
+    try:
+        # Run health check in background
+        background_tasks.add_task(provider_monitor.daily_health_check)
+
+        return {
+            "message": "Daily provider health check started",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error triggering daily health check: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to trigger health check",
+        )
+
+
+@router.get("/health-status")
+async def get_provider_health_status(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Get detailed health status for all providers including auto-disable/enable information.
+    """
+    try:
+        # Get all provider statuses
+        result = await db.execute(select(ProviderStatus))
+        provider_statuses = result.scalars().all()
+
+        health_status = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "summary": {
+                "total_providers": len(provider_statuses),
+                "enabled_providers": 0,
+                "disabled_providers": 0,
+                "healthy_providers": 0,
+                "unhealthy_providers": 0,
+                "auto_disabled_providers": 0
+            },
+            "providers": []
+        }
+
+        for ps in provider_statuses:
+            # Determine if provider was auto-disabled
+            is_auto_disabled = (
+                not ps.is_enabled and
+                (ps.uptime_percentage == 0.0 or
+                 ps.consecutive_failures >= ps.max_consecutive_failures)
+            )
+
+            provider_info = {
+                "name": ps.provider_name,
+                "id": ps.provider_id,
+                "enabled": ps.is_enabled,
+                "status": ps.status,
+                "uptime_percentage": ps.uptime_percentage,
+                "consecutive_failures": ps.consecutive_failures,
+                "max_consecutive_failures": ps.max_consecutive_failures,
+                "total_checks": ps.total_checks,
+                "successful_checks": ps.successful_checks,
+                "last_check": ps.last_check.isoformat() if ps.last_check else None,
+                "last_success": ps.last_success.isoformat() if ps.last_success else None,
+                "average_response_time": ps.average_response_time,
+                "auto_disabled": is_auto_disabled,
+                "last_error": ps.last_error_message
+            }
+
+            health_status["providers"].append(provider_info)
+
+            # Update summary
+            if ps.is_enabled:
+                health_status["summary"]["enabled_providers"] += 1
+            else:
+                health_status["summary"]["disabled_providers"] += 1
+
+            if ps.status == "healthy":
+                health_status["summary"]["healthy_providers"] += 1
+            else:
+                health_status["summary"]["unhealthy_providers"] += 1
+
+            if is_auto_disabled:
+                health_status["summary"]["auto_disabled_providers"] += 1
+
+        # Sort providers by name
+        health_status["providers"].sort(key=lambda x: x["name"])
+
+        return health_status
+
+    except Exception as e:
+        logger.error(f"Error getting provider health status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get provider health status",
+        )
+
+
+@router.post("/enable/{provider_id}")
+async def manually_enable_provider(
+    provider_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Manually enable a provider (override auto-disable).
+    """
+    try:
+        # Get provider status
+        result = await db.execute(
+            select(ProviderStatus).where(ProviderStatus.provider_id == provider_id)
+        )
+        provider_status = result.scalar_one_or_none()
+
+        if not provider_status:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Provider '{provider_id}' not found",
+            )
+
+        # Enable the provider
+        provider_status.is_enabled = True
+        await db.commit()
+
+        logger.info(f"Provider {provider_id} manually enabled by user {current_user.email}")
+
+        return {
+            "message": f"Provider '{provider_status.provider_name}' enabled",
+            "provider_id": provider_id,
+            "enabled": True,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error enabling provider {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to enable provider",
+        )
+
+
+@router.post("/disable/{provider_id}")
+async def manually_disable_provider(
+    provider_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Manually disable a provider.
+    """
+    try:
+        # Get provider status
+        result = await db.execute(
+            select(ProviderStatus).where(ProviderStatus.provider_id == provider_id)
+        )
+        provider_status = result.scalar_one_or_none()
+
+        if not provider_status:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Provider '{provider_id}' not found",
+            )
+
+        # Disable the provider
+        provider_status.is_enabled = False
+        await db.commit()
+
+        logger.info(f"Provider {provider_id} manually disabled by user {current_user.email}")
+
+        return {
+            "message": f"Provider '{provider_status.provider_name}' disabled",
+            "provider_id": provider_id,
+            "enabled": False,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error disabling provider {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to disable provider",
+        )

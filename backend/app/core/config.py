@@ -70,6 +70,11 @@ class Settings(BaseSettings):
     BACKUP_WEEKLY_ENABLED: bool = True
     BACKUP_MONTHLY_ENABLED: bool = True
 
+    # Provider health check settings
+    PROVIDER_HEALTH_CHECK_ENABLED: bool = True
+    PROVIDER_AUTO_DISABLE_ENABLED: bool = True
+    PROVIDER_AUTO_ENABLE_ENABLED: bool = True
+
     # Email
     MAIL_MAILER: str = "smtp"
     MAIL_HOST: str = "mailhog"

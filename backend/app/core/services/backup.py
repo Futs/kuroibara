@@ -523,6 +523,16 @@ class ScheduledBackupService:
                     replace_existing=True
                 )
 
+            # Add daily provider health check at 1 AM (before daily backup)
+            provider_health_enabled = getattr(settings, 'PROVIDER_HEALTH_CHECK_ENABLED', True)
+            if provider_health_enabled:
+                self.scheduler.add_job(
+                    self._daily_provider_health_check,
+                    CronTrigger(hour=1, minute=0),
+                    id='daily_provider_health_check',
+                    replace_existing=True
+                )
+
             logger.info("Backup scheduler initialized")
 
         except ImportError:
@@ -600,6 +610,34 @@ class ScheduledBackupService:
 
         except Exception as e:
             logger.error(f"Error in monthly backup: {e}")
+
+    async def _daily_provider_health_check(self):
+        """Perform daily provider health check."""
+        try:
+            logger.info("Starting daily provider health check")
+
+            # Import here to avoid circular imports
+            from app.core.services.provider_monitor import provider_monitor
+
+            # Perform the health check
+            results = await provider_monitor.daily_health_check()
+
+            # Log summary
+            logger.info(
+                f"Provider health check completed: "
+                f"{results.get('healthy_providers', 0)}/{results.get('total_providers', 0)} healthy, "
+                f"{results.get('enabled_providers', 0)} enabled, "
+                f"{len(results.get('actions_taken', []))} actions taken"
+            )
+
+            # Log any actions taken
+            for action in results.get('actions_taken', []):
+                logger.info(
+                    f"Provider {action['provider']} {action['action']}: {action['reason']}"
+                )
+
+        except Exception as e:
+            logger.error(f"Error in daily provider health check: {e}")
 
     def _cleanup_backup_type(self, backup_type: str, keep: int):
         """Clean up old backups of a specific type."""

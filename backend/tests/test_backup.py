@@ -184,7 +184,7 @@ class TestBackupService:
             return True
 
         # Mock storage archive creation that actually creates the file
-        async def mock_create_storage_archive(output_path: str) -> bool:
+        def mock_create_storage_archive(output_path: str) -> bool:
             # Create a dummy storage archive file
             with open(output_path, 'w') as f:
                 f.write("dummy storage archive content")

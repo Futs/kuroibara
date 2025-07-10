@@ -85,7 +85,7 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 
 3. **Start the application**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. **Access the application**
@@ -99,7 +99,7 @@ For development with hot-reloading and debugging:
 
 ```bash
 # Start development environment
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 
 # Or use the convenience script
 ./dev.sh

@@ -6,7 +6,6 @@
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/issues)
-[![GitHub Stars](https://img.shields.io/github/stars/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/stargazers)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
@@ -86,7 +85,7 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 
 3. **Start the application**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. **Access the application**

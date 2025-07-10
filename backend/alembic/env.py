@@ -30,6 +30,13 @@ from app.models.library import (
     ReadingProgress,
 )
 from app.models.manga import Author, Chapter, Genre, Manga, Page
+from app.models.organization import (
+    ChapterMetadata,
+    MangaMetadata,
+    OrganizationHistory,
+    OrganizationJob,
+)
+from app.models.provider import ProviderStatus
 from app.models.user import User
 from app.models.user_provider_preference import UserProviderPreference
 

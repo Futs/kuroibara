@@ -2,11 +2,13 @@ from fastapi import APIRouter
 
 from app.api.api_v1.endpoints import (
     auth,
+    backup,
     categories,
     favorites,
     import_files,
     library,
     manga,
+    organizer,
     providers,
     reading_lists,
     search,
@@ -34,3 +36,5 @@ api_router.include_router(
     prefix="/users/me/provider-preferences",
     tags=["User Provider Preferences"],
 )
+api_router.include_router(organizer.router, prefix="/organizer", tags=["Organizer"])
+api_router.include_router(backup.router, prefix="/backup", tags=["Backup"])

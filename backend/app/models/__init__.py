@@ -9,6 +9,12 @@ from app.models.library import (
     ReadingProgress,
 )
 from app.models.manga import Chapter, Manga
+from app.models.organization import (
+    ChapterMetadata,
+    MangaMetadata,
+    OrganizationHistory,
+    OrganizationJob,
+)
 from app.models.provider import ProviderStatus
 from app.models.user import User
 from app.models.user_provider_preference import UserProviderPreference
@@ -25,4 +31,8 @@ __all__ = [
     "Bookmark",
     "ProviderStatus",
     "UserProviderPreference",
+    "MangaMetadata",
+    "ChapterMetadata",
+    "OrganizationHistory",
+    "OrganizationJob",
 ]

@@ -25,6 +25,11 @@ class UserBase(BaseModel):
     nsfw_blur: bool = True
     download_quality: str = "high"
     download_path: str = "/app/storage"
+    naming_format_manga: str = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    naming_format_chapter: str = "{Chapter Number} - {Chapter Name}"
+    auto_organize_imports: bool = True
+    create_cbz_files: bool = True
+    preserve_original_files: bool = False
 
 
 # Properties to receive via API on creation
@@ -53,6 +58,11 @@ class UserUpdate(BaseModel):
     nsfw_blur: Optional[bool] = None
     download_quality: Optional[str] = None
     download_path: Optional[str] = None
+    naming_format_manga: Optional[str] = None
+    naming_format_chapter: Optional[str] = None
+    auto_organize_imports: Optional[bool] = None
+    create_cbz_files: Optional[bool] = None
+    preserve_original_files: Optional[bool] = None
 
 
 # Properties to return via API
@@ -80,6 +90,11 @@ class UserSettings(BaseModel):
     nsfw_blur: bool = True
     download_quality: str = "high"
     download_path: str = "/app/storage"
+    naming_format_manga: str = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    naming_format_chapter: str = "{Chapter Number} - {Chapter Name}"
+    auto_organize_imports: bool = True
+    create_cbz_files: bool = True
+    preserve_original_files: bool = False
 
 
 class UserSettingsUpdate(BaseModel):
@@ -89,3 +104,8 @@ class UserSettingsUpdate(BaseModel):
     nsfw_blur: Optional[bool] = None
     download_quality: Optional[str] = None
     download_path: Optional[str] = None
+    naming_format_manga: Optional[str] = None
+    naming_format_chapter: Optional[str] = None
+    auto_organize_imports: Optional[bool] = None
+    create_cbz_files: Optional[bool] = None
+    preserve_original_files: Optional[bool] = None

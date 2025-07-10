@@ -202,6 +202,120 @@
             </div>
           </div>
 
+          <!-- Naming Settings -->
+          <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+              Naming & Organization
+            </h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Configure how manga and chapters are named and organized
+            </p>
+
+            <div class="mt-4">
+              <label for="mangaNamingFormat" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Manga Folder Structure
+              </label>
+              <div class="mt-1">
+                <input
+                  id="mangaNamingFormat"
+                  v-model="namingFormatManga"
+                  type="text"
+                  class="block w-full px-3 py-2 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm border-gray-300 dark:border-dark-600 dark:bg-dark-700 dark:text-white"
+                  placeholder="{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+                />
+              </div>
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Available variables: {Manga Title}, {Volume}, {Chapter Number}, {Chapter Name}, {Language}, {Year}, {Source}
+              </p>
+              <div v-if="mangaNamingPreview" class="mt-2 p-2 bg-gray-50 dark:bg-dark-700 rounded text-xs text-gray-600 dark:text-gray-300">
+                Preview: {{ mangaNamingPreview }}
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <label for="chapterNamingFormat" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Chapter File Naming
+              </label>
+              <div class="mt-1">
+                <input
+                  id="chapterNamingFormat"
+                  v-model="namingFormatChapter"
+                  type="text"
+                  class="block w-full px-3 py-2 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm border-gray-300 dark:border-dark-600 dark:bg-dark-700 dark:text-white"
+                  placeholder="{Chapter Number} - {Chapter Name}"
+                />
+              </div>
+              <div v-if="chapterNamingPreview" class="mt-2 p-2 bg-gray-50 dark:bg-dark-700 rounded text-xs text-gray-600 dark:text-gray-300">
+                Preview: {{ chapterNamingPreview }}
+              </div>
+            </div>
+
+            <div class="mt-6 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Auto-organize imports
+                  </label>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Automatically organize files when importing
+                  </p>
+                </div>
+                <button
+                  @click="toggleAutoOrganize"
+                  class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  :class="autoOrganizeImports ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                    :class="autoOrganizeImports ? 'translate-x-5' : 'translate-x-0'"
+                  ></span>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Create CBZ files
+                  </label>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Convert chapters to CBZ format for better compatibility
+                  </p>
+                </div>
+                <button
+                  @click="toggleCreateCbz"
+                  class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  :class="createCbzFiles ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                    :class="createCbzFiles ? 'translate-x-5' : 'translate-x-0'"
+                  ></span>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Preserve original files
+                  </label>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Keep original files after organization (uses more storage)
+                  </p>
+                </div>
+                <button
+                  @click="togglePreserveOriginal"
+                  class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  :class="preserveOriginalFiles ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                    :class="preserveOriginalFiles ? 'translate-x-5' : 'translate-x-0'"
+                  ></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Save Button -->
           <div class="pt-6 border-t border-gray-200 dark:border-dark-600 flex justify-end">
             <button
@@ -235,9 +349,39 @@ const nsfwBlur = ref(settingsStore.getNsfwBlur);
 const downloadQuality = ref(settingsStore.getDownloadQuality);
 const downloadPath = ref(settingsStore.getDownloadPath);
 
+// Naming settings
+const namingFormatManga = ref('{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}');
+const namingFormatChapter = ref('{Chapter Number} - {Chapter Name}');
+const autoOrganizeImports = ref(true);
+const createCbzFiles = ref(true);
+const preserveOriginalFiles = ref(false);
+
 // Computed
 const loading = computed(() => settingsStore.loading);
 const error = computed(() => settingsStore.error);
+
+// Naming previews
+const mangaNamingPreview = computed(() => {
+  if (!namingFormatManga.value) return '';
+  return namingFormatManga.value
+    .replace('{Manga Title}', 'Naruto')
+    .replace('{Volume}', '1')
+    .replace('{Chapter Number}', '1')
+    .replace('{Chapter Name}', 'Enter Sasuke!')
+    .replace('{Language}', 'en')
+    .replace('{Year}', '2023')
+    .replace('{Source}', 'mangadex');
+});
+
+const chapterNamingPreview = computed(() => {
+  if (!namingFormatChapter.value) return '';
+  return namingFormatChapter.value
+    .replace('{Chapter Number}', '1')
+    .replace('{Chapter Name}', 'Enter Sasuke!')
+    .replace('{Language}', 'en')
+    .replace('{Year}', '2023')
+    .replace('{Source}', 'mangadex') + '.cbz';
+});
 
 // Methods
 const setTheme = (newTheme) => {
@@ -278,11 +422,33 @@ const resetDownloadPath = () => {
   downloadPath.value = '/app/storage';
 };
 
+// Naming settings methods
+const toggleAutoOrganize = () => {
+  autoOrganizeImports.value = !autoOrganizeImports.value;
+};
+
+const toggleCreateCbz = () => {
+  createCbzFiles.value = !createCbzFiles.value;
+};
+
+const togglePreserveOriginal = () => {
+  preserveOriginalFiles.value = !preserveOriginalFiles.value;
+};
+
 const saveSettings = async () => {
   settingsStore.setTheme(theme.value);
   settingsStore.setNsfwBlur(nsfwBlur.value);
   settingsStore.setDownloadQuality(downloadQuality.value);
   settingsStore.setDownloadPath(downloadPath.value);
+
+  // Set naming settings
+  settingsStore.setNamingSettings({
+    namingFormatManga: namingFormatManga.value,
+    namingFormatChapter: namingFormatChapter.value,
+    autoOrganizeImports: autoOrganizeImports.value,
+    createCbzFiles: createCbzFiles.value,
+    preserveOriginalFiles: preserveOriginalFiles.value,
+  });
 
   await settingsStore.updateUserSettings();
 };
@@ -294,6 +460,13 @@ onMounted(async () => {
   downloadQuality.value = settingsStore.getDownloadQuality;
   downloadPath.value = settingsStore.getDownloadPath;
 
+  // Initialize naming settings with defaults
+  namingFormatManga.value = settingsStore.getNamingFormatManga || '{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}';
+  namingFormatChapter.value = settingsStore.getNamingFormatChapter || '{Chapter Number} - {Chapter Name}';
+  autoOrganizeImports.value = settingsStore.getAutoOrganizeImports ?? true;
+  createCbzFiles.value = settingsStore.getCreateCbzFiles ?? true;
+  preserveOriginalFiles.value = settingsStore.getPreserveOriginalFiles ?? false;
+
   // Try to fetch user settings from backend (will fail gracefully if not authenticated)
   try {
     await settingsStore.fetchUserSettings();
@@ -302,6 +475,13 @@ onMounted(async () => {
     nsfwBlur.value = settingsStore.getNsfwBlur;
     downloadQuality.value = settingsStore.getDownloadQuality;
     downloadPath.value = settingsStore.getDownloadPath;
+
+    // Update naming settings from backend
+    namingFormatManga.value = settingsStore.getNamingFormatManga || namingFormatManga.value;
+    namingFormatChapter.value = settingsStore.getNamingFormatChapter || namingFormatChapter.value;
+    autoOrganizeImports.value = settingsStore.getAutoOrganizeImports ?? autoOrganizeImports.value;
+    createCbzFiles.value = settingsStore.getCreateCbzFiles ?? createCbzFiles.value;
+    preserveOriginalFiles.value = settingsStore.getPreserveOriginalFiles ?? preserveOriginalFiles.value;
   } catch (error) {
     console.log('Could not fetch user settings from backend, using local storage values');
   }

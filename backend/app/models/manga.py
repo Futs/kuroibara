@@ -79,6 +79,7 @@ class Manga(BaseModel):
     chapters = relationship(
         "Chapter", back_populates="manga", cascade="all, delete-orphan"
     )
+    manga_metadata = relationship("MangaMetadata", back_populates="manga", uselist=False, cascade="all, delete-orphan")
     user_libraries = relationship(
         "MangaUserLibrary", back_populates="manga", cascade="all, delete-orphan"
     )
@@ -139,6 +140,7 @@ class Chapter(BaseModel):
     bookmarks = relationship(
         "Bookmark", back_populates="chapter", cascade="all, delete-orphan"
     )
+    chapter_metadata = relationship("ChapterMetadata", back_populates="chapter", uselist=False, cascade="all, delete-orphan")
 
 
 class Page(BaseModel):

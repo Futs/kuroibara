@@ -76,7 +76,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../services/api.js';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -101,7 +101,7 @@ const updateAccounts = async () => {
   error.value = null;
 
   try {
-    await axios.put('/v1/users/me', {
+    await api.put('/v1/users/me', {
       anilist_username: formData.value.anilist_username,
       myanimelist_username: formData.value.myanimelist_username
     });

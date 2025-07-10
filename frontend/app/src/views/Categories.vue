@@ -294,7 +294,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/services/api.js';
 
 const router = useRouter();
 
@@ -321,7 +321,7 @@ const fetchCategories = async () => {
   error.value = null;
 
   try {
-    const response = await axios.get('/v1/categories');
+    const response = await api.get('/v1/categories');
     categories.value = response.data;
   } catch (err) {
     error.value = err.response?.data?.detail || 'Failed to load categories';
@@ -361,10 +361,10 @@ const saveCategory = async () => {
   try {
     if (showEditCategoryModal.value) {
       // Update existing category
-      await axios.put(`/v1/categories/${categoryForm.value.id}`, categoryForm.value);
+      await api.put(`/v1/categories/${categoryForm.value.id}`, categoryForm.value);
     } else {
       // Create new category
-      await axios.post('/v1/categories', categoryForm.value);
+      await api.post('/v1/categories', categoryForm.value);
     }
 
     // Refresh categories
@@ -386,7 +386,7 @@ const confirmDeleteCategory = async () => {
   deleteSubmitting.value = true;
 
   try {
-    await axios.delete(`/v1/categories/${selectedCategory.value.id}`);
+    await api.delete(`/v1/categories/${selectedCategory.value.id}`);
 
     // Refresh categories
     await fetchCategories();

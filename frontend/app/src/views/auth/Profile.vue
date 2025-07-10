@@ -311,7 +311,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
-import axios from 'axios';
+import api from '../../services/api.js';
 
 const authStore = useAuthStore();
 
@@ -388,7 +388,7 @@ const updateProfile = async () => {
       payload.password = formData.value.password;
     }
 
-    await axios.put('/v1/users/me', payload);
+    await api.put('/v1/users/me', payload);
 
     // Refresh user data
     await authStore.fetchUser();

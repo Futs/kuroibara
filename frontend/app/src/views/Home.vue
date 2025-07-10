@@ -5,7 +5,8 @@
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
           Welcome to Kuroibara
         </h1>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center sm:justify-start">
+          <img src="/assets/logo/logo.png" alt="Kuroibara Logo" class="w-5 h-5 mr-2" />
           Black Rose - Your Personal Manga Library
         </p>
         

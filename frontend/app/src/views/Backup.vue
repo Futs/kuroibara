@@ -196,16 +196,17 @@ import api from '@/services/api.js';
 import BackupManager from '@/components/BackupManager.vue';
 
 // Set page title
-import { useHead } from '@vueuse/head';
+onMounted(() => {
+  document.title = 'Backup & Restore - Kuroibara';
 
-useHead({
-  title: 'Backup & Restore - Kuroibara',
-  meta: [
-    {
-      name: 'description',
-      content: 'Manage backups and restore your manga library'
-    }
-  ]
+  // Set meta description
+  let metaDescription = document.querySelector('meta[name="description"]');
+  if (!metaDescription) {
+    metaDescription = document.createElement('meta');
+    metaDescription.name = 'description';
+    document.head.appendChild(metaDescription);
+  }
+  metaDescription.content = 'Manage backups and restore your manga library';
 });
 
 // Reactive state

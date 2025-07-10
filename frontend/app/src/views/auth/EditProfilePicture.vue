@@ -66,9 +66,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
-import axios from 'axios';
+import { useRouter } from 'vue-router';
+import api from '../../services/api.js';
 
 const authStore = useAuthStore();
+const router = useRouter();
 const user = computed(() => authStore.getUser);
 const userInitials = computed(() => {
   if (!user.value?.username) return '';
@@ -92,7 +94,7 @@ const updateAvatar = async () => {
   error.value = null;
 
   try {
-    await axios.put('/v1/users/me', {
+    await api.put('/v1/users/me', {
       avatar: formData.value.avatar
     });
     

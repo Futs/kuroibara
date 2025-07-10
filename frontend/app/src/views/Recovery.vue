@@ -140,16 +140,19 @@
 import StorageRecovery from '@/components/StorageRecovery.vue';
 
 // Set page title
-import { useHead } from '@vueuse/head';
+import { onMounted } from 'vue';
 
-useHead({
-  title: 'Storage Recovery - Kuroibara',
-  meta: [
-    {
-      name: 'description',
-      content: 'Recover manga from storage after database loss or corruption'
-    }
-  ]
+onMounted(() => {
+  document.title = 'Storage Recovery - Kuroibara';
+
+  // Set meta description
+  let metaDescription = document.querySelector('meta[name="description"]');
+  if (!metaDescription) {
+    metaDescription = document.createElement('meta');
+    metaDescription.name = 'description';
+    document.head.appendChild(metaDescription);
+  }
+  metaDescription.content = 'Recover manga from storage after database loss or corruption';
 });
 </script>
 

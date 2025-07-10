@@ -239,7 +239,6 @@ import { useLibraryStore } from '../stores/library';
 import { useProviderPreferencesStore } from '../stores/providerPreferences';
 import { useAuthStore } from '../stores/auth';
 import SearchResultCard from '../components/SearchResultCard.vue';
-import axios from 'axios';
 import api from '../services/api';
 
 const searchStore = useSearchStore();
@@ -318,7 +317,7 @@ const fetchProviders = async () => {
   providersLoading.value = true;
 
   try {
-    const response = await axios.get('/v1/search/providers');
+    const response = await api.get('/v1/search/providers');
     providers.value = response.data;
   } catch (error) {
     console.error('Failed to fetch providers:', error);
@@ -330,7 +329,7 @@ const fetchProviders = async () => {
 // Fetch genres
 const fetchGenres = async () => {
   try {
-    const response = await axios.get('/v1/search/genres');
+    const response = await api.get('/v1/search/genres');
     genres.value = response.data;
   } catch (error) {
     console.error('Failed to fetch genres:', error);

@@ -9,7 +9,7 @@
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
-# Kuroibara (Black Rose) 🌹
+# Kuroibara (Black Rose) <img src="frontend/app/public/assets/logo/logo.png" alt="Kuroibara Logo" width="32" height="32">
 
 A modern, full-featured web application for manga, manhua, and manhwa enthusiasts. Kuroibara provides a comprehensive platform for discovering, managing, and reading manga from multiple online sources.
 

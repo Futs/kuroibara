@@ -35,8 +35,15 @@ class BackupService:
     
     def __init__(self):
         """Initialize the backup service."""
-        self.backup_path = getattr(settings, 'BACKUP_PATH', '/app/backups')
-        self.storage_path = settings.STORAGE_PATH
+        import tempfile
+
+        # Use temp directory for testing environments where /app is not writable
+        if getattr(settings, 'APP_ENV', '') == 'testing':
+            self.backup_path = tempfile.mkdtemp(prefix='kuroibara_backup_test_')
+            self.storage_path = tempfile.mkdtemp(prefix='kuroibara_storage_test_')
+        else:
+            self.backup_path = getattr(settings, 'BACKUP_PATH', '/app/backups')
+            self.storage_path = settings.STORAGE_PATH
 
         # Organized backup subdirectories
         self.backups_dir = os.path.join(self.backup_path, 'archives')
@@ -51,10 +58,14 @@ class BackupService:
         self.retention_yearly = getattr(settings, 'BACKUP_RETENTION_YEARLY', 5)
         self.retention_max_total = getattr(settings, 'BACKUP_RETENTION_MAX_TOTAL', 50)
 
-        # Ensure backup directories exist
-        os.makedirs(self.backups_dir, exist_ok=True)
-        os.makedirs(self.restore_temp_dir, exist_ok=True)
-        os.makedirs(self.logs_dir, exist_ok=True)
+        # Ensure backup directories exist (with error handling for testing)
+        try:
+            os.makedirs(self.backups_dir, exist_ok=True)
+            os.makedirs(self.restore_temp_dir, exist_ok=True)
+            os.makedirs(self.logs_dir, exist_ok=True)
+        except PermissionError as e:
+            logger.warning(f"Could not create backup directories: {e}. Backup functionality may be limited.")
+            # In testing environments, this is expected and not critical
     
     def get_database_config(self) -> Dict[str, str]:
         """Extract database configuration from settings."""

@@ -164,6 +164,20 @@ class GenericProvider(BaseProvider):
                 ".link",
                 "[href]",
             ],
+            "status": [
+                ".status",
+                ".manga-status",
+                ".publication-status",
+                ".series-status",
+                "[class*='status']",
+                ".completed",
+                ".ongoing",
+                ".finished",
+                ".publishing",
+                ".hiatus",
+                ".cancelled",
+                ".dropped",
+            ],
         }
 
     @property
@@ -184,9 +198,19 @@ class GenericProvider(BaseProvider):
         """Search for manga."""
         try:
             # Build search URL
-            search_url = (
-                f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
-            )
+            if "{query}" in self._search_url:
+                # Custom search URL format with query placeholder
+                search_url = self._search_url.format(query=quote(query))
+                # Add page and limit parameters if not already present
+                if "?" in search_url:
+                    search_url += f"&page={page}&limit={limit}"
+                else:
+                    search_url += f"?page={page}&limit={limit}"
+            else:
+                # Default search URL format
+                search_url = (
+                    f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+                )
 
             # Make request
             async with httpx.AsyncClient() as client:
@@ -287,6 +311,7 @@ class GenericProvider(BaseProvider):
                         # Try to extract additional metadata from the search result
                         genres = self._extract_genres(item)
                         authors = self._extract_authors(item)
+                        status = self._extract_status(item)
 
                         # Create search result
                         result = SearchResult(
@@ -298,7 +323,7 @@ class GenericProvider(BaseProvider):
                                 self._normalize_url(cover_url) if cover_url else ""
                             ),
                             type=MangaType.UNKNOWN,
-                            status=MangaStatus.UNKNOWN,
+                            status=status,
                             year=None,
                             is_nsfw=self._supports_nsfw,
                             genres=genres,
@@ -665,11 +690,15 @@ class GenericProvider(BaseProvider):
         """Extract image URL using primary selector with fallback options."""
         # Try primary selector first
         if primary_selector:
-            elem = element.select_one(primary_selector)
-            if elem:
-                src = elem.get("src", "")
-                if isinstance(src, str) and src:
-                    return src
+            try:
+                elem = element.select_one(primary_selector)
+                if elem:
+                    src = elem.get("src", "")
+                    if isinstance(src, str) and src:
+                        logger.debug(f"Found image with primary selector '{primary_selector}': {src}")
+                        return src
+            except Exception as e:
+                logger.debug(f"Primary selector '{primary_selector}' failed: {e}")
 
         # Try fallback selectors
         fallback_selectors = self._fallback_selectors.get(field_type, [])
@@ -679,10 +708,24 @@ class GenericProvider(BaseProvider):
                 if elem:
                     src = elem.get("src", "")
                     if isinstance(src, str) and src:
+                        logger.debug(f"Found image with fallback selector '{selector}': {src}")
                         return src
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Fallback selector '{selector}' failed: {e}")
                 continue
 
+        # Special handling for MangaFox - try to find any img with cover in src
+        try:
+            all_imgs = element.select("img")
+            for img in all_imgs:
+                src = img.get("src", "")
+                if src and ("cover" in src or "thumb" in src):
+                    logger.debug(f"Found MangaFox cover image: {src}")
+                    return src
+        except Exception as e:
+            logger.debug(f"MangaFox special handling failed: {e}")
+
+        logger.debug(f"No image found for field_type '{field_type}' with primary selector '{primary_selector}'")
         return ""
 
     def _extract_genres(self, element) -> List[str]:
@@ -738,6 +781,58 @@ class GenericProvider(BaseProvider):
                 continue
 
         return authors
+
+    def _extract_status(self, element) -> "MangaStatus":
+        """Extract status from element."""
+        from app.schemas.manga import MangaStatus
+
+        # First try the configured status selectors
+        status_selectors = self._fallback_selectors.get("status", [])
+
+        for selector in status_selectors:
+            try:
+                status_elem = element.select_one(selector)
+                if status_elem:
+                    status_text = status_elem.text.strip().lower()
+
+                    # Map common status text to MangaStatus enum
+                    if any(word in status_text for word in ["ongoing", "publishing", "serializing", "active"]):
+                        return MangaStatus.ONGOING
+                    elif any(word in status_text for word in ["completed", "finished", "ended", "complete"]):
+                        return MangaStatus.COMPLETED
+                    elif any(word in status_text for word in ["hiatus", "on hold", "paused"]):
+                        return MangaStatus.HIATUS
+                    elif any(word in status_text for word in ["cancelled", "canceled", "dropped", "discontinued"]):
+                        return MangaStatus.CANCELLED
+
+                    # If we found status text but couldn't map it, return as ongoing (most common)
+                    if status_text:
+                        return MangaStatus.ONGOING
+            except Exception:
+                continue
+
+        # Special handling for MangaFox - look for status in brackets like [Completed] or [Ongoing]
+        try:
+            # Get all text content from the element
+            all_text = element.get_text()
+
+            # Look for status patterns in brackets
+            import re
+            status_match = re.search(r'\[(completed|ongoing|finished|ended|hiatus|cancelled|dropped)\]', all_text, re.IGNORECASE)
+            if status_match:
+                status_text = status_match.group(1).lower()
+                if status_text in ["completed", "finished", "ended"]:
+                    return MangaStatus.COMPLETED
+                elif status_text == "ongoing":
+                    return MangaStatus.ONGOING
+                elif status_text == "hiatus":
+                    return MangaStatus.HIATUS
+                elif status_text in ["cancelled", "dropped"]:
+                    return MangaStatus.CANCELLED
+        except Exception:
+            pass
+
+        return MangaStatus.UNKNOWN
 
     def _normalize_url(self, url: str) -> str:
         """Normalize URL to be absolute."""

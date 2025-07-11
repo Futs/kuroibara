@@ -56,6 +56,10 @@ def prioritize_providers_by_user_preferences(
         - priority_providers: User's favorite providers sorted by priority
         - regular_providers: Non-favorite enabled providers
     """
+    logger.info(f"Prioritizing providers with user preferences: {len(user_preferences)} preferences found")
+    for pref_id, pref in user_preferences.items():
+        logger.debug(f"User preference: {pref_id} -> enabled={pref.is_enabled}, favorite={pref.is_favorite}")
+
     favorite_providers = []
     enabled_providers = []
 
@@ -65,6 +69,7 @@ def prioritize_providers_by_user_preferences(
 
         # Skip disabled providers
         if user_pref and not user_pref.is_enabled:
+            logger.info(f"Skipping disabled provider: {provider.name} (user preference)")
             continue
 
         # Check if provider is a favorite

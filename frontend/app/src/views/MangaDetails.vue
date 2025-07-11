@@ -68,6 +68,7 @@
             :src="getCoverUrl(manga.id)"
             :alt="manga.title"
             class="w-full h-full object-cover"
+            @error="onImageError"
           />
         </div>
 
@@ -100,6 +101,7 @@
                 :alt="manga.title"
                 class="w-full h-full object-center object-cover"
                 :class="{ 'blur-md': isNsfw && blurNsfw }"
+                @error="onImageError"
               />
               <div
                 v-else
@@ -440,6 +442,11 @@ const sortedChapters = computed(() => {
 });
 
 const getCoverUrl = (mangaId) => {
+  // For external manga, use the cover_image URL directly
+  if (isExternal.value && manga.value && manga.value.cover_image) {
+    return manga.value.cover_image;
+  }
+  // For internal manga, use the cover endpoint
   return `/api/v1/manga/${mangaId}/cover`;
 };
 
@@ -611,6 +618,14 @@ const formatDescription = (description) => {
 
   // Convert newlines to <br> tags
   return description.replace(/\n/g, "<br>");
+};
+
+const onImageError = (event) => {
+  // Hide the image if it fails to load
+  event.target.style.display = "none";
+  console.warn(
+    `Failed to load cover image for ${manga.value?.title}: ${event.target.src}`,
+  );
 };
 
 onMounted(() => {

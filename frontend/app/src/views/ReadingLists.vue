@@ -498,7 +498,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
+import api from "@/services/api.js";
 
 const router = useRouter();
 
@@ -524,7 +524,7 @@ const fetchReadingLists = async () => {
   error.value = null;
 
   try {
-    const response = await axios.get("/v1/reading-lists");
+    const response = await api.get("/v1/reading-lists");
     readingLists.value = response.data;
   } catch (err) {
     error.value = err.response?.data?.detail || "Failed to load reading lists";
@@ -562,13 +562,13 @@ const saveReadingList = async () => {
   try {
     if (showEditListModal.value) {
       // Update existing reading list
-      await axios.put(`/v1/reading-lists/${listForm.value.id}`, {
+      await api.put(`/v1/reading-lists/${listForm.value.id}`, {
         name: listForm.value.name,
         description: listForm.value.description,
       });
     } else {
       // Create new reading list
-      await axios.post("/v1/reading-lists", {
+      await api.post("/v1/reading-lists", {
         name: listForm.value.name,
         description: listForm.value.description,
       });
@@ -593,7 +593,7 @@ const confirmDeleteList = async () => {
   deleteSubmitting.value = true;
 
   try {
-    await axios.delete(`/v1/reading-lists/${selectedList.value.id}`);
+    await api.delete(`/v1/reading-lists/${selectedList.value.id}`);
 
     // Refresh reading lists
     await fetchReadingLists();

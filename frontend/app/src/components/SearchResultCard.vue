@@ -32,14 +32,6 @@
           </svg>
         </div>
 
-        <!-- NSFW Badge -->
-        <div
-          v-if="isNsfw"
-          class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded"
-        >
-          NSFW
-        </div>
-
         <!-- Provider Badge -->
         <div
           v-if="manga.provider"
@@ -48,12 +40,23 @@
           {{ manga.provider }}
         </div>
 
-        <!-- Status Badge -->
-        <div
-          v-if="manga.status"
-          class="absolute bottom-2 left-2 bg-gray-800 bg-opacity-75 text-white text-xs px-2 py-1 rounded"
-        >
-          {{ formatStatus(manga.status) }}
+        <!-- Top Right Badges -->
+        <div class="absolute top-2 right-2 flex flex-col gap-1">
+          <!-- NSFW Badge -->
+          <div
+            v-if="isNsfw"
+            class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded"
+          >
+            NSFW
+          </div>
+
+          <!-- Status Badge -->
+          <div
+            v-if="manga.status"
+            class="bg-blue-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded"
+          >
+            {{ formatStatus(manga.status) }}
+          </div>
         </div>
 
         <!-- Hover Actions -->
@@ -174,7 +177,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useSettingsStore } from "../stores/settings";
-import axios from "axios";
+import api from "@/services/api.js";
 
 const props = defineProps({
   manga: {

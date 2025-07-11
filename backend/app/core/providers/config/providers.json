@@ -367,13 +367,13 @@
     "id": "mangabat",
     "name": "MangaBat",
     "class_name": "GenericProvider",
-    "url": "https://mangabat.com",
+    "url": "https://mangabats.com",
     "supports_nsfw": false,
     "params": {
-      "base_url": "https://mangabat.com",
-      "search_url": "https://mangabat.com/search",
-      "manga_url_pattern": "https://mangabat.com/manga/{manga_id}",
-      "chapter_url_pattern": "https://mangabat.com/manga/{manga_id}/{chapter_id}",
+      "base_url": "https://mangabats.com",
+      "search_url": "https://mangabats.com/search",
+      "manga_url_pattern": "https://mangabats.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangabats.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaBat"
     }
   },
@@ -441,9 +441,12 @@
     "supports_nsfw": true,
     "params": {
       "base_url": "https://toonily.com",
-      "search_url": "https://toonily.com/search",
-      "manga_url_pattern": "https://toonily.com/webtoon/{manga_id}",
-      "chapter_url_pattern": "https://toonily.com/webtoon/{manga_id}/{chapter_id}",
+      "search_url": "https://toonily.com/search?q={query}",
+      "search_selector": ".page-item-detail",
+      "search_title_selector": ".post-title h3 a",
+      "search_cover_selector": ".item-thumb img",
+      "manga_url_pattern": "https://toonily.com/serie/{manga_id}",
+      "chapter_url_pattern": "https://toonily.com/serie/{manga_id}/{chapter_id}",
       "name": "Toonily"
     }
   },
@@ -707,9 +710,13 @@
     "supports_nsfw": false,
     "params": {
       "base_url": "https://fanfox.net",
-      "search_url": "https://fanfox.net/search",
-      "manga_url_pattern": "https://fanfox.net/manga/{manga_id}",
-      "chapter_url_pattern": "https://fanfox.net/manga/{manga_id}/{chapter_id}",
+      "search_url": "https://fanfox.net/search?title={query}",
+      "search_selector": "li",
+      "search_title_selector": "a[href*='/manga/']:first-of-type",
+      "search_cover_selector": "img",
+      "search_description_selector": "",
+      "manga_url_pattern": "https://fanfox.net{manga_id}",
+      "chapter_url_pattern": "https://fanfox.net{manga_id}/{chapter_id}",
       "name": "MangaFox"
     }
   },

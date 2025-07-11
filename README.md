@@ -68,24 +68,39 @@ docker compose -f docker-compose.dev.yml up -d
 - **API Documentation**: http://localhost:8000/api/docs
 - **Email Testing**: http://localhost:8025 (MailHog)
 
-## � Documentation
+## 📚 Documentation
 
-- **[Tech Stack Details](docs/TECH_STACK.md)** - Comprehensive technology overview
-- **[Configuration Guide](docs/CONFIGURATION.md)** - Environment setup and configuration
-- **[API Documentation](docs/API_REFERENCE.md)** - Complete API reference and examples
-- **[Provider Information](docs/PROVIDERS.md)** - Supported manga providers and details
-- **[Development Guide](docs/DEVELOPMENT.md)** - Testing, contributing, and development setup
-- **[Roadmap](docs/ROADMAP.md)** - Development roadmap and planned features
+### 📖 **User Documentation**
+- **[📖 GitHub Wiki](https://github.com/Futs/kuroibara/wiki)** - User guides, tutorials, and troubleshooting
+- **[🚀 Getting Started](https://github.com/Futs/kuroibara/wiki/Getting-Started)** - Complete setup guide for new users
+- **[📱 User Guide](https://github.com/Futs/kuroibara/wiki/User-Guide)** - How to use all Kuroibara features
+- **[🔧 Installation](https://github.com/Futs/kuroibara/wiki/Installation)** - Step-by-step installation instructions
+- **[🐛 Troubleshooting](https://github.com/Futs/kuroibara/wiki/Troubleshooting)** - Common issues and solutions
+
+### 🔧 **Technical Documentation**
+- **[📋 Technical Docs](docs/README.md)** - Complete technical documentation index
+- **[🏗️ Development Guide](docs/DEVELOPMENT.md)** - Development environment and contributing
+- **[⚙️ Configuration](docs/CONFIGURATION.md)** - System configuration and environment variables
+- **[🔌 API Reference](docs/API_REFERENCE.md)** - Complete API documentation
+- **[🌐 Providers](docs/PROVIDERS.md)** - Provider system and supported sources
 
 ## 🤝 Contributing
 
+We welcome contributions! Here's how to get started:
+
+### **For Users**
+- **[📖 Wiki Contributions](https://github.com/Futs/kuroibara/wiki/Contributing-Wiki)** - Help improve user documentation
+- **[🐛 Report Issues](https://github.com/Futs/kuroibara/issues/new)** - Found a bug? Let us know!
+- **[💡 Feature Requests](https://github.com/Futs/kuroibara/issues/new)** - Suggest new features
+
+### **For Developers**
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-See [Development Guide](docs/DEVELOPMENT.md) for detailed contributing guidelines.
+See our **[🏗️ Development Guide](docs/DEVELOPMENT.md)** and **[📋 Git Guidelines](docs/GIT_GUIDELINES.md)** for detailed contributing guidelines.
 
 ## 📄 License
 

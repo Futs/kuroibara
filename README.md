@@ -20,7 +20,8 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 
 ## ✨ Key Features
 
-- **Multi-Provider Search**: Access 100+ manga providers including MangaDex, MangaPlus, TCBScans, and more
+- **Multi-Provider Search**: Access 80+ manga providers including MangaDex, MangaPlus, TCBScans, and more
+- **Cloudflare Bypass**: Optional FlareSolverr integration for accessing Cloudflare-protected providers
 - **Smart Library Management**: Personal library with automatic metadata and cover art
 - **Background Downloads**: Queue and download manga chapters with background processing
 - **User Profiles**: Customizable profiles with external account linking (AniList, MyAnimeList)
@@ -67,6 +68,26 @@ docker compose -f docker-compose.dev.yml up -d
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/api/docs
 - **Email Testing**: http://localhost:8025 (MailHog)
+
+## 🔓 FlareSolverr Integration (Optional)
+
+Kuroibara supports optional integration with [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) to bypass Cloudflare protection and access additional manga providers.
+
+### Quick Setup
+```bash
+# Run FlareSolverr
+docker run -d --name flaresolverr -p 8191:8191 ghcr.io/flaresolverr/flaresolverr:latest
+
+# Configure Kuroibara
+echo "FLARESOLVERR_URL=http://localhost:8191" >> .env
+
+# Restart Kuroibara
+docker compose restart backend
+```
+
+**Result**: Unlocks 4+ additional Cloudflare-protected providers (ReaperScans, MangaFire, etc.)
+
+📖 **[Complete FlareSolverr Setup Guide](docs/FLARESOLVERR_SETUP.md)** - Detailed installation and configuration instructions
 
 ## 📚 Documentation
 

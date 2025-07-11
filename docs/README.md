@@ -28,6 +28,7 @@ This directory contains **technical documentation** for developers and system ad
 
 ### ⚙️ **System Administration**
 - **[Configuration Guide](CONFIGURATION.md)** - Environment variables and system configuration
+- **[FlareSolverr Setup](FLARESOLVERR_SETUP.md)** - Optional Cloudflare bypass integration
 - **[Backup System](BACKUP_SYSTEM.md)** - Backup and recovery procedures
 - **[Organizer System](ORGANIZER_SYSTEM.md)** - File organization and management
 

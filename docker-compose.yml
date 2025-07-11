@@ -92,6 +92,8 @@ services:
     networks:
       - kuroibara-network
 
+
+
 networks:
   kuroibara-network:
     driver: bridge

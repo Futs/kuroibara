@@ -4,7 +4,7 @@ Tests for provider health check functionality.
 
 import pytest
 from datetime import datetime, timezone, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 from app.core.services.provider_monitor import ProviderMonitorService
 from app.models.provider import ProviderStatus, ProviderStatusEnum
@@ -144,18 +144,27 @@ class TestProviderHealthChecks:
     async def test_daily_health_check_structure(self):
         """Test that daily health check returns proper structure."""
         with patch('app.core.services.provider_monitor.AsyncSessionLocal') as mock_session:
-            # Mock database session
+            # Create a proper async context manager mock
             mock_db = AsyncMock()
-            mock_session.return_value.__aenter__.return_value = mock_db
-            
-            # Mock provider statuses
-            mock_result = AsyncMock()
-            mock_result.scalars.return_value.all.return_value = []
+            mock_db.commit = AsyncMock(return_value=None)
+            mock_db.execute = AsyncMock()
+
+            # Mock the async context manager
+            mock_session_instance = AsyncMock()
+            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_db)
+            mock_session_instance.__aexit__ = AsyncMock(return_value=None)
+            mock_session.return_value = mock_session_instance
+
+            # Mock provider statuses query result
+            mock_result = Mock()  # Regular Mock, not AsyncMock
+            mock_scalars = Mock()  # Regular Mock for scalars result
+            mock_scalars.all.return_value = []  # Empty list of providers
+            mock_result.scalars.return_value = mock_scalars
             mock_db.execute.return_value = mock_result
-            
+
             # Run daily health check
             results = await self.monitor.daily_health_check()
-            
+
             # Verify structure
             assert "timestamp" in results
             assert "total_providers" in results
@@ -165,9 +174,13 @@ class TestProviderHealthChecks:
             assert "enabled_providers" in results
             assert "actions_taken" in results
             assert "provider_details" in results
-            
+
             assert isinstance(results["actions_taken"], list)
             assert isinstance(results["provider_details"], list)
+
+            # Verify the database session was used correctly
+            mock_db.execute.assert_called_once()
+            mock_db.commit.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_error_handling_in_auto_check(self):

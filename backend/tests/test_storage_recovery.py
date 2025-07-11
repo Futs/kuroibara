@@ -242,7 +242,7 @@ class TestStorageRecoveryService:
                 # Verify manga was created
                 assert mock_manga_class.called
                 assert mock_db.add.called
-                assert mock_db.commit.called
+                mock_db.commit.assert_awaited_once()
                 
                 # Verify file was moved (would need to check if new path exists)
                 # This is mocked in the test, but in real usage the directory would be moved

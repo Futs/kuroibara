@@ -29,10 +29,14 @@ from app.schemas.organization import (
     BatchOrganizeRequest,
     BatchRecoveryRequest,
     BatchRecoveryResponse,
-    ChapterMetadata as ChapterMetadataSchema,
+)
+from app.schemas.organization import ChapterMetadata as ChapterMetadataSchema
+from app.schemas.organization import (
     ChapterMetadataCreate,
     ChapterMetadataUpdate,
-    MangaMetadata as MangaMetadataSchema,
+)
+from app.schemas.organization import MangaMetadata as MangaMetadataSchema
+from app.schemas.organization import (
     MangaMetadataCreate,
     MangaMetadataUpdate,
     NamingFormatValidation,
@@ -59,8 +63,10 @@ async def validate_naming_format(
     """
     Validate a naming format template.
     """
-    is_valid, error_message = naming_engine.validate_template(validation_request.template)
-    
+    is_valid, error_message = naming_engine.validate_template(
+        validation_request.template
+    )
+
     sample_output = None
     if is_valid:
         # Generate sample output with test data
@@ -71,14 +77,14 @@ async def validate_naming_format(
             "Chapter Name": "Sample Chapter",
             "Language": "en",
             "Year": "2023",
-            "Source": "test"
+            "Source": "test",
         }
-        sample_output = naming_engine.apply_template(validation_request.template, sample_context)
-    
+        sample_output = naming_engine.apply_template(
+            validation_request.template, sample_context
+        )
+
     return NamingFormatValidationResponse(
-        is_valid=is_valid,
-        error_message=error_message,
-        sample_output=sample_output
+        is_valid=is_valid, error_message=error_message, sample_output=sample_output
     )
 
 
@@ -109,29 +115,33 @@ async def update_naming_settings(
     """
     # Validate naming formats if provided
     if settings_update.naming_format_manga:
-        is_valid, error_message = naming_engine.validate_template(settings_update.naming_format_manga)
+        is_valid, error_message = naming_engine.validate_template(
+            settings_update.naming_format_manga
+        )
         if not is_valid:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid manga naming format: {error_message}"
+                detail=f"Invalid manga naming format: {error_message}",
             )
-    
+
     if settings_update.naming_format_chapter:
-        is_valid, error_message = naming_engine.validate_template(settings_update.naming_format_chapter)
+        is_valid, error_message = naming_engine.validate_template(
+            settings_update.naming_format_chapter
+        )
         if not is_valid:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid chapter naming format: {error_message}"
+                detail=f"Invalid chapter naming format: {error_message}",
             )
-    
+
     # Update user settings
     update_data = settings_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(current_user, field, value)
-    
+
     await db.commit()
     await db.refresh(current_user)
-    
+
     return NamingSettings(
         naming_format_manga=current_user.naming_format_manga,
         naming_format_chapter=current_user.naming_format_chapter,
@@ -154,43 +164,41 @@ async def organize_chapter(
     chapter = await db.get(Chapter, request.chapter_id)
     if not chapter:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Chapter not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Chapter not found"
         )
-    
+
     manga = await db.get(Manga, chapter.manga_id)
     if not manga:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Manga not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Manga not found"
         )
-    
+
     # Perform organization
     try:
         result = await manga_organizer.organize_chapter(
             manga=manga,
             chapter=chapter,
             user=current_user,
-            preserve_original=request.preserve_original
+            preserve_original=request.preserve_original,
         )
-        
+
         # Update database if successful
         if result.success:
             await db.commit()
-        
+
         return OrganizationResult(
             success=result.success,
             organized_files=result.organized_files,
             created_directories=result.created_directories,
             errors=result.errors,
-            warnings=result.warnings
+            warnings=result.warnings,
         )
-        
+
     except Exception as e:
         logger.error(f"Error organizing chapter {request.chapter_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to organize chapter: {str(e)}"
+            detail=f"Failed to organize chapter: {str(e)}",
         )
 
 
@@ -208,22 +216,21 @@ async def organize_manga(
     manga = await db.get(Manga, request.manga_id)
     if not manga:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Manga not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Manga not found"
         )
-    
+
     # Get chapters
     result = await db.execute(
         select(Chapter).where(Chapter.manga_id == request.manga_id)
     )
     chapters = result.scalars().all()
-    
+
     if not chapters:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No chapters found for this manga"
+            detail="No chapters found for this manga",
         )
-    
+
     # Create organization job
     job = OrganizationJob(
         user_id=current_user.id,
@@ -235,14 +242,15 @@ async def organize_manga(
             "preserve_original": request.preserve_original,
             "custom_naming_format": request.custom_naming_format,
         },
-        naming_format_manga=request.custom_naming_format or current_user.naming_format_manga,
+        naming_format_manga=request.custom_naming_format
+        or current_user.naming_format_manga,
         naming_format_chapter=current_user.naming_format_chapter,
     )
-    
+
     db.add(job)
     await db.commit()
     await db.refresh(job)
-    
+
     # Add background task
     background_tasks.add_task(
         organize_manga_background,
@@ -251,11 +259,11 @@ async def organize_manga(
         preserve_original=request.preserve_original,
         custom_naming_format=request.custom_naming_format,
     )
-    
+
     return {
         "message": "Organization job started",
         "job_id": job.id,
-        "total_chapters": len(chapters)
+        "total_chapters": len(chapters),
     }
 
 
@@ -306,13 +314,12 @@ async def organize_batch(
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Must specify manga_ids, chapter_ids, or organize_all_library"
+            detail="Must specify manga_ids, chapter_ids, or organize_all_library",
         )
 
     if total_items == 0:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No items found to organize"
+            status_code=status.HTTP_404_NOT_FOUND, detail="No items found to organize"
         )
 
     # Create organization job
@@ -321,7 +328,7 @@ async def organize_batch(
         job_type=job_type,
         total_items=total_items,
         job_config=job_config,
-        db=db
+        db=db,
     )
 
     # Add background task
@@ -356,7 +363,7 @@ async def organize_batch(
         "message": "Batch organization job started",
         "job_id": job.id,
         "job_type": job_type,
-        "total_items": total_items
+        "total_items": total_items,
     }
 
 
@@ -382,7 +389,7 @@ async def organize_manga_background(
                     user=user,
                     job_id=job_id,
                     preserve_original=preserve_original,
-                    custom_naming_format=custom_naming_format
+                    custom_naming_format=custom_naming_format,
                 )
     except Exception as e:
         logger.error(f"Background organization job {job_id} failed: {e}")
@@ -407,7 +414,7 @@ async def organize_manga_batch_background(
                     user=user,
                     job_id=job_id,
                     preserve_original=preserve_original,
-                    custom_naming_format=custom_naming_format
+                    custom_naming_format=custom_naming_format,
                 )
     except Exception as e:
         logger.error(f"Background batch organization job {job_id} failed: {e}")
@@ -430,7 +437,7 @@ async def organize_library_background(
                     user=user,
                     job_id=job_id,
                     preserve_original=preserve_original,
-                    custom_naming_format=custom_naming_format
+                    custom_naming_format=custom_naming_format,
                 )
     except Exception as e:
         logger.error(f"Background library organization job {job_id} failed: {e}")
@@ -474,7 +481,7 @@ async def organize_chapters_batch_background(
                         manga=manga,
                         chapter=chapter,
                         user=user,
-                        preserve_original=preserve_original
+                        preserve_original=preserve_original,
                     )
 
                     if result.success:
@@ -520,7 +527,7 @@ async def get_organization_jobs(
         .limit(50)
     )
     jobs = result.scalars().all()
-    
+
     return [
         {
             "id": job.id,
@@ -551,10 +558,9 @@ async def get_organization_job(
     job = await db.get(OrganizationJob, job_id)
     if not job or job.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization job not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Organization job not found"
         )
-    
+
     return {
         "id": job.id,
         "job_type": job.job_type,
@@ -588,7 +594,7 @@ async def scan_unorganized_manga(
         logger.error(f"Error scanning unorganized manga: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to scan unorganized manga: {str(e)}"
+            detail=f"Failed to scan unorganized manga: {str(e)}",
         )
 
 
@@ -608,7 +614,7 @@ async def get_migration_plan(
         logger.error(f"Error creating migration plan for manga {manga_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create migration plan: {str(e)}"
+            detail=f"Failed to create migration plan: {str(e)}",
         )
 
 
@@ -622,13 +628,15 @@ async def validate_manga_organization(
     Validate the organization structure of a manga.
     """
     try:
-        validation = await migration_tool.validate_organized_structure(manga_id, current_user, db)
+        validation = await migration_tool.validate_organized_structure(
+            manga_id, current_user, db
+        )
         return validation
     except Exception as e:
         logger.error(f"Error validating manga {manga_id} organization: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to validate manga organization: {str(e)}"
+            detail=f"Failed to validate manga organization: {str(e)}",
         )
 
 
@@ -641,22 +649,26 @@ async def scan_storage_for_recovery(
     Scan storage for manga that exist in files but not in database.
     """
     try:
-        recoverable_manga = await storage_recovery_service.scan_storage_for_manga(current_user.id, db)
+        recoverable_manga = await storage_recovery_service.scan_storage_for_manga(
+            current_user.id, db
+        )
 
         # Convert to response format
         result = []
         for manga in recoverable_manga:
-            result.append(RecoverableManga(
-                storage_uuid=manga["storage_uuid"],
-                extracted_title=manga["extracted_title"],
-                chapter_count=manga["chapter_count"],
-                volume_count=manga["volume_count"],
-                storage_size=manga["storage_size"],
-                has_volume_structure=manga["has_volume_structure"],
-                organized_path=manga["organized_path"],
-                volumes=manga["volumes"],
-                metadata=manga.get("metadata")
-            ))
+            result.append(
+                RecoverableManga(
+                    storage_uuid=manga["storage_uuid"],
+                    extracted_title=manga["extracted_title"],
+                    chapter_count=manga["chapter_count"],
+                    volume_count=manga["volume_count"],
+                    storage_size=manga["storage_size"],
+                    has_volume_structure=manga["has_volume_structure"],
+                    organized_path=manga["organized_path"],
+                    volumes=manga["volumes"],
+                    metadata=manga.get("metadata"),
+                )
+            )
 
         return result
 
@@ -664,7 +676,7 @@ async def scan_storage_for_recovery(
         logger.error(f"Error scanning storage for recovery: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to scan storage for recovery: {str(e)}"
+            detail=f"Failed to scan storage for recovery: {str(e)}",
         )
 
 
@@ -683,13 +695,11 @@ async def recover_manga_from_storage(
             manga_title=request.manga_title,
             user_id=current_user.id,
             db=db,
-            metadata=request.custom_metadata
+            metadata=request.custom_metadata,
         )
 
         # Count recovered chapters
-        result = await db.execute(
-            select(Chapter).where(Chapter.manga_id == manga.id)
-        )
+        result = await db.execute(select(Chapter).where(Chapter.manga_id == manga.id))
         chapters = result.scalars().all()
 
         return RecoverMangaResponse(
@@ -697,7 +707,7 @@ async def recover_manga_from_storage(
             manga_id=manga.id,
             message=f"Successfully recovered manga '{manga.title}' with {len(chapters)} chapters",
             chapters_recovered=len(chapters),
-            errors=[]
+            errors=[],
         )
 
     except Exception as e:
@@ -707,7 +717,7 @@ async def recover_manga_from_storage(
             manga_id=None,
             message=f"Failed to recover manga: {str(e)}",
             chapters_recovered=0,
-            errors=[str(e)]
+            errors=[str(e)],
         )
 
 
@@ -733,7 +743,7 @@ async def batch_recover_manga_from_storage(
                 manga_title=recovery_item.manga_title,
                 user_id=current_user.id,
                 db=db,
-                metadata=recovery_item.custom_metadata
+                metadata=recovery_item.custom_metadata,
             )
 
             # Count recovered chapters
@@ -742,13 +752,15 @@ async def batch_recover_manga_from_storage(
             )
             chapters = result.scalars().all()
 
-            recovered_manga.append(RecoverMangaResponse(
-                success=True,
-                manga_id=manga.id,
-                message=f"Successfully recovered '{manga.title}' with {len(chapters)} chapters",
-                chapters_recovered=len(chapters),
-                errors=[]
-            ))
+            recovered_manga.append(
+                RecoverMangaResponse(
+                    success=True,
+                    manga_id=manga.id,
+                    message=f"Successfully recovered '{manga.title}' with {len(chapters)} chapters",
+                    chapters_recovered=len(chapters),
+                    errors=[],
+                )
+            )
 
             successful_recoveries += 1
 
@@ -756,13 +768,15 @@ async def batch_recover_manga_from_storage(
             error_msg = f"Failed to recover {recovery_item.manga_title}: {str(e)}"
             logger.error(error_msg)
 
-            recovered_manga.append(RecoverMangaResponse(
-                success=False,
-                manga_id=None,
-                message=error_msg,
-                chapters_recovered=0,
-                errors=[str(e)]
-            ))
+            recovered_manga.append(
+                RecoverMangaResponse(
+                    success=False,
+                    manga_id=None,
+                    message=error_msg,
+                    chapters_recovered=0,
+                    errors=[str(e)],
+                )
+            )
 
             failed_recoveries += 1
             overall_errors.append(error_msg)
@@ -776,5 +790,5 @@ async def batch_recover_manga_from_storage(
         successful_recoveries=successful_recoveries,
         failed_recoveries=failed_recoveries,
         recovered_manga=recovered_manga,
-        errors=overall_errors
+        errors=overall_errors,
     )

@@ -2,9 +2,10 @@
 Tests for provider health check functionality.
 """
 
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from app.core.services.provider_monitor import ProviderMonitorService
 from app.models.provider import ProviderStatus, ProviderStatusEnum
@@ -32,7 +33,7 @@ class TestProviderHealthChecks:
 
         # Check auto-disable logic
         result = await self.monitor._check_auto_disable_enable(provider_status)
-        
+
         assert result is not None
         action, reason = result
         assert action == "disable"
@@ -51,7 +52,7 @@ class TestProviderHealthChecks:
         provider_status.last_check = datetime.now(timezone.utc)
 
         result = await self.monitor._check_auto_disable_enable(provider_status)
-        
+
         assert result is not None
         action, reason = result
         assert action == "disable"
@@ -70,7 +71,7 @@ class TestProviderHealthChecks:
         provider_status.last_check = datetime.now(timezone.utc) - timedelta(hours=50)
 
         result = await self.monitor._check_auto_disable_enable(provider_status)
-        
+
         assert result is not None
         action, reason = result
         assert action == "disable"
@@ -143,19 +144,21 @@ class TestProviderHealthChecks:
     @pytest.mark.asyncio
     async def test_daily_health_check_structure(self):
         """Test that daily health check returns proper structure."""
-        with patch('app.core.services.provider_monitor.AsyncSessionLocal') as mock_session:
+        with patch(
+            "app.core.services.provider_monitor.AsyncSessionLocal"
+        ) as mock_session:
             # Mock database session
             mock_db = AsyncMock()
             mock_session.return_value.__aenter__.return_value = mock_db
-            
+
             # Mock provider statuses
             mock_result = AsyncMock()
             mock_result.scalars.return_value.all.return_value = []
             mock_db.execute.return_value = mock_result
-            
+
             # Run daily health check
             results = await self.monitor.daily_health_check()
-            
+
             # Verify structure
             assert "timestamp" in results
             assert "total_providers" in results
@@ -165,7 +168,7 @@ class TestProviderHealthChecks:
             assert "enabled_providers" in results
             assert "actions_taken" in results
             assert "provider_details" in results
-            
+
             assert isinstance(results["actions_taken"], list)
             assert isinstance(results["provider_details"], list)
 
@@ -176,7 +179,9 @@ class TestProviderHealthChecks:
         provider_status = MagicMock()
         provider_status.is_enabled = True
         # Make uptime_percentage raise an exception when accessed
-        type(provider_status).uptime_percentage = PropertyMock(side_effect=Exception("Test error"))
+        type(provider_status).uptime_percentage = PropertyMock(
+            side_effect=Exception("Test error")
+        )
 
         # Should return None and not raise exception
         result = await self.monitor._check_auto_disable_enable(provider_status)

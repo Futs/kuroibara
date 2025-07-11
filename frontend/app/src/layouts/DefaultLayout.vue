@@ -11,11 +11,7 @@
                   alt="Kuroibara Logo"
                   class="h-8 w-8"
                 />
-                <img
-                  src="/assets/logo/name.png"
-                  alt="Kuroibara"
-                  class="h-6"
-                />
+                <img src="/assets/logo/name.png" alt="Kuroibara" class="h-6" />
               </router-link>
             </div>
             <nav class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -24,10 +20,11 @@
                 :key="item.name"
                 :to="item.to"
                 :class="[
-                  $route.path === item.to || $route.path.startsWith(item.to + '/')
+                  $route.path === item.to ||
+                  $route.path.startsWith(item.to + '/')
                     ? 'border-primary-500 text-gray-900 dark:text-white'
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white',
-                  'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                  'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium',
                 ]"
               >
                 {{ item.name }}
@@ -42,11 +39,16 @@
                   class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   <span class="sr-only">Open user menu</span>
-                  <img v-if="user?.avatar"
-                       :src="user.avatar"
-                       :alt="user.username"
-                       class="h-8 w-8 rounded-full object-cover">
-                  <div v-else class="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                  <img
+                    v-if="user?.avatar"
+                    :src="user.avatar"
+                    :alt="user.username"
+                    class="h-8 w-8 rounded-full object-cover"
+                  />
+                  <div
+                    v-else
+                    class="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white"
+                  >
                     {{ userInitials }}
                   </div>
                 </button>
@@ -150,27 +152,39 @@
               $route.path === item.to || $route.path.startsWith(item.to + '/')
                 ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 text-primary-700 dark:text-primary-300'
                 : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 hover:border-gray-300 hover:text-gray-800',
-              'block pl-3 pr-4 py-2 border-l-4 text-base font-medium'
+              'block pl-3 pr-4 py-2 border-l-4 text-base font-medium',
             ]"
             @click="mobileMenuOpen = false"
           >
             {{ item.name }}
           </router-link>
         </div>
-        <div v-if="isAuthenticated" class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600">
+        <div
+          v-if="isAuthenticated"
+          class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600"
+        >
           <div class="flex items-center px-4">
             <div class="flex-shrink-0">
-              <img v-if="user?.avatar"
-                   :src="user.avatar"
-                   :alt="user.username"
-                   class="h-10 w-10 rounded-full object-cover">
-              <div v-else class="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white">
+              <img
+                v-if="user?.avatar"
+                :src="user.avatar"
+                :alt="user.username"
+                class="h-10 w-10 rounded-full object-cover"
+              />
+              <div
+                v-else
+                class="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white"
+              >
                 {{ userInitials }}
               </div>
             </div>
             <div class="ml-3">
-              <div class="text-base font-medium text-gray-800 dark:text-white">{{ user?.username }}</div>
-              <div class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ user?.email }}</div>
+              <div class="text-base font-medium text-gray-800 dark:text-white">
+                {{ user?.username }}
+              </div>
+              <div class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ user?.email }}
+              </div>
             </div>
           </div>
           <div class="mt-3 space-y-1">
@@ -224,7 +238,10 @@
             </button>
           </div>
         </div>
-        <div v-else class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600">
+        <div
+          v-else
+          class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600"
+        >
           <div class="flex items-center justify-around">
             <router-link
               to="/login"
@@ -254,7 +271,10 @@
     <footer class="bg-white dark:bg-dark-800 shadow-sm">
       <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <div class="text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>&copy; {{ new Date().getFullYear() }} Kuroibara. All rights reserved.</p>
+          <p>
+            &copy; {{ new Date().getFullYear() }} Kuroibara. All rights
+            reserved.
+          </p>
         </div>
       </div>
     </footer>
@@ -262,10 +282,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '../stores/auth';
-import { useSettingsStore } from '../stores/settings';
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+import { useSettingsStore } from "../stores/settings";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -278,21 +298,21 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.getUser);
 
 const userInitials = computed(() => {
-  if (!user.value) return '';
+  if (!user.value) return "";
   return user.value.username.substring(0, 2).toUpperCase();
 });
 
 const navItems = computed(() => {
   const items = [
-    { name: 'Home', to: '/' },
-    { name: 'Search', to: '/search' },
+    { name: "Home", to: "/" },
+    { name: "Search", to: "/search" },
   ];
 
   if (isAuthenticated.value) {
     items.push(
-      { name: 'Library', to: '/library' },
-      { name: 'Categories', to: '/categories' },
-      { name: 'Reading Lists', to: '/reading-lists' }
+      { name: "Library", to: "/library" },
+      { name: "Categories", to: "/categories" },
+      { name: "Reading Lists", to: "/reading-lists" },
     );
   }
 
@@ -310,8 +330,8 @@ onMounted(() => {
   settingsStore.initSettings();
 
   // Close menus when clicking outside
-  document.addEventListener('click', (event) => {
-    if (userMenuOpen.value && !event.target.closest('.user-menu')) {
+  document.addEventListener("click", (event) => {
+    if (userMenuOpen.value && !event.target.closest(".user-menu")) {
       userMenuOpen.value = false;
     }
   });

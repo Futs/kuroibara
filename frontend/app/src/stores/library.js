@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import api from '../services/api';
+import { defineStore } from "pinia";
+import api from "../services/api";
 
-export const useLibraryStore = defineStore('library', {
+export const useLibraryStore = defineStore("library", {
   state: () => ({
     manga: [],
     currentManga: null,
@@ -10,8 +10,8 @@ export const useLibraryStore = defineStore('library', {
     filters: {
       category: null,
       status: null,
-      sort: 'title',
-      order: 'asc',
+      sort: "title",
+      order: "asc",
     },
     pagination: {
       page: 1,
@@ -51,19 +51,19 @@ export const useLibraryStore = defineStore('library', {
         }
 
         // Add favorite filter if status is 'favorite'
-        if (status === 'favorite') {
+        if (status === "favorite") {
           params.is_favorite = true;
-        } else if (status === 'not_favorite') {
+        } else if (status === "not_favorite") {
           params.is_favorite = false;
         }
 
-        const response = await api.get('/v1/library', { params });
+        const response = await api.get("/v1/library", { params });
 
         this.manga = response.data || [];
         this.pagination.total = response.data.length || 0;
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch library';
-        console.error('Library fetch error:', error);
+        this.error = error.response?.data?.detail || "Failed to fetch library";
+        console.error("Library fetch error:", error);
       } finally {
         this.loading = false;
       }
@@ -78,8 +78,9 @@ export const useLibraryStore = defineStore('library', {
         this.currentManga = response.data;
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch manga details';
-        console.error('Manga details fetch error:', error);
+        this.error =
+          error.response?.data?.detail || "Failed to fetch manga details";
+        console.error("Manga details fetch error:", error);
       } finally {
         this.loading = false;
       }
@@ -90,11 +91,12 @@ export const useLibraryStore = defineStore('library', {
       this.error = null;
 
       try {
-        await api.post('/v1/library', { manga_id: mangaId });
+        await api.post("/v1/library", { manga_id: mangaId });
         await this.fetchLibrary();
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to add manga to library';
-        console.error('Add to library error:', error);
+        this.error =
+          error.response?.data?.detail || "Failed to add manga to library";
+        console.error("Add to library error:", error);
         throw error; // Re-throw so calling code can handle it
       } finally {
         this.loading = false;
@@ -109,8 +111,9 @@ export const useLibraryStore = defineStore('library', {
         await api.delete(`/v1/library/${mangaId}`);
         await this.fetchLibrary();
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to remove manga from library';
-        console.error('Remove from library error:', error);
+        this.error =
+          error.response?.data?.detail || "Failed to remove manga from library";
+        console.error("Remove from library error:", error);
         throw error; // Re-throw so calling code can handle it
       } finally {
         this.loading = false;

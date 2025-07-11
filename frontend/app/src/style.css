@@ -45,15 +45,15 @@
 
 /* Custom Fonts */
 @font-face {
-  font-family: 'Debra';
-  src: url('/assets/fonts/Debra.otf') format('opentype');
+  font-family: "Debra";
+  src: url("/assets/fonts/Debra.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Debra';
-  src: url('/assets/fonts/Debra-Bold.otf') format('opentype');
+  font-family: "Debra";
+  src: url("/assets/fonts/Debra-Bold.otf") format("opentype");
   font-weight: bold;
   font-style: normal;
 }
@@ -91,7 +91,7 @@
   }
 
   .brand-name {
-    font-family: 'Debra', system-ui, sans-serif;
+    font-family: "Debra", system-ui, sans-serif;
     font-weight: bold;
   }
 }

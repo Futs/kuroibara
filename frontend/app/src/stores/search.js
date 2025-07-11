@@ -1,13 +1,13 @@
-import { defineStore } from 'pinia';
-import axios from 'axios';
+import { defineStore } from "pinia";
+import axios from "axios";
 
-export const useSearchStore = defineStore('search', {
+export const useSearchStore = defineStore("search", {
   state: () => ({
     results: [],
     loading: false,
     error: null,
-    query: '',
-    provider: 'all',
+    query: "",
+    provider: "all",
     filters: {
       status: null,
       genre: null,
@@ -38,9 +38,9 @@ export const useSearchStore = defineStore('search', {
         const { page, limit } = this.pagination;
         const { status, genre } = this.filters;
 
-        const response = await axios.post('/v1/search', {
+        const response = await axios.post("/v1/search", {
           query: this.query,
-          provider: this.provider === 'all' ? null : this.provider,
+          provider: this.provider === "all" ? null : this.provider,
           page,
           limit,
           status,
@@ -50,8 +50,8 @@ export const useSearchStore = defineStore('search', {
         this.results = response.data.results;
         this.pagination.total = response.data.total;
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Search failed';
-        console.error('Search error:', error);
+        this.error = error.response?.data?.detail || "Search failed";
+        console.error("Search error:", error);
       } finally {
         this.loading = false;
       }
@@ -79,8 +79,8 @@ export const useSearchStore = defineStore('search', {
 
     resetSearch() {
       this.results = [];
-      this.query = '';
-      this.provider = 'all';
+      this.query = "";
+      this.provider = "all";
       this.filters = {
         status: null,
         genre: null,

@@ -52,7 +52,9 @@ async def get_enabled_providers(db: AsyncSession):
             else:
                 logger.debug(f"Excluding disabled provider: {provider.name}")
 
-        logger.info(f"Using {len(enabled_providers)}/{len(all_providers)} enabled providers")
+        logger.info(
+            f"Using {len(enabled_providers)}/{len(all_providers)} enabled providers"
+        )
         return enabled_providers
 
     except Exception as e:
@@ -124,6 +126,7 @@ async def search_manga(
         current_user: The current user
         db: The database session
     """
+
     # If provider is specified, use that provider
     if query.provider:
         provider = provider_registry.get_provider(query.provider)
@@ -209,32 +212,82 @@ async def search_manga(
             f"Using fallback prioritization: {len(priority_providers)} priority providers, {len(generic_providers)} generic providers"
         )
 
-    # Give each provider a reasonable limit to ensure we get good results
-    # Don't divide by number of providers as this makes each provider return too few results
-    results_per_provider = min(
-        query.limit, 10
-    )  # Each provider can return up to 10 results
+    # Calculate pagination strategy for multi-provider search
+    # We'll use a more sophisticated approach that distributes pagination across providers
 
-    logger.info(f"Total providers to search: {len(selected_providers)}")
-    logger.info(f"Selected providers: {[p.name for p in selected_providers]}")
-    logger.info(f"Results per provider: {results_per_provider}")
+    # For multi-provider search, we need to calculate how many results to skip
+    # and how many to fetch from each provider to achieve proper pagination
+    total_offset = (query.page - 1) * query.limit
 
-    # Search with all selected providers concurrently with timeout
-    async def search_with_provider(provider):
+    # Estimate results per provider based on historical data or use a reasonable default
+    # This is an approximation since we don't know exact counts until we search
+    estimated_results_per_provider = 20  # Conservative estimate
+
+    # Calculate which providers to query and with what pagination
+    providers_to_query = []
+    remaining_offset = total_offset
+    remaining_limit = query.limit
+
+    for provider in selected_providers:
+        if remaining_limit <= 0:
+            break
+
+        # Calculate page and limit for this provider
+        provider_page = max(1, (remaining_offset // estimated_results_per_provider) + 1)
+        provider_offset_in_page = remaining_offset % estimated_results_per_provider
+
+        # Request more results than needed to account for offset within page
+        provider_limit = min(remaining_limit + provider_offset_in_page, 50)
+
+        providers_to_query.append(
+            {
+                "provider": provider,
+                "page": provider_page,
+                "limit": provider_limit,
+                "skip_results": provider_offset_in_page,
+            }
+        )
+
+        # Update remaining counts (approximate)
+        estimated_provider_results = min(
+            provider_limit - provider_offset_in_page, estimated_results_per_provider
+        )
+        remaining_offset = max(0, remaining_offset - estimated_provider_results)
+        remaining_limit -= estimated_provider_results
+
+    logger.info(f"Total providers to search: {len(providers_to_query)}")
+    logger.info(
+        f"Pagination strategy: page={query.page}, limit={query.limit}, total_offset={total_offset}"
+    )
+
+    # Search with selected providers using calculated pagination
+    async def search_with_provider(provider_config):
+        provider = provider_config["provider"]
+        page = provider_config["page"]
+        limit = provider_config["limit"]
+        skip_results = provider_config["skip_results"]
+
         try:
             logger.info(
-                f"Starting search with provider {provider.name} (class: {provider.__class__.__name__})"
+                f"Starting search with provider {provider.name} (page={page}, limit={limit}, skip={skip_results})"
             )
             # Add timeout to prevent slow providers from blocking
-            results, _, _ = await asyncio.wait_for(
+            results, total_provider_results, has_next = await asyncio.wait_for(
                 provider.search(
                     query=query.query,
-                    page=1,  # Always use page 1 for multi-provider search
-                    limit=results_per_provider,
+                    page=page,
+                    limit=limit,
                 ),
                 timeout=15.0,  # Increased timeout to 15 seconds
             )
-            logger.info(f"Provider {provider.name} returned {len(results)} results")
+
+            # Skip results if we're in the middle of a page
+            if skip_results > 0 and len(results) > skip_results:
+                results = results[skip_results:]
+
+            logger.info(
+                f"Provider {provider.name} returned {len(results)} results (after skipping {skip_results})"
+            )
             if len(results) == 0:
                 logger.warning(
                     f"Provider {provider.name} returned no results for query '{query.query}'"
@@ -245,45 +298,57 @@ async def search_manga(
                 logger.info(
                     f"First result from {provider.name}: {first_result.title} - Cover: {bool(first_result.cover_image)}"
                 )
-            return results
+            return results, total_provider_results
         except asyncio.TimeoutError:
             logger.warning(f"Provider {provider.name} timed out after 15 seconds")
-            return []
+            return [], 0
         except Exception as e:
             logger.error(f"Error searching with provider {provider.name}: {e}")
             import traceback
 
             logger.error(f"Traceback: {traceback.format_exc()}")
-            return []
+            return [], 0
 
     # Run searches concurrently
-    search_tasks = [search_with_provider(provider) for provider in selected_providers]
+    search_tasks = [
+        search_with_provider(provider_config) for provider_config in providers_to_query
+    ]
     all_results = await asyncio.gather(*search_tasks, return_exceptions=True)
 
     # Flatten results and handle exceptions
     flattened_results = []
     successful_providers = 0
-    for i, results in enumerate(all_results):
-        if isinstance(results, Exception):
+    total_estimated_results = 0
+
+    for i, result_tuple in enumerate(all_results):
+        provider_name = providers_to_query[i]["provider"].name
+
+        if isinstance(result_tuple, Exception):
             logger.error(
-                f"Provider {selected_providers[i].name} failed with exception: {results}"
+                f"Provider {provider_name} failed with exception: {result_tuple}"
             )
             continue
+
+        if not isinstance(result_tuple, tuple) or len(result_tuple) != 2:
+            logger.warning(
+                f"Provider {provider_name} returned unexpected result format: {type(result_tuple)}"
+            )
+            continue
+
+        results, provider_total = result_tuple
+
         if results and isinstance(results, list):
             logger.info(
-                f"Adding {len(results)} results from {selected_providers[i].name}"
+                f"Adding {len(results)} results from {provider_name} (total available: {provider_total})"
             )
             flattened_results.extend(results)
             successful_providers += 1
-        elif results:
-            logger.warning(
-                f"Provider {selected_providers[i].name} returned non-list results: {type(results)}"
-            )
+            total_estimated_results += provider_total
         else:
-            logger.info(f"Provider {selected_providers[i].name} returned no results")
+            logger.info(f"Provider {provider_name} returned no results")
 
     logger.info(
-        f"Multi-provider search completed: {successful_providers}/{len(selected_providers)} providers successful, {len(flattened_results)} total results"
+        f"Multi-provider search completed: {successful_providers}/{len(providers_to_query)} providers successful, {len(flattened_results)} total results"
     )
 
     # Sort results by relevance (title similarity to query)
@@ -296,16 +361,30 @@ async def search_manga(
 
     flattened_results.sort(key=calculate_relevance)
 
-    # Limit results to requested limit
+    # For multi-provider pagination, we need to be more careful about the total count
+    # Since we're doing distributed pagination, we use the estimated total
+    # The actual total might be different, but this provides a reasonable approximation
+
+    # Limit results to requested limit (should already be close due to our pagination logic)
     limited_results = flattened_results[: query.limit]
+
+    # Calculate if there are more results available
+    # This is an approximation based on whether we got results from all queried providers
+    # and whether any provider indicated more results are available
+    has_next = len(flattened_results) >= query.limit or total_estimated_results > (
+        query.page * query.limit
+    )
 
     return {
         "results": limited_results,
-        "total": len(flattened_results),
+        "total": max(
+            total_estimated_results,
+            (query.page - 1) * query.limit + len(limited_results),
+        ),
         "page": query.page,
         "limit": query.limit,
-        "has_next": len(flattened_results) > query.limit,
-        "providers_searched": len(selected_providers),
+        "has_next": has_next,
+        "providers_searched": len(providers_to_query),
         "providers_successful": successful_providers,
     }
 

@@ -9,26 +9,35 @@
           Update your profile picture
         </p>
       </div>
-      
-      <div class="border-t border-gray-200 dark:border-dark-600 px-4 py-5 sm:p-6">
+
+      <div
+        class="border-t border-gray-200 dark:border-dark-600 px-4 py-5 sm:p-6"
+      >
         <div class="flex flex-col space-y-6">
           <div class="flex items-center space-x-4">
-            <img 
-              v-if="user?.avatar" 
-              :src="user.avatar" 
-              alt="Current avatar" 
+            <img
+              v-if="user?.avatar"
+              :src="user.avatar"
+              alt="Current avatar"
               class="h-20 w-20 rounded-full object-cover"
             />
-            <div v-else class="h-20 w-20 rounded-full bg-primary-500 flex items-center justify-center text-white text-xl">
+            <div
+              v-else
+              class="h-20 w-20 rounded-full bg-primary-500 flex items-center justify-center text-white text-xl"
+            >
               {{ userInitials }}
             </div>
             <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Current profile picture</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Current profile picture
+              </p>
             </div>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               New Profile Picture URL
             </label>
             <input
@@ -38,7 +47,7 @@
               placeholder="https://example.com/avatar.jpg"
             />
           </div>
-          
+
           <div class="flex justify-end space-x-3">
             <button
               type="button"
@@ -64,23 +73,23 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useAuthStore } from '../../stores/auth';
-import { useRouter } from 'vue-router';
-import api from '../../services/api.js';
+import { ref, computed, onMounted } from "vue";
+import { useAuthStore } from "../../stores/auth";
+import { useRouter } from "vue-router";
+import api from "../../services/api.js";
 
 const authStore = useAuthStore();
 const router = useRouter();
 const user = computed(() => authStore.getUser);
 const userInitials = computed(() => {
-  if (!user.value?.username) return '';
+  if (!user.value?.username) return "";
   return user.value.username.charAt(0).toUpperCase();
 });
 
 const loading = ref(false);
 const error = ref(null);
 const formData = ref({
-  avatar: ''
+  avatar: "",
 });
 
 onMounted(() => {
@@ -94,18 +103,19 @@ const updateAvatar = async () => {
   error.value = null;
 
   try {
-    await api.put('/v1/users/me', {
-      avatar: formData.value.avatar
+    await api.put("/v1/users/me", {
+      avatar: formData.value.avatar,
     });
-    
+
     // Refresh user data
     await authStore.fetchUser();
-    
+
     // Navigate back to profile
-    router.push('/profile');
+    router.push("/profile");
   } catch (err) {
-    error.value = err.response?.data?.detail || 'Failed to update profile picture';
-    console.error('Profile picture update error:', err);
+    error.value =
+      err.response?.data?.detail || "Failed to update profile picture";
+    console.error("Profile picture update error:", err);
   } finally {
     loading.value = false;
   }

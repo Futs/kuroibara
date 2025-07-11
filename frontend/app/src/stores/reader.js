@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import api from '../services/api';
+import { defineStore } from "pinia";
+import api from "../services/api";
 
-export const useReaderStore = defineStore('reader', {
+export const useReaderStore = defineStore("reader", {
   state: () => ({
     manga: null,
     chapter: null,
@@ -11,11 +11,11 @@ export const useReaderStore = defineStore('reader', {
     loading: false,
     error: null,
     settings: {
-      readingDirection: localStorage.getItem('readingDirection') || 'rtl', // rtl, ltr
-      pageLayout: localStorage.getItem('pageLayout') || 'single', // single, double
-      fitMode: localStorage.getItem('fitMode') || 'width', // width, height, both
-      showPageNumbers: localStorage.getItem('showPageNumbers') === 'true',
-      autoAdvance: localStorage.getItem('autoAdvance') === 'true',
+      readingDirection: localStorage.getItem("readingDirection") || "rtl", // rtl, ltr
+      pageLayout: localStorage.getItem("pageLayout") || "single", // single, double
+      fitMode: localStorage.getItem("fitMode") || "width", // width, height, both
+      showPageNumbers: localStorage.getItem("showPageNumbers") === "true",
+      autoAdvance: localStorage.getItem("autoAdvance") === "true",
     },
   }),
 
@@ -31,12 +31,16 @@ export const useReaderStore = defineStore('reader', {
     hasPrevPage: (state) => state.currentPage > 1,
     hasNextChapter: (state) => {
       if (!state.chapters.length || !state.chapter) return false;
-      const currentIndex = state.chapters.findIndex(c => c.id === state.chapter.id);
+      const currentIndex = state.chapters.findIndex(
+        (c) => c.id === state.chapter.id,
+      );
       return currentIndex < state.chapters.length - 1;
     },
     hasPrevChapter: (state) => {
       if (!state.chapters.length || !state.chapter) return false;
-      const currentIndex = state.chapters.findIndex(c => c.id === state.chapter.id);
+      const currentIndex = state.chapters.findIndex(
+        (c) => c.id === state.chapter.id,
+      );
       return currentIndex > 0;
     },
   },
@@ -51,8 +55,8 @@ export const useReaderStore = defineStore('reader', {
         this.manga = response.data;
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch manga';
-        console.error('Manga fetch error:', error);
+        this.error = error.response?.data?.detail || "Failed to fetch manga";
+        console.error("Manga fetch error:", error);
       } finally {
         this.loading = false;
       }
@@ -67,8 +71,8 @@ export const useReaderStore = defineStore('reader', {
         this.chapters = response.data;
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch chapters';
-        console.error('Chapters fetch error:', error);
+        this.error = error.response?.data?.detail || "Failed to fetch chapters";
+        console.error("Chapters fetch error:", error);
       } finally {
         this.loading = false;
       }
@@ -79,12 +83,14 @@ export const useReaderStore = defineStore('reader', {
       this.error = null;
 
       try {
-        const response = await api.get(`/v1/manga/${mangaId}/chapters/${chapterId}`);
+        const response = await api.get(
+          `/v1/manga/${mangaId}/chapters/${chapterId}`,
+        );
         this.chapter = response.data;
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch chapter';
-        console.error('Chapter fetch error:', error);
+        this.error = error.response?.data?.detail || "Failed to fetch chapter";
+        console.error("Chapter fetch error:", error);
       } finally {
         this.loading = false;
       }
@@ -95,12 +101,14 @@ export const useReaderStore = defineStore('reader', {
       this.error = null;
 
       try {
-        const response = await api.get(`/v1/manga/${mangaId}/chapters/${chapterId}/pages`);
+        const response = await api.get(
+          `/v1/manga/${mangaId}/chapters/${chapterId}/pages`,
+        );
         this.pages = response.data;
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to fetch pages';
-        console.error('Pages fetch error:', error);
+        this.error = error.response?.data?.detail || "Failed to fetch pages";
+        console.error("Pages fetch error:", error);
       } finally {
         this.loading = false;
       }
@@ -113,7 +121,7 @@ export const useReaderStore = defineStore('reader', {
           page,
         });
       } catch (error) {
-        console.error('Failed to update reading progress:', error);
+        console.error("Failed to update reading progress:", error);
       }
     },
 
@@ -143,7 +151,9 @@ export const useReaderStore = defineStore('reader', {
     async loadNextChapter() {
       if (!this.hasNextChapter) return;
 
-      const currentIndex = this.chapters.findIndex(c => c.id === this.chapter.id);
+      const currentIndex = this.chapters.findIndex(
+        (c) => c.id === this.chapter.id,
+      );
       const nextChapter = this.chapters[currentIndex + 1];
 
       await this.fetchChapter(this.manga.id, nextChapter.id);
@@ -154,7 +164,9 @@ export const useReaderStore = defineStore('reader', {
     async loadPrevChapter() {
       if (!this.hasPrevChapter) return;
 
-      const currentIndex = this.chapters.findIndex(c => c.id === this.chapter.id);
+      const currentIndex = this.chapters.findIndex(
+        (c) => c.id === this.chapter.id,
+      );
       const prevChapter = this.chapters[currentIndex - 1];
 
       await this.fetchChapter(this.manga.id, prevChapter.id);

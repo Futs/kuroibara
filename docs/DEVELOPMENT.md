@@ -4,7 +4,7 @@
 
 ### Prerequisites
 - **Python 3.12+** - Backend development
-- **Node.js 18+** - Frontend development
+- **Node.js 22+** - Frontend development
 - **Docker & Docker Compose** - Containerized development
 - **Git** - Version control
 - **PostgreSQL** - Database (or use Docker)

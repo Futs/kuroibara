@@ -367,13 +367,13 @@
     "id": "mangabat",
     "name": "MangaBat",
     "class_name": "GenericProvider",
-    "url": "https://mangabat.com",
+    "url": "https://www.mangabats.com",
     "supports_nsfw": false,
     "params": {
-      "base_url": "https://mangabat.com",
-      "search_url": "https://mangabat.com/search",
-      "manga_url_pattern": "https://mangabat.com/manga/{manga_id}",
-      "chapter_url_pattern": "https://mangabat.com/manga/{manga_id}/{chapter_id}",
+      "base_url": "https://www.mangabats.com",
+      "search_url": "https://www.mangabats.com/search",
+      "manga_url_pattern": "https://www.mangabats.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://www.mangabats.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaBat"
     }
   },

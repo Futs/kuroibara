@@ -30,6 +30,19 @@
 
         <!-- Hover Actions -->
         <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+          <!-- Details Button -->
+          <router-link
+            :to="`/manga/${getMangaId}`"
+            class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400"
+            title="View Details"
+            @click.stop
+          >
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </router-link>
+
+          <!-- Read Button -->
           <router-link
             v-if="getChapters && getChapters.length > 0"
             :to="`/read/${getMangaId}/${manga.reading_progress?.current_chapter || getChapters[0].id}`"
@@ -42,6 +55,7 @@
             </svg>
           </router-link>
 
+          <!-- Remove Button -->
           <button
             @click.stop="$emit('remove', getLibraryItemId)"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400"

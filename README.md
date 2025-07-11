@@ -35,7 +35,7 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 ### Prerequisites
 - Docker & Docker Compose
 - Python 3.12+ (for local development)
-- Node.js 18+ (for frontend development)
+- Node.js 22+ (for frontend development)
 
 ### Production Deployment
 ```bash

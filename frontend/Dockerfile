@@ -1,12 +1,12 @@
-FROM node:18-alpine as build
+FROM node:22-alpine as build
 
 WORKDIR /app
 
 # Copy package.json and package-lock.json from app directory
 COPY app/package*.json ./
 
-# Install dependencies
-RUN npm install
+# Upgrade npm to latest version and install dependencies
+RUN npm install -g npm@11.4.2 && npm install
 
 # Copy the rest of the application
 COPY app/ .

@@ -46,6 +46,12 @@ yarn-debug.log
 yarn-error.log
 .pnpm-debug.log
 
+# Coverage reports
+coverage/
+*.coverage
+.nyc_output/
+.coverage.*
+
 # Environment variables
 .env
 .env.local

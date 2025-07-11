@@ -1,8 +1,12 @@
+[![PR Checks](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml)
 [![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Futs/kuroibara/releases)
-[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
-[![Vue.js](https://img.shields.io/badge/vue.js-3.5-4FC08D.svg)](https://vuejs.org/)
-[![FastAPI](https://img.shields.io/badge/fastapi-latest-009688.svg)](https://fastapi.tiangolo.com/)
+[![Security Scan](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/Futs/kuroibara/releases)
+[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
+[![Node.js](https://img.shields.io/badge/node.js-22-green.svg)](https://nodejs.org/)
+[![Vue.js](https://img.shields.io/badge/vue.js-3.5.13-4FC08D.svg)](https://vuejs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/tailwind-4.0.0-38B2AC.svg)](https://tailwindcss.com/)
+[![FastAPI](https://img.shields.io/badge/fastapi-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/issues)
@@ -12,7 +16,7 @@
 
 A modern, full-featured web application for manga, manhua, and manhwa enthusiasts. Kuroibara provides a comprehensive platform for discovering, managing, and reading manga from multiple online sources.
 
-> **⚠️ Development Status**: Kuroibara is currently in active development (v0.1.0). While the core features are functional, expect regular updates and potential breaking changes until v1.0.0 release.
+> **⚠️ Development Status**: Kuroibara is currently in active development (v0.1.1). While the core features are functional, expect regular updates and potential breaking changes until v1.0.0 release.
 
 ## ✨ Key Features
 
@@ -22,12 +26,13 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 - **User Profiles**: Customizable profiles with external account linking (AniList, MyAnimeList)
 - **Provider Health Monitoring**: Real-time monitoring with automatic status updates
 - **2FA Authentication**: Secure user registration and login
-- **Responsive Design**: Modern Vue.js interface with Tailwind CSS
+- **Dark/Light Theme**: Modern responsive design with system theme support and quick toggle
+- **Responsive Design**: Modern Vue.js interface with Tailwind CSS 4.0
 
 ## 🛠️ Tech Stack
 
-**Backend**: Python 3.12, FastAPI, PostgreSQL 16, Valkey (Redis), SQLAlchemy 2.0
-**Frontend**: Vue.js 3, Tailwind CSS, Vite, Pinia
+**Backend**: Python 3.12+, FastAPI 0.115+, PostgreSQL 16, Valkey (Redis), SQLAlchemy 2.0
+**Frontend**: Vue.js 3.5, Tailwind CSS 4.0, Vite 6.3, Pinia 3.0, Node.js 22
 **Infrastructure**: Docker & Docker Compose, Nginx
 
 ## 🚀 Quick Start
@@ -35,7 +40,7 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 ### Prerequisites
 - Docker & Docker Compose
 - Python 3.12+ (for local development)
-- Node.js 18+ (for frontend development)
+- Node.js 22+ (for frontend development)
 
 ### Production Deployment
 ```bash

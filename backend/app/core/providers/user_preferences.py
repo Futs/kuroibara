@@ -106,10 +106,21 @@ def get_fallback_provider_names() -> List[str]:
         List of provider names in priority order
     """
     return [
-        "MangaDex", "MangaPlus", "MangaSee",  # Priority providers
-        "MangaKakalot", "MangaBat", "MangaFox", "MangaTown",  # Popular generic providers
-        "MangaLife", "MangaReaderTo", "ReadM", "MangaFire",  # More mainstream providers
-        "Toonily", "ManhwaHub", "ManhuaZ", "Manhuaga"  # Popular manhwa/manhua providers
+        "MangaDex",
+        "MangaPlus",
+        "MangaSee",  # Priority providers
+        "MangaKakalot",
+        "MangaBat",
+        "MangaFox",
+        "MangaTown",  # Popular generic providers
+        "MangaLife",
+        "MangaReaderTo",
+        "ReadM",
+        "MangaFire",  # More mainstream providers
+        "Toonily",
+        "ManhwaHub",
+        "ManhuaZ",
+        "Manhuaga",  # Popular manhwa/manhua providers
     ]
 
 
@@ -147,10 +158,16 @@ def apply_fallback_prioritization(
 
     # Sort mainstream providers by the defined order
     mainstream_providers.sort(
-        key=lambda x: mainstream_provider_names.index(x.name) if x.name in mainstream_provider_names else 999
+        key=lambda x: (
+            mainstream_provider_names.index(x.name)
+            if x.name in mainstream_provider_names
+            else 999
+        )
     )
 
     # Combine mainstream and generic providers, limit total to reasonable number
-    combined_generic = mainstream_providers + generic_providers[:5]  # Mainstream + 5 others
+    combined_generic = (
+        mainstream_providers + generic_providers[:5]
+    )  # Mainstream + 5 others
 
     return priority_providers, combined_generic

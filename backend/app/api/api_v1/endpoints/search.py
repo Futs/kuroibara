@@ -52,7 +52,9 @@ async def get_enabled_providers(db: AsyncSession):
             else:
                 logger.debug(f"Excluding disabled provider: {provider.name}")
 
-        logger.info(f"Using {len(enabled_providers)}/{len(all_providers)} enabled providers")
+        logger.info(
+            f"Using {len(enabled_providers)}/{len(all_providers)} enabled providers"
+        )
         return enabled_providers
 
     except Exception as e:

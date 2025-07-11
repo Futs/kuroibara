@@ -9,16 +9,22 @@
           Connect your AniList and MyAnimeList accounts
         </p>
       </div>
-      
-      <div class="border-t border-gray-200 dark:border-dark-600 px-4 py-5 sm:p-6">
+
+      <div
+        class="border-t border-gray-200 dark:border-dark-600 px-4 py-5 sm:p-6"
+      >
         <div class="flex flex-col space-y-6">
           <!-- AniList -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               AniList Username
             </label>
             <div class="mt-1 flex rounded-md shadow-sm">
-              <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-dark-600 bg-gray-50 dark:bg-dark-700 text-gray-500 dark:text-gray-400 sm:text-sm">
+              <span
+                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-dark-600 bg-gray-50 dark:bg-dark-700 text-gray-500 dark:text-gray-400 sm:text-sm"
+              >
                 anilist.co/user/
               </span>
               <input
@@ -29,14 +35,18 @@
               />
             </div>
           </div>
-          
+
           <!-- MyAnimeList -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               MyAnimeList Username
             </label>
             <div class="mt-1 flex rounded-md shadow-sm">
-              <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-dark-600 bg-gray-50 dark:bg-dark-700 text-gray-500 dark:text-gray-400 sm:text-sm">
+              <span
+                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-dark-600 bg-gray-50 dark:bg-dark-700 text-gray-500 dark:text-gray-400 sm:text-sm"
+              >
                 myanimelist.net/profile/
               </span>
               <input
@@ -47,7 +57,7 @@
               />
             </div>
           </div>
-          
+
           <div class="flex justify-end space-x-3">
             <button
               type="button"
@@ -73,10 +83,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useAuthStore } from '../../stores/auth';
-import { useRouter } from 'vue-router';
-import api from '../../services/api.js';
+import { ref, computed, onMounted } from "vue";
+import { useAuthStore } from "../../stores/auth";
+import { useRouter } from "vue-router";
+import api from "../../services/api.js";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -85,14 +95,14 @@ const user = computed(() => authStore.getUser);
 const loading = ref(false);
 const error = ref(null);
 const formData = ref({
-  anilist_username: '',
-  myanimelist_username: ''
+  anilist_username: "",
+  myanimelist_username: "",
 });
 
 onMounted(() => {
   if (user.value) {
-    formData.value.anilist_username = user.value.anilist_username || '';
-    formData.value.myanimelist_username = user.value.myanimelist_username || '';
+    formData.value.anilist_username = user.value.anilist_username || "";
+    formData.value.myanimelist_username = user.value.myanimelist_username || "";
   }
 });
 
@@ -101,19 +111,20 @@ const updateAccounts = async () => {
   error.value = null;
 
   try {
-    await api.put('/v1/users/me', {
+    await api.put("/v1/users/me", {
       anilist_username: formData.value.anilist_username,
-      myanimelist_username: formData.value.myanimelist_username
+      myanimelist_username: formData.value.myanimelist_username,
     });
-    
+
     // Refresh user data
     await authStore.fetchUser();
-    
+
     // Navigate back to profile
-    router.push('/profile');
+    router.push("/profile");
   } catch (err) {
-    error.value = err.response?.data?.detail || 'Failed to update linked accounts';
-    console.error('Linked accounts update error:', err);
+    error.value =
+      err.response?.data?.detail || "Failed to update linked accounts";
+    console.error("Linked accounts update error:", err);
   } finally {
     loading.value = false;
   }

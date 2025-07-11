@@ -1,19 +1,25 @@
-import { defineStore } from 'pinia';
-import axios from 'axios';
+import { defineStore } from "pinia";
+import axios from "axios";
 
-export const useSettingsStore = defineStore('settings', {
+export const useSettingsStore = defineStore("settings", {
   state: () => ({
-    theme: localStorage.getItem('theme') || 'light', // light, dark, system
-    nsfwBlur: localStorage.getItem('nsfwBlur') === 'true',
-    downloadQuality: localStorage.getItem('downloadQuality') || 'high', // low, medium, high
-    downloadPath: localStorage.getItem('downloadPath') || '/app/storage',
+    theme: localStorage.getItem("theme") || "light", // light, dark, system
+    nsfwBlur: localStorage.getItem("nsfwBlur") === "true",
+    downloadQuality: localStorage.getItem("downloadQuality") || "high", // low, medium, high
+    downloadPath: localStorage.getItem("downloadPath") || "/app/storage",
 
     // Naming settings
-    namingFormatManga: localStorage.getItem('namingFormatManga') || '{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}',
-    namingFormatChapter: localStorage.getItem('namingFormatChapter') || '{Chapter Number} - {Chapter Name}',
-    autoOrganizeImports: localStorage.getItem('autoOrganizeImports') !== 'false', // default true
-    createCbzFiles: localStorage.getItem('createCbzFiles') !== 'false', // default true
-    preserveOriginalFiles: localStorage.getItem('preserveOriginalFiles') === 'true', // default false
+    namingFormatManga:
+      localStorage.getItem("namingFormatManga") ||
+      "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}",
+    namingFormatChapter:
+      localStorage.getItem("namingFormatChapter") ||
+      "{Chapter Number} - {Chapter Name}",
+    autoOrganizeImports:
+      localStorage.getItem("autoOrganizeImports") !== "false", // default true
+    createCbzFiles: localStorage.getItem("createCbzFiles") !== "false", // default true
+    preserveOriginalFiles:
+      localStorage.getItem("preserveOriginalFiles") === "true", // default false
 
     loading: false,
     error: null,
@@ -39,7 +45,7 @@ export const useSettingsStore = defineStore('settings', {
       this.error = null;
 
       try {
-        const response = await axios.get('/v1/users/settings');
+        const response = await axios.get("/v1/users/settings");
 
         // Update local settings from server
         const {
@@ -51,7 +57,7 @@ export const useSettingsStore = defineStore('settings', {
           naming_format_chapter,
           auto_organize_imports,
           create_cbz_files,
-          preserve_original_files
+          preserve_original_files,
         } = response.data;
 
         this.theme = theme || this.theme;
@@ -61,10 +67,20 @@ export const useSettingsStore = defineStore('settings', {
 
         // Update naming settings
         this.namingFormatManga = naming_format_manga || this.namingFormatManga;
-        this.namingFormatChapter = naming_format_chapter || this.namingFormatChapter;
-        this.autoOrganizeImports = auto_organize_imports !== undefined ? auto_organize_imports : this.autoOrganizeImports;
-        this.createCbzFiles = create_cbz_files !== undefined ? create_cbz_files : this.createCbzFiles;
-        this.preserveOriginalFiles = preserve_original_files !== undefined ? preserve_original_files : this.preserveOriginalFiles;
+        this.namingFormatChapter =
+          naming_format_chapter || this.namingFormatChapter;
+        this.autoOrganizeImports =
+          auto_organize_imports !== undefined
+            ? auto_organize_imports
+            : this.autoOrganizeImports;
+        this.createCbzFiles =
+          create_cbz_files !== undefined
+            ? create_cbz_files
+            : this.createCbzFiles;
+        this.preserveOriginalFiles =
+          preserve_original_files !== undefined
+            ? preserve_original_files
+            : this.preserveOriginalFiles;
 
         // Save to localStorage and apply theme
         this.saveToLocalStorage();
@@ -72,10 +88,11 @@ export const useSettingsStore = defineStore('settings', {
       } catch (error) {
         // Don't set error for authentication issues, just log them
         if (error.response?.status === 401 || error.response?.status === 403) {
-          console.log('User not authenticated, using local settings');
+          console.log("User not authenticated, using local settings");
         } else {
-          this.error = error.response?.data?.detail || 'Failed to fetch settings';
-          console.error('Settings fetch error:', error);
+          this.error =
+            error.response?.data?.detail || "Failed to fetch settings";
+          console.error("Settings fetch error:", error);
         }
       } finally {
         this.loading = false;
@@ -87,7 +104,7 @@ export const useSettingsStore = defineStore('settings', {
       this.error = null;
 
       try {
-        await axios.put('/v1/users/settings', {
+        await axios.put("/v1/users/settings", {
           theme: this.theme,
           nsfw_blur: this.nsfwBlur,
           download_quality: this.downloadQuality,
@@ -102,8 +119,9 @@ export const useSettingsStore = defineStore('settings', {
         // Save to localStorage
         this.saveToLocalStorage();
       } catch (error) {
-        this.error = error.response?.data?.detail || 'Failed to update settings';
-        console.error('Settings update error:', error);
+        this.error =
+          error.response?.data?.detail || "Failed to update settings";
+        console.error("Settings update error:", error);
       } finally {
         this.loading = false;
       }
@@ -156,29 +174,35 @@ export const useSettingsStore = defineStore('settings', {
     },
 
     saveToLocalStorage() {
-      localStorage.setItem('theme', this.theme);
-      localStorage.setItem('nsfwBlur', this.nsfwBlur.toString());
-      localStorage.setItem('downloadQuality', this.downloadQuality);
-      localStorage.setItem('downloadPath', this.downloadPath);
+      localStorage.setItem("theme", this.theme);
+      localStorage.setItem("nsfwBlur", this.nsfwBlur.toString());
+      localStorage.setItem("downloadQuality", this.downloadQuality);
+      localStorage.setItem("downloadPath", this.downloadPath);
 
       // Save naming settings
-      localStorage.setItem('namingFormatManga', this.namingFormatManga);
-      localStorage.setItem('namingFormatChapter', this.namingFormatChapter);
-      localStorage.setItem('autoOrganizeImports', this.autoOrganizeImports.toString());
-      localStorage.setItem('createCbzFiles', this.createCbzFiles.toString());
-      localStorage.setItem('preserveOriginalFiles', this.preserveOriginalFiles.toString());
+      localStorage.setItem("namingFormatManga", this.namingFormatManga);
+      localStorage.setItem("namingFormatChapter", this.namingFormatChapter);
+      localStorage.setItem(
+        "autoOrganizeImports",
+        this.autoOrganizeImports.toString(),
+      );
+      localStorage.setItem("createCbzFiles", this.createCbzFiles.toString());
+      localStorage.setItem(
+        "preserveOriginalFiles",
+        this.preserveOriginalFiles.toString(),
+      );
     },
 
     applyTheme() {
       const isDark =
-        this.theme === 'dark' ||
-        (this.theme === 'system' &&
-         window.matchMedia('(prefers-color-scheme: dark)').matches);
+        this.theme === "dark" ||
+        (this.theme === "system" &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches);
 
       if (isDark) {
-        document.documentElement.classList.add('dark');
+        document.documentElement.classList.add("dark");
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove("dark");
       }
     },
 
@@ -186,9 +210,10 @@ export const useSettingsStore = defineStore('settings', {
       this.applyTheme();
 
       // Listen for system theme changes if using system theme
-      if (this.theme === 'system') {
-        window.matchMedia('(prefers-color-scheme: dark)')
-          .addEventListener('change', () => this.applyTheme());
+      if (this.theme === "system") {
+        window
+          .matchMedia("(prefers-color-scheme: dark)")
+          .addEventListener("change", () => this.applyTheme());
       }
     },
   },

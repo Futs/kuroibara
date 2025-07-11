@@ -60,11 +60,11 @@ class Settings(BaseSettings):
 
     # Backup retention settings
     BACKUP_RETENTION_ENABLED: bool = True
-    BACKUP_RETENTION_DAILY: int = 7      # Keep 7 daily backups
-    BACKUP_RETENTION_WEEKLY: int = 4     # Keep 4 weekly backups
-    BACKUP_RETENTION_MONTHLY: int = 12   # Keep 12 monthly backups
-    BACKUP_RETENTION_YEARLY: int = 5     # Keep 5 yearly backups
-    BACKUP_RETENTION_MAX_TOTAL: int = 50 # Maximum total backups regardless of age
+    BACKUP_RETENTION_DAILY: int = 7  # Keep 7 daily backups
+    BACKUP_RETENTION_WEEKLY: int = 4  # Keep 4 weekly backups
+    BACKUP_RETENTION_MONTHLY: int = 12  # Keep 12 monthly backups
+    BACKUP_RETENTION_YEARLY: int = 5  # Keep 5 yearly backups
+    BACKUP_RETENTION_MAX_TOTAL: int = 50  # Maximum total backups regardless of age
     MAX_BACKUPS: int = 30
     BACKUP_DAILY_ENABLED: bool = True
     BACKUP_WEEKLY_ENABLED: bool = True

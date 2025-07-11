@@ -1,25 +1,25 @@
-import { config } from '@vue/test-utils'
-import { vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
+import { config } from "@vue/test-utils";
+import { vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
 
 // Mock global objects
 global.ResizeObserver = vi.fn(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}))
+}));
 
 // Mock IntersectionObserver
 global.IntersectionObserver = vi.fn(() => ({
   disconnect: vi.fn(),
   observe: vi.fn(),
   unobserve: vi.fn(),
-}))
+}));
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -29,7 +29,7 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-})
+});
 
 // Configure Vue Test Utils
 config.global.mocks = {
@@ -42,23 +42,23 @@ config.global.mocks = {
     forward: vi.fn(),
   },
   $route: {
-    path: '/',
-    name: 'home',
+    path: "/",
+    name: "home",
     params: {},
     query: {},
     meta: {},
   },
-}
+};
 
 // Configure global stubs
 config.global.stubs = {
-  'router-link': true,
-  'router-view': true,
-}
+  "router-link": true,
+  "router-view": true,
+};
 
 // Initialize Pinia for tests
-const pinia = createPinia()
-setActivePinia(pinia)
+const pinia = createPinia();
+setActivePinia(pinia);
 
 // Configure global plugins
-config.global.plugins = [pinia]
+config.global.plugins = [pinia];

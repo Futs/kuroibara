@@ -25,7 +25,9 @@ class UserBase(BaseModel):
     nsfw_blur: bool = True
     download_quality: str = "high"
     download_path: str = "/app/storage"
-    naming_format_manga: str = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    naming_format_manga: str = (
+        "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    )
     naming_format_chapter: str = "{Chapter Number} - {Chapter Name}"
     auto_organize_imports: bool = True
     create_cbz_files: bool = True
@@ -90,7 +92,9 @@ class UserSettings(BaseModel):
     nsfw_blur: bool = True
     download_quality: str = "high"
     download_path: str = "/app/storage"
-    naming_format_manga: str = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    naming_format_manga: str = (
+        "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    )
     naming_format_chapter: str = "{Chapter Number} - {Chapter Name}"
     auto_organize_imports: bool = True
     create_cbz_files: bool = True

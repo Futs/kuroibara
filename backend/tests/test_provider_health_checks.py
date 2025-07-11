@@ -2,9 +2,10 @@
 Tests for provider health check functionality.
 """
 
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 
 from app.core.services.provider_monitor import ProviderMonitorService
 from app.models.provider import ProviderStatus, ProviderStatusEnum
@@ -32,7 +33,7 @@ class TestProviderHealthChecks:
 
         # Check auto-disable logic
         result = await self.monitor._check_auto_disable_enable(provider_status)
-        
+
         assert result is not None
         action, reason = result
         assert action == "disable"
@@ -51,7 +52,7 @@ class TestProviderHealthChecks:
         provider_status.last_check = datetime.now(timezone.utc)
 
         result = await self.monitor._check_auto_disable_enable(provider_status)
-        
+
         assert result is not None
         action, reason = result
         assert action == "disable"
@@ -70,7 +71,7 @@ class TestProviderHealthChecks:
         provider_status.last_check = datetime.now(timezone.utc) - timedelta(hours=50)
 
         result = await self.monitor._check_auto_disable_enable(provider_status)
-        
+
         assert result is not None
         action, reason = result
         assert action == "disable"
@@ -143,7 +144,9 @@ class TestProviderHealthChecks:
     @pytest.mark.asyncio
     async def test_daily_health_check_structure(self):
         """Test that daily health check returns proper structure."""
-        with patch('app.core.services.provider_monitor.AsyncSessionLocal') as mock_session:
+        with patch(
+            "app.core.services.provider_monitor.AsyncSessionLocal"
+        ) as mock_session:
             # Create a proper async context manager mock
             mock_db = AsyncMock()
             mock_db.commit = AsyncMock(return_value=None)
@@ -189,7 +192,9 @@ class TestProviderHealthChecks:
         provider_status = MagicMock()
         provider_status.is_enabled = True
         # Make uptime_percentage raise an exception when accessed
-        type(provider_status).uptime_percentage = PropertyMock(side_effect=Exception("Test error"))
+        type(provider_status).uptime_percentage = PropertyMock(
+            side_effect=Exception("Test error")
+        )
 
         # Should return None and not raise exception
         result = await self.monitor._check_auto_disable_enable(provider_status)

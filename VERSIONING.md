@@ -2,7 +2,7 @@
 
 This project uses **Semantic Versioning (SemVer)** with a Feature → Dev → Main branching strategy.
 
-**Current Version: 0.1.0** (Development Phase)
+**Current Version: 0.2.0** (Development Phase)
 
 ## Version Format
 

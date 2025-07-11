@@ -1,7 +1,7 @@
 [![PR Checks](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml)
 [![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
 [![Security Scan](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml)
-[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/Futs/kuroibara/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Futs/kuroibara/releases)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/node.js-22-green.svg)](https://nodejs.org/)
 [![Vue.js](https://img.shields.io/badge/vue.js-3.5.13-4FC08D.svg)](https://vuejs.org/)
@@ -16,7 +16,7 @@
 
 A modern, full-featured web application for manga, manhua, and manhwa enthusiasts. Kuroibara provides a comprehensive platform for discovering, managing, and reading manga from multiple online sources.
 
-> **⚠️ Development Status**: Kuroibara is currently in active development (v0.1.1). While the core features are functional, expect regular updates and potential breaking changes until v1.0.0 release.
+> **⚠️ Development Status**: Kuroibara is currently in active development (v0.2.0). While the core features are functional, expect regular updates and potential breaking changes until v1.0.0 release.
 
 ## ✨ Key Features
 

@@ -358,7 +358,7 @@ async def trigger_daily_health_check(
 
         return {
             "message": "Daily provider health check started",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     except Exception as e:
@@ -390,17 +390,16 @@ async def get_provider_health_status(
                 "disabled_providers": 0,
                 "healthy_providers": 0,
                 "unhealthy_providers": 0,
-                "auto_disabled_providers": 0
+                "auto_disabled_providers": 0,
             },
-            "providers": []
+            "providers": [],
         }
 
         for ps in provider_statuses:
             # Determine if provider was auto-disabled
-            is_auto_disabled = (
-                not ps.is_enabled and
-                (ps.uptime_percentage == 0.0 or
-                 ps.consecutive_failures >= ps.max_consecutive_failures)
+            is_auto_disabled = not ps.is_enabled and (
+                ps.uptime_percentage == 0.0
+                or ps.consecutive_failures >= ps.max_consecutive_failures
             )
 
             provider_info = {
@@ -414,10 +413,12 @@ async def get_provider_health_status(
                 "total_checks": ps.total_checks,
                 "successful_checks": ps.successful_checks,
                 "last_check": ps.last_check.isoformat() if ps.last_check else None,
-                "last_success": ps.last_success.isoformat() if ps.last_success else None,
+                "last_success": (
+                    ps.last_success.isoformat() if ps.last_success else None
+                ),
                 "average_response_time": ps.average_response_time,
                 "auto_disabled": is_auto_disabled,
-                "last_error": ps.last_error_message
+                "last_error": ps.last_error_message,
             }
 
             health_status["providers"].append(provider_info)
@@ -475,13 +476,15 @@ async def manually_enable_provider(
         provider_status.is_enabled = True
         await db.commit()
 
-        logger.info(f"Provider {provider_id} manually enabled by user {current_user.email}")
+        logger.info(
+            f"Provider {provider_id} manually enabled by user {current_user.email}"
+        )
 
         return {
             "message": f"Provider '{provider_status.provider_name}' enabled",
             "provider_id": provider_id,
             "enabled": True,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     except HTTPException:
@@ -520,13 +523,15 @@ async def manually_disable_provider(
         provider_status.is_enabled = False
         await db.commit()
 
-        logger.info(f"Provider {provider_id} manually disabled by user {current_user.email}")
+        logger.info(
+            f"Provider {provider_id} manually disabled by user {current_user.email}"
+        )
 
         return {
             "message": f"Provider '{provider_status.provider_name}' disabled",
             "provider_id": provider_id,
             "enabled": False,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     except HTTPException:

@@ -118,7 +118,9 @@ class ProviderMonitorService:
                     action, reason = auto_action
                     if action == "disable":
                         provider_status.is_enabled = False
-                        logger.warning(f"Auto-disabled provider {provider.name}: {reason}")
+                        logger.warning(
+                            f"Auto-disabled provider {provider.name}: {reason}"
+                        )
                     elif action == "enable":
                         provider_status.is_enabled = True
                         logger.info(f"Auto-enabled provider {provider.name}: {reason}")
@@ -134,7 +136,9 @@ class ProviderMonitorService:
         except Exception as e:
             logger.error(f"Error testing provider {provider.name}: {e}")
 
-    async def _check_auto_disable_enable(self, provider_status: ProviderStatus) -> Optional[Tuple[str, str]]:
+    async def _check_auto_disable_enable(
+        self, provider_status: ProviderStatus
+    ) -> Optional[Tuple[str, str]]:
         """
         Check if a provider should be auto-disabled or re-enabled.
 
@@ -147,37 +151,60 @@ class ProviderMonitorService:
             # Auto-disable criteria
             if bool(provider_status.is_enabled):
                 # Disable if uptime is 0% and has been checked multiple times
-                if (float(provider_status.uptime_percentage or 0) == 0.0 and
-                    int(provider_status.total_checks or 0) >= 3):
-                    return ("disable", f"0% uptime over {provider_status.total_checks} checks")
+                if (
+                    float(provider_status.uptime_percentage or 0) == 0.0
+                    and int(provider_status.total_checks or 0) >= 3
+                ):
+                    return (
+                        "disable",
+                        f"0% uptime over {provider_status.total_checks} checks",
+                    )
 
                 # Disable if consecutive failures exceed threshold
-                if (int(provider_status.consecutive_failures or 0) >= int(provider_status.max_consecutive_failures or 0) and
-                    int(provider_status.max_consecutive_failures or 0) > 0):
-                    return ("disable", f"{provider_status.consecutive_failures} consecutive failures")
+                if (
+                    int(provider_status.consecutive_failures or 0)
+                    >= int(provider_status.max_consecutive_failures or 0)
+                    and int(provider_status.max_consecutive_failures or 0) > 0
+                ):
+                    return (
+                        "disable",
+                        f"{provider_status.consecutive_failures} consecutive failures",
+                    )
 
                 # Disable if no successful check in 48+ hours
-                if (provider_status.last_check is not None and
-                    int(provider_status.successful_checks or 0) == 0 and
-                    provider_status.last_check < datetime.now(timezone.utc) - timedelta(hours=48)):
+                if (
+                    provider_status.last_check is not None
+                    and int(provider_status.successful_checks or 0) == 0
+                    and provider_status.last_check
+                    < datetime.now(timezone.utc) - timedelta(hours=48)
+                ):
                     return ("disable", "No successful checks in 48+ hours")
 
             # Auto-enable criteria
             else:
                 # Re-enable if provider becomes healthy after being disabled
-                if (provider_status.status == ProviderStatusEnum.ACTIVE.value and
-                    int(provider_status.consecutive_failures or 0) == 0):
+                if (
+                    provider_status.status == ProviderStatusEnum.ACTIVE.value
+                    and int(provider_status.consecutive_failures or 0) == 0
+                ):
                     return ("enable", "Provider is healthy again")
 
                 # Re-enable if uptime improves significantly
-                if (float(provider_status.uptime_percentage or 0) >= 50.0 and
-                    int(provider_status.total_checks or 0) >= 5):
-                    return ("enable", f"Uptime improved to {provider_status.uptime_percentage:.1f}%")
+                if (
+                    float(provider_status.uptime_percentage or 0) >= 50.0
+                    and int(provider_status.total_checks or 0) >= 5
+                ):
+                    return (
+                        "enable",
+                        f"Uptime improved to {provider_status.uptime_percentage:.1f}%",
+                    )
 
             return None
 
         except Exception as e:
-            logger.error(f"Error checking auto-disable/enable for {provider_status.provider_name}: {e}")
+            logger.error(
+                f"Error checking auto-disable/enable for {provider_status.provider_name}: {e}"
+            )
             return None
 
     async def start_monitoring(self) -> None:
@@ -335,7 +362,7 @@ class ProviderMonitorService:
             "disabled_providers": 0,
             "enabled_providers": 0,
             "actions_taken": [],
-            "provider_details": []
+            "provider_details": [],
         }
 
         try:
@@ -349,9 +376,13 @@ class ProviderMonitorService:
                 # Test all providers concurrently
                 semaphore = asyncio.Semaphore(10)  # Limit concurrent checks
 
-                async def check_provider_with_semaphore(provider_status: ProviderStatus):
+                async def check_provider_with_semaphore(
+                    provider_status: ProviderStatus,
+                ):
                     async with semaphore:
-                        return await self._daily_check_single_provider(provider_status, db, results)
+                        return await self._daily_check_single_provider(
+                            provider_status, db, results
+                        )
 
                 tasks = [check_provider_with_semaphore(ps) for ps in provider_statuses]
                 await asyncio.gather(*tasks, return_exceptions=True)
@@ -380,11 +411,15 @@ class ProviderMonitorService:
             # Get the actual provider instance
             provider = provider_registry.get_provider(provider_status.provider_name)
             if not provider:
-                logger.warning(f"Provider {provider_status.provider_name} not found in registry")
+                logger.warning(
+                    f"Provider {provider_status.provider_name} not found in registry"
+                )
                 return
 
             # Perform health check
-            is_healthy, response_time, error_message = await provider.health_check(timeout=30)
+            is_healthy, response_time, error_message = await provider.health_check(
+                timeout=30
+            )
 
             # Update status
             provider_status.update_status(is_healthy, response_time, error_message)
@@ -397,29 +432,39 @@ class ProviderMonitorService:
 
                 if action == "disable":
                     provider_status.is_enabled = False
-                    results["actions_taken"].append({
-                        "provider": provider_status.provider_name,
-                        "action": "disabled",
-                        "reason": reason,
-                        "previous_status": old_status
-                    })
-                    logger.warning(f"Daily check auto-disabled {provider_status.provider_name}: {reason}")
+                    results["actions_taken"].append(
+                        {
+                            "provider": provider_status.provider_name,
+                            "action": "disabled",
+                            "reason": reason,
+                            "previous_status": old_status,
+                        }
+                    )
+                    logger.warning(
+                        f"Daily check auto-disabled {provider_status.provider_name}: {reason}"
+                    )
 
                 elif action == "enable":
                     provider_status.is_enabled = True
-                    results["actions_taken"].append({
-                        "provider": provider_status.provider_name,
-                        "action": "enabled",
-                        "reason": reason,
-                        "previous_status": old_status
-                    })
-                    logger.info(f"Daily check auto-enabled {provider_status.provider_name}: {reason}")
+                    results["actions_taken"].append(
+                        {
+                            "provider": provider_status.provider_name,
+                            "action": "enabled",
+                            "reason": reason,
+                            "previous_status": old_status,
+                        }
+                    )
+                    logger.info(
+                        f"Daily check auto-enabled {provider_status.provider_name}: {reason}"
+                    )
 
             # Update results
             if is_healthy:
                 results["healthy_providers"] = results.get("healthy_providers", 0) + 1
             else:
-                results["unhealthy_providers"] = results.get("unhealthy_providers", 0) + 1
+                results["unhealthy_providers"] = (
+                    results.get("unhealthy_providers", 0) + 1
+                )
 
             if provider_status.is_enabled:
                 results["enabled_providers"] = results.get("enabled_providers", 0) + 1
@@ -427,18 +472,22 @@ class ProviderMonitorService:
                 results["disabled_providers"] = results.get("disabled_providers", 0) + 1
 
             # Add provider details
-            results["provider_details"].append({
-                "name": provider_status.provider_name,
-                "status": "healthy" if is_healthy else "unhealthy",
-                "enabled": provider_status.is_enabled,
-                "uptime": provider_status.uptime_percentage,
-                "consecutive_failures": provider_status.consecutive_failures,
-                "response_time": response_time,
-                "error": error_message
-            })
+            results["provider_details"].append(
+                {
+                    "name": provider_status.provider_name,
+                    "status": "healthy" if is_healthy else "unhealthy",
+                    "enabled": provider_status.is_enabled,
+                    "uptime": provider_status.uptime_percentage,
+                    "consecutive_failures": provider_status.consecutive_failures,
+                    "response_time": response_time,
+                    "error": error_message,
+                }
+            )
 
         except Exception as e:
-            logger.error(f"Error in daily check for {provider_status.provider_name}: {e}")
+            logger.error(
+                f"Error in daily check for {provider_status.provider_name}: {e}"
+            )
             results["unhealthy_providers"] += 1
 
 

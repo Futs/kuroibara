@@ -8,23 +8,23 @@ def test_provider_preferences_api(client: TestClient, token: str):
     headers = {"Authorization": f"Bearer {token}"}
 
     # Test the bulk update endpoint
-    # Create test data - disable some providers
+    # Create test data - disable some providers (using actual provider IDs from new config)
     test_data = {
         "preferences": [
             {
-                "provider_id": "anigliscans",
+                "provider_id": "mangadex",
                 "is_enabled": False,  # Disable this provider
                 "is_favorite": False,
                 "priority_order": None,
             },
             {
-                "provider_id": "anshscans",
+                "provider_id": "mangaplus",
                 "is_enabled": True,
                 "is_favorite": True,
                 "priority_order": 1,
             },
             {
-                "provider_id": "arcanescans",
+                "provider_id": "toonily",
                 "is_enabled": False,  # Disable this provider
                 "is_favorite": False,
                 "priority_order": None,
@@ -49,19 +49,19 @@ def test_provider_preferences_api(client: TestClient, token: str):
         updated_data = {
             "preferences": [
                 {
-                    "provider_id": "anigliscans",
+                    "provider_id": "mangadex",
                     "is_enabled": True,  # Re-enable this provider
                     "is_favorite": True,
                     "priority_order": 1,
                 },
                 {
-                    "provider_id": "anshscans",
+                    "provider_id": "mangaplus",
                     "is_enabled": False,  # Disable this one
                     "is_favorite": False,
                     "priority_order": None,
                 },
                 {
-                    "provider_id": "arcanescans",
+                    "provider_id": "toonily",
                     "is_enabled": True,  # Re-enable this provider
                     "is_favorite": True,
                     "priority_order": 2,

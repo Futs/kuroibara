@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-01-12
+
 ### Added
 - **Enhanced Filtering System**: Multi-select genre filtering with checkbox interface
 - **Advanced Search Filters**: Status, type, year, content rating, and language filters

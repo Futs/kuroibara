@@ -1,7 +1,7 @@
 # Kuroibara Backend Project Configuration
 [project]
 name = "kuroibara-backend"
-version = "0.2.0"
+version = "0.3.0"
 description = "Backend API for Kuroibara manga management platform"
 authors = [{name = "Futs", email = "futs69@gmail.com"}]
 license = {text = "MIT"}

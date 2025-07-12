@@ -97,5 +97,11 @@ class Settings(BaseSettings):
     # FlareSolverr
     FLARESOLVERR_URL: Optional[str] = None
 
+    # External Integrations
+    ANILIST_CLIENT_ID: Optional[str] = None
+    ANILIST_CLIENT_SECRET: Optional[str] = None
+    MAL_CLIENT_ID: Optional[str] = None
+    MAL_CLIENT_SECRET: Optional[str] = None
+
 
 settings = Settings()

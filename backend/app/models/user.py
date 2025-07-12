@@ -81,3 +81,6 @@ class User(BaseModel):
     provider_preferences = relationship(
         "UserProviderPreference", back_populates="user", cascade="all, delete-orphan"
     )
+    external_integrations = relationship(
+        "ExternalIntegration", back_populates="user", cascade="all, delete-orphan"
+    )

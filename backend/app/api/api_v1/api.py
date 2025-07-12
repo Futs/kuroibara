@@ -6,6 +6,7 @@ from app.api.api_v1.endpoints import (
     categories,
     favorites,
     import_files,
+    integrations,
     library,
     manga,
     organizer,
@@ -38,3 +39,4 @@ api_router.include_router(
 )
 api_router.include_router(organizer.router, prefix="/organizer", tags=["Organizer"])
 api_router.include_router(backup.router, prefix="/backup", tags=["Backup"])
+api_router.include_router(integrations.router, prefix="/integrations", tags=["Integrations"])

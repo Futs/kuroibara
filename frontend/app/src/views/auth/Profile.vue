@@ -236,7 +236,7 @@
                 <input
                   v-model="formData.password"
                   type="password"
-                  placeholder="Leave blank to keep current password"
+                  placeholder="Enter new password (leave blank to keep current)"
                   class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
                 />
               </dd>
@@ -253,7 +253,7 @@
                 <input
                   v-model="formData.confirmPassword"
                   type="password"
-                  placeholder="Leave blank to keep current password"
+                  placeholder="Confirm new password (only if changing password)"
                   class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm"
                 />
                 <p
@@ -261,6 +261,12 @@
                   class="mt-2 text-sm text-red-600 dark:text-red-400"
                 >
                   Passwords do not match
+                </p>
+                <p
+                  v-if="formData.password && !formData.confirmPassword"
+                  class="mt-2 text-sm text-gray-500 dark:text-gray-400"
+                >
+                  Confirm password to change it, or leave both fields blank to keep current password.
                 </p>
               </dd>
             </div>
@@ -294,7 +300,7 @@
             </button>
             <button
               type="submit"
-              :disabled="updateLoading || passwordMismatch"
+              :disabled="updateLoading || !canSubmit"
               class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
@@ -525,11 +531,36 @@ const formData = ref({
 });
 
 const passwordMismatch = computed(() => {
-  return (
-    formData.value.password &&
-    formData.value.confirmPassword &&
-    formData.value.password !== formData.value.confirmPassword
-  );
+  // Only check password mismatch if both fields have content
+  if (formData.value.password && formData.value.confirmPassword) {
+    return formData.value.password !== formData.value.confirmPassword;
+  }
+  return false;
+});
+
+const isChangingPassword = computed(() => {
+  // Consider it a password change if they have both password and confirmation
+  return formData.value.password && formData.value.confirmPassword;
+});
+
+const hasPasswordError = computed(() => {
+  // Show error if they're trying to change password but passwords don't match
+  return isChangingPassword.value && passwordMismatch.value;
+});
+
+const canSubmit = computed(() => {
+  // Always require current password
+  if (!formData.value.currentPassword) {
+    return false;
+  }
+
+  // Can't submit if there's a password mismatch error
+  if (hasPasswordError.value) {
+    return false;
+  }
+
+  // Can always submit for profile updates - password change is optional
+  return true;
 });
 
 onMounted(() => {
@@ -558,7 +589,7 @@ const resetForm = () => {
 };
 
 const updateProfile = async () => {
-  if (passwordMismatch.value) return;
+  if (!canSubmit.value) return;
 
   updateLoading.value = true;
   updateError.value = null;
@@ -572,9 +603,11 @@ const updateProfile = async () => {
       avatar: formData.value.avatar,
       anilist_username: formData.value.anilist_username,
       myanimelist_username: formData.value.myanimelist_username,
+      current_password: formData.value.currentPassword,
     };
 
-    if (formData.value.password) {
+    // Only include password if user is actually changing it (both fields filled)
+    if (isChangingPassword.value) {
       payload.password = formData.value.password;
     }
 

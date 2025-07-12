@@ -46,18 +46,21 @@
             </div>
           </div>
 
-          <!-- Integrations -->
-          <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
+
+        </div>
+
+        <!-- Integrations Tab -->
+        <div v-else-if="activeTab === 'integrations'" class="space-y-6">
+          <!-- External Integrations -->
+          <div>
             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Integrations
+              External Integrations
             </h3>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Connect with external services and APIs.
+              Connect with external manga tracking services and APIs to sync your reading progress and ratings.
             </p>
             <div class="mt-4">
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Integration settings will be available in future updates.
-              </p>
+              <IntegrationSettings />
             </div>
           </div>
         </div>
@@ -424,6 +427,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useSettingsStore } from "../stores/settings";
 import ProviderPreferences from "../components/ProviderPreferences.vue";
+import IntegrationSettings from "../components/IntegrationSettings.vue";
 
 const settingsStore = useSettingsStore();
 
@@ -431,6 +435,7 @@ const settingsStore = useSettingsStore();
 const activeTab = ref('general');
 const tabs = ref([
   { id: 'general', name: 'General' },
+  { id: 'integrations', name: 'Integrations' },
   { id: 'media', name: 'Media Management' },
   { id: 'ui', name: 'UI' },
   { id: 'backup', name: 'Backup & Recovery' },

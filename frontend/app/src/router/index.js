@@ -137,6 +137,16 @@ const routes = [
         component: () => import("../views/auth/LinkAccounts.vue"),
         meta: { requiresAuth: true },
       },
+      {
+        path: "/integrations/anilist/callback",
+        name: "AnilistCallback",
+        component: () => import("../views/integrations/AnilistCallback.vue"),
+      },
+      {
+        path: "/integrations/mal/callback",
+        name: "MyAnimeListCallback",
+        component: () => import("../views/integrations/MyAnimeListCallback.vue"),
+      },
     ],
   },
 ];

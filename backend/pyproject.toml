@@ -1,3 +1,28 @@
+# Kuroibara Backend Project Configuration
+[project]
+name = "kuroibara-backend"
+version = "0.2.0"
+description = "Backend API for Kuroibara manga management platform"
+authors = [{name = "Futs", email = "futs69@gmail.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Multimedia :: Graphics :: Viewers",
+]
+keywords = ["manga", "manhwa", "manhua", "reader", "library", "api"]
+
+[project.urls]
+Homepage = "https://github.com/Futs/kuroibara"
+Repository = "https://github.com/Futs/kuroibara.git"
+Issues = "https://github.com/Futs/kuroibara/issues"
+
 # Backend Python formatting and linting configuration
 [tool.black]
 line-length = 88

@@ -358,6 +358,7 @@ const navItems = computed(() => {
       { name: "Library", to: "/library" },
       { name: "Categories", to: "/categories" },
       { name: "Reading Lists", to: "/reading-lists" },
+      { name: "Providers", to: "/providers" },
     );
   }
 

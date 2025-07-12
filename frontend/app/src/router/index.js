@@ -14,6 +14,7 @@ import MangaReader from "../views/MangaReader.vue";
 import Search from "../views/Search.vue";
 import Categories from "../views/Categories.vue";
 import ReadingLists from "../views/ReadingLists.vue";
+import Providers from "../views/Providers.vue";
 import Settings from "../views/Settings.vue";
 import Recovery from "../views/Recovery.vue";
 import Backup from "../views/Backup.vue";
@@ -93,6 +94,12 @@ const routes = [
         path: "reading-lists",
         name: "reading-lists",
         component: ReadingLists,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: "providers",
+        name: "providers",
+        component: Providers,
         beforeEnter: requireAuth,
       },
       {

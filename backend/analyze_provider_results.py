@@ -7,7 +7,7 @@ import json
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 
 def load_results(filename: str = "provider_test_results.json") -> Dict[str, Any]:

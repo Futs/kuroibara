@@ -12,8 +12,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import AsyncSessionLocal
+
 from app.db.init_db import create_initial_data
+from app.db.session import AsyncSessionLocal
 
 
 async def setup_test_db():

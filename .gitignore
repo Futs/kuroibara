@@ -123,5 +123,10 @@ TEMP_*.md
 *flaresolverr_test_results*
 PROVIDER_HEALTH_REPORT.md
 
+# Test Files
+test_provider_fixes.py
+**/test_provider_*.py
+**/test_*_fixes.py
+
 # Temporary - to fix GitHub README display issue
 # CI-CD-SETUP.md

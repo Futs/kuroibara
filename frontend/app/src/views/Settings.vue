@@ -35,12 +35,14 @@
         <div v-if="activeTab === 'general'" class="space-y-6">
           <!-- Provider Preferences -->
           <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Providers
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Configure your preferred manga providers and their settings.
-            </p>
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Providers
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Configure your preferred manga providers and their settings.
+              </p>
+            </div>
             <div class="mt-4">
               <ProviderPreferences />
             </div>
@@ -53,12 +55,14 @@
         <div v-else-if="activeTab === 'integrations'" class="space-y-6">
           <!-- External Integrations -->
           <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              External Integrations
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Connect with external manga tracking services and APIs to sync your reading progress and ratings.
-            </p>
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                External Integrations
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Connect with external manga tracking services and APIs to sync your reading progress and ratings.
+              </p>
+            </div>
             <div class="mt-4">
               <IntegrationSettings />
             </div>
@@ -69,12 +73,14 @@
         <div v-else-if="activeTab === 'media'" class="space-y-6">
           <!-- Naming & Organization -->
           <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Naming & Organization
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Configure how manga and chapters are named and organized
-            </p>
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Naming & Organization
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Configure how manga and chapters are named and organized
+              </p>
+            </div>
 
             <div class="mt-4">
               <label
@@ -188,12 +194,14 @@
         <div v-else-if="activeTab === 'ui'" class="space-y-6">
           <!-- Theme Settings -->
           <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Themes
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Choose your preferred color scheme
-            </p>
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Themes
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Choose your preferred color scheme
+              </p>
+            </div>
 
             <div class="mt-4">
               <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -288,13 +296,15 @@
           </div>
 
           <!-- Language Settings -->
-          <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Language
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Choose your preferred language for the interface
-            </p>
+          <div class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600">
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Language
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Choose your preferred language for the interface
+              </p>
+            </div>
             <div class="mt-4">
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 Language settings will be available in future updates.
@@ -303,13 +313,15 @@
           </div>
 
           <!-- NSFW Content Settings -->
-          <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Content Filtering
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Control how explicit content is displayed
-            </p>
+          <div class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600">
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Content Filtering
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Control how explicit content is displayed
+              </p>
+            </div>
 
             <div class="mt-4 flex items-center justify-between">
               <div>
@@ -353,12 +365,14 @@
         <div v-else-if="activeTab === 'downloads'" class="space-y-6">
           <!-- Download Settings -->
           <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Download Settings
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Configure download preferences and behavior
-            </p>
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Download Settings
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Configure download preferences and behavior
+              </p>
+            </div>
             <div class="mt-4">
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 Download settings will be available when the download feature is implemented.

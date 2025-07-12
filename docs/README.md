@@ -26,6 +26,9 @@ This directory contains **technical documentation** for developers and system ad
 - **[Tech Stack](TECH_STACK.md)** - Technology choices and architecture decisions
 - **[Providers System](PROVIDERS.md)** - Provider architecture and adding new providers
 
+### ✨ **Features Documentation**
+- **[🔍 Enhanced Filtering](features/Enhanced-Filtering.md)** - Multi-select genre filtering and advanced search capabilities
+
 ### ⚙️ **System Administration**
 - **[Configuration Guide](CONFIGURATION.md)** - Environment variables and system configuration
 - **[FlareSolverr Setup](FLARESOLVERR_SETUP.md)** - Optional Cloudflare bypass integration

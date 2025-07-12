@@ -10,6 +10,8 @@ from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangaplus import MangaPlusProvider
 
+# from app.core.providers.mangasee import MangaSeeProvider  # Module not found
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +26,7 @@ class ProviderRegistry:
         # Initialize provider factory
         provider_factory.register_provider_class(MangaDexProvider)
         provider_factory.register_provider_class(MangaPlusProvider)
+        # MangaSeeProvider removed - moved to weebcentral.com
         provider_factory.register_provider_class(GenericProvider)
         provider_factory.register_provider_class(EnhancedGenericProvider)
         logger.info("Registered provider classes")
@@ -38,6 +41,7 @@ class ProviderRegistry:
             )
             self.register_provider(MangaDexProvider())
             self.register_provider(MangaPlusProvider())
+            # MangaSeeProvider removed - moved to weebcentral.com
 
         logger.info(
             f"ProviderRegistry initialized with {len(self._providers)} providers: {list(self._providers.keys())}"
@@ -83,7 +87,7 @@ class ProviderRegistry:
         default_providers = [
             "mangadex",
             "mangaplus",
-            "weebcentral",
+            "mangasee",
             "toonily",
             "mangabuddy",
             "mangadna",
@@ -91,17 +95,31 @@ class ProviderRegistry:
             "webcomicsapp",
         ]
 
-        return [
-            {
-                "id": provider.name.lower(),
-                "name": provider.name,
-                "url": provider.url,
-                "supports_nsfw": provider.supports_nsfw,
-                "is_priority": provider.name.lower() in default_providers,
-                "priority": priority,
-            }
-            for provider, priority in providers_with_priority
-        ]
+        # Build provider info list with requires_flaresolverr information
+        provider_info_list = []
+        for provider, priority in providers_with_priority:
+            provider_id = provider.name.lower()
+
+            # Get requires_flaresolverr from provider config
+            requires_flaresolverr = False
+            for config in provider_factory._provider_configs.values():
+                if config.get("id") == provider_id:
+                    requires_flaresolverr = config.get("requires_flaresolverr", False)
+                    break
+
+            provider_info_list.append(
+                {
+                    "id": provider_id,
+                    "name": provider.name,
+                    "url": provider.url,
+                    "supports_nsfw": provider.supports_nsfw,
+                    "requires_flaresolverr": requires_flaresolverr,
+                    "is_priority": provider.name.lower() in default_providers,
+                    "priority": priority,
+                }
+            )
+
+        return provider_info_list
 
     def _load_provider_configs(self) -> None:
         """Load provider configurations from JSON files."""

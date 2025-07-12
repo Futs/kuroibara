@@ -102,6 +102,12 @@ const routes = [
         beforeEnter: requireAuth,
       },
       {
+        path: "providers/:providerId/manga/:mangaId",
+        name: "provider-manga-details",
+        component: MangaDetails,
+        beforeEnter: requireAuth,
+      },
+      {
         path: "settings",
         name: "settings",
         component: Settings,
@@ -133,7 +139,8 @@ const routes = [
       {
         path: "/integrations/mal/callback",
         name: "MyAnimeListCallback",
-        component: () => import("../views/integrations/MyAnimeListCallback.vue"),
+        component: () =>
+          import("../views/integrations/MyAnimeListCallback.vue"),
       },
     ],
   },

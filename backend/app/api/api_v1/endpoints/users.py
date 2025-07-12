@@ -65,7 +65,9 @@ async def update_current_user(
             )
 
     # Update user fields
-    update_data = user_update.model_dump(exclude_unset=True, exclude={"current_password"})
+    update_data = user_update.model_dump(
+        exclude_unset=True, exclude={"current_password"}
+    )
 
     # Hash password if it's being updated
     if "password" in update_data:

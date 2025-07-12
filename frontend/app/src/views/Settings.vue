@@ -21,7 +21,7 @@
               activeTab === tab.id
                 ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                 : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300',
-              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
             ]"
           >
             {{ tab.name }}
@@ -47,8 +47,6 @@
               <ProviderPreferences />
             </div>
           </div>
-
-
         </div>
 
         <!-- Integrations Tab -->
@@ -60,7 +58,8 @@
                 External Integrations
               </h3>
               <p class="text-gray-600 dark:text-gray-400">
-                Connect with external manga tracking services and APIs to sync your reading progress and ratings.
+                Connect with external manga tracking services and APIs to sync
+                your reading progress and ratings.
               </p>
             </div>
             <div class="mt-4">
@@ -137,7 +136,9 @@
             <div class="mt-6 space-y-4">
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Auto-organize imports
                   </label>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -164,7 +165,9 @@
 
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Create CBZ files
                   </label>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -204,7 +207,9 @@
             </div>
 
             <div class="mt-4">
-              <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                class="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Theme
               </label>
               <div class="mt-2 grid grid-cols-3 gap-3">
@@ -217,7 +222,9 @@
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800',
                   ]"
                 >
-                  <span class="flex items-center justify-center text-sm font-medium text-gray-900 dark:text-white">
+                  <span
+                    class="flex items-center justify-center text-sm font-medium text-gray-900 dark:text-white"
+                  >
                     <svg
                       class="h-5 w-5 mr-2 text-yellow-500"
                       xmlns="http://www.w3.org/2000/svg"
@@ -245,7 +252,9 @@
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800',
                   ]"
                 >
-                  <span class="flex items-center justify-center text-sm font-medium text-gray-900 dark:text-white">
+                  <span
+                    class="flex items-center justify-center text-sm font-medium text-gray-900 dark:text-white"
+                  >
                     <svg
                       class="h-5 w-5 mr-2 text-gray-400"
                       xmlns="http://www.w3.org/2000/svg"
@@ -273,7 +282,9 @@
                       : 'border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800',
                   ]"
                 >
-                  <span class="flex items-center justify-center text-sm font-medium text-gray-900 dark:text-white">
+                  <span
+                    class="flex items-center justify-center text-sm font-medium text-gray-900 dark:text-white"
+                  >
                     <svg
                       class="h-5 w-5 mr-2 text-gray-500"
                       xmlns="http://www.w3.org/2000/svg"
@@ -296,7 +307,9 @@
           </div>
 
           <!-- Language Settings -->
-          <div class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600">
+          <div
+            class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600"
+          >
             <div class="mb-6">
               <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Language
@@ -313,7 +326,9 @@
           </div>
 
           <!-- NSFW Content Settings -->
-          <div class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600">
+          <div
+            class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600"
+          >
             <div class="mb-6">
               <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Content Filtering
@@ -325,7 +340,9 @@
 
             <div class="mt-4 flex items-center justify-between">
               <div>
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
                   Blur NSFW Content
                 </label>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -356,7 +373,9 @@
           </div>
 
           <!-- Storage Recovery -->
-          <div class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600">
+          <div
+            class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600"
+          >
             <StorageRecovery />
           </div>
         </div>
@@ -375,14 +394,17 @@
             </div>
             <div class="mt-4">
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                Download settings will be available when the download feature is implemented.
+                Download settings will be available when the download feature is
+                implemented.
               </p>
             </div>
           </div>
         </div>
 
         <!-- Save Button (shown for all tabs) -->
-        <div class="pt-6 border-t border-gray-200 dark:border-dark-600 flex justify-end">
+        <div
+          class="pt-6 border-t border-gray-200 dark:border-dark-600 flex justify-end"
+        >
           <button
             @click="saveSettings"
             :disabled="loading"
@@ -430,14 +452,14 @@ const route = useRoute();
 const settingsStore = useSettingsStore();
 
 // Tab management
-const activeTab = ref('general');
+const activeTab = ref("general");
 const tabs = ref([
-  { id: 'general', name: 'General' },
-  { id: 'integrations', name: 'Integrations' },
-  { id: 'media', name: 'Media Management' },
-  { id: 'ui', name: 'UI' },
-  { id: 'backup', name: 'Backup & Recovery' },
-  { id: 'downloads', name: 'Downloads' }
+  { id: "general", name: "General" },
+  { id: "integrations", name: "Integrations" },
+  { id: "media", name: "Media Management" },
+  { id: "ui", name: "UI" },
+  { id: "backup", name: "Backup & Recovery" },
+  { id: "downloads", name: "Downloads" },
 ]);
 
 // Local state
@@ -540,7 +562,7 @@ const saveSettings = async () => {
 onMounted(async () => {
   // Check for tab query parameter
   const tabParam = route.query.tab;
-  if (tabParam && tabs.value.some(tab => tab.id === tabParam)) {
+  if (tabParam && tabs.value.some((tab) => tab.id === tabParam)) {
     activeTab.value = tabParam;
   }
 

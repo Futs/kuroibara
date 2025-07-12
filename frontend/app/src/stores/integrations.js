@@ -16,9 +16,12 @@ export const useIntegrationsStore = defineStore("integrations", {
     isMALConnected: (state) => state.malStatus?.is_connected || false,
     isKitsuConnected: (state) => state.kitsuStatus?.is_connected || false,
     hasAnyConnection: (state) =>
-      (state.anilistStatus?.is_connected || false) ||
-      (state.malStatus?.is_connected || false) ||
-      (state.kitsuStatus?.is_connected || false),
+      state.anilistStatus?.is_connected ||
+      false ||
+      state.malStatus?.is_connected ||
+      false ||
+      state.kitsuStatus?.is_connected ||
+      false,
   },
 
   actions: {
@@ -34,7 +37,9 @@ export const useIntegrationsStore = defineStore("integrations", {
         this.malStatus = settings.myanimelist;
         this.kitsuStatus = settings.kitsu;
       } catch (error) {
-        this.error = error.response?.data?.detail || "Failed to fetch integration settings";
+        this.error =
+          error.response?.data?.detail ||
+          "Failed to fetch integration settings";
         console.error("Integration settings fetch error:", error);
       } finally {
         this.loading = false;
@@ -57,7 +62,9 @@ export const useIntegrationsStore = defineStore("integrations", {
 
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || `Failed to setup ${integrationType} credentials`;
+        this.error =
+          error.response?.data?.detail ||
+          `Failed to setup ${integrationType} credentials`;
         console.error(`${integrationType} setup error:`, error);
         throw error;
       } finally {
@@ -80,7 +87,8 @@ export const useIntegrationsStore = defineStore("integrations", {
 
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || "Failed to connect Anilist";
+        this.error =
+          error.response?.data?.detail || "Failed to connect Anilist";
         console.error("Anilist connection error:", error);
         throw error;
       } finally {
@@ -93,18 +101,22 @@ export const useIntegrationsStore = defineStore("integrations", {
       this.error = null;
 
       try {
-        const response = await axios.post("/v1/integrations/myanimelist/connect", {
-          authorization_code: authCode,
-          code_verifier: codeVerifier,
-          redirect_uri: redirectUri,
-        });
+        const response = await axios.post(
+          "/v1/integrations/myanimelist/connect",
+          {
+            authorization_code: authCode,
+            code_verifier: codeVerifier,
+            redirect_uri: redirectUri,
+          },
+        );
 
         // Refresh settings to get updated status
         await this.fetchIntegrationSettings();
 
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || "Failed to connect MyAnimeList";
+        this.error =
+          error.response?.data?.detail || "Failed to connect MyAnimeList";
         console.error("MyAnimeList connection error:", error);
         throw error;
       } finally {
@@ -126,7 +138,8 @@ export const useIntegrationsStore = defineStore("integrations", {
         await this.fetchIntegrationSettings();
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || "Failed to connect Kitsu account";
+        this.error =
+          error.response?.data?.detail || "Failed to connect Kitsu account";
         throw error;
       } finally {
         this.loading = false;
@@ -138,20 +151,25 @@ export const useIntegrationsStore = defineStore("integrations", {
       this.error = null;
 
       try {
-        const response = await axios.put(`/v1/integrations/${integrationType}`, settings);
+        const response = await axios.put(
+          `/v1/integrations/${integrationType}`,
+          settings,
+        );
 
         // Update local state
-        if (integrationType === 'anilist') {
+        if (integrationType === "anilist") {
           this.anilistStatus = { ...this.anilistStatus, ...settings };
-        } else if (integrationType === 'myanimelist') {
+        } else if (integrationType === "myanimelist") {
           this.malStatus = { ...this.malStatus, ...settings };
-        } else if (integrationType === 'kitsu') {
+        } else if (integrationType === "kitsu") {
           this.kitsuStatus = { ...this.kitsuStatus, ...settings };
         }
 
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || `Failed to update ${integrationType} settings`;
+        this.error =
+          error.response?.data?.detail ||
+          `Failed to update ${integrationType} settings`;
         console.error(`${integrationType} settings update error:`, error);
         throw error;
       } finally {
@@ -167,27 +185,29 @@ export const useIntegrationsStore = defineStore("integrations", {
         await axios.delete(`/v1/integrations/${integrationType}`);
 
         // Update local state
-        if (integrationType === 'anilist') {
+        if (integrationType === "anilist") {
           this.anilistStatus = {
-            integration_type: 'anilist',
+            integration_type: "anilist",
             is_connected: false,
-            last_sync_status: 'disabled',
+            last_sync_status: "disabled",
             sync_enabled: false,
             auto_sync: false,
             manga_count: 0,
           };
-        } else if (integrationType === 'myanimelist') {
+        } else if (integrationType === "myanimelist") {
           this.malStatus = {
-            integration_type: 'myanimelist',
+            integration_type: "myanimelist",
             is_connected: false,
-            last_sync_status: 'disabled',
+            last_sync_status: "disabled",
             sync_enabled: false,
             auto_sync: false,
             manga_count: 0,
           };
         }
       } catch (error) {
-        this.error = error.response?.data?.detail || `Failed to disconnect ${integrationType}`;
+        this.error =
+          error.response?.data?.detail ||
+          `Failed to disconnect ${integrationType}`;
         console.error(`${integrationType} disconnection error:`, error);
         throw error;
       } finally {
@@ -207,10 +227,10 @@ export const useIntegrationsStore = defineStore("integrations", {
         });
 
         // Update sync status
-        if (integrationType === 'anilist' && this.anilistStatus) {
-          this.anilistStatus.last_sync_status = 'in_progress';
-        } else if (integrationType === 'myanimelist' && this.malStatus) {
-          this.malStatus.last_sync_status = 'in_progress';
+        if (integrationType === "anilist" && this.anilistStatus) {
+          this.anilistStatus.last_sync_status = "in_progress";
+        } else if (integrationType === "myanimelist" && this.malStatus) {
+          this.malStatus.last_sync_status = "in_progress";
         }
 
         // Poll for sync completion (optional)
@@ -218,7 +238,9 @@ export const useIntegrationsStore = defineStore("integrations", {
 
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.detail || `Failed to trigger ${integrationType} sync`;
+        this.error =
+          error.response?.data?.detail ||
+          `Failed to trigger ${integrationType} sync`;
         console.error(`${integrationType} sync error:`, error);
         throw error;
       } finally {
@@ -228,7 +250,7 @@ export const useIntegrationsStore = defineStore("integrations", {
 
     async pollSyncStatus(integrationType, maxAttempts = 30) {
       let attempts = 0;
-      
+
       const poll = async () => {
         if (attempts >= maxAttempts) {
           console.warn(`Sync status polling timeout for ${integrationType}`);
@@ -237,17 +259,21 @@ export const useIntegrationsStore = defineStore("integrations", {
 
         try {
           await this.fetchIntegrationSettings();
-          
-          const status = integrationType === 'anilist' 
-            ? this.anilistStatus?.last_sync_status 
-            : this.malStatus?.last_sync_status;
 
-          if (status === 'in_progress') {
+          const status =
+            integrationType === "anilist"
+              ? this.anilistStatus?.last_sync_status
+              : this.malStatus?.last_sync_status;
+
+          if (status === "in_progress") {
             attempts++;
             setTimeout(poll, 2000); // Poll every 2 seconds
           }
         } catch (error) {
-          console.error(`Error polling sync status for ${integrationType}:`, error);
+          console.error(
+            `Error polling sync status for ${integrationType}:`,
+            error,
+          );
         }
       };
 
@@ -280,44 +306,44 @@ export const useIntegrationsStore = defineStore("integrations", {
     // Get sync status for display
     getSyncStatusText(integrationType) {
       let status;
-      if (integrationType === 'anilist') {
+      if (integrationType === "anilist") {
         status = this.anilistStatus?.last_sync_status;
-      } else if (integrationType === 'myanimelist') {
+      } else if (integrationType === "myanimelist") {
         status = this.malStatus?.last_sync_status;
-      } else if (integrationType === 'kitsu') {
+      } else if (integrationType === "kitsu") {
         status = this.kitsuStatus?.last_sync_status;
       }
 
       const statusMap = {
-        'pending': 'Pending',
-        'in_progress': 'Syncing...',
-        'success': 'Success',
-        'failed': 'Failed',
-        'disabled': 'Disabled',
+        pending: "Pending",
+        in_progress: "Syncing...",
+        success: "Success",
+        failed: "Failed",
+        disabled: "Disabled",
       };
 
-      return statusMap[status] || 'Unknown';
+      return statusMap[status] || "Unknown";
     },
 
     getSyncStatusColor(integrationType) {
       let status;
-      if (integrationType === 'anilist') {
+      if (integrationType === "anilist") {
         status = this.anilistStatus?.last_sync_status;
-      } else if (integrationType === 'myanimelist') {
+      } else if (integrationType === "myanimelist") {
         status = this.malStatus?.last_sync_status;
-      } else if (integrationType === 'kitsu') {
+      } else if (integrationType === "kitsu") {
         status = this.kitsuStatus?.last_sync_status;
       }
 
       const colorMap = {
-        'pending': 'text-yellow-600',
-        'in_progress': 'text-blue-600',
-        'success': 'text-green-600',
-        'failed': 'text-red-600',
-        'disabled': 'text-gray-600',
+        pending: "text-yellow-600",
+        in_progress: "text-blue-600",
+        success: "text-green-600",
+        failed: "text-red-600",
+        disabled: "text-gray-600",
       };
 
-      return colorMap[status] || 'text-gray-600';
+      return colorMap[status] || "text-gray-600";
     },
   },
 });

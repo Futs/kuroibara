@@ -1,9 +1,13 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+  <div
+    class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"
+  >
     <div class="max-w-md w-full space-y-8">
       <div class="text-center">
         <div v-if="loading" class="space-y-4">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto"></div>
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto"
+          ></div>
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Connecting to MyAnimeList...
           </h2>
@@ -13,23 +17,48 @@
         </div>
 
         <div v-else-if="success" class="space-y-4">
-          <div class="rounded-full h-12 w-12 bg-green-100 dark:bg-green-900 mx-auto flex items-center justify-center">
-            <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          <div
+            class="rounded-full h-12 w-12 bg-green-100 dark:bg-green-900 mx-auto flex items-center justify-center"
+          >
+            <svg
+              class="h-6 w-6 text-green-600 dark:text-green-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              ></path>
             </svg>
           </div>
           <h2 class="text-xl font-semibold text-green-900 dark:text-green-100">
             Successfully Connected!
           </h2>
           <p class="text-gray-600 dark:text-gray-400">
-            Your MyAnimeList account has been connected. You can close this window.
+            Your MyAnimeList account has been connected. You can close this
+            window.
           </p>
         </div>
 
         <div v-else-if="error" class="space-y-4">
-          <div class="rounded-full h-12 w-12 bg-red-100 dark:bg-red-900 mx-auto flex items-center justify-center">
-            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          <div
+            class="rounded-full h-12 w-12 bg-red-100 dark:bg-red-900 mx-auto flex items-center justify-center"
+          >
+            <svg
+              class="h-6 w-6 text-red-600 dark:text-red-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
             </svg>
           </div>
           <h2 class="text-xl font-semibold text-red-900 dark:text-red-100">
@@ -51,9 +80,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { useIntegrationsStore } from '../../stores/integrations';
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useIntegrationsStore } from "../../stores/integrations";
 
 const route = useRoute();
 const integrationsStore = useIntegrationsStore();
@@ -77,41 +106,46 @@ const handleCallback = async () => {
     }
 
     if (!authCode) {
-      throw new Error('No authorization code received');
+      throw new Error("No authorization code received");
     }
 
     // Get redirect URI and code verifier
     const redirectUri = `${window.location.origin}/integrations/mal/callback`;
-    const codeVerifier = 'challenge'; // This should match what was sent in the initial request
+    const codeVerifier = "challenge"; // This should match what was sent in the initial request
 
     // Connect the account
     await integrationsStore.connectMAL(authCode, codeVerifier, redirectUri);
 
     success.value = true;
-    
+
     // Notify parent window if this is a popup
     if (window.opener) {
-      window.opener.postMessage({
-        type: 'MAL_AUTH_SUCCESS',
-        data: { success: true }
-      }, window.location.origin);
-      
+      window.opener.postMessage(
+        {
+          type: "MAL_AUTH_SUCCESS",
+          data: { success: true },
+        },
+        window.location.origin,
+      );
+
       // Close popup after a short delay
       setTimeout(() => {
         window.close();
       }, 2000);
     }
-
   } catch (err) {
-    console.error('MyAnimeList callback error:', err);
-    error.value = err.message || 'Failed to connect MyAnimeList account';
-    
+    console.error("MyAnimeList callback error:", err);
+    error.value = err.message || "Failed to connect MyAnimeList account";
+
     // Notify parent window of error if this is a popup
     if (window.opener) {
-      window.opener.postMessage({
-        type: 'MAL_AUTH_ERROR',
-        data: { error: error.value }
-      }, window.location.origin);
+      window.opener.postMessage(
+        {
+          type: "MAL_AUTH_ERROR",
+          data: { error: error.value },
+        },
+        window.location.origin,
+      );
     }
   } finally {
     loading.value = false;
@@ -124,7 +158,7 @@ const retry = () => {
     window.close();
   } else {
     // If not a popup, redirect to settings
-    window.location.href = '/settings';
+    window.location.href = "/settings";
   }
 };
 

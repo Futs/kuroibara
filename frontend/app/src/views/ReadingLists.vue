@@ -274,7 +274,7 @@
       role="dialog"
       aria-modal="true"
       @click.self="closeModal"
-      style="background-color: rgba(0,0,0,0.5);"
+      style="background-color: rgba(0, 0, 0, 0.5)"
     >
       <div class="flex items-center justify-center min-h-screen p-4">
         <!-- Modal Content -->
@@ -528,9 +528,11 @@ const fetchReadingLists = async () => {
     if (err.response?.status === 401) {
       error.value = "Authentication required. Please log in again.";
     } else if (err.response?.status === 403) {
-      error.value = "Access denied. You don't have permission to view reading lists.";
+      error.value =
+        "Access denied. You don't have permission to view reading lists.";
     } else {
-      error.value = err.response?.data?.detail || "Failed to load reading lists";
+      error.value =
+        err.response?.data?.detail || "Failed to load reading lists";
     }
   } finally {
     loading.value = false;

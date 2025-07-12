@@ -71,6 +71,22 @@
             >
               Priority {{ provider.priority_order }}
             </span>
+
+            <!-- Cloudflare Badge -->
+            <span
+              v-if="provider.requires_flaresolverr"
+              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+              title="This provider requires Cloudflare protection bypass"
+            >
+              <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              CF
+            </span>
           </div>
 
           <div

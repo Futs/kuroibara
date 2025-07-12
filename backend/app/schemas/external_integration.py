@@ -13,9 +13,9 @@ from app.schemas.base import BaseSchema
 # Base schemas
 class ExternalIntegrationBase(BaseModel):
     """Base external integration schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     integration_type: IntegrationType
     sync_enabled: bool = True
     sync_reading_progress: bool = True
@@ -63,15 +63,17 @@ class ExternalIntegration(ExternalIntegrationBase, BaseSchema):
     settings: Optional[Dict[str, Any]] = None
 
     # Don't expose sensitive tokens and secrets in responses
-    model_config = ConfigDict(from_attributes=True, exclude={"access_token", "refresh_token", "client_secret"})
+    model_config = ConfigDict(
+        from_attributes=True, exclude={"access_token", "refresh_token", "client_secret"}
+    )
 
 
 # Manga mapping schemas
 class ExternalMangaMappingBase(BaseModel):
     """Base external manga mapping schema."""
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     external_manga_id: str
     external_title: Optional[str] = None
     external_url: Optional[str] = None
@@ -79,14 +81,14 @@ class ExternalMangaMappingBase(BaseModel):
 
 class ExternalMangaMappingCreate(ExternalMangaMappingBase):
     """Schema for creating external manga mappings."""
-    
+
     manga_id: UUID
     external_data: Optional[Dict[str, Any]] = None
 
 
 class ExternalMangaMappingUpdate(BaseModel):
     """Schema for updating external manga mappings."""
-    
+
     external_title: Optional[str] = None
     external_url: Optional[str] = None
     external_data: Optional[Dict[str, Any]] = None
@@ -94,7 +96,7 @@ class ExternalMangaMappingUpdate(BaseModel):
 
 class ExternalMangaMapping(ExternalMangaMappingBase, BaseSchema):
     """Schema for external manga mapping responses."""
-    
+
     integration_id: UUID
     manga_id: UUID
     last_synced_at: Optional[datetime] = None
@@ -142,18 +144,18 @@ class IntegrationSetupRequest(BaseModel):
 
 class SyncRequest(BaseModel):
     """Schema for manual sync requests."""
-    
+
     integration_type: IntegrationType
     force_full_sync: bool = False
     sync_direction: str = Field(
-        default="bidirectional", 
-        description="Sync direction: 'to_external', 'from_external', or 'bidirectional'"
+        default="bidirectional",
+        description="Sync direction: 'to_external', 'from_external', or 'bidirectional'",
     )
 
 
 class SyncResponse(BaseModel):
     """Schema for sync operation responses."""
-    
+
     integration_type: IntegrationType
     status: SyncStatus
     message: str
@@ -165,7 +167,7 @@ class SyncResponse(BaseModel):
 
 class IntegrationStatus(BaseModel):
     """Schema for integration status responses."""
-    
+
     integration_type: IntegrationType
     is_connected: bool
     external_username: Optional[str] = None
@@ -178,7 +180,7 @@ class IntegrationStatus(BaseModel):
 
 class IntegrationSettings(BaseModel):
     """Schema for integration settings."""
-    
+
     anilist: Optional[IntegrationStatus] = None
     myanimelist: Optional[IntegrationStatus] = None
 
@@ -186,7 +188,7 @@ class IntegrationSettings(BaseModel):
 # External service data schemas
 class ExternalMangaData(BaseModel):
     """Schema for external manga data from APIs."""
-    
+
     id: str
     title: str
     status: Optional[str] = None
@@ -201,7 +203,7 @@ class ExternalMangaData(BaseModel):
 
 class ExternalMangaList(BaseModel):
     """Schema for external manga list responses."""
-    
+
     manga: List[ExternalMangaData]
     total_count: int
     has_next_page: bool = False
@@ -211,7 +213,7 @@ class ExternalMangaList(BaseModel):
 # Webhook schemas (for future use)
 class WebhookEvent(BaseModel):
     """Schema for webhook events from external services."""
-    
+
     integration_type: IntegrationType
     event_type: str
     manga_id: str

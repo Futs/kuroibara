@@ -13,7 +13,12 @@ from sqlalchemy.orm import selectinload
 from app.core.deps import get_current_user, get_db
 from app.core.services.integrations import AnilistClient, MyAnimeListClient, KitsuClient
 from app.core.services.integrations.sync_service import SyncService
-from app.models.external_integration import ExternalIntegration, ExternalMangaMapping, IntegrationType, SyncStatus
+from app.models.external_integration import (
+    ExternalIntegration,
+    ExternalMangaMapping,
+    IntegrationType,
+    SyncStatus,
+)
 from app.models.user import User
 from app.schemas.external_integration import (
     AnilistAuthRequest,
@@ -26,7 +31,7 @@ from app.schemas.external_integration import (
     SyncRequest,
     SyncResponse,
     IntegrationSettings,
-    IntegrationStatus
+    IntegrationStatus,
 )
 
 router = APIRouter()
@@ -46,12 +51,12 @@ async def get_integration_settings(
         .where(ExternalIntegration.user_id == current_user.id)
     )
     integrations = result.scalars().all()
-    
+
     settings = IntegrationSettings()
-    
+
     for integration in integrations:
         manga_count = len(integration.manga_mappings)
-        
+
         integration_status = IntegrationStatus(
             integration_type=integration.integration_type,
             is_connected=True,
@@ -60,14 +65,14 @@ async def get_integration_settings(
             last_sync_status=integration.last_sync_status,
             sync_enabled=integration.sync_enabled,
             auto_sync=integration.auto_sync,
-            manga_count=manga_count
+            manga_count=manga_count,
         )
-        
+
         if integration.integration_type == IntegrationType.ANILIST:
             settings.anilist = integration_status
         elif integration.integration_type == IntegrationType.MYANIMELIST:
             settings.myanimelist = integration_status
-    
+
     # Set default status for unconnected integrations
     if not settings.anilist:
         settings.anilist = IntegrationStatus(
@@ -75,18 +80,18 @@ async def get_integration_settings(
             is_connected=False,
             last_sync_status=SyncStatus.DISABLED,
             sync_enabled=False,
-            auto_sync=False
+            auto_sync=False,
         )
-    
+
     if not settings.myanimelist:
         settings.myanimelist = IntegrationStatus(
             integration_type=IntegrationType.MYANIMELIST,
             is_connected=False,
             last_sync_status=SyncStatus.DISABLED,
             sync_enabled=False,
-            auto_sync=False
+            auto_sync=False,
         )
-    
+
     return settings
 
 
@@ -101,8 +106,11 @@ async def setup_integration(
         # Check if integration already exists
         result = await db.execute(
             select(ExternalIntegration).where(
-                (ExternalIntegration.user_id == current_user.id) &
-                (ExternalIntegration.integration_type == setup_request.integration_type)
+                (ExternalIntegration.user_id == current_user.id)
+                & (
+                    ExternalIntegration.integration_type
+                    == setup_request.integration_type
+                )
             )
         )
         integration = result.scalars().first()
@@ -110,7 +118,9 @@ async def setup_integration(
         if integration:
             # Update existing integration
             integration.client_id = setup_request.client_id
-            integration.client_secret = setup_request.client_secret  # TODO: Encrypt this
+            integration.client_secret = (
+                setup_request.client_secret
+            )  # TODO: Encrypt this
             integration.last_sync_status = SyncStatus.PENDING
         else:
             # Create new integration
@@ -121,7 +131,7 @@ async def setup_integration(
                 client_secret=setup_request.client_secret,  # TODO: Encrypt this
                 sync_enabled=True,
                 auto_sync=True,
-                last_sync_status=SyncStatus.PENDING
+                last_sync_status=SyncStatus.PENDING,
             )
             db.add(integration)
 
@@ -131,10 +141,12 @@ async def setup_integration(
         return integration
 
     except Exception as e:
-        logger.error(f"Failed to setup {setup_request.integration_type} integration: {e}")
+        logger.error(
+            f"Failed to setup {setup_request.integration_type} integration: {e}"
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to setup {setup_request.integration_type} integration: {str(e)}"
+            detail=f"Failed to setup {setup_request.integration_type} integration: {str(e)}",
         )
 
 
@@ -149,8 +161,8 @@ async def connect_anilist(
         # Get existing integration for credentials or use provided ones
         result = await db.execute(
             select(ExternalIntegration).where(
-                (ExternalIntegration.user_id == current_user.id) &
-                (ExternalIntegration.integration_type == IntegrationType.ANILIST)
+                (ExternalIntegration.user_id == current_user.id)
+                & (ExternalIntegration.integration_type == IntegrationType.ANILIST)
             )
         )
         existing_integration = result.scalars().first()
@@ -166,19 +178,21 @@ async def connect_anilist(
         client = AnilistClient(client_id, client_secret)
 
         # Authenticate with Anilist
-        auth_data = await client.authenticate({
-            'authorization_code': auth_request.authorization_code,
-            'redirect_uri': auth_request.redirect_uri
-        })
-        
+        auth_data = await client.authenticate(
+            {
+                "authorization_code": auth_request.authorization_code,
+                "redirect_uri": auth_request.redirect_uri,
+            }
+        )
+
         if existing_integration:
             # Update existing integration
             integration = existing_integration
-            integration.access_token = auth_data['access_token']
-            integration.refresh_token = auth_data.get('refresh_token')
-            integration.token_expires_at = auth_data.get('expires_at')
-            integration.external_user_id = auth_data['user_info']['user_id']
-            integration.external_username = auth_data['user_info']['username']
+            integration.access_token = auth_data["access_token"]
+            integration.refresh_token = auth_data.get("refresh_token")
+            integration.token_expires_at = auth_data.get("expires_at")
+            integration.external_user_id = auth_data["user_info"]["user_id"]
+            integration.external_username = auth_data["user_info"]["username"]
             integration.last_sync_status = SyncStatus.PENDING
 
             # Update credentials if provided
@@ -193,27 +207,27 @@ async def connect_anilist(
                 integration_type=IntegrationType.ANILIST,
                 client_id=client_id,
                 client_secret=client_secret,
-                access_token=auth_data['access_token'],
-                refresh_token=auth_data.get('refresh_token'),
-                token_expires_at=auth_data.get('expires_at'),
-                external_user_id=auth_data['user_info']['user_id'],
-                external_username=auth_data['user_info']['username'],
+                access_token=auth_data["access_token"],
+                refresh_token=auth_data.get("refresh_token"),
+                token_expires_at=auth_data.get("expires_at"),
+                external_user_id=auth_data["user_info"]["user_id"],
+                external_username=auth_data["user_info"]["username"],
                 sync_enabled=True,
                 auto_sync=True,
-                last_sync_status=SyncStatus.PENDING
+                last_sync_status=SyncStatus.PENDING,
             )
             db.add(integration)
-        
+
         await db.commit()
         await db.refresh(integration)
-        
+
         return integration
-        
+
     except Exception as e:
         logger.error(f"Failed to connect Anilist account: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to connect Anilist account: {str(e)}"
+            detail=f"Failed to connect Anilist account: {str(e)}",
         )
 
 
@@ -228,8 +242,8 @@ async def connect_myanimelist(
         # Get existing integration for credentials or use provided ones
         result = await db.execute(
             select(ExternalIntegration).where(
-                (ExternalIntegration.user_id == current_user.id) &
-                (ExternalIntegration.integration_type == IntegrationType.MYANIMELIST)
+                (ExternalIntegration.user_id == current_user.id)
+                & (ExternalIntegration.integration_type == IntegrationType.MYANIMELIST)
             )
         )
         existing_integration = result.scalars().first()
@@ -245,20 +259,22 @@ async def connect_myanimelist(
         client = MyAnimeListClient(client_id, client_secret)
 
         # Authenticate with MyAnimeList
-        auth_data = await client.authenticate({
-            'authorization_code': auth_request.authorization_code,
-            'code_verifier': auth_request.code_verifier,
-            'redirect_uri': auth_request.redirect_uri
-        })
-        
+        auth_data = await client.authenticate(
+            {
+                "authorization_code": auth_request.authorization_code,
+                "code_verifier": auth_request.code_verifier,
+                "redirect_uri": auth_request.redirect_uri,
+            }
+        )
+
         if existing_integration:
             # Update existing integration
             integration = existing_integration
-            integration.access_token = auth_data['access_token']
-            integration.refresh_token = auth_data['refresh_token']
-            integration.token_expires_at = auth_data['expires_at']
-            integration.external_user_id = auth_data['user_info']['user_id']
-            integration.external_username = auth_data['user_info']['username']
+            integration.access_token = auth_data["access_token"]
+            integration.refresh_token = auth_data["refresh_token"]
+            integration.token_expires_at = auth_data["expires_at"]
+            integration.external_user_id = auth_data["user_info"]["user_id"]
+            integration.external_username = auth_data["user_info"]["username"]
             integration.last_sync_status = SyncStatus.PENDING
 
             # Update credentials if provided
@@ -273,27 +289,27 @@ async def connect_myanimelist(
                 integration_type=IntegrationType.MYANIMELIST,
                 client_id=client_id,
                 client_secret=client_secret,
-                access_token=auth_data['access_token'],
-                refresh_token=auth_data['refresh_token'],
-                token_expires_at=auth_data['expires_at'],
-                external_user_id=auth_data['user_info']['user_id'],
-                external_username=auth_data['user_info']['username'],
+                access_token=auth_data["access_token"],
+                refresh_token=auth_data["refresh_token"],
+                token_expires_at=auth_data["expires_at"],
+                external_user_id=auth_data["user_info"]["user_id"],
+                external_username=auth_data["user_info"]["username"],
                 sync_enabled=True,
                 auto_sync=True,
-                last_sync_status=SyncStatus.PENDING
+                last_sync_status=SyncStatus.PENDING,
             )
             db.add(integration)
-        
+
         await db.commit()
         await db.refresh(integration)
-        
+
         return integration
-        
+
     except Exception as e:
         logger.error(f"Failed to connect MyAnimeList account: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to connect MyAnimeList account: {str(e)}"
+            detail=f"Failed to connect MyAnimeList account: {str(e)}",
         )
 
 
@@ -308,22 +324,29 @@ async def connect_kitsu(
         # Get existing integration for credentials or use provided ones
         result = await db.execute(
             select(ExternalIntegration).where(
-                (ExternalIntegration.user_id == current_user.id) &
-                (ExternalIntegration.integration_type == IntegrationType.KITSU)
+                (ExternalIntegration.user_id == current_user.id)
+                & (ExternalIntegration.integration_type == IntegrationType.KITSU)
             )
         )
         existing_integration = result.scalars().first()
 
         # Use credentials from existing integration or provided ones
-        client_id = auth_request.client_id or (existing_integration.client_id if existing_integration else None)
-        client_secret = auth_request.client_secret or (existing_integration.client_secret if existing_integration else None)
+        client_id = auth_request.client_id or (
+            existing_integration.client_id if existing_integration else None
+        )
+        client_secret = auth_request.client_secret or (
+            existing_integration.client_secret if existing_integration else None
+        )
 
         # Create Kitsu client
         from app.core.services.integrations import KitsuClient
+
         client = KitsuClient(client_id, client_secret)
 
         # Authenticate with Kitsu
-        auth_data = await client.authenticate(auth_request.username, auth_request.password)
+        auth_data = await client.authenticate(
+            auth_request.username, auth_request.password
+        )
 
         # Get user info
         user_info = await client.get_user_info(auth_data["access_token"])
@@ -334,7 +357,9 @@ async def connect_kitsu(
             existing_integration.refresh_token = auth_data.get("refresh_token")
             existing_integration.external_user_id = user_info["id"]
             existing_integration.external_username = user_info["username"]
-            existing_integration.token_expires_at = datetime.utcnow() + timedelta(seconds=auth_data.get("expires_in", 3600))
+            existing_integration.token_expires_at = datetime.utcnow() + timedelta(
+                seconds=auth_data.get("expires_in", 3600)
+            )
             existing_integration.last_sync_status = SyncStatus.SUCCESS
             existing_integration.last_sync_at = datetime.utcnow()
 
@@ -357,10 +382,11 @@ async def connect_kitsu(
                 refresh_token=auth_data.get("refresh_token"),
                 external_user_id=user_info["id"],
                 external_username=user_info["username"],
-                token_expires_at=datetime.utcnow() + timedelta(seconds=auth_data.get("expires_in", 3600)),
+                token_expires_at=datetime.utcnow()
+                + timedelta(seconds=auth_data.get("expires_in", 3600)),
                 sync_enabled=True,
                 last_sync_status=SyncStatus.SUCCESS,
-                last_sync_at=datetime.utcnow()
+                last_sync_at=datetime.utcnow(),
             )
 
             db.add(integration)
@@ -372,7 +398,7 @@ async def connect_kitsu(
         logger.error(f"Failed to connect Kitsu account: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to connect Kitsu account: {str(e)}"
+            detail=f"Failed to connect Kitsu account: {str(e)}",
         )
 
 
@@ -386,26 +412,26 @@ async def update_integration_settings(
     """Update integration settings."""
     result = await db.execute(
         select(ExternalIntegration).where(
-            (ExternalIntegration.user_id == current_user.id) &
-            (ExternalIntegration.integration_type == integration_type)
+            (ExternalIntegration.user_id == current_user.id)
+            & (ExternalIntegration.integration_type == integration_type)
         )
     )
     integration = result.scalars().first()
-    
+
     if not integration:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"{integration_type.value} integration not found"
+            detail=f"{integration_type.value} integration not found",
         )
-    
+
     # Update fields
     update_dict = update_data.model_dump(exclude_unset=True)
     for field, value in update_dict.items():
         setattr(integration, field, value)
-    
+
     await db.commit()
     await db.refresh(integration)
-    
+
     return integration
 
 
@@ -418,22 +444,24 @@ async def disconnect_integration(
     """Disconnect an integration."""
     result = await db.execute(
         select(ExternalIntegration).where(
-            (ExternalIntegration.user_id == current_user.id) &
-            (ExternalIntegration.integration_type == integration_type)
+            (ExternalIntegration.user_id == current_user.id)
+            & (ExternalIntegration.integration_type == integration_type)
         )
     )
     integration = result.scalars().first()
-    
+
     if not integration:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"{integration_type.value} integration not found"
+            detail=f"{integration_type.value} integration not found",
         )
-    
+
     await db.delete(integration)
     await db.commit()
-    
-    return {"message": f"{integration_type.value} integration disconnected successfully"}
+
+    return {
+        "message": f"{integration_type.value} integration disconnected successfully"
+    }
 
 
 @router.post("/sync", response_model=SyncResponse)
@@ -446,24 +474,24 @@ async def trigger_sync(
     """Trigger manual sync for an integration."""
     result = await db.execute(
         select(ExternalIntegration).where(
-            (ExternalIntegration.user_id == current_user.id) &
-            (ExternalIntegration.integration_type == sync_request.integration_type)
+            (ExternalIntegration.user_id == current_user.id)
+            & (ExternalIntegration.integration_type == sync_request.integration_type)
         )
     )
     integration = result.scalars().first()
-    
+
     if not integration:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"{sync_request.integration_type.value} integration not found"
+            detail=f"{sync_request.integration_type.value} integration not found",
         )
-    
+
     if not integration.sync_enabled:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Sync is disabled for this integration"
+            detail="Sync is disabled for this integration",
         )
-    
+
     # Update sync status to in progress
     integration.last_sync_status = SyncStatus.IN_PROGRESS
     await db.commit()
@@ -473,29 +501,27 @@ async def trigger_sync(
         sync_integration_task,
         integration.id,
         sync_request.force_full_sync,
-        sync_request.sync_direction
+        sync_request.sync_direction,
     )
 
     return SyncResponse(
         integration_type=sync_request.integration_type,
         status=SyncStatus.IN_PROGRESS,
         message="Sync started successfully",
-        started_at=datetime.utcnow()
+        started_at=datetime.utcnow(),
     )
 
 
 async def sync_integration_task(
     integration_id: UUID,
     force_full_sync: bool = False,
-    sync_direction: str = "bidirectional"
+    sync_direction: str = "bidirectional",
 ):
     """Background task for syncing integration data."""
     try:
         sync_service = SyncService()
         await sync_service.sync_integration(
-            integration_id,
-            force_full_sync,
-            sync_direction
+            integration_id, force_full_sync, sync_direction
         )
         logger.info(f"Sync completed successfully for integration {integration_id}")
     except Exception as e:

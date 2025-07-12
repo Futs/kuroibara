@@ -90,6 +90,7 @@ async def get_providers(
                 name=provider_info["name"],
                 url=provider_info["url"],
                 supports_nsfw=provider_info["supports_nsfw"],
+                requires_flaresolverr=provider_info["requires_flaresolverr"],
                 status=status_record.status if status_record else "unknown",
                 is_enabled=status_record.is_enabled if status_record else True,
                 last_check=status_record.last_check if status_record else None,

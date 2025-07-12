@@ -16,7 +16,9 @@ async def test_provider_registry_additional_providers():
     ]
 
     # Check if WeebCentral provider is registered (replacement for MangaSee)
-    assert "weebcentral" in [p.name.lower() for p in provider_registry.get_all_providers()]
+    assert "weebcentral" in [
+        p.name.lower() for p in provider_registry.get_all_providers()
+    ]
 
     # Get MangaPlus provider
     provider = provider_registry.get_provider("mangaplus")
@@ -54,9 +56,6 @@ async def test_mangaplus_search():
     assert has_next is False
 
 
-
-
-
 @pytest.mark.asyncio
 async def test_mangaplus_get_manga_details():
     """Test MangaPlus get_manga_details - should return empty dict since provider is disabled."""
@@ -68,6 +67,3 @@ async def test_mangaplus_get_manga_details():
 
     # Check manga details - provider is disabled so should return empty dict
     assert manga_details == {}
-
-
-

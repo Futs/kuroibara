@@ -230,14 +230,20 @@ async def search_manga(
 
     # Calculate which page to request from each provider
     # For multi-provider search, we'll request multiple pages if needed
-    max_pages_per_provider = max(1, (total_needed // len(selected_providers) // results_per_provider) + 1)
-    max_pages_per_provider = min(max_pages_per_provider, 3)  # Limit to 3 pages per provider
+    max_pages_per_provider = max(
+        1, (total_needed // len(selected_providers) // results_per_provider) + 1
+    )
+    max_pages_per_provider = min(
+        max_pages_per_provider, 3
+    )  # Limit to 3 pages per provider
 
     logger.info(f"Total providers to search: {len(selected_providers)}")
     logger.info(f"Selected providers: {[p.name for p in selected_providers]}")
     logger.info(f"Results per provider: {results_per_provider}")
     logger.info(f"Max pages per provider: {max_pages_per_provider}")
-    logger.info(f"Requested page: {query.page}, offset: {offset}, total needed: {total_needed}")
+    logger.info(
+        f"Requested page: {query.page}, offset: {offset}, total needed: {total_needed}"
+    )
 
     # Search with all selected providers concurrently with timeout
     async def search_with_provider(provider):
@@ -274,11 +280,15 @@ async def search_manga(
                         break
 
                 except Exception as e:
-                    logger.warning(f"Error getting page {page_num} from {provider.name}: {e}")
+                    logger.warning(
+                        f"Error getting page {page_num} from {provider.name}: {e}"
+                    )
                     break
 
             results = all_results
-            logger.info(f"Provider {provider.name} returned {len(results)} results across {max_pages_per_provider} pages")
+            logger.info(
+                f"Provider {provider.name} returned {len(results)} results across {max_pages_per_provider} pages"
+            )
             if len(results) == 0:
                 logger.warning(
                     f"Provider {provider.name} returned no results for query '{query.query}'"
@@ -327,7 +337,9 @@ async def search_manga(
                 successful_providers += 1
                 any_provider_has_more = any_provider_has_more or has_more
             else:
-                logger.info(f"Provider {selected_providers[i].name} returned no results")
+                logger.info(
+                    f"Provider {selected_providers[i].name} returned no results"
+                )
         # Handle legacy single return (just results)
         elif result and isinstance(result, list):
             logger.info(

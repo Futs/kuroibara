@@ -94,5 +94,8 @@ class Settings(BaseSettings):
     # Database initialization
     ENABLE_DB_INIT: bool = True
 
+    # FlareSolverr
+    FLARESOLVERR_URL: Optional[str] = None
+
 
 settings = Settings()

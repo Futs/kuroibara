@@ -866,7 +866,7 @@
     "id": "mangasee",
     "name": "MangaSee",
     "class_name": "MangaSeeProvider",
-    "url": "https://mangasee123.com",
+    "url": "https://weebcentral.com",
     "supports_nsfw": true,
     "params": {}
   },

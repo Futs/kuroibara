@@ -1,4 +1,6 @@
 import json
+import logging
+import os
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlencode
 
@@ -8,9 +10,17 @@ from app.core.providers.base import BaseProvider
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
 
+logger = logging.getLogger(__name__)
+
 
 class MangaPlusProvider(BaseProvider):
-    """MangaPlus provider."""
+    """MangaPlus provider with improved error handling."""
+
+    def __init__(self):
+        # Note: The original API endpoint appears to be deprecated/broken
+        # This provider is currently disabled until a working implementation is found
+        self._api_working = False
+        logger.warning("MangaPlus provider is currently disabled due to API issues")
 
     @property
     def name(self) -> str:
@@ -18,6 +28,7 @@ class MangaPlusProvider(BaseProvider):
 
     @property
     def url(self) -> str:
+        # Keep the original URL for reference, but mark as non-functional
         return "https://jumpg-webapi.tokyo-cdn.com/api"
 
     @property
@@ -28,24 +39,40 @@ class MangaPlusProvider(BaseProvider):
         self, query: str, page: int = 1, limit: int = 20
     ) -> Tuple[List[SearchResult], int, bool]:
         """Search for manga on MangaPlus."""
-        # MangaPlus doesn't have a search API, so we need to get all titles and filter them
-        # This is a simplified implementation
+        if not self._api_working:
+            logger.error("MangaPlus API is currently not working. Provider is disabled.")
+            return [], 0, False
 
         # Calculate offset
         offset = (page - 1) * limit
 
-        # Make request to get all titles
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/title_list/all",
-                headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-                },
-            )
+        try:
+            # Make request to get all titles
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.url}/title_list/all",
+                    headers={
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                    },
+                    timeout=30.0
+                )
 
-            # Check if request was successful
-            response.raise_for_status()
-            data = response.json()
+                # Check if request was successful
+                if response.status_code == 404:
+                    logger.error("MangaPlus API endpoint not found (404). The API may have changed.")
+                    self._api_working = False
+                    return [], 0, False
+
+                response.raise_for_status()
+                data = response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"MangaPlus API HTTP error: {e.response.status_code}")
+            if e.response.status_code == 404:
+                self._api_working = False
+            return [], 0, False
+        except Exception as e:
+            logger.error(f"MangaPlus API request failed: {e}")
+            return [], 0, False
 
             # Filter titles by query
             all_titles = []
@@ -109,18 +136,32 @@ class MangaPlusProvider(BaseProvider):
 
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
         """Get details for a manga on MangaPlus."""
-        # Make request
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/title_detail?title_id={manga_id}",
-                headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-                },
-            )
+        if not self._api_working:
+            logger.error("MangaPlus API is currently not working. Provider is disabled.")
+            return {}
 
-            # Check if request was successful
-            response.raise_for_status()
-            data = response.json()
+        try:
+            # Make request
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.url}/title_detail?title_id={manga_id}",
+                    headers={
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                    },
+                    timeout=30.0
+                )
+
+                # Check if request was successful
+                if response.status_code == 404:
+                    logger.error("MangaPlus API endpoint not found (404). The API may have changed.")
+                    self._api_working = False
+                    return {}
+
+                response.raise_for_status()
+                data = response.json()
+        except Exception as e:
+            logger.error(f"MangaPlus API request failed for manga {manga_id}: {e}")
+            return {}
 
             # Parse manga details
             manga_details = {}

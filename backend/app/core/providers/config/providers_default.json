@@ -18,12 +18,28 @@
     "params": {}
   },
   {
+    "id": "weebcentral",
+    "name": "WeebCentral",
+    "class_name": "GenericProvider",
+    "url": "https://weebcentral.com",
+    "supports_nsfw": false,
+    "priority": 3,
+    "params": {
+      "base_url": "https://weebcentral.com",
+      "search_url": "https://weebcentral.com/search",
+      "manga_url_pattern": "https://weebcentral.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://weebcentral.com/manga/{manga_id}/{chapter_id}",
+      "name": "WeebCentral",
+      "use_flaresolverr": true
+    }
+  },
+  {
     "id": "mangasee",
     "name": "MangaSee",
     "class_name": "MangaSeeProvider",
-    "url": "https://mangasee123.com",
+    "url": "https://weebcentral.com",
     "supports_nsfw": true,
-    "priority": 3,
+    "priority": 10,
     "params": {}
   },
   {

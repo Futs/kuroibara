@@ -1,5 +1,7 @@
 import json
 import re
+import os
+import logging
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlencode
 
@@ -9,9 +11,21 @@ from app.core.providers.base import BaseProvider
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
 
+logger = logging.getLogger(__name__)
+
 
 class MangaSeeProvider(BaseProvider):
-    """MangaSee provider."""
+    """MangaSee provider with FlareSolverr support for Cloudflare bypass."""
+
+    def __init__(self):
+        # MangaSee123 has moved to WeebCentral.com with a completely different structure
+        # This provider is disabled in favor of the WeebCentral GenericProvider
+        self._disabled = True
+        logger.warning("MangaSee provider is disabled - site has moved to WeebCentral.com")
+        logger.info("Use the WeebCentral provider instead for the same content")
+
+        self.flaresolverr_url = os.getenv("FLARESOLVERR_URL")
+        self.use_flaresolverr = bool(self.flaresolverr_url and self.flaresolverr_url.strip())
 
     @property
     def name(self) -> str:
@@ -19,38 +33,86 @@ class MangaSeeProvider(BaseProvider):
 
     @property
     def url(self) -> str:
-        return "https://mangasee123.com"
+        return "https://weebcentral.com"
 
     @property
     def supports_nsfw(self) -> bool:
         return True
 
+    async def _make_request(self, url: str, headers: Optional[Dict[str, str]] = None) -> Optional[str]:
+        """Make a request using FlareSolverr if available, otherwise regular HTTP."""
+        if headers is None:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+
+        # Try FlareSolverr first if available
+        if self.use_flaresolverr:
+            try:
+                async with httpx.AsyncClient() as client:
+                    payload = {
+                        "cmd": "request.get",
+                        "url": url,
+                        "maxTimeout": 60000,
+                        "headers": headers
+                    }
+
+                    response = await client.post(
+                        f"{self.flaresolverr_url}/v1",
+                        json=payload,
+                        timeout=60.0
+                    )
+
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get("status") == "ok":
+                            return data["solution"]["response"]
+                        else:
+                            logger.error(f"FlareSolverr error: {data.get('message', 'Unknown error')}")
+                    else:
+                        logger.error(f"FlareSolverr HTTP error: {response.status_code}")
+            except Exception as e:
+                logger.error(f"FlareSolverr request failed: {e}")
+
+        # Fallback to regular HTTP request
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers, follow_redirects=True)
+                response.raise_for_status()
+                return response.text
+        except Exception as e:
+            logger.error(f"Regular HTTP request failed for {url}: {e}")
+            return None
+
     async def _get_all_manga(self) -> List[Dict[str, Any]]:
         """Get all manga from MangaSee."""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/search/",
-                headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-                },
-            )
+        html = await self._make_request(f"{self.url}/search/")
 
-            # Check if request was successful
-            response.raise_for_status()
-            html = response.text
+        if not html:
+            logger.error("Failed to get manga directory from MangaSee")
+            return []
 
-            # Extract manga list from JavaScript
-            match = re.search(r"vm.Directory = (.*?);", html)
-            if match:
+        # Extract manga list from JavaScript
+        match = re.search(r"vm.Directory = (.*?);", html)
+        if match:
+            try:
                 manga_list = json.loads(match.group(1))
                 return manga_list
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse manga directory JSON: {e}")
+                return []
 
-            return []
+        logger.error("Could not find manga directory in MangaSee response")
+        return []
 
     async def search(
         self, query: str, page: int = 1, limit: int = 20
     ) -> Tuple[List[SearchResult], int, bool]:
         """Search for manga on MangaSee."""
+        if self._disabled:
+            logger.error("MangaSee provider is disabled. Use WeebCentral provider instead.")
+            return [], 0, False
+
         # Get all manga
         manga_list = await self._get_all_manga()
 
@@ -136,25 +198,27 @@ class MangaSeeProvider(BaseProvider):
 
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
         """Get details for a manga on MangaSee."""
-        # Make request
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/manga/{manga_id}",
-                headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-                },
-            )
+        if self._disabled:
+            logger.error("MangaSee provider is disabled. Use WeebCentral provider instead.")
+            return {}
 
-            # Check if request was successful
-            response.raise_for_status()
-            html = response.text
+        html = await self._make_request(f"{self.url}/manga/{manga_id}")
 
-            # Extract manga details from JavaScript
-            match = re.search(r"vm.SeriesJSON = (.*?);", html)
-            if not match:
-                return {}
+        if not html:
+            logger.error(f"Failed to get manga details for {manga_id}")
+            return {}
 
+        # Extract manga details from JavaScript
+        match = re.search(r"vm.SeriesJSON = (.*?);", html)
+        if not match:
+            logger.error(f"Could not find manga details JSON for {manga_id}")
+            return {}
+
+        try:
             manga_details_json = json.loads(match.group(1))
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse manga details JSON for {manga_id}: {e}")
+            return {}
 
             # Get title
             title = manga_details_json.get("SeriesName", "")
@@ -237,25 +301,23 @@ class MangaSeeProvider(BaseProvider):
         self, manga_id: str, page: int = 1, limit: int = 100
     ) -> Tuple[List[Dict[str, Any]], int, bool]:
         """Get chapters for a manga on MangaSee."""
-        # Make request
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/manga/{manga_id}",
-                headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-                },
-            )
+        html = await self._make_request(f"{self.url}/manga/{manga_id}")
 
-            # Check if request was successful
-            response.raise_for_status()
-            html = response.text
+        if not html:
+            logger.error(f"Failed to get chapters for {manga_id}")
+            return [], 0, False
 
-            # Extract chapters from JavaScript
-            match = re.search(r"vm.Chapters = (.*?);", html)
-            if not match:
-                return [], 0, False
+        # Extract chapters from JavaScript
+        match = re.search(r"vm.Chapters = (.*?);", html)
+        if not match:
+            logger.error(f"Could not find chapters JSON for {manga_id}")
+            return [], 0, False
 
+        try:
             chapters_json = json.loads(match.group(1))
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse chapters JSON for {manga_id}: {e}")
+            return [], 0, False
 
             # Parse chapters
             chapters = []

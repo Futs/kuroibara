@@ -863,14 +863,6 @@
     "params": {}
   },
   {
-    "id": "mangasee",
-    "name": "MangaSee",
-    "class_name": "MangaSeeProvider",
-    "url": "https://weebcentral.com",
-    "supports_nsfw": true,
-    "params": {}
-  },
-  {
     "id": "arcanescans",
     "name": "ArcaneScans",
     "class_name": "GenericProvider",

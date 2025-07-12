@@ -9,7 +9,6 @@ from app.core.providers.factory import provider_factory
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangaplus import MangaPlusProvider
-from app.core.providers.mangasee import MangaSeeProvider
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,6 @@ class ProviderRegistry:
         # Initialize provider factory
         provider_factory.register_provider_class(MangaDexProvider)
         provider_factory.register_provider_class(MangaPlusProvider)
-        provider_factory.register_provider_class(MangaSeeProvider)
         provider_factory.register_provider_class(GenericProvider)
         provider_factory.register_provider_class(EnhancedGenericProvider)
         logger.info("Registered provider classes")
@@ -40,7 +38,6 @@ class ProviderRegistry:
             )
             self.register_provider(MangaDexProvider())
             self.register_provider(MangaPlusProvider())
-            self.register_provider(MangaSeeProvider())
 
         logger.info(
             f"ProviderRegistry initialized with {len(self._providers)} providers: {list(self._providers.keys())}"
@@ -84,7 +81,7 @@ class ProviderRegistry:
 
         # Define default providers for is_priority flag
         default_providers = [
-            "mangadex", "mangaplus", "mangasee", "toonily", "mangabuddy",
+            "mangadex", "mangaplus", "weebcentral", "toonily", "mangabuddy",
             "mangadna", "manga18fx", "webcomicsapp"
         ]
 

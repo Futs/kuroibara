@@ -34,15 +34,6 @@
     }
   },
   {
-    "id": "mangasee",
-    "name": "MangaSee",
-    "class_name": "MangaSeeProvider",
-    "url": "https://weebcentral.com",
-    "supports_nsfw": true,
-    "priority": 10,
-    "params": {}
-  },
-  {
     "id": "toonily",
     "name": "Toonily",
     "class_name": "EnhancedGenericProvider",

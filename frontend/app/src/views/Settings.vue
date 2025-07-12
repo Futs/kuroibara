@@ -338,34 +338,14 @@
 
         <!-- Backup & Recovery Tab -->
         <div v-else-if="activeTab === 'backup'" class="space-y-6">
-          <!-- Backup and Restore -->
-          <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Backup and Restore
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Backup your library and settings, or restore from a previous backup
-            </p>
-            <div class="mt-4">
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Backup and restore functionality will be available in future updates.
-              </p>
-            </div>
+          <!-- Backup Management -->
+          <div class="mb-8">
+            <BackupManager />
           </div>
 
           <!-- Storage Recovery -->
-          <div class="pt-6 border-t border-gray-200 dark:border-dark-600">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-              Storage Recovery
-            </h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Recover missing files and fix storage issues
-            </p>
-            <div class="mt-4">
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Storage recovery tools will be available in future updates.
-              </p>
-            </div>
+          <div class="pt-8 mt-8 border-t-2 border-gray-200 dark:border-dark-600">
+            <StorageRecovery />
           </div>
         </div>
 
@@ -425,10 +405,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useSettingsStore } from "../stores/settings";
 import ProviderPreferences from "../components/ProviderPreferences.vue";
 import IntegrationSettings from "../components/IntegrationSettings.vue";
+import BackupManager from "../components/BackupManager.vue";
+import StorageRecovery from "../components/StorageRecovery.vue";
 
+const route = useRoute();
 const settingsStore = useSettingsStore();
 
 // Tab management
@@ -540,6 +524,12 @@ const saveSettings = async () => {
 };
 
 onMounted(async () => {
+  // Check for tab query parameter
+  const tabParam = route.query.tab;
+  if (tabParam && tabs.value.some(tab => tab.id === tabParam)) {
+    activeTab.value = tabParam;
+  }
+
   theme.value = settingsStore.getTheme;
   nsfwBlur.value = settingsStore.getNsfwBlur;
   downloadQuality.value = settingsStore.getDownloadQuality;

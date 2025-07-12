@@ -21,7 +21,7 @@
 
 <!-- Code Quality & License -->
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![License: MIT](https://img.shields.io/github/license/Futs/kuroibara)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Repo Size](https://img.shields.io/github/repo-size/Futs/kuroibara)](https://github.com/Futs/kuroibara)
 [![GitHub Language Count](https://img.shields.io/github/languages/count/Futs/kuroibara)](https://github.com/Futs/kuroibara)
 [![GitHub Top Language](https://img.shields.io/github/languages/top/Futs/kuroibara)](https://github.com/Futs/kuroibara)

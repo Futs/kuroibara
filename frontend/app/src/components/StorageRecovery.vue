@@ -11,7 +11,6 @@
     </div>
 
     <div class="bg-white dark:bg-dark-800 shadow rounded-lg overflow-hidden">
-
       <div class="border-t border-gray-200 dark:border-dark-600">
         <!-- Scan Button -->
         <div class="px-4 py-4 border-b border-gray-200 dark:border-dark-600">

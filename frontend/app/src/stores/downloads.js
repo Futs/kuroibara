@@ -16,18 +16,20 @@ export const useDownloadsStore = defineStore("downloads", {
     getDownloadById: (state) => (taskId) => state.activeDownloads.get(taskId),
     getDownloadsByManga: (state) => (mangaId) => {
       return Array.from(state.activeDownloads.values()).filter(
-        download => download.manga_id === mangaId
+        (download) => download.manga_id === mangaId,
       );
     },
     getDownloadsByChapter: (state) => (chapterId) => {
       return Array.from(state.activeDownloads.values()).filter(
-        download => download.chapter_id === chapterId
+        (download) => download.chapter_id === chapterId,
       );
     },
     getTotalActiveDownloads: (state) => state.activeDownloads.size,
     isDownloading: (state) => (chapterId) => {
       return Array.from(state.activeDownloads.values()).some(
-        download => download.chapter_id === chapterId && download.status === "downloading"
+        (download) =>
+          download.chapter_id === chapterId &&
+          download.status === "downloading",
       );
     },
   },
@@ -36,10 +38,10 @@ export const useDownloadsStore = defineStore("downloads", {
     async fetchActiveDownloads() {
       try {
         const response = await api.get("/v1/library/downloads");
-        
+
         // Clear existing downloads and add fetched ones
         this.activeDownloads.clear();
-        response.data.forEach(download => {
+        response.data.forEach((download) => {
           this.activeDownloads.set(download.task_id, download);
         });
       } catch (error) {
@@ -123,9 +125,11 @@ export const useDownloadsStore = defineStore("downloads", {
 
       this.reconnectAttempts++;
       const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-      
-      console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
-      
+
+      console.log(
+        `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`,
+      );
+
       setTimeout(() => {
         this.connectWebSocket();
       }, delay);
@@ -147,7 +151,7 @@ export const useDownloadsStore = defineStore("downloads", {
           });
           break;
 
-        case "download_progress":
+        case "download_progress": {
           const progressDownload = this.activeDownloads.get(data.task_id);
           if (progressDownload) {
             progressDownload.progress = data.progress;
@@ -156,14 +160,15 @@ export const useDownloadsStore = defineStore("downloads", {
             progressDownload.status = "downloading";
           }
           break;
+        }
 
-        case "download_completed":
+        case "download_completed": {
           const completedDownload = this.activeDownloads.get(data.task_id);
           if (completedDownload) {
             completedDownload.status = "completed";
             completedDownload.progress = 100;
             completedDownload.completed_at = data.timestamp;
-            
+
             // Move to history after a delay
             setTimeout(() => {
               this.activeDownloads.delete(data.task_id);
@@ -171,14 +176,15 @@ export const useDownloadsStore = defineStore("downloads", {
             }, 5000);
           }
           break;
+        }
 
-        case "download_failed":
+        case "download_failed": {
           const failedDownload = this.activeDownloads.get(data.task_id);
           if (failedDownload) {
             failedDownload.status = "failed";
             failedDownload.error = data.error;
             failedDownload.failed_at = data.timestamp;
-            
+
             // Move to history after a delay
             setTimeout(() => {
               this.activeDownloads.delete(data.task_id);
@@ -186,6 +192,7 @@ export const useDownloadsStore = defineStore("downloads", {
             }, 10000);
           }
           break;
+        }
 
         case "download_cancelled":
           this.activeDownloads.delete(data.task_id);

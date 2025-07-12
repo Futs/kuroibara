@@ -39,4 +39,6 @@ api_router.include_router(
 )
 api_router.include_router(organizer.router, prefix="/organizer", tags=["Organizer"])
 api_router.include_router(backup.router, prefix="/backup", tags=["Backup"])
-api_router.include_router(integrations.router, prefix="/integrations", tags=["Integrations"])
+api_router.include_router(
+    integrations.router, prefix="/integrations", tags=["Integrations"]
+)

@@ -146,7 +146,6 @@
           </div>
 
           <!-- Debug button -->
-
         </form>
       </div>
     </div>
@@ -182,7 +181,6 @@ const handleSubmit = async (event) => {
 
   await authStore.login(username.value, password.value, rememberMe.value);
 };
-
 
 onMounted(() => {
   console.log("Login.vue: Component mounted");

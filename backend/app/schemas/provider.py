@@ -57,6 +57,7 @@ class ProviderInfo(BaseModel):
     name: str
     url: str
     supports_nsfw: bool
+    requires_flaresolverr: bool = False
     status: str = ProviderStatusEnum.UNKNOWN.value
     is_enabled: bool = True
     last_check: Optional[datetime] = None

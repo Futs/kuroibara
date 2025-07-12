@@ -1,10 +1,17 @@
 <template>
-  <div class="provider-manga-list-item border-b border-gray-200 dark:border-dark-600 last:border-b-0">
-    <div class="px-4 py-4 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors duration-200 cursor-pointer" @click="viewDetails">
+  <div
+    class="provider-manga-list-item border-b border-gray-200 dark:border-dark-600 last:border-b-0"
+  >
+    <div
+      class="px-4 py-4 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors duration-200 cursor-pointer"
+      @click="viewDetails"
+    >
       <div class="flex items-start space-x-4">
         <!-- Cover Image -->
         <div class="flex-shrink-0">
-          <div class="w-16 h-20 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700">
+          <div
+            class="w-16 h-20 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
+          >
             <img
               v-if="manga.cover_image || manga.cover_url"
               :src="manga.cover_image || manga.cover_url"
@@ -41,7 +48,9 @@
             <div class="flex-1 min-w-0">
               <!-- Title and Badges -->
               <div class="flex items-start space-x-2 mb-2">
-                <h3 class="text-base font-medium text-gray-900 dark:text-white line-clamp-2">
+                <h3
+                  class="text-base font-medium text-gray-900 dark:text-white line-clamp-2"
+                >
                   {{ manga.title }}
                 </h3>
 
@@ -71,7 +80,9 @@
               </p>
 
               <!-- Author and Year -->
-              <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400 mb-2">
+              <div
+                class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400 mb-2"
+              >
                 <span v-if="manga.author">
                   <span class="font-medium">Author:</span> {{ manga.author }}
                 </span>
@@ -81,7 +92,10 @@
               </div>
 
               <!-- Tags/Genres -->
-              <div v-if="manga.genres && manga.genres.length" class="flex flex-wrap gap-1">
+              <div
+                v-if="manga.genres && manga.genres.length"
+                class="flex flex-wrap gap-1"
+              >
                 <span
                   v-for="genre in manga.genres.slice(0, 5)"
                   :key="genre"
@@ -141,7 +155,7 @@
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                {{ adding ? 'Adding...' : 'Add to Library' }}
+                {{ adding ? "Adding..." : "Add to Library" }}
               </button>
             </div>
           </div>
@@ -190,12 +204,12 @@ const viewDetails = (event) => {
 
 const formatStatus = (status) => {
   if (!status) return "";
-  
+
   // Capitalize first letter and replace underscores with spaces
   return status
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 const onImageError = (event) => {

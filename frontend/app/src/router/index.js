@@ -139,7 +139,8 @@ const routes = [
       {
         path: "/integrations/mal/callback",
         name: "MyAnimeListCallback",
-        component: () => import("../views/integrations/MyAnimeListCallback.vue"),
+        component: () =>
+          import("../views/integrations/MyAnimeListCallback.vue"),
       },
     ],
   },

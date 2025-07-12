@@ -1,9 +1,14 @@
 <template>
-  <div class="chapter-filters bg-gray-50 dark:bg-dark-700 p-4 rounded-lg border border-gray-200 dark:border-dark-600">
+  <div
+    class="chapter-filters bg-gray-50 dark:bg-dark-700 p-4 rounded-lg border border-gray-200 dark:border-dark-600"
+  >
     <div class="flex flex-wrap items-center gap-4">
       <!-- Language Filter -->
       <div class="flex items-center space-x-2">
-        <label for="language-filter" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          for="language-filter"
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Language:
         </label>
         <select
@@ -21,7 +26,10 @@
 
       <!-- Volume Filter -->
       <div class="flex items-center space-x-2">
-        <label for="volume-filter" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          for="volume-filter"
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Volume:
         </label>
         <select
@@ -31,7 +39,11 @@
           class="text-sm border-gray-300 dark:border-dark-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-800 dark:text-white"
         >
           <option value="">All Volumes</option>
-          <option v-for="volume in availableVolumes" :key="volume" :value="volume">
+          <option
+            v-for="volume in availableVolumes"
+            :key="volume"
+            :value="volume"
+          >
             Volume {{ volume }}
           </option>
         </select>
@@ -39,7 +51,10 @@
 
       <!-- Download Status Filter -->
       <div class="flex items-center space-x-2">
-        <label for="download-filter" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          for="download-filter"
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Status:
         </label>
         <select
@@ -57,7 +72,10 @@
 
       <!-- Reading Status Filter -->
       <div class="flex items-center space-x-2">
-        <label for="reading-filter" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          for="reading-filter"
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Reading:
         </label>
         <select
@@ -85,44 +103,58 @@
 
     <!-- Active Filters Summary -->
     <div v-if="hasActiveFilters" class="mt-3 flex flex-wrap gap-2">
-      <span class="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
-      
+      <span class="text-sm text-gray-600 dark:text-gray-400"
+        >Active filters:</span
+      >
+
       <span
         v-if="localFilters.language"
         class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-300"
       >
         Language: {{ formatLanguage(localFilters.language) }}
-        <button @click="clearFilter('language')" class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200">
+        <button
+          @click="clearFilter('language')"
+          class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200"
+        >
           ×
         </button>
       </span>
-      
+
       <span
         v-if="localFilters.volume"
         class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-300"
       >
         Volume: {{ localFilters.volume }}
-        <button @click="clearFilter('volume')" class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200">
+        <button
+          @click="clearFilter('volume')"
+          class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200"
+        >
           ×
         </button>
       </span>
-      
+
       <span
         v-if="localFilters.downloadStatus"
         class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-300"
       >
         Status: {{ formatDownloadStatus(localFilters.downloadStatus) }}
-        <button @click="clearFilter('downloadStatus')" class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200">
+        <button
+          @click="clearFilter('downloadStatus')"
+          class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200"
+        >
           ×
         </button>
       </span>
-      
+
       <span
         v-if="localFilters.readingStatus"
         class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-300"
       >
         Reading: {{ formatReadingStatus(localFilters.readingStatus) }}
-        <button @click="clearFilter('readingStatus')" class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200">
+        <button
+          @click="clearFilter('readingStatus')"
+          class="ml-1 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200"
+        >
           ×
         </button>
       </span>
@@ -158,7 +190,7 @@ const localFilters = ref({
 });
 
 const hasActiveFilters = computed(() => {
-  return Object.values(localFilters.value).some(value => value !== "");
+  return Object.values(localFilters.value).some((value) => value !== "");
 });
 
 const updateFilters = () => {
@@ -196,7 +228,7 @@ const formatLanguage = (lang) => {
     "zh-cn": "Chinese (Simplified)",
     "zh-tw": "Chinese (Traditional)",
   };
-  
+
   return languageMap[lang] || lang.toUpperCase();
 };
 
@@ -206,7 +238,7 @@ const formatDownloadStatus = (status) => {
     not_downloaded: "Not Downloaded",
     error: "Failed Downloads",
   };
-  
+
   return statusMap[status] || status;
 };
 
@@ -216,19 +248,23 @@ const formatReadingStatus = (status) => {
     in_progress: "In Progress",
     completed: "Completed",
   };
-  
+
   return statusMap[status] || status;
 };
 
 // Watch for external filter changes
-watch(() => props.filters, (newFilters) => {
-  localFilters.value = {
-    language: newFilters.language || "",
-    volume: newFilters.volume || "",
-    downloadStatus: newFilters.downloadStatus || "",
-    readingStatus: newFilters.readingStatus || "",
-  };
-}, { deep: true });
+watch(
+  () => props.filters,
+  (newFilters) => {
+    localFilters.value = {
+      language: newFilters.language || "",
+      volume: newFilters.volume || "",
+      downloadStatus: newFilters.downloadStatus || "",
+      readingStatus: newFilters.readingStatus || "",
+    };
+  },
+  { deep: true },
+);
 </script>
 
 <style scoped>

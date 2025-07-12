@@ -253,43 +253,64 @@ async def read_library_item_detailed(
         download_status = "not_downloaded"
         if chapter.file_path:
             import os
+
             if os.path.exists(chapter.file_path):
                 download_status = "downloaded"
             else:
                 download_status = "error"  # File path exists but file is missing
 
-        enhanced_chapters.append({
-            "id": str(chapter.id),
-            "title": chapter.title,
-            "number": chapter.number,
-            "volume": chapter.volume,
-            "language": chapter.language,
-            "pages_count": chapter.pages_count,
-            "file_path": chapter.file_path,
-            "file_size": chapter.file_size,
-            "source": chapter.source,
-            "created_at": chapter.created_at,
-            "updated_at": chapter.updated_at,
-            "download_status": download_status,
-            "reading_progress": {
-                "page": progress.page if progress else 1,
-                "is_completed": progress.is_completed if progress else False,
-            } if progress else None,
-        })
+        enhanced_chapters.append(
+            {
+                "id": str(chapter.id),
+                "title": chapter.title,
+                "number": chapter.number,
+                "volume": chapter.volume,
+                "language": chapter.language,
+                "pages_count": chapter.pages_count,
+                "file_path": chapter.file_path,
+                "file_size": chapter.file_size,
+                "source": chapter.source,
+                "created_at": chapter.created_at,
+                "updated_at": chapter.updated_at,
+                "download_status": download_status,
+                "reading_progress": (
+                    {
+                        "page": progress.page if progress else 1,
+                        "is_completed": progress.is_completed if progress else False,
+                    }
+                    if progress
+                    else None
+                ),
+            }
+        )
 
     # Sort chapters by volume and number
-    enhanced_chapters.sort(key=lambda x: (
-        float(x["volume"]) if x["volume"] and x["volume"].replace(".", "").isdigit() else 0,
-        float(x["number"]) if x["number"] and x["number"].replace(".", "").isdigit() else 0
-    ))
+    enhanced_chapters.sort(
+        key=lambda x: (
+            (
+                float(x["volume"])
+                if x["volume"] and x["volume"].replace(".", "").isdigit()
+                else 0
+            ),
+            (
+                float(x["number"])
+                if x["number"] and x["number"].replace(".", "").isdigit()
+                else 0
+            ),
+        )
+    )
 
     return {
         "library_item": library_item,
         "chapters": enhanced_chapters,
         "download_summary": {
             "total_chapters": len(enhanced_chapters),
-            "downloaded_chapters": len([c for c in enhanced_chapters if c["download_status"] == "downloaded"]),
-            "failed_chapters": len([c for c in enhanced_chapters if c["download_status"] == "error"]),
+            "downloaded_chapters": len(
+                [c for c in enhanced_chapters if c["download_status"] == "downloaded"]
+            ),
+            "failed_chapters": len(
+                [c for c in enhanced_chapters if c["download_status"] == "error"]
+            ),
         },
     }
 
@@ -733,6 +754,7 @@ async def download_chapter_endpoint(
 
     # Check if provider exists
     from app.core.providers.registry import provider_registry
+
     provider_instance = provider_registry.get_provider(provider)
     if not provider_instance:
         raise HTTPException(
@@ -821,7 +843,9 @@ async def get_filtered_chapters(
 
     available_languages = list(set(c.language for c in all_chapters if c.language))
     available_volumes = list(set(c.volume for c in all_chapters if c.volume))
-    available_volumes.sort(key=lambda x: float(x) if x and x.replace(".", "").isdigit() else 0)
+    available_volumes.sort(
+        key=lambda x: float(x) if x and x.replace(".", "").isdigit() else 0
+    )
 
     return {
         "chapters": [

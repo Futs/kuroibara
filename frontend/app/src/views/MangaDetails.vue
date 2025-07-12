@@ -204,7 +204,9 @@
 
               <!-- Download All (only for library items) -->
               <button
-                v-if="!isExternal && manga.chapters && manga.chapters.length > 0"
+                v-if="
+                  !isExternal && manga.chapters && manga.chapters.length > 0
+                "
                 @click="downloadManga"
                 class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
@@ -328,8 +330,13 @@
                 </h3>
                 <div class="flex items-center space-x-4">
                   <!-- View Mode Toggle (for library items) -->
-                  <div v-if="!isExternal && libraryItemDetails" class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-500 dark:text-gray-400">View:</span>
+                  <div
+                    v-if="!isExternal && libraryItemDetails"
+                    class="flex items-center space-x-2"
+                  >
+                    <span class="text-sm text-gray-500 dark:text-gray-400"
+                      >View:</span
+                    >
                     <div class="flex rounded-md shadow-sm">
                       <button
                         @click="viewMode = 'chapters'"
@@ -337,7 +344,7 @@
                           'px-3 py-1 text-sm font-medium rounded-l-md border',
                           viewMode === 'chapters'
                             ? 'bg-primary-600 text-white border-primary-600'
-                            : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700'
+                            : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700',
                         ]"
                       >
                         Chapters
@@ -348,7 +355,7 @@
                           'px-3 py-1 text-sm font-medium rounded-r-md border-t border-r border-b',
                           viewMode === 'volumes'
                             ? 'bg-primary-600 text-white border-primary-600'
-                            : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700'
+                            : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700',
                         ]"
                       >
                         Volumes
@@ -357,8 +364,16 @@
                   </div>
 
                   <!-- Download Summary (for library items) -->
-                  <div v-if="!isExternal && libraryItemDetails" class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ libraryItemDetails.download_summary.downloaded_chapters }}/{{ libraryItemDetails.download_summary.total_chapters }} downloaded
+                  <div
+                    v-if="!isExternal && libraryItemDetails"
+                    class="text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    {{
+                      libraryItemDetails.download_summary.downloaded_chapters
+                    }}/{{
+                      libraryItemDetails.download_summary.total_chapters
+                    }}
+                    downloaded
                   </div>
 
                   <label
@@ -389,7 +404,12 @@
 
               <div class="mt-2 border-t border-gray-200 dark:border-dark-600">
                 <!-- Volume View (for library items) -->
-                <div v-if="!isExternal && libraryItemDetails && viewMode === 'volumes'" class="space-y-4 pt-4">
+                <div
+                  v-if="
+                    !isExternal && libraryItemDetails && viewMode === 'volumes'
+                  "
+                  class="space-y-4 pt-4"
+                >
                   <VolumeDownloadCard
                     v-for="volume in groupedVolumes"
                     :key="volume.number"
@@ -401,7 +421,13 @@
                 </div>
 
                 <!-- Chapter View (for library items) -->
-                <ul v-else-if="!isExternal && libraryItemDetails && viewMode === 'chapters'" role="list" class="divide-y divide-gray-200 dark:divide-dark-600">
+                <ul
+                  v-else-if="
+                    !isExternal && libraryItemDetails && viewMode === 'chapters'
+                  "
+                  role="list"
+                  class="divide-y divide-gray-200 dark:divide-dark-600"
+                >
                   <EnhancedChapterCard
                     v-for="chapter in sortedEnhancedChapters"
                     :key="chapter.id"
@@ -412,7 +438,11 @@
                 </ul>
 
                 <!-- Basic chapters for external manga -->
-                <ul v-else role="list" class="divide-y divide-gray-200 dark:divide-dark-600">
+                <ul
+                  v-else
+                  role="list"
+                  class="divide-y divide-gray-200 dark:divide-dark-600"
+                >
                   <li
                     v-for="chapter in sortedChapters"
                     :key="chapter.id"
@@ -420,10 +450,16 @@
                   >
                     <div class="flex items-center">
                       <div>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">
-                          Chapter {{ chapter.number }}{{ chapter.title ? `: ${chapter.title}` : '' }}
+                        <p
+                          class="text-sm font-medium text-gray-900 dark:text-white"
+                        >
+                          Chapter {{ chapter.number
+                          }}{{ chapter.title ? `: ${chapter.title}` : "" }}
                         </p>
-                        <p v-if="chapter.upload_date" class="text-xs text-gray-500 dark:text-gray-400">
+                        <p
+                          v-if="chapter.upload_date"
+                          class="text-xs text-gray-500 dark:text-gray-400"
+                        >
                           {{ formatDate(chapter.upload_date) }}
                         </p>
                       </div>
@@ -501,7 +537,7 @@ const availableLanguages = computed(() => {
   if (!libraryItemDetails.value?.chapters) return [];
 
   const languages = new Set();
-  libraryItemDetails.value.chapters.forEach(chapter => {
+  libraryItemDetails.value.chapters.forEach((chapter) => {
     if (chapter.language) {
       languages.add(chapter.language);
     }
@@ -514,7 +550,7 @@ const availableVolumes = computed(() => {
   if (!libraryItemDetails.value?.chapters) return [];
 
   const volumes = new Set();
-  libraryItemDetails.value.chapters.forEach(chapter => {
+  libraryItemDetails.value.chapters.forEach((chapter) => {
     if (chapter.volume) {
       volumes.add(chapter.volume);
     }
@@ -534,15 +570,19 @@ const sortedEnhancedChapters = computed(() => {
 
   // Apply filters
   if (chapterFilters.value.language) {
-    chapters = chapters.filter(chapter => chapter.language === chapterFilters.value.language);
+    chapters = chapters.filter(
+      (chapter) => chapter.language === chapterFilters.value.language,
+    );
   }
 
   if (chapterFilters.value.volume) {
-    chapters = chapters.filter(chapter => chapter.volume === chapterFilters.value.volume);
+    chapters = chapters.filter(
+      (chapter) => chapter.volume === chapterFilters.value.volume,
+    );
   }
 
   if (chapterFilters.value.downloadStatus) {
-    chapters = chapters.filter(chapter => {
+    chapters = chapters.filter((chapter) => {
       switch (chapterFilters.value.downloadStatus) {
         case "downloaded":
           return chapter.download_status === "downloaded";
@@ -557,7 +597,7 @@ const sortedEnhancedChapters = computed(() => {
   }
 
   if (chapterFilters.value.readingStatus) {
-    chapters = chapters.filter(chapter => {
+    chapters = chapters.filter((chapter) => {
       const progress = chapter.reading_progress;
       switch (chapterFilters.value.readingStatus) {
         case "unread":
@@ -590,7 +630,7 @@ const groupedVolumes = computed(() => {
 
   const volumeMap = new Map();
 
-  libraryItemDetails.value.chapters.forEach(chapter => {
+  libraryItemDetails.value.chapters.forEach((chapter) => {
     const volumeNumber = chapter.volume || "Unknown";
 
     if (!volumeMap.has(volumeNumber)) {
@@ -611,7 +651,7 @@ const groupedVolumes = computed(() => {
     return aNum - bNum;
   });
 
-  volumes.forEach(volume => {
+  volumes.forEach((volume) => {
     volume.chapters.sort((a, b) => {
       const aNum = parseFloat(a.number) || 0;
       const bNum = parseFloat(b.number) || 0;
@@ -683,12 +723,13 @@ const loadLibraryItemDetails = async () => {
   try {
     // Find the library item ID for this manga
     const libraryResponse = await api.get("/v1/library", {
-      params: { manga_id: mangaId.value }
+      params: { manga_id: mangaId.value },
     });
 
     if (libraryResponse.data.length > 0) {
       const libraryItemId = libraryResponse.data[0].id;
-      libraryItemDetails.value = await libraryStore.fetchLibraryItemDetailed(libraryItemId);
+      libraryItemDetails.value =
+        await libraryStore.fetchLibraryItemDetailed(libraryItemId);
     }
   } catch (err) {
     console.error("Error loading library item details:", err);
@@ -749,7 +790,8 @@ const startReading = () => {
 };
 
 const readChapter = (chapterOrId) => {
-  const chapterId = typeof chapterOrId === 'object' ? chapterOrId.id : chapterOrId;
+  const chapterId =
+    typeof chapterOrId === "object" ? chapterOrId.id : chapterOrId;
   router.push(`/read/${mangaId.value}/${chapterId}`);
 };
 
@@ -760,7 +802,7 @@ const updateChapterFilters = (newFilters) => {
 const downloadVolume = async (volumeData) => {
   try {
     const libraryResponse = await api.get("/v1/library", {
-      params: { manga_id: mangaId.value }
+      params: { manga_id: mangaId.value },
     });
 
     if (libraryResponse.data.length === 0) {
@@ -771,13 +813,13 @@ const downloadVolume = async (volumeData) => {
 
     // Download all chapters in the volume
     for (const chapter of volumeData.chapters) {
-      if (chapter.download_status !== 'downloaded') {
+      if (chapter.download_status !== "downloaded") {
         await libraryStore.downloadChapter(
           libraryItemId,
           chapter.id,
           manga.value.provider || "mangadx",
           manga.value.external_id || mangaId.value,
-          chapter.id
+          chapter.id,
         );
       }
     }
@@ -798,7 +840,7 @@ const downloadVolume = async (volumeData) => {
 const retryFailedChapters = async (volumeData) => {
   try {
     const libraryResponse = await api.get("/v1/library", {
-      params: { manga_id: mangaId.value }
+      params: { manga_id: mangaId.value },
     });
 
     if (libraryResponse.data.length === 0) {
@@ -809,13 +851,13 @@ const retryFailedChapters = async (volumeData) => {
 
     // Retry failed chapters in the volume
     for (const chapter of volumeData.chapters) {
-      if (chapter.download_status === 'error') {
+      if (chapter.download_status === "error") {
         await libraryStore.downloadChapter(
           libraryItemId,
           chapter.id,
           manga.value.provider || "mangadx",
           manga.value.external_id || mangaId.value,
-          chapter.id
+          chapter.id,
         );
       }
     }
@@ -880,7 +922,7 @@ const downloadChapter = async (chapter) => {
 
     // Find the library item ID
     const libraryResponse = await api.get("/v1/library", {
-      params: { manga_id: mangaId.value }
+      params: { manga_id: mangaId.value },
     });
 
     if (libraryResponse.data.length === 0) {
@@ -895,7 +937,7 @@ const downloadChapter = async (chapter) => {
       chapter.id,
       manga.value.provider || "mangadex",
       manga.value.external_id || mangaId.value,
-      chapter.id
+      chapter.id,
     );
 
     // Reload library item details to update download status

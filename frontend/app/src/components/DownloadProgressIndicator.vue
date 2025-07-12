@@ -23,31 +23,44 @@
     </div>
 
     <!-- Card Progress (for download manager) -->
-    <div v-else-if="variant === 'card'" class="bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg p-4">
+    <div
+      v-else-if="variant === 'card'"
+      class="bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg p-4"
+    >
       <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
-          <h4 class="text-sm font-medium text-gray-900 dark:text-white truncate">
-            {{ downloadInfo.chapter_title || `Chapter ${downloadInfo.chapter_number}` }}
+          <h4
+            class="text-sm font-medium text-gray-900 dark:text-white truncate"
+          >
+            {{
+              downloadInfo.chapter_title ||
+              `Chapter ${downloadInfo.chapter_number}`
+            }}
           </h4>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {{ downloadInfo.manga_title }}
           </p>
-          
+
           <!-- Progress Bar -->
           <div class="mt-3">
             <div class="flex items-center justify-between text-xs">
               <span class="text-gray-600 dark:text-gray-400">
-                {{ downloadInfo.downloaded_pages || 0 }}/{{ downloadInfo.total_pages || 0 }} pages
+                {{ downloadInfo.downloaded_pages || 0 }}/{{
+                  downloadInfo.total_pages || 0
+                }}
+                pages
               </span>
               <span class="text-gray-600 dark:text-gray-400">
                 {{ downloadInfo.progress }}%
               </span>
             </div>
-            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
+            <div
+              class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1"
+            >
               <div
                 :class="[
                   'h-2 rounded-full transition-all duration-300',
-                  getProgressBarClass(downloadInfo.status)
+                  getProgressBarClass(downloadInfo.status),
                 ]"
                 :style="{ width: `${downloadInfo.progress}%` }"
               ></div>
@@ -56,7 +69,12 @@
 
           <!-- Status and Time -->
           <div class="flex items-center justify-between mt-2">
-            <span :class="['text-xs font-medium', getStatusClass(downloadInfo.status)]">
+            <span
+              :class="[
+                'text-xs font-medium',
+                getStatusClass(downloadInfo.status),
+              ]"
+            >
               {{ formatStatus(downloadInfo.status) }}
             </span>
             <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -165,11 +183,11 @@ const formatStatus = (status) => {
 
 const formatElapsedTime = (startTime) => {
   if (!startTime) return "";
-  
+
   const start = new Date(startTime);
   const now = new Date();
   const elapsed = Math.floor((now - start) / 1000);
-  
+
   if (elapsed < 60) {
     return `${elapsed}s`;
   } else if (elapsed < 3600) {

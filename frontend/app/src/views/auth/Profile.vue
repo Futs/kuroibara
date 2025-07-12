@@ -266,7 +266,8 @@
                   v-if="formData.password && !formData.confirmPassword"
                   class="mt-2 text-sm text-gray-500 dark:text-gray-400"
                 >
-                  Confirm password to change it, or leave both fields blank to keep current password.
+                  Confirm password to change it, or leave both fields blank to
+                  keep current password.
                 </p>
               </dd>
             </div>

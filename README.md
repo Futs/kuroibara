@@ -40,9 +40,12 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 ## ✨ Key Features
 
 - **Multi-Provider Search**: Access 80+ manga providers including MangaDex, MangaPlus, TCBScans, and more
+- **Enhanced Filtering**: Multi-select genre filtering, status, type, year, content rating, and language filters
+- **Smart Discovery**: Find manga by combining multiple criteria (e.g., Action + Adventure + Ongoing)
 - **Cloudflare Bypass**: Optional FlareSolverr integration for accessing Cloudflare-protected providers
 - **Smart Library Management**: Personal library with automatic metadata and cover art
 - **Background Downloads**: Queue and download manga chapters with background processing
+- **Content Filtering**: Safe/NSFW content filtering with granular controls
 - **User Profiles**: Customizable profiles with external account linking (AniList, MyAnimeList)
 - **Provider Health Monitoring**: Real-time monitoring with automatic status updates
 - **2FA Authentication**: Secure user registration and login

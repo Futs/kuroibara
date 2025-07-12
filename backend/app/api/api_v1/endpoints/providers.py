@@ -54,6 +54,7 @@ async def get_providers(
                 name=provider_info["name"],
                 url=provider_info["url"],
                 supports_nsfw=provider_info["supports_nsfw"],
+                requires_flaresolverr=provider_info["requires_flaresolverr"],
                 status=status_record.status if status_record else "unknown",
                 is_enabled=status_record.is_enabled if status_record else True,
                 last_check=status_record.last_check if status_record else None,
@@ -374,10 +375,12 @@ async def get_provider_manga(
     provider_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    search: str = Query("", description="Search query to filter manga by title"),
+    genre: str = Query("", description="Genre/tag to filter manga by"),
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """
-    Get all available manga from a specific provider.
+    Get all available manga from a specific provider with optional filtering.
     """
     try:
         # Get provider from registry
@@ -388,9 +391,22 @@ async def get_provider_manga(
                 detail=f"Provider '{provider_id}' not found",
             )
 
-        # For now, we'll use a generic search to get popular/recent manga
-        # This could be enhanced with provider-specific "browse" methods
-        results, total, has_more = await provider.search("", page=page, limit=limit)
+        # Use search parameter for provider search
+        # If no search term provided, use empty string to get popular/recent manga
+        results, total, has_more = await provider.search(search, page=page, limit=limit)
+
+        # Filter by genre if specified
+        if genre:
+            genre_lower = genre.lower()
+            filtered_results = []
+            for result in results:
+                # Check if any of the manga's genres match the filter
+                if any(g.lower() == genre_lower for g in result.genres):
+                    filtered_results.append(result)
+            results = filtered_results
+            total = len(results)
+            # Recalculate has_more based on filtered results
+            has_more = False  # For simplicity, disable pagination for filtered results
 
         return {
             "provider_id": provider_id,
@@ -401,6 +417,10 @@ async def get_provider_manga(
                 "limit": limit,
                 "total": total,
                 "has_more": has_more,
+            },
+            "filters": {
+                "search": search,
+                "genre": genre,
             },
         }
 
@@ -434,7 +454,9 @@ async def get_provider_manga_details(
         manga_details = await provider.get_manga_details(manga_id)
 
         # Get chapters
-        chapters, total_chapters, has_more_chapters = await provider.get_chapters(manga_id)
+        chapters, total_chapters, has_more_chapters = await provider.get_chapters(
+            manga_id
+        )
 
         return {
             "provider_id": provider_id,

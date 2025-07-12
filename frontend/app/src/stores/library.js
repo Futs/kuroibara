@@ -130,5 +130,48 @@ export const useLibraryStore = defineStore("library", {
       this.pagination.page = page;
       this.fetchLibrary();
     },
+
+    async fetchLibraryItemDetailed(libraryItemId) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.get(`/v1/library/${libraryItemId}/detailed`);
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.detail || "Failed to fetch library item details";
+        console.error("Error fetching library item details:", error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async downloadChapter(libraryItemId, chapterId, provider, externalMangaId, externalChapterId) {
+      try {
+        const response = await api.post(`/v1/library/${libraryItemId}/download-chapter`, {
+          chapter_id: chapterId,
+          provider,
+          external_manga_id: externalMangaId,
+          external_chapter_id: externalChapterId,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error downloading chapter:", error);
+        throw error;
+      }
+    },
+
+    async getFilteredChapters(libraryItemId, filters = {}) {
+      try {
+        const response = await api.get(`/v1/library/${libraryItemId}/chapters/filter`, {
+          params: filters,
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching filtered chapters:", error);
+        throw error;
+      }
+    },
   },
 });

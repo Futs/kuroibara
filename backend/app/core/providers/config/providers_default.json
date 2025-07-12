@@ -3,7 +3,7 @@
     "id": "mangadex",
     "name": "MangaDex",
     "class_name": "MangaDexProvider",
-    "url": "https://api.mangadx.org",
+    "url": "https://api.mangadex.org",
     "supports_nsfw": true,
     "priority": 1,
     "params": {}

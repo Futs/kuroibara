@@ -81,8 +81,14 @@ class ProviderRegistry:
 
         # Define default providers for is_priority flag
         default_providers = [
-            "mangadex", "mangaplus", "weebcentral", "toonily", "mangabuddy",
-            "mangadna", "manga18fx", "webcomicsapp"
+            "mangadex",
+            "mangaplus",
+            "weebcentral",
+            "toonily",
+            "mangabuddy",
+            "mangadna",
+            "manga18fx",
+            "webcomicsapp",
         ]
 
         return [
@@ -115,7 +121,9 @@ class ProviderRegistry:
             if flaresolverr_available:
                 logger.info(f"FlareSolverr available at: {flaresolverr_url}")
             else:
-                logger.info("FlareSolverr not configured - Cloudflare-protected providers will be disabled")
+                logger.info(
+                    "FlareSolverr not configured - Cloudflare-protected providers will be disabled"
+                )
 
             # Define config files to load (order matters - default providers get priority)
             config_files = ["providers_default.json"]
@@ -128,8 +136,12 @@ class ProviderRegistry:
             # Fallback to old batch files if new structure doesn't exist
             if not (config_dir / "providers_default.json").exists():
                 logger.info("Using legacy provider configuration files")
-                config_files = ["providers_batch1.json", "providers_batch2.json",
-                               "providers_batch3.json", "providers_batch4.json"]
+                config_files = [
+                    "providers_batch1.json",
+                    "providers_batch2.json",
+                    "providers_batch3.json",
+                    "providers_batch4.json",
+                ]
 
             # Load specified config files
             for config_filename in config_files:
@@ -142,28 +154,35 @@ class ProviderRegistry:
                     logger.info(f"Loading provider config from {config_file}")
 
                     # Load and filter providers based on FlareSolverr availability
-                    with open(config_file, 'r') as f:
+                    with open(config_file, "r") as f:
                         import json
+
                         provider_configs = json.load(f)
 
                     # Filter out Cloudflare providers if FlareSolverr is not available
                     filtered_configs = []
                     for config in provider_configs:
-                        requires_flaresolverr = config.get("requires_flaresolverr", False)
+                        requires_flaresolverr = config.get(
+                            "requires_flaresolverr", False
+                        )
                         if requires_flaresolverr and not flaresolverr_available:
-                            logger.debug(f"Skipping {config.get('name', 'Unknown')} - requires FlareSolverr")
+                            logger.debug(
+                                f"Skipping {config.get('name', 'Unknown')} - requires FlareSolverr"
+                            )
                             continue
 
                         # Add FlareSolverr URL to params if available and needed
-                        if flaresolverr_available and config.get("params", {}).get("use_flaresolverr"):
+                        if flaresolverr_available and config.get("params", {}).get(
+                            "use_flaresolverr"
+                        ):
                             config["params"]["flaresolverr_url"] = flaresolverr_url
 
                         filtered_configs.append(config)
 
                     # Load filtered configs into factory
-                    provider_factory._provider_configs.update({
-                        config["id"]: config for config in filtered_configs
-                    })
+                    provider_factory._provider_configs.update(
+                        {config["id"]: config for config in filtered_configs}
+                    )
 
                     # Create providers from filtered config
                     providers = []
@@ -173,7 +192,9 @@ class ProviderRegistry:
                             if provider:
                                 providers.append(provider)
                         except Exception as e:
-                            logger.error(f"Failed to create provider {config.get('name', 'Unknown')}: {e}")
+                            logger.error(
+                                f"Failed to create provider {config.get('name', 'Unknown')}: {e}"
+                            )
 
                     # Register providers
                     for provider in providers:
@@ -181,7 +202,9 @@ class ProviderRegistry:
 
                     logger.info(f"Loaded {len(providers)} providers from {config_file}")
                 except Exception as e:
-                    logger.error(f"Error loading provider config from {config_file}: {e}")
+                    logger.error(
+                        f"Error loading provider config from {config_file}: {e}"
+                    )
 
         except Exception as e:
             logger.error(f"Error loading provider configs: {e}")

@@ -89,7 +89,9 @@ class GenericProvider(BaseProvider):
         self.flaresolverr_url = flaresolverr_url or os.getenv("FLARESOLVERR_URL")
 
         if self.use_flaresolverr and self.flaresolverr_url:
-            logger.info(f"Generic provider {name} using FlareSolverr at: {self.flaresolverr_url}")
+            logger.info(
+                f"Generic provider {name} using FlareSolverr at: {self.flaresolverr_url}"
+            )
 
         # Search-specific selectors (fallback to main selectors if not provided)
         self._search_title_selector = search_title_selector or title_selector
@@ -210,7 +212,9 @@ class GenericProvider(BaseProvider):
             "Upgrade-Insecure-Requests": "1",
         }
 
-    async def _make_request_with_retry(self, url: str, max_retries: int = 3) -> Optional[str]:
+    async def _make_request_with_retry(
+        self, url: str, max_retries: int = 3
+    ) -> Optional[str]:
         """Make HTTP request with retry logic and anti-bot protection."""
         for attempt in range(max_retries):
             try:
@@ -227,13 +231,13 @@ class GenericProvider(BaseProvider):
                                 "cmd": "request.get",
                                 "url": url,
                                 "maxTimeout": 60000,
-                                "headers": self._headers
+                                "headers": self._headers,
                             }
 
                             response = await client.post(
                                 f"{self.flaresolverr_url}/v1",
                                 json=payload,
-                                timeout=60.0
+                                timeout=60.0,
                             )
 
                             if response.status_code == 200:
@@ -241,7 +245,9 @@ class GenericProvider(BaseProvider):
                                 if data.get("status") == "ok":
                                     return data["solution"]["response"]
                                 else:
-                                    logger.warning(f"FlareSolverr error for {url}: {data.get('message', 'Unknown error')}")
+                                    logger.warning(
+                                        f"FlareSolverr error for {url}: {data.get('message', 'Unknown error')}"
+                                    )
                     except Exception as e:
                         logger.warning(f"FlareSolverr request failed for {url}: {e}")
 
@@ -251,10 +257,7 @@ class GenericProvider(BaseProvider):
                     headers = self._get_random_headers()
 
                     response = await client.get(
-                        url,
-                        headers=headers,
-                        follow_redirects=True,
-                        timeout=30.0
+                        url, headers=headers, follow_redirects=True, timeout=30.0
                     )
 
                     response.raise_for_status()
@@ -262,16 +265,24 @@ class GenericProvider(BaseProvider):
 
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 403:
-                    logger.warning(f"Access forbidden for {url} (attempt {attempt + 1}/{max_retries})")
+                    logger.warning(
+                        f"Access forbidden for {url} (attempt {attempt + 1}/{max_retries})"
+                    )
                     if attempt == max_retries - 1:
-                        logger.error(f"All attempts failed for {url}. Site may require FlareSolverr.")
+                        logger.error(
+                            f"All attempts failed for {url}. Site may require FlareSolverr."
+                        )
                 elif e.response.status_code == 404:
                     logger.error(f"URL not found: {url}")
                     break
                 else:
-                    logger.warning(f"HTTP error {e.response.status_code} for {url} (attempt {attempt + 1}/{max_retries})")
+                    logger.warning(
+                        f"HTTP error {e.response.status_code} for {url} (attempt {attempt + 1}/{max_retries})"
+                    )
             except Exception as e:
-                logger.warning(f"Request failed for {url} (attempt {attempt + 1}/{max_retries}): {e}")
+                logger.warning(
+                    f"Request failed for {url} (attempt {attempt + 1}/{max_retries}): {e}"
+                )
 
         return None
 
@@ -359,9 +370,7 @@ class GenericProvider(BaseProvider):
                     manga_link = item.select_one("a")
                     if not manga_link:
                         # Try fallback link selectors
-                        for link_selector in self._fallback_selectors.get(
-                            "link", []
-                        ):
+                        for link_selector in self._fallback_selectors.get("link", []):
                             try:
                                 manga_link = item.select_one(link_selector)
                                 if manga_link:
@@ -445,7 +454,9 @@ class GenericProvider(BaseProvider):
                     f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
                 )
             logger.error(f"Failed search URL: {search_url}")
-            logger.error(f"Provider {self.name} may need FlareSolverr or updated configuration")
+            logger.error(
+                f"Provider {self.name} may need FlareSolverr or updated configuration"
+            )
             return [], 0, False
 
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
@@ -793,7 +804,9 @@ class GenericProvider(BaseProvider):
                 if elem:
                     src = elem.get("src", "")
                     if isinstance(src, str) and src:
-                        logger.debug(f"Found image with primary selector '{primary_selector}': {src}")
+                        logger.debug(
+                            f"Found image with primary selector '{primary_selector}': {src}"
+                        )
                         return src
             except Exception as e:
                 logger.debug(f"Primary selector '{primary_selector}' failed: {e}")
@@ -806,7 +819,9 @@ class GenericProvider(BaseProvider):
                 if elem:
                     src = elem.get("src", "")
                     if isinstance(src, str) and src:
-                        logger.debug(f"Found image with fallback selector '{selector}': {src}")
+                        logger.debug(
+                            f"Found image with fallback selector '{selector}': {src}"
+                        )
                         return src
             except Exception as e:
                 logger.debug(f"Fallback selector '{selector}' failed: {e}")
@@ -823,7 +838,9 @@ class GenericProvider(BaseProvider):
         except Exception as e:
             logger.debug(f"MangaFox special handling failed: {e}")
 
-        logger.debug(f"No image found for field_type '{field_type}' with primary selector '{primary_selector}'")
+        logger.debug(
+            f"No image found for field_type '{field_type}' with primary selector '{primary_selector}'"
+        )
         return ""
 
     def _extract_genres(self, element) -> List[str]:
@@ -894,13 +911,24 @@ class GenericProvider(BaseProvider):
                     status_text = status_elem.text.strip().lower()
 
                     # Map common status text to MangaStatus enum
-                    if any(word in status_text for word in ["ongoing", "publishing", "serializing", "active"]):
+                    if any(
+                        word in status_text
+                        for word in ["ongoing", "publishing", "serializing", "active"]
+                    ):
                         return MangaStatus.ONGOING
-                    elif any(word in status_text for word in ["completed", "finished", "ended", "complete"]):
+                    elif any(
+                        word in status_text
+                        for word in ["completed", "finished", "ended", "complete"]
+                    ):
                         return MangaStatus.COMPLETED
-                    elif any(word in status_text for word in ["hiatus", "on hold", "paused"]):
+                    elif any(
+                        word in status_text for word in ["hiatus", "on hold", "paused"]
+                    ):
                         return MangaStatus.HIATUS
-                    elif any(word in status_text for word in ["cancelled", "canceled", "dropped", "discontinued"]):
+                    elif any(
+                        word in status_text
+                        for word in ["cancelled", "canceled", "dropped", "discontinued"]
+                    ):
                         return MangaStatus.CANCELLED
 
                     # If we found status text but couldn't map it, return as ongoing (most common)
@@ -916,7 +944,12 @@ class GenericProvider(BaseProvider):
 
             # Look for status patterns in brackets
             import re
-            status_match = re.search(r'\[(completed|ongoing|finished|ended|hiatus|cancelled|dropped)\]', all_text, re.IGNORECASE)
+
+            status_match = re.search(
+                r"\[(completed|ongoing|finished|ended|hiatus|cancelled|dropped)\]",
+                all_text,
+                re.IGNORECASE,
+            )
             if status_match:
                 status_text = status_match.group(1).lower()
                 if status_text in ["completed", "finished", "ended"]:

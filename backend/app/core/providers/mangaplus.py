@@ -40,7 +40,9 @@ class MangaPlusProvider(BaseProvider):
     ) -> Tuple[List[SearchResult], int, bool]:
         """Search for manga on MangaPlus."""
         if not self._api_working:
-            logger.error("MangaPlus API is currently not working. Provider is disabled.")
+            logger.error(
+                "MangaPlus API is currently not working. Provider is disabled."
+            )
             return [], 0, False
 
         # Calculate offset
@@ -54,12 +56,14 @@ class MangaPlusProvider(BaseProvider):
                     headers={
                         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
                     },
-                    timeout=30.0
+                    timeout=30.0,
                 )
 
                 # Check if request was successful
                 if response.status_code == 404:
-                    logger.error("MangaPlus API endpoint not found (404). The API may have changed.")
+                    logger.error(
+                        "MangaPlus API endpoint not found (404). The API may have changed."
+                    )
                     self._api_working = False
                     return [], 0, False
 
@@ -137,7 +141,9 @@ class MangaPlusProvider(BaseProvider):
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
         """Get details for a manga on MangaPlus."""
         if not self._api_working:
-            logger.error("MangaPlus API is currently not working. Provider is disabled.")
+            logger.error(
+                "MangaPlus API is currently not working. Provider is disabled."
+            )
             return {}
 
         try:
@@ -148,12 +154,14 @@ class MangaPlusProvider(BaseProvider):
                     headers={
                         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
                     },
-                    timeout=30.0
+                    timeout=30.0,
                 )
 
                 # Check if request was successful
                 if response.status_code == 404:
-                    logger.error("MangaPlus API endpoint not found (404). The API may have changed.")
+                    logger.error(
+                        "MangaPlus API endpoint not found (404). The API may have changed."
+                    )
                     self._api_working = False
                     return {}
 

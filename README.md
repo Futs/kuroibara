@@ -1,16 +1,35 @@
-[![PR Checks](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml)
-[![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
-[![Security Scan](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Futs/kuroibara/releases)
+<!-- Build & Deployment Status -->
+[![PR Checks](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml)
+[![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
+[![Security Scan](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml/badge.svg?branch=main)](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml)
+
+<!-- Project Stats -->
+[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?include_prereleases&label=version)](https://github.com/Futs/kuroibara/releases)
+[![GitHub Issues](https://img.shields.io/github/issues/Futs/kuroibara)](https://github.com/Futs/kuroibara/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/Futs/kuroibara)](https://github.com/Futs/kuroibara/pulls)
+[![GitHub Stars](https://img.shields.io/github/stars/Futs/kuroibara)](https://github.com/Futs/kuroibara/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Futs/kuroibara)](https://github.com/Futs/kuroibara/network/members)
+[![GitHub Last Commit](https://img.shields.io/github/last-commit/Futs/kuroibara)](https://github.com/Futs/kuroibara/commits/main)
+
+<!-- Tech Stack -->
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/node.js-22-green.svg)](https://nodejs.org/)
 [![Vue.js](https://img.shields.io/badge/vue.js-3.5.13-4FC08D.svg)](https://vuejs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/tailwind-4.0.0-38B2AC.svg)](https://tailwindcss.com/)
 [![FastAPI](https://img.shields.io/badge/fastapi-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![GitHub Issues](https://img.shields.io/github/issues/Futs/kuroibara.svg)](https://github.com/Futs/kuroibara/issues)
-[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+<!-- Code Quality & License -->
+[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![GitHub Repo Size](https://img.shields.io/github/repo-size/Futs/kuroibara)](https://github.com/Futs/kuroibara)
+[![GitHub Language Count](https://img.shields.io/github/languages/count/Futs/kuroibara)](https://github.com/Futs/kuroibara)
+[![GitHub Top Language](https://img.shields.io/github/languages/top/Futs/kuroibara)](https://github.com/Futs/kuroibara)
+
+<!-- Additional Project Health Metrics -->
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Futs/kuroibara/pr-checks.yml?branch=main&label=tests)](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml)
+[![GitHub Commit Activity](https://img.shields.io/github/commit-activity/m/Futs/kuroibara)](https://github.com/Futs/kuroibara/graphs/commit-activity)
+[![GitHub Contributors](https://img.shields.io/github/contributors/Futs/kuroibara)](https://github.com/Futs/kuroibara/graphs/contributors)
 
 # Kuroibara (Black Rose) <img src="frontend/app/public/assets/logo/logo.png" alt="Kuroibara Logo" width="32" height="32">
 

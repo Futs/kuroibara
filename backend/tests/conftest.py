@@ -19,8 +19,10 @@ from app.db.session import Base, get_db
 from app.main import app
 
 # Use test database configuration from environment variables or construct from settings
+# Check if we're running inside Docker container by looking for container-specific indicators
+is_in_container = os.path.exists("/.dockerenv") or os.getenv("CONTAINER_ENV") == "true"
 # For local testing (outside Docker), use localhost instead of postgres container name
-db_host = "localhost" if settings.DB_HOST == "postgres" else settings.DB_HOST
+db_host = settings.DB_HOST if is_in_container else "localhost"
 test_db_name = f"test_{settings.DB_DATABASE}"
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",

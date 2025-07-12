@@ -1,13 +1,14 @@
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from app.core.providers.base import BaseProvider
+from app.core.providers.enhanced_generic import EnhancedGenericProvider
 from app.core.providers.factory import provider_factory
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangaplus import MangaPlusProvider
-from app.core.providers.mangasee import MangaSeeProvider
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,8 @@ class ProviderRegistry:
         # Initialize provider factory
         provider_factory.register_provider_class(MangaDexProvider)
         provider_factory.register_provider_class(MangaPlusProvider)
-        provider_factory.register_provider_class(MangaSeeProvider)
         provider_factory.register_provider_class(GenericProvider)
+        provider_factory.register_provider_class(EnhancedGenericProvider)
         logger.info("Registered provider classes")
 
         # Load provider configurations
@@ -37,7 +38,6 @@ class ProviderRegistry:
             )
             self.register_provider(MangaDexProvider())
             self.register_provider(MangaPlusProvider())
-            self.register_provider(MangaSeeProvider())
 
         logger.info(
             f"ProviderRegistry initialized with {len(self._providers)} providers: {list(self._providers.keys())}"
@@ -61,18 +61,46 @@ class ProviderRegistry:
 
     def get_provider_info(self) -> List[Dict[str, Any]]:
         """Get information about all registered providers."""
-        # Sort providers alphabetically by name
-        sorted_providers = sorted(
-            self._providers.values(), key=lambda p: p.name.lower()
-        )
+        # Get all providers with their priority information
+        providers_with_priority = []
+
+        for provider in self._providers.values():
+            provider_id = provider.name.lower()
+
+            # Get priority from provider config (default to 999 for unspecified)
+            priority = 999
+            for config in provider_factory._provider_configs.values():
+                if config.get("id") == provider_id:
+                    priority = config.get("priority", 999)
+                    break
+
+            providers_with_priority.append((provider, priority))
+
+        # Sort by priority (lower numbers = higher priority), then by name
+        providers_with_priority.sort(key=lambda x: (x[1], x[0].name.lower()))
+
+        # Define default providers for is_priority flag
+        default_providers = [
+            "mangadex",
+            "mangaplus",
+            "weebcentral",
+            "toonily",
+            "mangabuddy",
+            "mangadna",
+            "manga18fx",
+            "webcomicsapp",
+        ]
+
         return [
             {
                 "id": provider.name.lower(),
                 "name": provider.name,
                 "url": provider.url,
                 "supports_nsfw": provider.supports_nsfw,
+                "is_priority": provider.name.lower() in default_providers,
+                "priority": priority,
             }
-            for provider in sorted_providers
+            for provider, priority in providers_with_priority
         ]
 
     def _load_provider_configs(self) -> None:
@@ -86,14 +114,87 @@ class ProviderRegistry:
                 logger.warning(f"Provider config directory not found: {config_dir}")
                 return
 
-            # Load all JSON files in the config directory
-            for config_file in config_dir.glob("*.json"):
+            # Check if FlareSolverr is available
+            flaresolverr_url = os.getenv("FLARESOLVERR_URL")
+            flaresolverr_available = bool(flaresolverr_url and flaresolverr_url.strip())
+
+            if flaresolverr_available:
+                logger.info(f"FlareSolverr available at: {flaresolverr_url}")
+            else:
+                logger.info(
+                    "FlareSolverr not configured - Cloudflare-protected providers will be disabled"
+                )
+
+            # Define config files to load (order matters - default providers get priority)
+            config_files = ["providers_default.json"]
+
+            # Add Cloudflare providers if FlareSolverr is available (loaded after defaults)
+            if flaresolverr_available:
+                config_files.append("providers_cloudflare.json")
+                logger.info("Loading Cloudflare-protected providers (lower priority)")
+
+            # Fallback to old batch files if new structure doesn't exist
+            if not (config_dir / "providers_default.json").exists():
+                logger.info("Using legacy provider configuration files")
+                config_files = [
+                    "providers_batch1.json",
+                    "providers_batch2.json",
+                    "providers_batch3.json",
+                    "providers_batch4.json",
+                ]
+
+            # Load specified config files
+            for config_filename in config_files:
+                config_file = config_dir / config_filename
+                if not config_file.exists():
+                    logger.warning(f"Config file not found: {config_file}")
+                    continue
+
                 try:
                     logger.info(f"Loading provider config from {config_file}")
-                    provider_factory.load_provider_configs(str(config_file))
 
-                    # Create providers from config
-                    providers = provider_factory.create_all_providers()
+                    # Load and filter providers based on FlareSolverr availability
+                    with open(config_file, "r") as f:
+                        import json
+
+                        provider_configs = json.load(f)
+
+                    # Filter out Cloudflare providers if FlareSolverr is not available
+                    filtered_configs = []
+                    for config in provider_configs:
+                        requires_flaresolverr = config.get(
+                            "requires_flaresolverr", False
+                        )
+                        if requires_flaresolverr and not flaresolverr_available:
+                            logger.debug(
+                                f"Skipping {config.get('name', 'Unknown')} - requires FlareSolverr"
+                            )
+                            continue
+
+                        # Add FlareSolverr URL to params if available and needed
+                        if flaresolverr_available and config.get("params", {}).get(
+                            "use_flaresolverr"
+                        ):
+                            config["params"]["flaresolverr_url"] = flaresolverr_url
+
+                        filtered_configs.append(config)
+
+                    # Load filtered configs into factory
+                    provider_factory._provider_configs.update(
+                        {config["id"]: config for config in filtered_configs}
+                    )
+
+                    # Create providers from filtered config
+                    providers = []
+                    for config in filtered_configs:
+                        try:
+                            provider = provider_factory.create_provider(config["id"])
+                            if provider:
+                                providers.append(provider)
+                        except Exception as e:
+                            logger.error(
+                                f"Failed to create provider {config.get('name', 'Unknown')}: {e}"
+                            )
 
                     # Register providers
                     for provider in providers:
@@ -104,6 +205,7 @@ class ProviderRegistry:
                     logger.error(
                         f"Error loading provider config from {config_file}: {e}"
                     )
+
         except Exception as e:
             logger.error(f"Error loading provider configs: {e}")
 

@@ -147,9 +147,13 @@
     "supports_nsfw": false,
     "params": {
       "base_url": "https://fanfox.net",
-      "search_url": "https://fanfox.net/search",
-      "manga_url_pattern": "https://fanfox.net/manga/{manga_id}",
-      "chapter_url_pattern": "https://fanfox.net/manga/{manga_id}/{chapter_id}",
+      "search_url": "https://fanfox.net/search?title={query}",
+      "search_selector": "li",
+      "search_title_selector": "a[href*='/manga/']:first-of-type",
+      "search_cover_selector": "img",
+      "search_description_selector": "",
+      "manga_url_pattern": "https://fanfox.net{manga_id}",
+      "chapter_url_pattern": "https://fanfox.net{manga_id}/{chapter_id}",
       "name": "MangaFox"
     }
   },

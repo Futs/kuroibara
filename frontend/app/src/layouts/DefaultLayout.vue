@@ -11,11 +11,7 @@
                   alt="Kuroibara Logo"
                   class="h-8 w-8"
                 />
-                <img
-                  src="/assets/logo/name.png"
-                  alt="Kuroibara"
-                  class="h-6"
-                />
+                <img src="/assets/logo/name.png" alt="Kuroibara" class="h-6" />
               </router-link>
             </div>
             <nav class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -24,10 +20,11 @@
                 :key="item.name"
                 :to="item.to"
                 :class="[
-                  $route.path === item.to || $route.path.startsWith(item.to + '/')
+                  $route.path === item.to ||
+                  $route.path.startsWith(item.to + '/')
                     ? 'border-primary-500 text-gray-900 dark:text-white'
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white',
-                  'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                  'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium',
                 ]"
               >
                 {{ item.name }}
@@ -35,6 +32,51 @@
             </nav>
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:items-center">
+            <!-- Theme Toggle Button -->
+            <button
+              @click="toggleTheme"
+              class="p-2 rounded-md text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+              :title="
+                settingsStore.theme === 'dark'
+                  ? 'Switch to light mode'
+                  : 'Switch to dark mode'
+              "
+            >
+              <span class="sr-only">Toggle theme</span>
+              <!-- Sun icon for dark mode (show when in dark mode) -->
+              <svg
+                v-if="settingsStore.theme === 'dark'"
+                class="h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+              <!-- Moon icon for light mode (show when in light mode) -->
+              <svg
+                v-else
+                class="h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
+              </svg>
+            </button>
+
             <div class="ml-3 relative user-menu">
               <div v-if="isAuthenticated">
                 <button
@@ -42,11 +84,16 @@
                   class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   <span class="sr-only">Open user menu</span>
-                  <img v-if="user?.avatar"
-                       :src="user.avatar"
-                       :alt="user.username"
-                       class="h-8 w-8 rounded-full object-cover">
-                  <div v-else class="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                  <img
+                    v-if="user?.avatar"
+                    :src="user.avatar"
+                    :alt="user.username"
+                    class="h-8 w-8 rounded-full object-cover"
+                  />
+                  <div
+                    v-else
+                    class="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white"
+                  >
                     {{ userInitials }}
                   </div>
                 </button>
@@ -67,6 +114,20 @@
                     @click="userMenuOpen = false"
                   >
                     Settings
+                  </router-link>
+                  <router-link
+                    to="/recovery"
+                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-600"
+                    @click="userMenuOpen = false"
+                  >
+                    Storage Recovery
+                  </router-link>
+                  <router-link
+                    to="/backup"
+                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-600"
+                    @click="userMenuOpen = false"
+                  >
+                    Backup & Restore
                   </router-link>
                   <button
                     @click="logout"
@@ -136,27 +197,39 @@
               $route.path === item.to || $route.path.startsWith(item.to + '/')
                 ? 'bg-primary-50 dark:bg-primary-900 border-primary-500 text-primary-700 dark:text-primary-300'
                 : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 hover:border-gray-300 hover:text-gray-800',
-              'block pl-3 pr-4 py-2 border-l-4 text-base font-medium'
+              'block pl-3 pr-4 py-2 border-l-4 text-base font-medium',
             ]"
             @click="mobileMenuOpen = false"
           >
             {{ item.name }}
           </router-link>
         </div>
-        <div v-if="isAuthenticated" class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600">
+        <div
+          v-if="isAuthenticated"
+          class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600"
+        >
           <div class="flex items-center px-4">
             <div class="flex-shrink-0">
-              <img v-if="user?.avatar"
-                   :src="user.avatar"
-                   :alt="user.username"
-                   class="h-10 w-10 rounded-full object-cover">
-              <div v-else class="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white">
+              <img
+                v-if="user?.avatar"
+                :src="user.avatar"
+                :alt="user.username"
+                class="h-10 w-10 rounded-full object-cover"
+              />
+              <div
+                v-else
+                class="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white"
+              >
                 {{ userInitials }}
               </div>
             </div>
             <div class="ml-3">
-              <div class="text-base font-medium text-gray-800 dark:text-white">{{ user?.username }}</div>
-              <div class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ user?.email }}</div>
+              <div class="text-base font-medium text-gray-800 dark:text-white">
+                {{ user?.username }}
+              </div>
+              <div class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ user?.email }}
+              </div>
             </div>
           </div>
           <div class="mt-3 space-y-1">
@@ -188,6 +261,20 @@
             >
               Settings
             </router-link>
+            <router-link
+              to="/recovery"
+              class="block px-4 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-dark-700"
+              @click="mobileMenuOpen = false"
+            >
+              Storage Recovery
+            </router-link>
+            <router-link
+              to="/backup"
+              class="block px-4 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-dark-700"
+              @click="mobileMenuOpen = false"
+            >
+              Backup & Restore
+            </router-link>
             <button
               @click="logout"
               class="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 dark:text-gray-300 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-dark-700"
@@ -196,7 +283,10 @@
             </button>
           </div>
         </div>
-        <div v-else class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600">
+        <div
+          v-else
+          class="pt-4 pb-3 border-t border-gray-200 dark:border-dark-600"
+        >
           <div class="flex items-center justify-around">
             <router-link
               to="/login"
@@ -226,7 +316,10 @@
     <footer class="bg-white dark:bg-dark-800 shadow-sm">
       <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <div class="text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>&copy; {{ new Date().getFullYear() }} Kuroibara. All rights reserved.</p>
+          <p>
+            &copy; {{ new Date().getFullYear() }} Kuroibara. All rights
+            reserved.
+          </p>
         </div>
       </div>
     </footer>
@@ -234,10 +327,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '../stores/auth';
-import { useSettingsStore } from '../stores/settings';
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+import { useSettingsStore } from "../stores/settings";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -250,26 +343,32 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.getUser);
 
 const userInitials = computed(() => {
-  if (!user.value) return '';
+  if (!user.value) return "";
   return user.value.username.substring(0, 2).toUpperCase();
 });
 
 const navItems = computed(() => {
   const items = [
-    { name: 'Home', to: '/' },
-    { name: 'Search', to: '/search' },
+    { name: "Home", to: "/" },
+    { name: "Search", to: "/search" },
   ];
 
   if (isAuthenticated.value) {
     items.push(
-      { name: 'Library', to: '/library' },
-      { name: 'Categories', to: '/categories' },
-      { name: 'Reading Lists', to: '/reading-lists' }
+      { name: "Library", to: "/library" },
+      { name: "Categories", to: "/categories" },
+      { name: "Reading Lists", to: "/reading-lists" },
     );
   }
 
   return items;
 });
+
+const toggleTheme = () => {
+  const currentTheme = settingsStore.theme;
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
+  settingsStore.setTheme(newTheme);
+};
 
 const logout = () => {
   authStore.logout();
@@ -282,8 +381,8 @@ onMounted(() => {
   settingsStore.initSettings();
 
   // Close menus when clicking outside
-  document.addEventListener('click', (event) => {
-    if (userMenuOpen.value && !event.target.closest('.user-menu')) {
+  document.addEventListener("click", (event) => {
+    if (userMenuOpen.value && !event.target.closest(".user-menu")) {
       userMenuOpen.value = false;
     }
   });

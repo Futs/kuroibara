@@ -1,0 +1,141 @@
+[
+  {
+    "id": "mangadex",
+    "name": "MangaDex",
+    "class_name": "MangaDexProvider",
+    "url": "https://api.mangadex.org",
+    "supports_nsfw": true,
+    "priority": 1,
+    "params": {}
+  },
+  {
+    "id": "mangaplus",
+    "name": "MangaPlus",
+    "class_name": "MangaPlusProvider",
+    "url": "https://jumpg-webapi.tokyo-cdn.com/api",
+    "supports_nsfw": false,
+    "priority": 2,
+    "params": {}
+  },
+  {
+    "id": "weebcentral",
+    "name": "WeebCentral",
+    "class_name": "GenericProvider",
+    "url": "https://weebcentral.com",
+    "supports_nsfw": false,
+    "priority": 3,
+    "params": {
+      "base_url": "https://weebcentral.com",
+      "search_url": "https://weebcentral.com/search",
+      "manga_url_pattern": "https://weebcentral.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://weebcentral.com/manga/{manga_id}/{chapter_id}",
+      "name": "WeebCentral",
+      "use_flaresolverr": true
+    }
+  },
+  {
+    "id": "toonily",
+    "name": "Toonily",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://toonily.com",
+    "supports_nsfw": true,
+    "priority": 4,
+    "params": {
+      "base_url": "https://toonily.com",
+      "search_url": "https://toonily.com/search?q={query}",
+      "manga_url_pattern": "https://toonily.com/serie/{manga_id}",
+      "chapter_url_pattern": "https://toonily.com/serie/{manga_id}/{chapter_id}",
+      "name": "Toonily",
+      "selectors": {
+        "search_items": [".page-item-detail"],
+        "title": [".post-title h3 a", ".post-title a"],
+        "cover": [".item-thumb img"],
+        "link": [".post-title a"]
+      }
+    }
+  },
+  {
+    "id": "mangabuddy",
+    "name": "MangaBuddy",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://mangabuddy.com",
+    "supports_nsfw": false,
+    "priority": 5,
+    "params": {
+      "base_url": "https://mangabuddy.com",
+      "search_url": "https://mangabuddy.com/search?q={query}",
+      "manga_url_pattern": "https://mangabuddy.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangabuddy.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaBuddy",
+      "selectors": {
+        "search_items": ["[class*='manga']", ".search-item"],
+        "title": [".title", "h3 a", "h4 a"],
+        "cover": ["img"],
+        "link": ["a[href*='manga']"]
+      }
+    }
+  },
+  {
+    "id": "mangadna",
+    "name": "MangaDNA",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://mangadna.com",
+    "supports_nsfw": false,
+    "priority": 6,
+    "params": {
+      "base_url": "https://mangadna.com",
+      "search_url": "https://mangadna.com/search?q={query}",
+      "manga_url_pattern": "https://mangadna.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangadna.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaDNA",
+      "selectors": {
+        "search_items": ["[class*='manga']", ".item"],
+        "title": [".title", "h3", "h4"],
+        "cover": ["img"],
+        "link": ["a[href*='manga']"]
+      }
+    }
+  },
+  {
+    "id": "manga18fx",
+    "name": "Manga18FX",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://manga18fx.com",
+    "supports_nsfw": true,
+    "priority": 7,
+    "params": {
+      "base_url": "https://manga18fx.com",
+      "search_url": "https://manga18fx.com/search?q={query}",
+      "manga_url_pattern": "https://manga18fx.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manga18fx.com/manga/{manga_id}/{chapter_id}",
+      "name": "Manga18FX",
+      "selectors": {
+        "search_items": ["[class*='manga']", ".item"],
+        "title": [".title", "h3", "h4"],
+        "cover": ["img"],
+        "link": ["a[href*='manga']"]
+      }
+    }
+  },
+  {
+    "id": "webcomicsapp",
+    "name": "WebComicsApp",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://www.webcomicsapp.com",
+    "supports_nsfw": false,
+    "priority": 8,
+    "params": {
+      "base_url": "https://www.webcomicsapp.com",
+      "search_url": "https://www.webcomicsapp.com/search?q={query}",
+      "manga_url_pattern": "https://www.webcomicsapp.com/comic/{manga_id}",
+      "chapter_url_pattern": "https://www.webcomicsapp.com/comic/{manga_id}/{chapter_id}",
+      "name": "WebComicsApp",
+      "selectors": {
+        "search_items": ["[class*='book']", ".item"],
+        "title": [".title", "h3", "h4"],
+        "cover": ["img"],
+        "link": ["a[href*='comic']"]
+      }
+    }
+  }
+]

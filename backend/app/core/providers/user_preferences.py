@@ -56,6 +56,14 @@ def prioritize_providers_by_user_preferences(
         - priority_providers: User's favorite providers sorted by priority
         - regular_providers: Non-favorite enabled providers
     """
+    logger.info(
+        f"Prioritizing providers with user preferences: {len(user_preferences)} preferences found"
+    )
+    for pref_id, pref in user_preferences.items():
+        logger.debug(
+            f"User preference: {pref_id} -> enabled={pref.is_enabled}, favorite={pref.is_favorite}"
+        )
+
     favorite_providers = []
     enabled_providers = []
 
@@ -65,6 +73,9 @@ def prioritize_providers_by_user_preferences(
 
         # Skip disabled providers
         if user_pref and not user_pref.is_enabled:
+            logger.info(
+                f"Skipping disabled provider: {provider.name} (user preference)"
+            )
             continue
 
         # Check if provider is a favorite
@@ -97,12 +108,39 @@ def get_fallback_provider_priority() -> List[str]:
     return ["MangaDexProvider", "MangaPlusProvider", "MangaSeeProvider"]
 
 
+def get_fallback_provider_names() -> List[str]:
+    """
+    Get fallback provider names (by provider name, not class) for mainstream providers.
+    These are providers that are likely to have popular manga.
+
+    Returns:
+        List of provider names in priority order
+    """
+    return [
+        "MangaDex",
+        "MangaPlus",
+        "MangaSee",  # Priority providers
+        "MangaKakalot",
+        "MangaBat",
+        "MangaFox",
+        "MangaTown",  # Popular generic providers
+        "MangaLife",
+        "MangaReaderTo",
+        "ReadM",
+        "MangaFire",  # More mainstream providers
+        "Toonily",
+        "ManhwaHub",
+        "ManhuaZ",
+        "Manhuaga",  # Popular manhwa/manhua providers
+    ]
+
+
 def apply_fallback_prioritization(
     providers: List[BaseProvider],
 ) -> Tuple[List[BaseProvider], List[BaseProvider]]:
     """
     Apply fallback prioritization for users without preferences.
-    This maintains backward compatibility with the current system.
+    This prioritizes mainstream providers that are likely to have popular manga.
 
     Args:
         providers: List of available providers
@@ -111,12 +149,16 @@ def apply_fallback_prioritization(
         Tuple of (priority_providers, generic_providers)
     """
     priority_class_names = get_fallback_provider_priority()
+    mainstream_provider_names = get_fallback_provider_names()
     priority_providers = []
+    mainstream_providers = []
     generic_providers = []
 
     for provider in providers:
         if provider.__class__.__name__ in priority_class_names:
             priority_providers.append(provider)
+        elif provider.name in mainstream_provider_names:
+            mainstream_providers.append(provider)
         else:
             generic_providers.append(provider)
 
@@ -125,7 +167,18 @@ def apply_fallback_prioritization(
         key=lambda x: priority_class_names.index(x.__class__.__name__)
     )
 
-    # Limit generic providers to 10 (maintaining current behavior)
-    generic_providers = generic_providers[:10]
+    # Sort mainstream providers by the defined order
+    mainstream_providers.sort(
+        key=lambda x: (
+            mainstream_provider_names.index(x.name)
+            if x.name in mainstream_provider_names
+            else 999
+        )
+    )
 
-    return priority_providers, generic_providers
+    # Combine mainstream and generic providers, limit total to reasonable number
+    combined_generic = (
+        mainstream_providers + generic_providers[:5]
+    )  # Mainstream + 5 others
+
+    return priority_providers, combined_generic

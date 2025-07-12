@@ -1,0 +1,94 @@
+[
+  {
+    "id": "reaperscans",
+    "name": "ReaperScans",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://reaperscans.com",
+    "supports_nsfw": false,
+    "requires_flaresolverr": true,
+    "priority": 100,
+    "params": {
+      "base_url": "https://reaperscans.com",
+      "search_url": "https://reaperscans.com/search?q={query}",
+      "manga_url_pattern": "https://reaperscans.com/series/{manga_id}",
+      "chapter_url_pattern": "https://reaperscans.com/series/{manga_id}/{chapter_id}",
+      "name": "ReaperScans",
+      "use_flaresolverr": true,
+      "selectors": {
+        "search_items": [".listupd .bs", ".bsx", ".item"],
+        "title": [".tt", ".title", "h3 a", "h4 a"],
+        "cover": [".limit img", ".ts-post-image img", "img"],
+        "link": ["a[href*='series']", "a[href*='manga']"]
+      }
+    }
+  },
+  {
+    "id": "manhuaga",
+    "name": "Manhuaga",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://manhuaga.com",
+    "supports_nsfw": false,
+    "requires_flaresolverr": true,
+    "priority": 101,
+    "params": {
+      "base_url": "https://manhuaga.com",
+      "search_url": "https://manhuaga.com/search?q={query}",
+      "manga_url_pattern": "https://manhuaga.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuaga.com/manga/{manga_id}/{chapter_id}",
+      "name": "Manhuaga",
+      "use_flaresolverr": true,
+      "selectors": {
+        "search_items": [".listupd .bs", ".bsx", ".item"],
+        "title": [".tt", ".title", "h3 a", "h4 a"],
+        "cover": [".limit img", ".ts-post-image img", "img"],
+        "link": ["a[href*='manga']"]
+      }
+    }
+  },
+  {
+    "id": "mangafire",
+    "name": "MangaFire",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://mangafire.to",
+    "supports_nsfw": false,
+    "requires_flaresolverr": true,
+    "priority": 102,
+    "params": {
+      "base_url": "https://mangafire.to",
+      "search_url": "https://mangafire.to/filter?keyword={query}",
+      "manga_url_pattern": "https://mangafire.to/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangafire.to/read/{manga_id}/{chapter_id}",
+      "name": "MangaFire",
+      "use_flaresolverr": true,
+      "selectors": {
+        "search_items": [".unit .inner", ".manga-item", ".item"],
+        "title": [".info .name a", ".title", "h3 a"],
+        "cover": [".poster img", ".cover img", "img"],
+        "link": ["a[href*='manga']"]
+      }
+    }
+  },
+  {
+    "id": "mangareader",
+    "name": "MangaReaderTo",
+    "class_name": "EnhancedGenericProvider",
+    "url": "https://mangareader.to",
+    "supports_nsfw": false,
+    "requires_flaresolverr": false,
+    "priority": 103,
+    "params": {
+      "base_url": "https://mangareader.to",
+      "search_url": "https://mangareader.to/search?keyword={query}",
+      "manga_url_pattern": "https://mangareader.to/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangareader.to/read/{manga_id}/{chapter_id}",
+      "name": "MangaReaderTo",
+      "use_flaresolverr": false,
+      "selectors": {
+        "search_items": [".manga_list-sbs .item", ".item"],
+        "title": [".manga-name a", ".title", "h3 a"],
+        "cover": [".manga-poster img", "img"],
+        "link": ["a[href*='manga']"]
+      }
+    }
+  }
+]

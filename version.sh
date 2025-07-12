@@ -171,10 +171,14 @@ update_backend_version() {
 main() {
     case "${1:-}" in
         "current")
-            echo "Current version: $(get_current_version)"
-            echo "Branch: $CURRENT_BRANCH"
-            if [[ "$CURRENT_BRANCH" == "dev" ]]; then
-                echo "Dev version: $(create_dev_version)"
+            if [[ "${QUIET:-}" == "true" ]]; then
+                echo "$(get_current_version)"
+            else
+                echo "Current version: $(get_current_version)"
+                echo "Branch: $CURRENT_BRANCH"
+                if [[ "$CURRENT_BRANCH" == "dev" ]]; then
+                    echo "Dev version: $(create_dev_version)"
+                fi
             fi
             ;;
         "bump")

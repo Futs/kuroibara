@@ -130,10 +130,24 @@ jobs:
       - name: Initialize database and run migrations
         run: |
           cd backend
-          # Initialize the database with base schema
-          python init_test_db.py
-          # Then run any additional migrations
+          # Run all migrations from scratch to create database schema
           alembic upgrade head
+          # Initialize default data
+          python -c "
+          import asyncio
+          import sys
+          sys.path.append('.')
+          from app.db.init_db import create_initial_data
+          from app.db.session import AsyncSessionLocal
+
+          async def init_data():
+              async with AsyncSessionLocal() as session:
+                  await create_initial_data(session)
+                  await session.commit()
+                  print('✅ Initial data created successfully')
+
+          asyncio.run(init_data())
+          "
         env:
           DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
           SECRET_KEY: test-secret-key-for-ci-1234567890abcdef
@@ -206,7 +220,7 @@ jobs:
             type=raw,value=${{ needs.versioning.outputs.version }}
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix={{branch}}-
+            type=sha,prefix=sha-
           labels: |
             org.opencontainers.image.version=${{ needs.versioning.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}

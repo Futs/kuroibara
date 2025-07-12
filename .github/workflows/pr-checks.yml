@@ -94,10 +94,10 @@ jobs:
       - name: Initialize database and run migrations
         run: |
           cd backend
-          # Initialize the database with base schema
-          python init_test_db.py
-          # Then run any additional migrations
+          # First run migrations to create tables
           alembic upgrade head
+          # Then initialize the database with initial data
+          python init_test_db.py
         env:
           DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
           SECRET_KEY: test-secret-key-for-ci-1234567890abcdef
@@ -145,7 +145,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: 'frontend/app/package-lock.json'
 
@@ -200,7 +200,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Install backend dependencies
         run: |
@@ -420,7 +420,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Install frontend dependencies
         run: |

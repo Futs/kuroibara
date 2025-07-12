@@ -46,6 +46,12 @@ yarn-debug.log
 yarn-error.log
 .pnpm-debug.log
 
+# Coverage reports
+coverage/
+*.coverage
+.nyc_output/
+.coverage.*
+
 # Environment variables
 .env
 .env.local
@@ -64,6 +70,12 @@ logs/
 media/
 uploads/
 downloads/
+
+# Storage and Backup directories
+storage/
+backups/
+backend/storage/
+backend/backups/
 
 # Database
 *.db
@@ -103,6 +115,18 @@ TEMP_*.md
 # Auto-generated Documentation (uncomment if you use these)
 # API_DOCS.md
 # COVERAGE.md
+
+# Provider Testing and Analysis Reports
+*provider_test_results*
+*provider_*_report.txt
+*provider_*_report.json
+*flaresolverr_test_results*
+PROVIDER_HEALTH_REPORT.md
+
+# Test Files
+test_provider_fixes.py
+**/test_provider_*.py
+**/test_*_fixes.py
 
 # Temporary - to fix GitHub README display issue
 # CI-CD-SETUP.md

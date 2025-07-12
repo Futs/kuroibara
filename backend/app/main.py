@@ -7,11 +7,12 @@ from app.core.events import shutdown_event_handler, startup_event_handler
 
 # Import provider registry to ensure it's initialized
 from app.core.providers.registry import provider_registry
+from app.core.services.backup import scheduled_backup_service
 
 app = FastAPI(
     title=settings.APP_NAME,
     description="API for Kuroibara manga/manhua/manhwa library",
-    version="0.1.0",
+    version="0.2.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",

@@ -43,6 +43,25 @@ class User(BaseModel):
     )  # low, medium, high
     download_path = Column(String(500), default="/app/storage", nullable=False)
 
+    # Naming and Organization settings
+    naming_format_manga = Column(
+        String(500),
+        default="{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}",
+        nullable=False,
+    )  # Template for manga folder structure
+    naming_format_chapter = Column(
+        String(500), default="{Chapter Number} - {Chapter Name}", nullable=False
+    )  # Template for chapter file naming
+    auto_organize_imports = Column(
+        Boolean, default=True, nullable=False
+    )  # Auto-organize on import
+    create_cbz_files = Column(
+        Boolean, default=True, nullable=False
+    )  # Create CBZ files for chapters
+    preserve_original_files = Column(
+        Boolean, default=False, nullable=False
+    )  # Keep original files after organization
+
     # Relationships
     manga_items = relationship(
         "MangaUserLibrary", back_populates="user", cascade="all, delete-orphan"

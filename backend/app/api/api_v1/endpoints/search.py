@@ -28,6 +28,41 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+async def get_enabled_providers(db: AsyncSession):
+    """Get only enabled providers based on database status."""
+    try:
+        # Get all providers from registry
+        all_providers = provider_registry.get_all_providers()
+
+        # Get provider statuses from database
+        result = await db.execute(select(ProviderStatus))
+        provider_statuses = {ps.provider_id: ps for ps in result.scalars().all()}
+
+        # Filter to only enabled providers
+        enabled_providers = []
+        for provider in all_providers:
+            provider_id = provider.name.lower()
+            status_record = provider_statuses.get(provider_id)
+
+            # Include provider if:
+            # 1. No status record exists (default to enabled)
+            # 2. Status record exists and is_enabled is True
+            if not status_record or status_record.is_enabled:
+                enabled_providers.append(provider)
+            else:
+                logger.debug(f"Excluding disabled provider: {provider.name}")
+
+        logger.info(
+            f"Using {len(enabled_providers)}/{len(all_providers)} enabled providers"
+        )
+        return enabled_providers
+
+    except Exception as e:
+        logger.error(f"Error filtering enabled providers: {e}")
+        # Fallback to all providers if database query fails
+        return provider_registry.get_all_providers()
+
+
 @router.get("/providers", response_model=List[ProviderInfo])
 async def get_providers(
     current_user: User = Depends(get_current_user),
@@ -100,6 +135,26 @@ async def search_manga(
                 detail=f"Provider '{query.provider}' not found",
             )
 
+        # Check if provider is enabled
+        try:
+            result = await db.execute(
+                select(ProviderStatus).where(
+                    ProviderStatus.provider_id == provider.name.lower()
+                )
+            )
+            provider_status = result.scalar_one_or_none()
+
+            if provider_status and not provider_status.is_enabled:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Provider '{query.provider}' is currently disabled due to health issues",
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"Could not check provider status for {query.provider}: {e}")
+            # Continue anyway if we can't check status
+
         # Search using the provider
         try:
             results, total, has_next = await provider.search(
@@ -126,7 +181,7 @@ async def search_manga(
             }
 
     # If no provider is specified, search across multiple providers
-    all_providers = provider_registry.get_all_providers()
+    all_providers = await get_enabled_providers(db)
 
     # Get user's provider preferences
     user_preferences = await get_user_provider_preferences(db, current_user.id)
@@ -137,7 +192,7 @@ async def search_manga(
             prioritize_providers_by_user_preferences(all_providers, user_preferences)
         )
         # Limit regular providers to avoid too many requests
-        max_regular_providers = 10
+        max_regular_providers = 20
         selected_providers = (
             priority_providers + regular_providers[:max_regular_providers]
         )
@@ -156,15 +211,39 @@ async def search_manga(
             f"Using fallback prioritization: {len(priority_providers)} priority providers, {len(generic_providers)} generic providers"
         )
 
+    # Calculate pagination for multi-provider search
+    # We need to gather enough results to satisfy the requested page
+    # Strategy: Get multiple pages from providers to ensure we have enough results
+
+    # Calculate how many results we need to skip (offset)
+    offset = (query.page - 1) * query.limit
+
+    # Calculate how many total results we need to collect
+    # We need offset + limit results to properly paginate
+    total_needed = offset + query.limit
+
     # Give each provider a reasonable limit to ensure we get good results
-    # Don't divide by number of providers as this makes each provider return too few results
+    # Increase the limit per provider to gather more results for pagination
     results_per_provider = min(
-        query.limit, 10
-    )  # Each provider can return up to 10 results
+        max(query.limit, 20), 50  # Each provider can return 20-50 results
+    )
+
+    # Calculate which page to request from each provider
+    # For multi-provider search, we'll request multiple pages if needed
+    max_pages_per_provider = max(
+        1, (total_needed // len(selected_providers) // results_per_provider) + 1
+    )
+    max_pages_per_provider = min(
+        max_pages_per_provider, 3
+    )  # Limit to 3 pages per provider
 
     logger.info(f"Total providers to search: {len(selected_providers)}")
     logger.info(f"Selected providers: {[p.name for p in selected_providers]}")
     logger.info(f"Results per provider: {results_per_provider}")
+    logger.info(f"Max pages per provider: {max_pages_per_provider}")
+    logger.info(
+        f"Requested page: {query.page}, offset: {offset}, total needed: {total_needed}"
+    )
 
     # Search with all selected providers concurrently with timeout
     async def search_with_provider(provider):
@@ -172,16 +251,44 @@ async def search_manga(
             logger.info(
                 f"Starting search with provider {provider.name} (class: {provider.__class__.__name__})"
             )
-            # Add timeout to prevent slow providers from blocking
-            results, _, _ = await asyncio.wait_for(
-                provider.search(
-                    query=query.query,
-                    page=1,  # Always use page 1 for multi-provider search
-                    limit=results_per_provider,
-                ),
-                timeout=15.0,  # Increased timeout to 15 seconds
+
+            all_results = []
+            provider_has_more = False
+
+            # Get multiple pages from this provider if needed
+            for page_num in range(1, max_pages_per_provider + 1):
+                try:
+                    # Add timeout to prevent slow providers from blocking
+                    results, total, has_next = await asyncio.wait_for(
+                        provider.search(
+                            query=query.query,
+                            page=page_num,
+                            limit=results_per_provider,
+                        ),
+                        timeout=15.0,  # Increased timeout to 15 seconds
+                    )
+
+                    all_results.extend(results)
+                    provider_has_more = has_next
+
+                    # If this page returned fewer results than requested, no point getting more pages
+                    if len(results) < results_per_provider:
+                        break
+
+                    # If we have enough results for this provider, stop
+                    if len(all_results) >= results_per_provider * 2:
+                        break
+
+                except Exception as e:
+                    logger.warning(
+                        f"Error getting page {page_num} from {provider.name}: {e}"
+                    )
+                    break
+
+            results = all_results
+            logger.info(
+                f"Provider {provider.name} returned {len(results)} results across {max_pages_per_provider} pages"
             )
-            logger.info(f"Provider {provider.name} returned {len(results)} results")
             if len(results) == 0:
                 logger.warning(
                     f"Provider {provider.name} returned no results for query '{query.query}'"
@@ -192,16 +299,16 @@ async def search_manga(
                 logger.info(
                     f"First result from {provider.name}: {first_result.title} - Cover: {bool(first_result.cover_image)}"
                 )
-            return results
+            return results, provider_has_more
         except asyncio.TimeoutError:
             logger.warning(f"Provider {provider.name} timed out after 15 seconds")
-            return []
+            return [], False
         except Exception as e:
             logger.error(f"Error searching with provider {provider.name}: {e}")
             import traceback
 
             logger.error(f"Traceback: {traceback.format_exc()}")
-            return []
+            return [], False
 
     # Run searches concurrently
     search_tasks = [search_with_provider(provider) for provider in selected_providers]
@@ -210,21 +317,39 @@ async def search_manga(
     # Flatten results and handle exceptions
     flattened_results = []
     successful_providers = 0
-    for i, results in enumerate(all_results):
-        if isinstance(results, Exception):
+    any_provider_has_more = False
+
+    for i, result in enumerate(all_results):
+        if isinstance(result, Exception):
             logger.error(
-                f"Provider {selected_providers[i].name} failed with exception: {results}"
+                f"Provider {selected_providers[i].name} failed with exception: {result}"
             )
             continue
-        if results and isinstance(results, list):
+
+        # Handle tuple return (results, has_more)
+        if isinstance(result, tuple) and len(result) == 2:
+            results, has_more = result
+            if results and isinstance(results, list):
+                logger.info(
+                    f"Adding {len(results)} results from {selected_providers[i].name}"
+                )
+                flattened_results.extend(results)
+                successful_providers += 1
+                any_provider_has_more = any_provider_has_more or has_more
+            else:
+                logger.info(
+                    f"Provider {selected_providers[i].name} returned no results"
+                )
+        # Handle legacy single return (just results)
+        elif result and isinstance(result, list):
             logger.info(
-                f"Adding {len(results)} results from {selected_providers[i].name}"
+                f"Adding {len(result)} results from {selected_providers[i].name} (legacy format)"
             )
-            flattened_results.extend(results)
+            flattened_results.extend(result)
             successful_providers += 1
-        elif results:
+        elif result:
             logger.warning(
-                f"Provider {selected_providers[i].name} returned non-list results: {type(results)}"
+                f"Provider {selected_providers[i].name} returned unexpected format: {type(result)}"
             )
         else:
             logger.info(f"Provider {selected_providers[i].name} returned no results")
@@ -232,6 +357,18 @@ async def search_manga(
     logger.info(
         f"Multi-provider search completed: {successful_providers}/{len(selected_providers)} providers successful, {len(flattened_results)} total results"
     )
+
+    # Remove duplicates based on title and provider
+    seen = set()
+    unique_results = []
+    for result in flattened_results:
+        key = (result.title.lower(), result.provider)
+        if key not in seen:
+            seen.add(key)
+            unique_results.append(result)
+
+    flattened_results = unique_results
+    logger.info(f"After deduplication: {len(flattened_results)} unique results")
 
     # Sort results by relevance (title similarity to query)
     def calculate_relevance(result):
@@ -243,15 +380,30 @@ async def search_manga(
 
     flattened_results.sort(key=calculate_relevance)
 
-    # Limit results to requested limit
-    limited_results = flattened_results[: query.limit]
+    # Implement proper pagination
+    total_results = len(flattened_results)
+    start_index = offset
+    end_index = offset + query.limit
+
+    # Get the results for the requested page
+    paginated_results = flattened_results[start_index:end_index]
+
+    # Calculate if there are more results
+    # There are more results if:
+    # 1. We have more results in our current collection beyond this page
+    # 2. Any provider indicated they have more results (suggesting we could get more by fetching additional pages)
+    has_next = end_index < total_results or any_provider_has_more
+
+    logger.info(
+        f"Pagination: total={total_results}, offset={offset}, page_size={len(paginated_results)}, has_next={has_next}"
+    )
 
     return {
-        "results": limited_results,
-        "total": len(flattened_results),
+        "results": paginated_results,
+        "total": total_results,
         "page": query.page,
         "limit": query.limit,
-        "has_next": len(flattened_results) > query.limit,
+        "has_next": has_next,
         "providers_searched": len(selected_providers),
         "providers_successful": successful_providers,
     }

@@ -1,5 +1,8 @@
+import asyncio
 import json
 import logging
+import os
+import random
 import re
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote, urlencode
@@ -37,6 +40,8 @@ class GenericProvider(BaseProvider):
         search_cover_selector: Optional[str] = None,
         search_description_selector: Optional[str] = None,
         fallback_selectors: Optional[Dict[str, List[str]]] = None,
+        use_flaresolverr: bool = False,
+        flaresolverr_url: Optional[str] = None,
     ):
         """
         Initialize the generic provider.
@@ -68,9 +73,25 @@ class GenericProvider(BaseProvider):
         self._description_selector = description_selector
         self._chapter_selector = chapter_selector
         self._page_selector = page_selector
-        self._headers = headers or {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
+        # Enhanced anti-bot protection
+        self._user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+        ]
+
+        self._headers = headers or self._get_random_headers()
+
+        # FlareSolverr support
+        self.use_flaresolverr = use_flaresolverr or bool(os.getenv("FLARESOLVERR_URL"))
+        self.flaresolverr_url = flaresolverr_url or os.getenv("FLARESOLVERR_URL")
+
+        if self.use_flaresolverr and self.flaresolverr_url:
+            logger.info(
+                f"Generic provider {name} using FlareSolverr at: {self.flaresolverr_url}"
+            )
 
         # Search-specific selectors (fallback to main selectors if not provided)
         self._search_title_selector = search_title_selector or title_selector
@@ -164,7 +185,106 @@ class GenericProvider(BaseProvider):
                 ".link",
                 "[href]",
             ],
+            "status": [
+                ".status",
+                ".manga-status",
+                ".publication-status",
+                ".series-status",
+                "[class*='status']",
+                ".completed",
+                ".ongoing",
+                ".finished",
+                ".publishing",
+                ".hiatus",
+                ".cancelled",
+                ".dropped",
+            ],
         }
+
+    def _get_random_headers(self) -> Dict[str, str]:
+        """Get randomized headers to avoid detection."""
+        return {
+            "User-Agent": random.choice(self._user_agents),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+        }
+
+    async def _make_request_with_retry(
+        self, url: str, max_retries: int = 3
+    ) -> Optional[str]:
+        """Make HTTP request with retry logic and anti-bot protection."""
+        for attempt in range(max_retries):
+            try:
+                # Add random delay to avoid rate limiting
+                if attempt > 0:
+                    delay = random.uniform(1, 3)
+                    await asyncio.sleep(delay)
+
+                # Try FlareSolverr first if available
+                if self.use_flaresolverr and self.flaresolverr_url:
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            payload = {
+                                "cmd": "request.get",
+                                "url": url,
+                                "maxTimeout": 60000,
+                                "headers": self._headers,
+                            }
+
+                            response = await client.post(
+                                f"{self.flaresolverr_url}/v1",
+                                json=payload,
+                                timeout=60.0,
+                            )
+
+                            if response.status_code == 200:
+                                data = response.json()
+                                if data.get("status") == "ok":
+                                    return data["solution"]["response"]
+                                else:
+                                    logger.warning(
+                                        f"FlareSolverr error for {url}: {data.get('message', 'Unknown error')}"
+                                    )
+                    except Exception as e:
+                        logger.warning(f"FlareSolverr request failed for {url}: {e}")
+
+                # Fallback to regular HTTP request
+                async with httpx.AsyncClient() as client:
+                    # Refresh headers for each attempt
+                    headers = self._get_random_headers()
+
+                    response = await client.get(
+                        url, headers=headers, follow_redirects=True, timeout=30.0
+                    )
+
+                    response.raise_for_status()
+                    return response.text
+
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 403:
+                    logger.warning(
+                        f"Access forbidden for {url} (attempt {attempt + 1}/{max_retries})"
+                    )
+                    if attempt == max_retries - 1:
+                        logger.error(
+                            f"All attempts failed for {url}. Site may require FlareSolverr."
+                        )
+                elif e.response.status_code == 404:
+                    logger.error(f"URL not found: {url}")
+                    break
+                else:
+                    logger.warning(
+                        f"HTTP error {e.response.status_code} for {url} (attempt {attempt + 1}/{max_retries})"
+                    )
+            except Exception as e:
+                logger.warning(
+                    f"Request failed for {url} (attempt {attempt + 1}/{max_retries}): {e}"
+                )
+
+        return None
 
     @property
     def name(self) -> str:
@@ -184,145 +304,159 @@ class GenericProvider(BaseProvider):
         """Search for manga."""
         try:
             # Build search URL
-            search_url = (
-                f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+            if "{query}" in self._search_url:
+                # Custom search URL format with query placeholder
+                search_url = self._search_url.format(query=quote(query))
+                # Add page and limit parameters if not already present
+                if "?" in search_url:
+                    search_url += f"&page={page}&limit={limit}"
+                else:
+                    search_url += f"?page={page}&limit={limit}"
+            else:
+                # Default search URL format
+                search_url = (
+                    f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+                )
+
+            # Make request with retry logic and anti-bot protection
+            html = await self._make_request_with_retry(search_url)
+
+            if not html:
+                logger.error(f"Failed to get search results from {search_url}")
+                return [], 0, False
+
+            # Parse HTML
+            soup = BeautifulSoup(html, "html.parser")
+
+            # Find manga items using fallback selectors
+            manga_items = soup.select(self._search_selector)
+
+            # If no items found with primary selector, try fallback selectors
+            if not manga_items:
+                logger.warning(
+                    f"No items found with primary selector '{self._search_selector}' for {self.name}"
+                )
+                for fallback_selector in self._fallback_selectors.get(
+                    "search_item", []
+                ):
+                    try:
+                        manga_items = soup.select(fallback_selector)
+                        if manga_items:
+                            logger.info(
+                                f"Found {len(manga_items)} items with fallback selector '{fallback_selector}' for {self.name}"
+                            )
+                            break
+                    except Exception as e:
+                        logger.debug(
+                            f"Fallback selector '{fallback_selector}' failed for {self.name}: {e}"
+                        )
+                        continue
+
+            if not manga_items:
+                logger.warning(
+                    f"No manga items found on {self.name} for query '{query}'"
+                )
+                return [], 0, False
+
+            logger.info(
+                f"Found {len(manga_items)} potential manga items on {self.name}"
             )
 
-            # Make request
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    search_url,
-                    headers=self._headers,
-                    follow_redirects=True,
-                )
+            # Parse results
+            results = []
+            for item in manga_items:
+                try:
+                    # Get manga ID and URL using fallback selectors
+                    manga_link = item.select_one("a")
+                    if not manga_link:
+                        # Try fallback link selectors
+                        for link_selector in self._fallback_selectors.get("link", []):
+                            try:
+                                manga_link = item.select_one(link_selector)
+                                if manga_link:
+                                    break
+                            except Exception:
+                                continue
 
-                # Check if request was successful
-                response.raise_for_status()
-                html = response.text
+                    if not manga_link:
+                        logger.debug(f"No link found in item for {self.name}")
+                        continue
 
-                # Parse HTML
-                soup = BeautifulSoup(html, "html.parser")
+                    manga_url = manga_link.get("href", "")
+                    if isinstance(manga_url, list):
+                        manga_url = manga_url[0] if manga_url else ""
+                    manga_id = self._extract_manga_id(manga_url)
 
-                # Find manga items using fallback selectors
-                manga_items = soup.select(self._search_selector)
+                    if not manga_id:
+                        continue
 
-                # If no items found with primary selector, try fallback selectors
-                if not manga_items:
-                    logger.warning(
-                        f"No items found with primary selector '{self._search_selector}' for {self.name}"
+                    # Get title using fallback selectors
+                    title = self._extract_text_with_fallback(
+                        item, "title", self._search_title_selector
                     )
-                    for fallback_selector in self._fallback_selectors.get(
-                        "search_item", []
-                    ):
-                        try:
-                            manga_items = soup.select(fallback_selector)
-                            if manga_items:
-                                logger.info(
-                                    f"Found {len(manga_items)} items with fallback selector '{fallback_selector}' for {self.name}"
-                                )
-                                break
-                        except Exception as e:
-                            logger.debug(
-                                f"Fallback selector '{fallback_selector}' failed for {self.name}: {e}"
-                            )
-                            continue
+                    if not title:
+                        continue
 
-                if not manga_items:
-                    logger.warning(
-                        f"No manga items found on {self.name} for query '{query}'"
+                    # Get cover using fallback selectors
+                    cover_url = self._extract_image_with_fallback(
+                        item, "cover", self._search_cover_selector
                     )
-                    return [], 0, False
 
-                logger.info(
-                    f"Found {len(manga_items)} potential manga items on {self.name}"
-                )
+                    # Get description using fallback selectors
+                    description = self._extract_text_with_fallback(
+                        item, "description", self._search_description_selector
+                    )
 
-                # Parse results
-                results = []
-                for item in manga_items:
-                    try:
-                        # Get manga ID and URL using fallback selectors
-                        manga_link = item.select_one("a")
-                        if not manga_link:
-                            # Try fallback link selectors
-                            for link_selector in self._fallback_selectors.get(
-                                "link", []
-                            ):
-                                try:
-                                    manga_link = item.select_one(link_selector)
-                                    if manga_link:
-                                        break
-                                except Exception:
-                                    continue
+                    # Try to extract additional metadata from the search result
+                    genres = self._extract_genres(item)
+                    authors = self._extract_authors(item)
+                    status = self._extract_status(item)
 
-                        if not manga_link:
-                            logger.debug(f"No link found in item for {self.name}")
-                            continue
+                    # Create search result
+                    result = SearchResult(
+                        id=manga_id,
+                        title=title,
+                        alternative_titles={},
+                        description=description or "",
+                        cover_image=(
+                            self._normalize_url(cover_url) if cover_url else ""
+                        ),
+                        type=MangaType.UNKNOWN,
+                        status=status,
+                        year=None,
+                        is_nsfw=self._supports_nsfw,
+                        genres=genres,
+                        authors=authors,
+                        provider=self.name,
+                        url=self._manga_url_pattern.format(manga_id=manga_id),
+                    )
 
-                        manga_url = manga_link.get("href", "")
-                        if isinstance(manga_url, list):
-                            manga_url = manga_url[0] if manga_url else ""
-                        manga_id = self._extract_manga_id(manga_url)
+                    results.append(result)
+                except Exception as e:
+                    logger.error(f"Error parsing manga item from {self.name}: {e}")
 
-                        if not manga_id:
-                            continue
+            # Determine if there are more results
+            # This is a simple heuristic, might need to be adjusted for specific sites
+            has_next = len(manga_items) >= limit
 
-                        # Get title using fallback selectors
-                        title = self._extract_text_with_fallback(
-                            item, "title", self._search_title_selector
-                        )
-                        if not title:
-                            continue
-
-                        # Get cover using fallback selectors
-                        cover_url = self._extract_image_with_fallback(
-                            item, "cover", self._search_cover_selector
-                        )
-
-                        # Get description using fallback selectors
-                        description = self._extract_text_with_fallback(
-                            item, "description", self._search_description_selector
-                        )
-
-                        # Try to extract additional metadata from the search result
-                        genres = self._extract_genres(item)
-                        authors = self._extract_authors(item)
-
-                        # Create search result
-                        result = SearchResult(
-                            id=manga_id,
-                            title=title,
-                            alternative_titles={},
-                            description=description or "",
-                            cover_image=(
-                                self._normalize_url(cover_url) if cover_url else ""
-                            ),
-                            type=MangaType.UNKNOWN,
-                            status=MangaStatus.UNKNOWN,
-                            year=None,
-                            is_nsfw=self._supports_nsfw,
-                            genres=genres,
-                            authors=authors,
-                            provider=self.name,
-                            url=self._manga_url_pattern.format(manga_id=manga_id),
-                        )
-
-                        results.append(result)
-                    except Exception as e:
-                        logger.error(f"Error parsing manga item from {self.name}: {e}")
-
-                # Determine if there are more results
-                # This is a simple heuristic, might need to be adjusted for specific sites
-                has_next = len(manga_items) >= limit
-
-                return results, len(results), has_next
+            return results, len(results), has_next
         except Exception as e:
             logger.error(f"Error searching for manga on {self.name}: {e}")
             # For debugging, let's also log the search URL that failed
-            search_url = (
-                f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
-            )
+            if "{query}" in self._search_url:
+                search_url = self._search_url.format(query=quote(query))
+                if "?" in search_url:
+                    search_url += f"&page={page}&limit={limit}"
+                else:
+                    search_url += f"?page={page}&limit={limit}"
+            else:
+                search_url = (
+                    f"{self._search_url}?q={quote(query)}&page={page}&limit={limit}"
+                )
             logger.error(f"Failed search URL: {search_url}")
+            logger.error(
+                f"Provider {self.name} may need FlareSolverr or updated configuration"
+            )
             return [], 0, False
 
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
@@ -665,11 +799,17 @@ class GenericProvider(BaseProvider):
         """Extract image URL using primary selector with fallback options."""
         # Try primary selector first
         if primary_selector:
-            elem = element.select_one(primary_selector)
-            if elem:
-                src = elem.get("src", "")
-                if isinstance(src, str) and src:
-                    return src
+            try:
+                elem = element.select_one(primary_selector)
+                if elem:
+                    src = elem.get("src", "")
+                    if isinstance(src, str) and src:
+                        logger.debug(
+                            f"Found image with primary selector '{primary_selector}': {src}"
+                        )
+                        return src
+            except Exception as e:
+                logger.debug(f"Primary selector '{primary_selector}' failed: {e}")
 
         # Try fallback selectors
         fallback_selectors = self._fallback_selectors.get(field_type, [])
@@ -679,10 +819,28 @@ class GenericProvider(BaseProvider):
                 if elem:
                     src = elem.get("src", "")
                     if isinstance(src, str) and src:
+                        logger.debug(
+                            f"Found image with fallback selector '{selector}': {src}"
+                        )
                         return src
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Fallback selector '{selector}' failed: {e}")
                 continue
 
+        # Special handling for MangaFox - try to find any img with cover in src
+        try:
+            all_imgs = element.select("img")
+            for img in all_imgs:
+                src = img.get("src", "")
+                if src and ("cover" in src or "thumb" in src):
+                    logger.debug(f"Found MangaFox cover image: {src}")
+                    return src
+        except Exception as e:
+            logger.debug(f"MangaFox special handling failed: {e}")
+
+        logger.debug(
+            f"No image found for field_type '{field_type}' with primary selector '{primary_selector}'"
+        )
         return ""
 
     def _extract_genres(self, element) -> List[str]:
@@ -738,6 +896,74 @@ class GenericProvider(BaseProvider):
                 continue
 
         return authors
+
+    def _extract_status(self, element) -> "MangaStatus":
+        """Extract status from element."""
+        from app.schemas.manga import MangaStatus
+
+        # First try the configured status selectors
+        status_selectors = self._fallback_selectors.get("status", [])
+
+        for selector in status_selectors:
+            try:
+                status_elem = element.select_one(selector)
+                if status_elem:
+                    status_text = status_elem.text.strip().lower()
+
+                    # Map common status text to MangaStatus enum
+                    if any(
+                        word in status_text
+                        for word in ["ongoing", "publishing", "serializing", "active"]
+                    ):
+                        return MangaStatus.ONGOING
+                    elif any(
+                        word in status_text
+                        for word in ["completed", "finished", "ended", "complete"]
+                    ):
+                        return MangaStatus.COMPLETED
+                    elif any(
+                        word in status_text for word in ["hiatus", "on hold", "paused"]
+                    ):
+                        return MangaStatus.HIATUS
+                    elif any(
+                        word in status_text
+                        for word in ["cancelled", "canceled", "dropped", "discontinued"]
+                    ):
+                        return MangaStatus.CANCELLED
+
+                    # If we found status text but couldn't map it, return as ongoing (most common)
+                    if status_text:
+                        return MangaStatus.ONGOING
+            except Exception:
+                continue
+
+        # Special handling for MangaFox - look for status in brackets like [Completed] or [Ongoing]
+        try:
+            # Get all text content from the element
+            all_text = element.get_text()
+
+            # Look for status patterns in brackets
+            import re
+
+            status_match = re.search(
+                r"\[(completed|ongoing|finished|ended|hiatus|cancelled|dropped)\]",
+                all_text,
+                re.IGNORECASE,
+            )
+            if status_match:
+                status_text = status_match.group(1).lower()
+                if status_text in ["completed", "finished", "ended"]:
+                    return MangaStatus.COMPLETED
+                elif status_text == "ongoing":
+                    return MangaStatus.ONGOING
+                elif status_text == "hiatus":
+                    return MangaStatus.HIATUS
+                elif status_text in ["cancelled", "dropped"]:
+                    return MangaStatus.CANCELLED
+        except Exception:
+            pass
+
+        return MangaStatus.UNKNOWN
 
     def _normalize_url(self, url: str) -> str:
         """Normalize URL to be absolute."""

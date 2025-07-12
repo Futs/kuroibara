@@ -1,28 +1,31 @@
 <script setup>
-import { onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { useSettingsStore } from './stores/settings';
-import { useAuthStore } from './stores/auth';
+import { onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useSettingsStore } from "./stores/settings";
+import { useAuthStore } from "./stores/auth";
 
 const route = useRoute();
 const settingsStore = useSettingsStore();
 const authStore = useAuthStore();
 
 // Apply theme on route change
-watch(() => route.path, () => {
-  settingsStore.applyTheme();
-});
+watch(
+  () => route.path,
+  () => {
+    settingsStore.applyTheme();
+  },
+);
 
 onMounted(async () => {
-  console.log('App.vue: Starting initialization...');
+  console.log("App.vue: Starting initialization...");
 
   // Initialize settings first
   settingsStore.initSettings();
-  console.log('App.vue: Settings initialized');
+  console.log("App.vue: Settings initialized");
 
   // Initialize auth
   authStore.initAuth();
-  console.log('App.vue: Auth initialized');
+  console.log("App.vue: Auth initialized");
 });
 </script>
 

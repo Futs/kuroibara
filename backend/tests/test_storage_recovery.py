@@ -171,7 +171,7 @@ class TestStorageRecoveryService:
             with zipfile.ZipFile(cbz_path, "w") as cbz:
                 # Add dummy images
                 for i in range(20):
-                    cbz.writestr(f"{i+1:03d}.jpg", b"fake image data")
+                    cbz.writestr(f"{i + 1:03d}.jpg", b"fake image data")
                 # Add metadata
                 cbz.writestr("metadata.json", json.dumps(metadata))
 
@@ -236,7 +236,7 @@ class TestStorageRecoveryService:
                 mock_manga_class.return_value = mock_manga
 
                 # Test recovery
-                result = await self.service.recover_manga_to_database(
+                await self.service.recover_manga_to_database(
                     storage_uuid=manga_uuid,
                     manga_title=manga_title,
                     user_id=self.user.id,

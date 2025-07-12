@@ -31,7 +31,7 @@ async def test_provider_search(provider, provider_name: str):
 
             return True, sample.id if hasattr(sample, "id") else None
         else:
-            print(f"  ⚠️  No results found")
+            print("  ⚠️  No results found")
             return True, None
 
     except Exception as e:
@@ -42,7 +42,7 @@ async def test_provider_search(provider, provider_name: str):
 async def test_provider_metadata(provider, provider_name: str, manga_id: str):
     """Test metadata extraction for a provider."""
     if not manga_id:
-        print(f"  ⏭️  Skipping metadata test - no manga ID")
+        print("  ⏭️  Skipping metadata test - no manga ID")
         return False
 
     print(f"📋 Testing metadata for {provider_name} (ID: {manga_id})...")
@@ -51,14 +51,14 @@ async def test_provider_metadata(provider, provider_name: str, manga_id: str):
         metadata = await provider.get_manga_details(manga_id)
 
         if metadata and isinstance(metadata, dict):
-            print(f"  ✅ Metadata successful")
+            print("  ✅ Metadata successful")
             print(f"  📖 Title: {metadata.get('title', 'N/A')}")
             print(f"  📝 Description: {metadata.get('description', 'N/A')[:100]}...")
             if metadata.get("cover_image"):
                 print(f"  🖼️  Cover: {metadata.get('cover_image')}")
             return True
         else:
-            print(f"  ❌ No metadata returned")
+            print("  ❌ No metadata returned")
             return False
 
     except Exception as e:
@@ -87,9 +87,9 @@ async def test_cloudflare_providers():
     results = {}
 
     for provider_name in cloudflare_provider_names:
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Testing {provider_name}")
-        print(f"{'='*50}")
+        print(f"{'=' * 50}")
 
         provider = registry.get_provider(provider_name.lower())
         if not provider:
@@ -120,9 +120,9 @@ async def test_cloudflare_providers():
 
 def print_summary(results):
     """Print test summary."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("📊 FLARESOLVERR PROVIDER TEST SUMMARY")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     total_providers = len(results)
     available_providers = sum(1 for r in results.values() if r.get("available", False))

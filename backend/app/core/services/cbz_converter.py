@@ -195,7 +195,7 @@ class CBZConverter:
 
                     # Generate a standardized filename for the image in the CBZ
                     file_ext = os.path.splitext(image_file)[1]
-                    cbz_filename = f"{i+1:04d}{file_ext}"
+                    cbz_filename = f"{i + 1:04d}{file_ext}"
 
                     cbz_file.write(image_file, cbz_filename)
 

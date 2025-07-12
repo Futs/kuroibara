@@ -317,7 +317,7 @@ class ProviderTester:
             for i, provider_config in enumerate(providers):
                 try:
                     logger.info(
-                        f"Testing provider {i+1}/{len(providers)}: {provider_config.get('name', 'Unknown')}"
+                        f"Testing provider {i + 1}/{len(providers)}: {provider_config.get('name', 'Unknown')}"
                     )
                     result = await self.test_provider_comprehensive(provider_config)
                     results.append(result)

@@ -219,7 +219,7 @@ class FlareSolverrTester:
             logger.info(f"  ❌ FlareSolverr failed: {flaresolverr_result['error']}")
 
         if improvement:
-            logger.info(f"  🎉 FlareSolverr bypassed protection!")
+            logger.info("  🎉 FlareSolverr bypassed protection!")
 
         return result
 

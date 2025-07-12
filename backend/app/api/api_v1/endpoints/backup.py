@@ -267,7 +267,7 @@ async def cleanup_old_backups(
     try:
         removed_count = backup_service.cleanup_old_backups()
 
-        return {"message": f"Cleanup completed", "removed_backups": removed_count}
+        return {"message": "Cleanup completed", "removed_backups": removed_count}
 
     except Exception as e:
         logger.error(f"Error cleaning up backups: {e}")

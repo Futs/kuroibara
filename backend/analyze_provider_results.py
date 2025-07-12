@@ -110,7 +110,7 @@ def analyze_provider_status(provider: Dict[str, Any]) -> Dict[str, Any]:
 
 def generate_summary_report(results: Dict[str, Any]) -> str:
     """Generate a summary report."""
-    summary = results.get("summary", {})
+    # summary = results.get("summary", {})  # Unused variable
     detailed_results = results.get("detailed_results", [])
 
     report = []

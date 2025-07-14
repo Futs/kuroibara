@@ -143,6 +143,15 @@ We welcome contributions! Here's how to get started:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### **For Provider Contributors** 🔌
+Want to add a new manga provider? No coding required!
+1. **[📝 Submit a Provider Request](https://github.com/Futs/kuroibara/issues/new?template=provider-request.yml)** - Fill out our simple template
+2. **🤖 Automatic Validation** - Our system tests your provider automatically
+3. **🔄 Auto-PR Creation** - If validation passes, a PR is created automatically
+4. **✅ Review & Merge** - Maintainers review and merge to add your provider
+
+See our **[🔌 Template Provider System Guide](docs/TEMPLATE_PROVIDER_SYSTEM.md)** for detailed instructions.
+
 See our **[🏗️ Development Guide](docs/DEVELOPMENT.md)** and **[📋 Git Guidelines](docs/GIT_GUIDELINES.md)** for detailed contributing guidelines.
 
 ## 📄 License

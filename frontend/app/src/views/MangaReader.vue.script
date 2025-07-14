@@ -16,7 +16,20 @@ const pageParam = computed(() => route.params.page ? parseInt(route.params.page)
 const showControls = ref(true);
 const showSettings = ref(false);
 const showChapterSelector = ref(false);
+const showKeyboardHelp = ref(false);
+const showBookmarks = ref(false);
+const showBookmarkDialog = ref(false);
 const controlsTimeout = ref(null);
+
+// List view state
+const currentPageInView = ref(1);
+const pageIntersectionObserver = ref(null);
+
+// Bookmark state
+const bookmarkNote = ref('');
+
+// Achievement notifications
+const achievementNotifications = ref([]);
 
 // Get data from store
 const manga = computed(() => readerStore.getManga);
@@ -35,41 +48,74 @@ const hasPrevPage = computed(() => readerStore.hasPrevPage);
 const hasNextChapter = computed(() => readerStore.hasNextChapter);
 const hasPrevChapter = computed(() => readerStore.hasPrevChapter);
 
-const currentPageUrl = computed(() => {
-  if (!pages.value || !pages.value.length || currentPage.value > pages.value.length) return null;
-  return pages.value[currentPage.value - 1]?.url;
+// Double-page mode computed values
+const currentPagePair = computed(() => readerStore.getCurrentPagePair);
+const currentPageDisplay = computed(() => readerStore.getCurrentPageDisplay);
+
+const currentPageUrl = computed(() => readerStore.getCurrentPageUrl);
+
+// Reading statistics computed values
+const readingStats = computed(() => readerStore.getReadingStats);
+const currentSession = computed(() => readerStore.getCurrentSession);
+const bookmarks = computed(() => readerStore.getBookmarks);
+const chapterBookmarks = computed(() => {
+  if (!manga.value || !chapter.value) return [];
+  return readerStore.getBookmarksForChapter(manga.value.id, chapter.value.id);
 });
+const hasBookmarkOnCurrentPage = computed(() => readerStore.hasBookmarkOnCurrentPage());
+
+// Theme and customization computed values
+const currentTheme = computed(() => readerStore.getCurrentTheme());
+const themeDefinitions = computed(() => readerStore.getThemeDefinitions());
+const typography = computed(() => readerStore.settings.typography);
+const displayOptions = computed(() => readerStore.settings.displayOptions);
+const currentUILayout = computed(() => readerStore.getCurrentUILayout());
+const uiLayoutDefinitions = computed(() => readerStore.getUILayoutDefinitions());
 
 // Methods
 const loadContent = async () => {
   try {
     // Load manga data
     await readerStore.fetchManga(mangaId.value);
-    
+
     // Load chapters
     await readerStore.fetchChapters(mangaId.value);
-    
+
     // Determine which chapter to load
     let targetChapterId = chapterId.value;
+    let targetPage = pageParam.value;
+
+    // Check for resume reading if no specific chapter/page provided
     if (!targetChapterId && chapters.value.length > 0) {
-      // If no chapter specified, use the first one
-      targetChapterId = chapters.value[0].id;
+      const savedPosition = readerStore.getReadingPosition(mangaId.value);
+      if (savedPosition) {
+        targetChapterId = savedPosition.chapterId;
+        targetPage = savedPosition.page;
+
+        // Apply saved reading mode if available
+        if (savedPosition.pageLayout) {
+          readerStore.updateSettings({ pageLayout: savedPosition.pageLayout });
+        }
+      } else {
+        // If no saved position, use the first chapter
+        targetChapterId = chapters.value[0].id;
+      }
     }
-    
+
     if (targetChapterId) {
       // Load chapter
       await readerStore.fetchChapter(mangaId.value, targetChapterId);
-      
+
       // Load pages
       await readerStore.fetchPages(mangaId.value, targetChapterId);
-      
+
       // Set initial page
-      if (pageParam.value && pageParam.value <= totalPages.value) {
-        readerStore.setCurrentPage(pageParam.value);
+      if (targetPage && targetPage <= totalPages.value) {
+        readerStore.setCurrentPage(targetPage);
       } else {
         readerStore.setCurrentPage(1);
       }
-      
+
       // Update URL if needed
       if (!chapterId.value || !pageParam.value) {
         updateUrl();
@@ -132,6 +178,186 @@ const toggleSettings = () => {
   showSettings.value = !showSettings.value;
 };
 
+const getQualityImageUrl = (page) => {
+  if (!page || !page.url) return null;
+
+  const targetQuality = settings.value.imageQuality;
+
+  // If original quality or no quality parameters available, return original URL
+  if (targetQuality === 'high' || !page.url.includes('?')) {
+    return page.url;
+  }
+
+  // Add quality parameters to URL
+  try {
+    const url = new URL(page.url);
+    switch (targetQuality) {
+      case 'medium':
+        url.searchParams.set('quality', '75');
+        url.searchParams.set('width', '1200');
+        break;
+      case 'low':
+        url.searchParams.set('quality', '60');
+        url.searchParams.set('width', '800');
+        break;
+      default:
+        break;
+    }
+    return url.toString();
+  } catch (error) {
+    return page.url; // Fallback to original URL if URL parsing fails
+  }
+};
+
+// Bookmark management
+const toggleBookmark = () => {
+  if (hasBookmarkOnCurrentPage.value) {
+    const bookmark = chapterBookmarks.value.find(b => b.page === currentPage.value);
+    if (bookmark) {
+      readerStore.removeBookmark(bookmark.id);
+    }
+  } else {
+    showBookmarkDialog.value = true;
+  }
+};
+
+const addBookmark = () => {
+  readerStore.addBookmark(bookmarkNote.value);
+  bookmarkNote.value = '';
+  showBookmarkDialog.value = false;
+};
+
+const removeBookmark = (bookmarkId) => {
+  readerStore.removeBookmark(bookmarkId);
+};
+
+const goToBookmark = (bookmark) => {
+  if (bookmark.chapterId !== chapter.value?.id) {
+    // Navigate to different chapter
+    selectChapter(bookmark.chapterId);
+  }
+  readerStore.setCurrentPage(bookmark.page);
+  showBookmarks.value = false;
+};
+
+const formatBookmarkDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString();
+};
+
+// Achievement notifications
+const showAchievementNotification = (achievement) => {
+  achievementNotifications.value.push({
+    id: Date.now(),
+    achievement,
+    show: true,
+  });
+
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    const index = achievementNotifications.value.findIndex(n => n.achievement.id === achievement.id);
+    if (index !== -1) {
+      achievementNotifications.value[index].show = false;
+      setTimeout(() => {
+        achievementNotifications.value.splice(index, 1);
+      }, 300);
+    }
+  }, 5000);
+};
+
+const dismissNotification = (notificationId) => {
+  const index = achievementNotifications.value.findIndex(n => n.id === notificationId);
+  if (index !== -1) {
+    achievementNotifications.value[index].show = false;
+    setTimeout(() => {
+      achievementNotifications.value.splice(index, 1);
+    }, 300);
+  }
+};
+
+// Theme and customization methods
+const updateTheme = (themeId) => {
+  readerStore.updateTheme(themeId);
+};
+
+const updateTypography = (updates) => {
+  readerStore.updateTypography(updates);
+};
+
+const updateDisplayOptions = (updates) => {
+  readerStore.updateDisplayOptions(updates);
+};
+
+const exportTheme = () => {
+  const themeData = readerStore.exportTheme();
+  const blob = new Blob([themeData], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `kuroibara-theme-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+const importTheme = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const success = readerStore.importTheme(e.target.result);
+      if (success) {
+        console.log('Theme imported successfully');
+      } else {
+        console.error('Failed to import theme');
+      }
+    };
+    reader.readAsText(file);
+  }
+};
+
+// UI Layout methods
+const getToolbarClasses = () => {
+  const layout = currentUILayout.value;
+  const baseClasses = [];
+
+  switch (layout.toolbar.position) {
+    case 'top':
+      baseClasses.push('top-0', 'left-0', 'right-0');
+      break;
+    case 'bottom':
+      baseClasses.push('bottom-0', 'left-0', 'right-0');
+      break;
+    case 'left':
+      baseClasses.push('top-0', 'left-0', 'bottom-0', 'w-16', 'flex-col');
+      break;
+    case 'right':
+      baseClasses.push('top-0', 'right-0', 'bottom-0', 'w-16', 'flex-col');
+      break;
+    case 'hidden':
+      baseClasses.push('top-4', 'right-4', 'w-auto');
+      break;
+  }
+
+  switch (layout.toolbar.alignment) {
+    case 'left':
+      baseClasses.push('justify-start');
+      break;
+    case 'center':
+      baseClasses.push('justify-center');
+      break;
+    case 'right':
+      baseClasses.push('justify-end');
+      break;
+  }
+
+  return baseClasses;
+};
+
+const updateUILayout = (layoutId) => {
+  readerStore.updateUILayout(layoutId);
+};
+
 const handleContentClick = (event) => {
   // Ignore clicks on controls
   if (event.target.closest('.reader-controls')) return;
@@ -157,7 +383,14 @@ const handleMouseMove = () => {
 
 // Keyboard navigation
 const handleKeyDown = (event) => {
+  // Prevent default behavior for our shortcuts
+  const preventKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Escape', 'f', 's', 'd', 'q', 'w', 'e', 'r', '1', '2', '3', '4'];
+  if (preventKeys.includes(event.key)) {
+    event.preventDefault();
+  }
+
   switch (event.key) {
+    // Navigation
     case 'ArrowRight':
       if (settings.value.readingDirection === 'ltr') {
         nextPage();
@@ -173,17 +406,157 @@ const handleKeyDown = (event) => {
       }
       break;
     case 'ArrowUp':
-      prevChapter();
+      if (settings.value.pageLayout === 'list') {
+        // Scroll up in list view
+        const container = document.querySelector('.reader-list-container');
+        if (container) {
+          container.scrollBy(0, -200);
+        }
+      } else {
+        prevChapter();
+      }
       break;
     case 'ArrowDown':
-      nextChapter();
+      if (settings.value.pageLayout === 'list') {
+        // Scroll down in list view
+        const container = document.querySelector('.reader-list-container');
+        if (container) {
+          container.scrollBy(0, 200);
+        }
+      } else {
+        nextChapter();
+      }
       break;
+
+    // UI Controls
     case 'Escape':
       showControls.value = true;
       showSettings.value = false;
       showChapterSelector.value = false;
+      showKeyboardHelp.value = false;
+      break;
+    case 's':
+      toggleSettings();
+      break;
+    case 'h':
+    case '?':
+      showKeyboardHelp.value = !showKeyboardHelp.value;
+      break;
+    case 'b':
+      showBookmarks.value = !showBookmarks.value;
+      break;
+    case 'm':
+      toggleBookmark();
+      break;
+    case 'f':
+      // Toggle fullscreen
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        document.documentElement.requestFullscreen();
+      }
+      break;
+
+    // Reading Mode Shortcuts
+    case '1':
+      updateSettings({ pageLayout: 'single' });
+      break;
+    case '2':
+      updateSettings({ pageLayout: 'double' });
+      break;
+    case '3':
+      updateSettings({ pageLayout: 'list' });
+      break;
+    case '4':
+      updateSettings({ pageLayout: 'adaptive' });
+      break;
+
+    // Fit Mode Shortcuts
+    case 'q':
+      updateSettings({ fitMode: 'width' });
+      break;
+    case 'w':
+      updateSettings({ fitMode: 'height' });
+      break;
+    case 'e':
+      updateSettings({ fitMode: 'both' });
+      break;
+    case 'r':
+      updateSettings({ fitMode: 'original' });
+      break;
+
+    // Reading Direction
+    case 'd':
+      updateSettings({
+        readingDirection: settings.value.readingDirection === 'rtl' ? 'ltr' : 'rtl'
+      });
       break;
   }
+};
+
+// List view methods
+const handleListScroll = () => {
+  if (settings.value.pageLayout !== 'list') return;
+
+  // Update current page based on scroll position
+  const container = document.querySelector('.reader-list-container');
+  if (!container) return;
+
+  const scrollTop = container.scrollTop;
+  const containerHeight = container.clientHeight;
+  const scrollCenter = scrollTop + containerHeight / 2;
+
+  // Find which page is in the center of the viewport
+  for (let i = 1; i <= pages.value.length; i++) {
+    const pageElement = document.getElementById(`list-page-${i}`);
+    if (pageElement) {
+      const pageTop = pageElement.offsetTop;
+      const pageBottom = pageTop + pageElement.offsetHeight;
+
+      if (scrollCenter >= pageTop && scrollCenter <= pageBottom) {
+        currentPageInView.value = i;
+        readerStore.setCurrentPage(i);
+        break;
+      }
+    }
+  }
+};
+
+const handleImageLoad = (pageNumber) => {
+  // Update intersection observer when images load
+  if (settings.value.pageLayout === 'list') {
+    setupPageIntersectionObserver();
+  }
+};
+
+const setupPageIntersectionObserver = () => {
+  if (pageIntersectionObserver.value) {
+    pageIntersectionObserver.value.disconnect();
+  }
+
+  pageIntersectionObserver.value = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+          const pageNumber = parseInt(entry.target.id.replace('list-page-', ''));
+          currentPageInView.value = pageNumber;
+          readerStore.setCurrentPage(pageNumber);
+        }
+      });
+    },
+    {
+      threshold: [0.5],
+      rootMargin: '-20% 0px -20% 0px'
+    }
+  );
+
+  // Observe all page elements
+  pages.value.forEach((_, index) => {
+    const pageElement = document.getElementById(`list-page-${index + 1}`);
+    if (pageElement) {
+      pageIntersectionObserver.value.observe(pageElement);
+    }
+  });
 };
 
 // Watch for route changes
@@ -191,11 +564,35 @@ watch([mangaId, chapterId], () => {
   loadContent();
 });
 
+// Watch for page layout changes to setup/cleanup observers
+watch(() => settings.value.pageLayout, (newLayout, oldLayout) => {
+  if (newLayout === 'list' && oldLayout !== 'list') {
+    // Setup intersection observer for list view
+    setTimeout(setupPageIntersectionObserver, 100);
+  } else if (oldLayout === 'list' && newLayout !== 'list') {
+    // Cleanup intersection observer
+    if (pageIntersectionObserver.value) {
+      pageIntersectionObserver.value.disconnect();
+    }
+  }
+});
+
 // Lifecycle hooks
 onMounted(() => {
   loadContent();
   document.addEventListener('keydown', handleKeyDown);
-  
+
+  // Apply theme and UI layout
+  readerStore.applyTheme();
+  readerStore.applyUILayout();
+
+  // Override store's achievement notification method
+  readerStore.showAchievementNotifications = (achievements) => {
+    achievements.forEach(achievement => {
+      showAchievementNotification(achievement);
+    });
+  };
+
   // Initial timeout to hide controls
   controlsTimeout.value = setTimeout(() => {
     showControls.value = false;
@@ -204,21 +601,40 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeyDown);
-  
+
   if (controlsTimeout.value) {
     clearTimeout(controlsTimeout.value);
   }
+
+  if (pageIntersectionObserver.value) {
+    pageIntersectionObserver.value.disconnect();
+  }
+
+  // End reading session when leaving the reader
+  readerStore.endReadingSession();
 });
 </script>
 
 <style scoped>
 .reader-content {
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .reader-page-container {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.reader-page {
+  border-radius: var(--reader-display-borderRadius, 8px);
+  box-shadow: var(--reader-display-showShadows, true) == 'true' ? var(--reader-ui-shadow, 0 4px 12px rgba(0, 0, 0, 0.3)) : none;
+  transition: all var(--reader-display-transitionDuration, 300ms) ease;
+}
+
+.reader-toolbar {
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--reader-border, rgba(255, 255, 255, 0.1));
 }
 
 .reader-page-container::-webkit-scrollbar {
@@ -248,5 +664,96 @@ onBeforeUnmount(() => {
 .reader-fit-both .reader-page {
   max-width: 100%;
   max-height: 100vh;
+}
+
+.reader-list-container {
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  scroll-behavior: smooth;
+}
+
+.reader-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.reader-list-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reader-list-container::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+.list-page {
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.reader-fit-width .list-page {
+  width: 100%;
+  height: auto;
+}
+
+.achievement-notification {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* UI Layout Styles */
+[data-ui-layout="minimal"] .reader-toolbar {
+  backdrop-filter: blur(20px);
+  background: var(--reader-ui-toolbarBg) !important;
+}
+
+[data-ui-layout="immersive"] .reader-toolbar {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+[data-ui-layout="immersive"]:hover .reader-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+[data-ui-layout="sidebar"] .reader-toolbar {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+[data-ui-layout="sidebar"] .reader-toolbar .flex {
+  flex-direction: column;
+}
+
+/* Theme-aware scrollbars */
+.reader-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.reader-content::-webkit-scrollbar-track {
+  background: var(--reader-background);
+}
+
+.reader-content::-webkit-scrollbar-thumb {
+  background-color: var(--reader-secondary);
+  border-radius: 4px;
+}
+
+.reader-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--reader-primary);
 }
 </style>

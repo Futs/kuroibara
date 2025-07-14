@@ -4,12 +4,18 @@
       <div
         class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
       >
-        <img
+        <LazyImage
           v-if="getMangaCover"
           :src="getMangaCover"
           :alt="getMangaTitle"
-          class="w-full h-full object-center object-cover"
+          :quality="imageQuality"
+          :lazy="true"
+          :progressive="true"
+          container-class="w-full h-full"
+          image-class="w-full h-full object-center object-cover transition-all duration-300"
           :class="{ 'blur-md': isNsfw && blurNsfw }"
+          @load="onImageLoad"
+          @error="onImageError"
         />
         <div
           v-else
@@ -119,9 +125,11 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useSettingsStore } from "../stores/settings";
+import LazyImage from "./LazyImage.vue";
+import { perf } from "../utils/performance";
 
 const props = defineProps({
   manga: {
@@ -132,6 +140,11 @@ const props = defineProps({
 
 const router = useRouter();
 const settingsStore = useSettingsStore();
+
+// Performance tracking
+const loading = ref(false);
+const imageLoaded = ref(false);
+const imageError = ref(false);
 
 // Handle both library items (MangaUserLibrary) and direct manga objects
 const getMangaId = computed(() => {
@@ -216,6 +229,43 @@ const isNsfw = computed(() => {
 
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 
+// Image quality based on viewport and connection
+const imageQuality = computed(() => {
+  // Check connection speed if available
+  if ('connection' in navigator) {
+    const connection = navigator.connection;
+    if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
+      return 'low';
+    } else if (connection.effectiveType === '3g') {
+      return 'medium';
+    }
+  }
+
+  // Default to high quality
+  return 'high';
+});
+
+// Performance methods
+const onImageLoad = () => {
+  imageLoaded.value = true;
+  imageError.value = false;
+  perf.record('manga-card-image', {
+    action: 'load',
+    mangaId: getMangaId.value,
+    quality: imageQuality.value
+  });
+};
+
+const onImageError = () => {
+  imageError.value = true;
+  imageLoaded.value = false;
+  perf.record('manga-card-image', {
+    action: 'error',
+    mangaId: getMangaId.value,
+    quality: imageQuality.value
+  });
+};
+
 // Methods
 const viewDetails = (event) => {
   // Prevent navigation if clicking on action buttons
@@ -223,7 +273,9 @@ const viewDetails = (event) => {
     return;
   }
 
+  perf.start('manga-card-navigation');
   router.push(`/manga/${getMangaId.value}`);
+  perf.end('manga-card-navigation');
 };
 
 defineEmits(["remove"]);

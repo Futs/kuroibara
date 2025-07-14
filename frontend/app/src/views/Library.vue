@@ -12,9 +12,9 @@
             Manage your manga collection
           </p>
         </div>
-        <div class="mt-4 sm:mt-0 flex space-x-3">
+        <div class="mt-4 sm:mt-0 flex flex-wrap gap-2">
           <button
-            @click="showFilters = !showFilters"
+            @click="showAdvancedFilters = !showAdvancedFilters"
             class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             <svg
@@ -31,8 +31,30 @@
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
               />
             </svg>
-            {{ showFilters ? "Hide Filters" : "Show Filters" }}
+            Advanced Filters
           </button>
+
+          <button
+            @click="showStatistics = !showStatistics"
+            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <svg class="-ml-0.5 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+            </svg>
+            Statistics
+          </button>
+
+          <button
+            @click="showDuplicates = !showDuplicates"
+            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <svg class="-ml-0.5 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
+              <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
+            </svg>
+            Duplicates
+          </button>
+
           <router-link
             to="/search"
             class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -156,6 +178,26 @@
             Apply Filters
           </button>
         </div>
+      </div>
+
+      <!-- Advanced Filters Panel -->
+      <div v-if="showAdvancedFilters" class="border-t border-gray-200 dark:border-dark-600">
+        <LibraryFilters />
+      </div>
+
+      <!-- Statistics Panel -->
+      <div v-if="showStatistics" class="border-t border-gray-200 dark:border-dark-600 p-6">
+        <LibraryStatistics />
+      </div>
+
+      <!-- Duplicates Panel -->
+      <div v-if="showDuplicates" class="border-t border-gray-200 dark:border-dark-600 p-6">
+        <DuplicateDetection />
+      </div>
+
+      <!-- Bulk Operations -->
+      <div class="border-t border-gray-200 dark:border-dark-600">
+        <BulkOperations />
       </div>
 
       <!-- Loading State -->
@@ -342,6 +384,25 @@
         </div>
       </div>
     </div>
+
+    <!-- Metadata Editor Modal -->
+    <div
+      v-if="showMetadataEditor"
+      class="fixed inset-0 z-50 overflow-y-auto"
+      @click.self="showMetadataEditor = false"
+    >
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+        <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+          <MetadataEditor
+            :manga="selectedMangaForEdit"
+            @close="showMetadataEditor = false"
+            @saved="onMetadataSaved"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -349,12 +410,25 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useLibraryStore } from "../stores/library";
 import MangaCard from "../components/MangaCard.vue";
+import LibraryFilters from "../components/LibraryFilters.vue";
+import BulkOperations from "../components/BulkOperations.vue";
+import LibraryStatistics from "../components/LibraryStatistics.vue";
+import DuplicateDetection from "../components/DuplicateDetection.vue";
+import MetadataEditor from "../components/MetadataEditor.vue";
+import VirtualScroller from "../components/VirtualScroller.vue";
+import { perf } from "../utils/performance";
 
 // Store
 const libraryStore = useLibraryStore();
 
 // Reactive data
 const showFilters = ref(false);
+const showAdvancedFilters = ref(false);
+const showStatistics = ref(false);
+const showDuplicates = ref(false);
+const showMetadataEditor = ref(false);
+const selectedMangaForEdit = ref(null);
+const viewMode = ref("grid");
 const categories = ref([]);
 
 // Computed properties
@@ -381,9 +455,14 @@ const paginationRange = computed(() => {
   return range;
 });
 
+// Performance tracking
+const enableVirtualScrolling = computed(() => manga.value.length > 100);
+
 // Methods
 const fetchLibrary = async () => {
+  perf.start('library-fetch');
   await libraryStore.fetchLibrary();
+  perf.end('library-fetch');
 };
 
 const fetchCategories = async () => {
@@ -431,6 +510,27 @@ const nextPage = () => {
 
 const goToPage = (page) => {
   libraryStore.setPage(page);
+};
+
+// New methods for enhanced library features
+const setViewMode = (mode) => {
+  viewMode.value = mode;
+  libraryStore.setViewMode(mode);
+};
+
+const editMangaMetadata = (manga) => {
+  selectedMangaForEdit.value = manga;
+  showMetadataEditor.value = true;
+};
+
+const onMetadataSaved = () => {
+  showMetadataEditor.value = false;
+  selectedMangaForEdit.value = null;
+  fetchLibrary(); // Refresh the library
+};
+
+const toggleMangaSelection = (mangaId) => {
+  libraryStore.toggleMangaSelection(mangaId);
 };
 
 // Watch for filter changes

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import api from "../services/api";
+import { perf } from "../utils/performance";
 
 export const useProvidersStore = defineStore("providers", {
   state: () => ({
@@ -24,6 +25,33 @@ export const useProvidersStore = defineStore("providers", {
       content: "",
       language: "",
     },
+
+    // Enhanced provider features
+    healthStatus: new Map(),
+    healthHistory: new Map(),
+    analytics: new Map(),
+    providerConfigs: new Map(),
+    rateLimits: new Map(),
+    proxyConfigs: new Map(),
+    customProviders: [],
+
+    // Monitoring settings
+    monitoringEnabled: true,
+    healthCheckInterval: 300000, // 5 minutes
+
+    // Global settings
+    globalSettings: {
+      defaultTimeout: 30000,
+      maxRetries: 3,
+      enableAutoFailover: true,
+      enableAnalytics: true,
+      enableRateLimiting: true,
+    },
+
+    // UI state
+    filterStatus: 'all', // all, healthy, unhealthy, disabled
+    sortBy: 'name',
+    sortOrder: 'asc',
   }),
 
   getters: {

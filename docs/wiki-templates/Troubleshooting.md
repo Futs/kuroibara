@@ -58,7 +58,7 @@ netstat -tulpn | grep :8000
 
 # Change ports in docker-compose.yml
 ports:
-  - "3001:3000"  # Change external port
+  - "3000:3000"  # Change external port
 ```
 
 #### **Database Connection Failed**

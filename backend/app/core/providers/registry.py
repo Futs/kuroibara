@@ -151,6 +151,16 @@ class ProviderRegistry:
                 config_files.append("providers_cloudflare.json")
                 logger.info("Loading Cloudflare-protected providers (lower priority)")
 
+            # Add community providers (loaded last with lowest priority)
+            community_dir = config_dir / "community"
+            if community_dir.exists():
+                community_files = list(community_dir.glob("*.json"))
+                if community_files:
+                    logger.info(f"Found {len(community_files)} community provider files")
+                    # Add community files to the list
+                    for community_file in sorted(community_files):
+                        config_files.append(f"community/{community_file.name}")
+
             # Fallback to old batch files if new structure doesn't exist
             if not (config_dir / "providers_default.json").exists():
                 logger.info("Using legacy provider configuration files")

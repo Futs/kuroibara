@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **🔌 Template-Based Provider System**: Community members can now add new manga providers without coding
+  - GitHub issue template for provider requests with comprehensive validation
+  - Automated validation and testing workflow using GitHub Actions
+  - Auto-PR creation for approved providers with detailed testing results
+  - Community provider configuration support in dedicated directory
+  - Comprehensive documentation and examples for contributors
+  - CSS selector validation and testing tools
+  - Provider health monitoring and automatic failover support
+
 ## [0.3.0] - 2025-01-12
 
 ### Added

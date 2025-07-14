@@ -59,21 +59,23 @@ class RateLimiter {
     const burstWindowStart = now - 1000; // 1 second burst window
 
     // Clean old requests
-    limit.requests = limit.requests.filter(time => time > windowStart);
-    limit.burstRequests = limit.burstRequests.filter(time => time > burstWindowStart);
+    limit.requests = limit.requests.filter((time) => time > windowStart);
+    limit.burstRequests = limit.burstRequests.filter(
+      (time) => time > burstWindowStart,
+    );
 
     // Check burst limit first
     if (limit.burstRequests.length >= limit.burstLimit) {
       const oldestBurst = Math.min(...limit.burstRequests);
       const waitTime = 1000 - (now - oldestBurst);
-      return { allowed: false, waitTime, reason: 'burst_limit' };
+      return { allowed: false, waitTime, reason: "burst_limit" };
     }
 
     // Check regular limit
     if (limit.requests.length >= limit.limit) {
       const oldestRequest = Math.min(...limit.requests);
       const waitTime = limit.windowMs - (now - oldestRequest);
-      return { allowed: false, waitTime, reason: 'rate_limit' };
+      return { allowed: false, waitTime, reason: "rate_limit" };
     }
 
     return { allowed: true, waitTime: 0 };
@@ -85,7 +87,7 @@ class RateLimiter {
   recordRequest(providerId) {
     const limit = this.limits.get(providerId);
     const stats = this.stats.get(providerId);
-    
+
     if (limit) {
       const now = Date.now();
       limit.requests.push(now);
@@ -106,7 +108,7 @@ class RateLimiter {
     const stats = this.stats.get(providerId);
 
     if (queue.length >= this.globalConfig.maxQueueSize) {
-      throw new Error('Request queue is full');
+      throw new Error("Request queue is full");
     }
 
     return new Promise((resolve, reject) => {
@@ -120,7 +122,7 @@ class RateLimiter {
       };
 
       // Insert based on priority
-      const insertIndex = queue.findIndex(item => item.priority < priority);
+      const insertIndex = queue.findIndex((item) => item.priority < priority);
       if (insertIndex === -1) {
         queue.push(queueItem);
       } else {
@@ -146,21 +148,21 @@ class RateLimiter {
     if (!queue || queue.length === 0) return;
 
     const checkResult = await this.checkLimit(providerId);
-    
+
     if (checkResult.allowed) {
       const queueItem = queue.shift();
       if (queueItem) {
         try {
           this.recordRequest(providerId);
           const result = await queueItem.requestFn();
-          
+
           // Update wait time stats
           const stats = this.stats.get(providerId);
           if (stats) {
             const waitTime = Date.now() - queueItem.queuedAt;
             stats.averageWaitTime = (stats.averageWaitTime + waitTime) / 2;
           }
-          
+
           queueItem.resolve(result);
         } catch (error) {
           queueItem.reject(error);
@@ -172,7 +174,7 @@ class RateLimiter {
     } else {
       // Wait and try again
       setTimeout(() => this.processQueue(providerId), checkResult.waitTime);
-      
+
       // Update throttled stats
       const stats = this.stats.get(providerId);
       if (stats) {
@@ -186,9 +188,9 @@ class RateLimiter {
    */
   async makeRequest(providerId, requestFn, options = {}) {
     const { priority = 0, timeout = 30000 } = options;
-    
+
     const checkResult = await this.checkLimit(providerId);
-    
+
     if (checkResult.allowed) {
       this.recordRequest(providerId);
       return await requestFn();
@@ -212,7 +214,9 @@ class RateLimiter {
 
     const now = Date.now();
     const windowStart = now - limit.windowMs;
-    const currentRequests = limit.requests.filter(time => time > windowStart).length;
+    const currentRequests = limit.requests.filter(
+      (time) => time > windowStart,
+    ).length;
 
     return {
       configured: true,
@@ -265,7 +269,7 @@ class ProxyManager {
     this.globalConfig = {
       healthCheckInterval: 300000, // 5 minutes
       maxFailures: 3,
-      rotationStrategy: 'round_robin', // round_robin, random, health_based
+      rotationStrategy: "round_robin", // round_robin, random, health_based
     };
   }
 
@@ -287,7 +291,7 @@ class ProxyManager {
 
     proxies.push(proxy);
     this.initializeProxyHealth(providerId, proxy.id);
-    
+
     return proxy.id;
   }
 
@@ -296,8 +300,8 @@ class ProxyManager {
    */
   removeProxy(providerId, proxyId) {
     const proxies = this.proxies.get(providerId) || [];
-    const index = proxies.findIndex(p => p.id === proxyId);
-    
+    const index = proxies.findIndex((p) => p.id === proxyId);
+
     if (index !== -1) {
       proxies.splice(index, 1);
       this.proxyHealth.delete(`${providerId}-${proxyId}`);
@@ -309,8 +313,8 @@ class ProxyManager {
    */
   getProxy(providerId) {
     const proxies = this.proxies.get(providerId) || [];
-    const activeProxies = proxies.filter(p => p.isActive);
-    
+    const activeProxies = proxies.filter((p) => p.isActive);
+
     if (activeProxies.length === 0) {
       return null;
     }
@@ -319,13 +323,14 @@ class ProxyManager {
     let selectedProxy;
 
     switch (strategy) {
-      case 'round_robin':
+      case "round_robin":
         selectedProxy = this.getRoundRobinProxy(providerId, activeProxies);
         break;
-      case 'random':
-        selectedProxy = activeProxies[Math.floor(Math.random() * activeProxies.length)];
+      case "random":
+        selectedProxy =
+          activeProxies[Math.floor(Math.random() * activeProxies.length)];
         break;
-      case 'health_based':
+      case "health_based":
         selectedProxy = this.getHealthBasedProxy(providerId, activeProxies);
         break;
       default:
@@ -372,15 +377,15 @@ class ProxyManager {
     if (!health) return 0;
 
     let score = 100;
-    
+
     // Penalize for failures
     score -= health.consecutiveFailures * 20;
-    
+
     // Penalize for high response time
     if (health.averageResponseTime > 1000) {
       score -= (health.averageResponseTime - 1000) / 100;
     }
-    
+
     // Penalize for low success rate
     if (health.successRate < 95) {
       score -= (95 - health.successRate) * 2;
@@ -412,7 +417,7 @@ class ProxyManager {
   recordProxyUsage(providerId, proxyId, success, responseTime) {
     const key = `${providerId}-${proxyId}`;
     const health = this.proxyHealth.get(key);
-    
+
     if (!health) return;
 
     health.totalRequests++;
@@ -426,20 +431,22 @@ class ProxyManager {
     }
 
     if (responseTime) {
-      health.averageResponseTime = 
+      health.averageResponseTime =
         (health.averageResponseTime + responseTime) / 2;
     }
 
-    health.successRate = health.totalRequests > 0 
-      ? (health.successfulRequests / health.totalRequests) * 100 
-      : 100;
+    health.successRate =
+      health.totalRequests > 0
+        ? (health.successfulRequests / health.totalRequests) * 100
+        : 100;
 
-    health.isHealthy = health.consecutiveFailures < this.globalConfig.maxFailures;
+    health.isHealthy =
+      health.consecutiveFailures < this.globalConfig.maxFailures;
 
     // Disable proxy if too many failures
     if (health.consecutiveFailures >= this.globalConfig.maxFailures) {
       const proxies = this.proxies.get(providerId) || [];
-      const proxy = proxies.find(p => p.id === proxyId);
+      const proxy = proxies.find((p) => p.id === proxyId);
       if (proxy) {
         proxy.isActive = false;
       }
@@ -449,21 +456,21 @@ class ProxyManager {
   /**
    * Test proxy health
    */
-  async testProxy(providerId, proxyId, testUrl = 'https://httpbin.org/ip') {
+  async testProxy(providerId, proxyId, testUrl = "https://httpbin.org/ip") {
     const proxies = this.proxies.get(providerId) || [];
-    const proxy = proxies.find(p => p.id === proxyId);
-    
+    const proxy = proxies.find((p) => p.id === proxyId);
+
     if (!proxy) {
-      throw new Error('Proxy not found');
+      throw new Error("Proxy not found");
     }
 
     const startTime = Date.now();
-    
+
     try {
       const response = await fetch(testUrl, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'User-Agent': 'Kuroibara/1.0',
+          "User-Agent": "Kuroibara/1.0",
         },
         // Proxy configuration would be applied here
         // This depends on the specific proxy implementation
@@ -483,7 +490,7 @@ class ProxyManager {
     } catch (error) {
       const responseTime = Date.now() - startTime;
       this.recordProxyUsage(providerId, proxyId, false, responseTime);
-      
+
       throw error;
     }
   }
@@ -493,8 +500,8 @@ class ProxyManager {
    */
   getProxyStatus(providerId) {
     const proxies = this.proxies.get(providerId) || [];
-    
-    return proxies.map(proxy => ({
+
+    return proxies.map((proxy) => ({
       ...proxy,
       health: this.proxyHealth.get(`${providerId}-${proxy.id}`),
     }));
@@ -511,7 +518,10 @@ class ProxyManager {
             try {
               await this.testProxy(providerId, proxy.id);
             } catch (error) {
-              console.warn(`Proxy health check failed for ${proxy.host}:${proxy.port}:`, error);
+              console.warn(
+                `Proxy health check failed for ${proxy.host}:${proxy.port}:`,
+                error,
+              );
             }
           }
         }

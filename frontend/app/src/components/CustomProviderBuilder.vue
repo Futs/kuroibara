@@ -1,7 +1,11 @@
 <template>
-  <div class="custom-provider-builder bg-white dark:bg-dark-800 rounded-lg shadow-lg p-6">
+  <div
+    class="custom-provider-builder bg-white dark:bg-dark-800 rounded-lg shadow-lg p-6"
+  >
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Custom Provider Builder</h2>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+        Custom Provider Builder
+      </h2>
       <div class="flex space-x-2">
         <button
           @click="loadTemplate"
@@ -31,10 +35,14 @@
       <div class="space-y-6">
         <!-- Basic Information -->
         <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Basic Information
+          </h3>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Provider Name *
               </label>
               <input
@@ -45,9 +53,11 @@
                 required
               />
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Description
               </label>
               <textarea
@@ -57,10 +67,12 @@
                 class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
               ></textarea>
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Language
                 </label>
                 <select
@@ -77,9 +89,11 @@
                   <option value="other">Other</option>
                 </select>
               </div>
-              
+
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Content Rating
                 </label>
                 <select
@@ -98,10 +112,14 @@
 
         <!-- API Configuration -->
         <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">API Configuration</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            API Configuration
+          </h3>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Base URL *
               </label>
               <input
@@ -112,9 +130,11 @@
                 required
               />
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Search Endpoint
               </label>
               <input
@@ -127,9 +147,11 @@
                 Use {query}, {page}, {limit} as placeholders
               </p>
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Details Endpoint
               </label>
               <input
@@ -142,9 +164,11 @@
                 Use {id} as placeholder for manga ID
               </p>
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Chapters Endpoint
               </label>
               <input
@@ -159,10 +183,14 @@
 
         <!-- Headers and Authentication -->
         <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Headers & Authentication</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Headers & Authentication
+          </h3>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Custom Headers
               </label>
               <div class="space-y-2">
@@ -198,10 +226,12 @@
                 </button>
               </div>
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Rate Limit (req/min)
                 </label>
                 <input
@@ -212,9 +242,11 @@
                   class="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
                 />
               </div>
-              
+
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Timeout (seconds)
                 </label>
                 <input
@@ -231,10 +263,14 @@
 
         <!-- Data Extraction Rules -->
         <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Extraction Rules</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Data Extraction Rules
+          </h3>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Response Format
               </label>
               <select
@@ -246,9 +282,11 @@
                 <option value="html">HTML</option>
               </select>
             </div>
-            
+
             <div v-if="provider.response_format === 'json'">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 JSON Path Mappings
               </label>
               <div class="space-y-2">
@@ -259,7 +297,10 @@
                     placeholder="$.data[*].title"
                     class="px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
                   />
-                  <span class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">Title</span>
+                  <span
+                    class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center"
+                    >Title</span
+                  >
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <input
@@ -268,7 +309,10 @@
                     placeholder="$.data[*].id"
                     class="px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
                   />
-                  <span class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">ID</span>
+                  <span
+                    class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center"
+                    >ID</span
+                  >
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <input
@@ -277,7 +321,10 @@
                     placeholder="$.data[*].cover_url"
                     class="px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
                   />
-                  <span class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">Cover URL</span>
+                  <span
+                    class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center"
+                    >Cover URL</span
+                  >
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <input
@@ -286,13 +333,18 @@
                     placeholder="$.data[*].description"
                     class="px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
                   />
-                  <span class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">Description</span>
+                  <span
+                    class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center"
+                    >Description</span
+                  >
                 </div>
               </div>
             </div>
-            
+
             <div v-else-if="provider.response_format === 'html'">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 CSS Selector Mappings
               </label>
               <div class="space-y-2">
@@ -303,7 +355,10 @@
                     placeholder=".manga-title"
                     class="px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
                   />
-                  <span class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">Title</span>
+                  <span
+                    class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center"
+                    >Title</span
+                  >
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <input
@@ -312,7 +367,10 @@
                     placeholder=".manga-cover img"
                     class="px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md dark:bg-dark-800 dark:text-white"
                   />
-                  <span class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">Cover</span>
+                  <span
+                    class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center"
+                    >Cover</span
+                  >
                 </div>
               </div>
             </div>
@@ -324,47 +382,71 @@
       <div class="space-y-6">
         <!-- Test Results -->
         <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Test Results</h3>
-          
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Test Results
+          </h3>
+
           <div v-if="testing" class="flex items-center justify-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span class="ml-2 text-gray-600 dark:text-gray-400">Testing provider...</span>
+            <div
+              class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
+            ></div>
+            <span class="ml-2 text-gray-600 dark:text-gray-400"
+              >Testing provider...</span
+            >
           </div>
-          
+
           <div v-else-if="testResults" class="space-y-4">
             <div class="flex items-center space-x-2">
-              <div 
+              <div
                 class="w-3 h-3 rounded-full"
                 :class="testResults.success ? 'bg-green-500' : 'bg-red-500'"
               ></div>
               <span class="font-medium">
-                {{ testResults.success ? 'Test Successful' : 'Test Failed' }}
+                {{ testResults.success ? "Test Successful" : "Test Failed" }}
               </span>
             </div>
-            
-            <div v-if="testResults.error" class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-300">
+
+            <div
+              v-if="testResults.error"
+              class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-300"
+            >
               {{ testResults.error }}
             </div>
-            
+
             <div v-if="testResults.data" class="space-y-2">
-              <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Sample Results:</div>
+              <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Sample Results:
+              </div>
               <div class="max-h-64 overflow-y-auto">
-                <pre class="text-xs bg-gray-100 dark:bg-dark-800 p-2 rounded">{{ JSON.stringify(testResults.data, null, 2) }}</pre>
+                <pre class="text-xs bg-gray-100 dark:bg-dark-800 p-2 rounded">{{
+                  JSON.stringify(testResults.data, null, 2)
+                }}</pre>
               </div>
             </div>
-            
-            <div v-if="testResults.metrics" class="grid grid-cols-2 gap-4 text-sm">
+
+            <div
+              v-if="testResults.metrics"
+              class="grid grid-cols-2 gap-4 text-sm"
+            >
               <div>
-                <span class="text-gray-600 dark:text-gray-400">Response Time:</span>
-                <span class="font-medium ml-1">{{ testResults.metrics.responseTime }}ms</span>
+                <span class="text-gray-600 dark:text-gray-400"
+                  >Response Time:</span
+                >
+                <span class="font-medium ml-1"
+                  >{{ testResults.metrics.responseTime }}ms</span
+                >
               </div>
               <div>
-                <span class="text-gray-600 dark:text-gray-400">Results Found:</span>
-                <span class="font-medium ml-1">{{ testResults.metrics.resultCount }}</span>
+                <span class="text-gray-600 dark:text-gray-400"
+                  >Results Found:</span
+                >
+                <span class="font-medium ml-1">{{
+                  testResults.metrics.resultCount
+                }}</span>
               </div>
             </div>
           </div>
-          
+
           <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
             Configure your provider and click "Test Provider" to see results
           </div>
@@ -372,55 +454,77 @@
 
         <!-- Provider Preview -->
         <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Provider Preview</h3>
-          
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Provider Preview
+          </h3>
+
           <div class="space-y-3">
             <div class="flex items-center space-x-3">
-              <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                <span class="text-blue-600 dark:text-blue-400 font-bold text-lg">
-                  {{ provider.name ? provider.name.charAt(0).toUpperCase() : '?' }}
+              <div
+                class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center"
+              >
+                <span
+                  class="text-blue-600 dark:text-blue-400 font-bold text-lg"
+                >
+                  {{
+                    provider.name ? provider.name.charAt(0).toUpperCase() : "?"
+                  }}
                 </span>
               </div>
               <div>
                 <div class="font-medium text-gray-900 dark:text-white">
-                  {{ provider.name || 'Unnamed Provider' }}
+                  {{ provider.name || "Unnamed Provider" }}
                 </div>
                 <div class="text-sm text-gray-600 dark:text-gray-400">
-                  {{ provider.description || 'No description provided' }}
+                  {{ provider.description || "No description provided" }}
                 </div>
               </div>
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span class="text-gray-600 dark:text-gray-400">Language:</span>
-                <span class="font-medium ml-1">{{ provider.language || 'Not set' }}</span>
+                <span class="font-medium ml-1">{{
+                  provider.language || "Not set"
+                }}</span>
               </div>
               <div>
                 <span class="text-gray-600 dark:text-gray-400">Content:</span>
-                <span class="font-medium ml-1">{{ provider.content_rating || 'Not set' }}</span>
+                <span class="font-medium ml-1">{{
+                  provider.content_rating || "Not set"
+                }}</span>
               </div>
               <div>
-                <span class="text-gray-600 dark:text-gray-400">Rate Limit:</span>
-                <span class="font-medium ml-1">{{ provider.rate_limit || 60 }}/min</span>
+                <span class="text-gray-600 dark:text-gray-400"
+                  >Rate Limit:</span
+                >
+                <span class="font-medium ml-1"
+                  >{{ provider.rate_limit || 60 }}/min</span
+                >
               </div>
               <div>
                 <span class="text-gray-600 dark:text-gray-400">Timeout:</span>
-                <span class="font-medium ml-1">{{ provider.timeout || 30 }}s</span>
+                <span class="font-medium ml-1"
+                  >{{ provider.timeout || 30 }}s</span
+                >
               </div>
             </div>
-            
+
             <div v-if="provider.base_url" class="text-sm">
               <span class="text-gray-600 dark:text-gray-400">Base URL:</span>
-              <span class="font-medium ml-1 break-all">{{ provider.base_url }}</span>
+              <span class="font-medium ml-1 break-all">{{
+                provider.base_url
+              }}</span>
             </div>
           </div>
         </div>
 
         <!-- Templates -->
         <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Templates</h3>
-          
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Templates
+          </h3>
+
           <div class="space-y-2">
             <button
               v-for="template in templates"
@@ -428,8 +532,12 @@
               @click="loadProviderTemplate(template)"
               class="w-full text-left p-3 border border-gray-200 dark:border-dark-600 rounded hover:bg-gray-100 dark:hover:bg-dark-600 transition-colors"
             >
-              <div class="font-medium text-gray-900 dark:text-white">{{ template.name }}</div>
-              <div class="text-sm text-gray-600 dark:text-gray-400">{{ template.description }}</div>
+              <div class="font-medium text-gray-900 dark:text-white">
+                {{ template.name }}
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                {{ template.description }}
+              </div>
             </button>
           </div>
         </div>
@@ -439,8 +547,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useProvidersStore } from '../stores/providers';
+import { ref, computed } from "vue";
+import { useProvidersStore } from "../stores/providers";
 
 const providersStore = useProvidersStore();
 
@@ -450,68 +558,68 @@ const testResults = ref(null);
 
 // Provider configuration
 const provider = ref({
-  name: '',
-  description: '',
-  language: 'en',
-  content_rating: 'safe',
-  base_url: '',
-  search_endpoint: '',
-  details_endpoint: '',
-  chapters_endpoint: '',
+  name: "",
+  description: "",
+  language: "en",
+  content_rating: "safe",
+  base_url: "",
+  search_endpoint: "",
+  details_endpoint: "",
+  chapters_endpoint: "",
   headers: [],
   rate_limit: 60,
   timeout: 30,
-  response_format: 'json',
+  response_format: "json",
   mappings: {
-    title: '',
-    id: '',
-    cover: '',
-    description: '',
-    authors: '',
-    genres: '',
+    title: "",
+    id: "",
+    cover: "",
+    description: "",
+    authors: "",
+    genres: "",
   },
   selectors: {
-    title: '',
-    cover: '',
-    description: '',
-    authors: '',
-    genres: '',
+    title: "",
+    cover: "",
+    description: "",
+    authors: "",
+    genres: "",
   },
 });
 
 // Templates
 const templates = ref([
   {
-    id: 'generic-json',
-    name: 'Generic JSON API',
-    description: 'Standard REST API with JSON responses',
+    id: "generic-json",
+    name: "Generic JSON API",
+    description: "Standard REST API with JSON responses",
     config: {
-      response_format: 'json',
-      search_endpoint: '/search?q={query}&page={page}',
-      details_endpoint: '/manga/{id}',
-      chapters_endpoint: '/manga/{id}/chapters',
+      response_format: "json",
+      search_endpoint: "/search?q={query}&page={page}",
+      details_endpoint: "/manga/{id}",
+      chapters_endpoint: "/manga/{id}/chapters",
       mappings: {
-        title: '$.data[*].title',
-        id: '$.data[*].id',
-        cover: '$.data[*].cover_url',
-        description: '$.data[*].description',
-      }
-    }
+        title: "$.data[*].title",
+        id: "$.data[*].id",
+        cover: "$.data[*].cover_url",
+        description: "$.data[*].description",
+      },
+    },
   },
   {
-    id: 'html-scraper',
-    name: 'HTML Scraper',
-    description: 'Web scraping with CSS selectors',
+    id: "html-scraper",
+    name: "HTML Scraper",
+    description: "Web scraping with CSS selectors",
     config: {
-      response_format: 'html',
-      search_endpoint: '/search?q={query}',
+      response_format: "html",
+      search_endpoint: "/search?q={query}",
       selectors: {
-        title: '.manga-title',
-        cover: '.manga-cover img',
-        description: '.manga-description',
-      }
-    }
-  }
+        title: ".manga-title",
+        cover: ".manga-cover img",
+        description: ".manga-description",
+      },
+    },
+  },
 ]);
 
 // Computed properties
@@ -525,7 +633,7 @@ const canSave = computed(() => {
 
 // Methods
 const addHeader = () => {
-  provider.value.headers.push({ key: '', value: '' });
+  provider.value.headers.push({ key: "", value: "" });
 };
 
 const removeHeader = (index) => {
@@ -534,7 +642,7 @@ const removeHeader = (index) => {
 
 const loadTemplate = () => {
   // Show template selection modal or dropdown
-  console.log('Load template');
+  console.log("Load template");
 };
 
 const loadProviderTemplate = (template) => {
@@ -544,25 +652,25 @@ const loadProviderTemplate = (template) => {
 const testProvider = async () => {
   testing.value = true;
   testResults.value = null;
-  
+
   try {
-    const response = await fetch('/api/v1/providers/test', {
-      method: 'POST',
+    const response = await fetch("/api/v1/providers/test", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         config: provider.value,
-        test_query: 'test'
-      })
+        test_query: "test",
+      }),
     });
-    
+
     const result = await response.json();
     testResults.value = result;
   } catch (error) {
     testResults.value = {
       success: false,
-      error: error.message
+      error: error.message,
     };
   } finally {
     testing.value = false;
@@ -573,9 +681,9 @@ const saveProvider = async () => {
   try {
     await providersStore.createCustomProvider(provider.value);
     // Reset form or show success message
-    console.log('Provider saved successfully');
+    console.log("Provider saved successfully");
   } catch (error) {
-    console.error('Error saving provider:', error);
+    console.error("Error saving provider:", error);
   }
 };
 </script>

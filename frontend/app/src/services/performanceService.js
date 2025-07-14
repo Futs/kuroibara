@@ -2,10 +2,10 @@
  * Comprehensive performance optimization service
  */
 
-import { perf, memory } from '../utils/performance';
-import { cache } from '../utils/cache';
-import { cdn } from '../utils/cdn';
-import backgroundProcessor from '../workers/backgroundProcessor';
+import { perf, memory } from "../utils/performance";
+import { cache } from "../utils/cache";
+import { cdn } from "../utils/cdn";
+import backgroundProcessor from "../workers/backgroundProcessor";
 
 class PerformanceService {
   constructor() {
@@ -17,9 +17,9 @@ class PerformanceService {
       loadTime: 3000, // Milliseconds
       imageSize: 500 * 1024, // 500KB
       bundleSize: 2 * 1024 * 1024, // 2MB
-      longTask: 50 // Milliseconds
+      longTask: 50, // Milliseconds
     };
-    
+
     this.init();
   }
 
@@ -32,23 +32,23 @@ class PerformanceService {
     try {
       // Set up performance monitoring
       this.setupPerformanceMonitoring();
-      
+
       // Initialize optimizations
       this.initializeOptimizations();
-      
+
       // Set up memory monitoring
       this.setupMemoryMonitoring();
-      
+
       // Configure CDN
       this.configureCDN();
-      
+
       // Set up cache strategies
       this.setupCacheStrategies();
-      
+
       this.isInitialized = true;
-      console.log('Performance service initialized');
+      console.log("Performance service initialized");
     } catch (error) {
-      console.error('Failed to initialize performance service:', error);
+      console.error("Failed to initialize performance service:", error);
     }
   }
 
@@ -57,41 +57,41 @@ class PerformanceService {
    */
   setupPerformanceMonitoring() {
     // Monitor page load performance
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          this.recordMetric('navigation', {
+          this.recordMetric("navigation", {
             name: entry.name,
             duration: entry.duration,
-            type: entry.entryType
+            type: entry.entryType,
           });
-          
+
           // Check against thresholds
           if (entry.duration > this.thresholds.loadTime) {
-            this.triggerOptimization('slow-load', { duration: entry.duration });
+            this.triggerOptimization("slow-load", { duration: entry.duration });
           }
         }
       });
-      
-      observer.observe({ entryTypes: ['navigation', 'resource'] });
+
+      observer.observe({ entryTypes: ["navigation", "resource"] });
     }
 
     // Monitor long tasks
-    if ('longtask' in PerformanceObserver.supportedEntryTypes) {
+    if ("longtask" in PerformanceObserver.supportedEntryTypes) {
       const longTaskObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           if (entry.duration > this.thresholds.longTask) {
-            this.recordMetric('longtask', {
+            this.recordMetric("longtask", {
               duration: entry.duration,
-              startTime: entry.startTime
+              startTime: entry.startTime,
             });
-            
-            this.triggerOptimization('long-task', { duration: entry.duration });
+
+            this.triggerOptimization("long-task", { duration: entry.duration });
           }
         }
       });
-      
-      longTaskObserver.observe({ entryTypes: ['longtask'] });
+
+      longTaskObserver.observe({ entryTypes: ["longtask"] });
     }
   }
 
@@ -99,11 +99,11 @@ class PerformanceService {
    * Set up memory monitoring
    */
   setupMemoryMonitoring() {
-    if ('memory' in performance) {
+    if ("memory" in performance) {
       const checkMemory = () => {
         const usage = memory.getUsage();
         if (usage && usage.percentage > this.thresholds.memoryUsage) {
-          this.triggerOptimization('high-memory', usage);
+          this.triggerOptimization("high-memory", usage);
         }
       };
 
@@ -117,43 +117,43 @@ class PerformanceService {
    */
   initializeOptimizations() {
     // Image optimization
-    this.optimizations.set('image-optimization', {
-      name: 'Image Optimization',
-      trigger: ['slow-load', 'high-memory'],
+    this.optimizations.set("image-optimization", {
+      name: "Image Optimization",
+      trigger: ["slow-load", "high-memory"],
       action: this.optimizeImages.bind(this),
-      enabled: true
+      enabled: true,
     });
 
     // Bundle optimization
-    this.optimizations.set('bundle-optimization', {
-      name: 'Bundle Optimization',
-      trigger: ['slow-load'],
+    this.optimizations.set("bundle-optimization", {
+      name: "Bundle Optimization",
+      trigger: ["slow-load"],
       action: this.optimizeBundle.bind(this),
-      enabled: true
+      enabled: true,
     });
 
     // Memory cleanup
-    this.optimizations.set('memory-cleanup', {
-      name: 'Memory Cleanup',
-      trigger: ['high-memory'],
+    this.optimizations.set("memory-cleanup", {
+      name: "Memory Cleanup",
+      trigger: ["high-memory"],
       action: this.cleanupMemory.bind(this),
-      enabled: true
+      enabled: true,
     });
 
     // Cache optimization
-    this.optimizations.set('cache-optimization', {
-      name: 'Cache Optimization',
-      trigger: ['slow-load'],
+    this.optimizations.set("cache-optimization", {
+      name: "Cache Optimization",
+      trigger: ["slow-load"],
       action: this.optimizeCache.bind(this),
-      enabled: true
+      enabled: true,
     });
 
     // Background processing
-    this.optimizations.set('background-processing', {
-      name: 'Background Processing',
-      trigger: ['long-task'],
+    this.optimizations.set("background-processing", {
+      name: "Background Processing",
+      trigger: ["long-task"],
       action: this.moveToBackground.bind(this),
-      enabled: true
+      enabled: true,
     });
   }
 
@@ -162,24 +162,24 @@ class PerformanceService {
    */
   configureCDN() {
     // Detect connection speed and adjust quality
-    if ('connection' in navigator) {
+    if ("connection" in navigator) {
       const connection = navigator.connection;
       let quality = 80;
-      
+
       switch (connection.effectiveType) {
-        case 'slow-2g':
-        case '2g':
+        case "slow-2g":
+        case "2g":
           quality = 40;
           break;
-        case '3g':
+        case "3g":
           quality = 60;
           break;
-        case '4g':
+        case "4g":
         default:
           quality = 80;
           break;
       }
-      
+
       cdn.config({ defaultQuality: quality });
     }
   }
@@ -193,7 +193,7 @@ class PerformanceService {
       images: { ttl: 30 * 60 * 1000, maxSize: 500 }, // 30 minutes
       api: { ttl: 5 * 60 * 1000, maxSize: 200 }, // 5 minutes
       metadata: { ttl: 15 * 60 * 1000, maxSize: 1000 }, // 15 minutes
-      search: { ttl: 10 * 60 * 1000, maxSize: 100 } // 10 minutes
+      search: { ttl: 10 * 60 * 1000, maxSize: 100 }, // 10 minutes
     };
 
     // Apply strategies
@@ -209,13 +209,13 @@ class PerformanceService {
     if (!this.metrics.has(category)) {
       this.metrics.set(category, []);
     }
-    
+
     const metrics = this.metrics.get(category);
     metrics.push({
       ...data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-    
+
     // Keep only last 100 entries
     if (metrics.length > 100) {
       metrics.splice(0, metrics.length - 100);
@@ -246,7 +246,7 @@ class PerformanceService {
     if (data.duration > this.thresholds.loadTime) {
       cdn.config({ defaultQuality: 60 });
     }
-    
+
     // Preload critical images
     const criticalImages = this.getCriticalImages();
     if (criticalImages.length > 0) {
@@ -261,9 +261,9 @@ class PerformanceService {
     // Enable code splitting hints
     if (window.__webpack_require__) {
       // Webpack-specific optimizations
-      console.log('Bundle optimization triggered');
+      console.log("Bundle optimization triggered");
     }
-    
+
     // Lazy load non-critical components
     this.enableLazyLoading();
   }
@@ -274,14 +274,14 @@ class PerformanceService {
   cleanupMemory(data) {
     // Clear old cache entries
     cache.clearAll();
-    
+
     // Force garbage collection if available
     memory.gc();
-    
+
     // Clear unused images
     this.clearUnusedImages();
-    
-    console.log('Memory cleanup performed');
+
+    console.log("Memory cleanup performed");
   }
 
   /**
@@ -293,9 +293,9 @@ class PerformanceService {
       images: 250,
       api: 100,
       metadata: 500,
-      search: 50
+      search: 50,
     };
-    
+
     for (const [type, size] of Object.entries(newSizes)) {
       cache[`${type}Cache`]?.updateConfig?.({ maxSize: size });
     }
@@ -309,11 +309,11 @@ class PerformanceService {
     if (window.pendingDuplicateDetection) {
       await backgroundProcessor.detectDuplicates(
         window.pendingDuplicateDetection,
-        { threshold: 0.8 }
+        { threshold: 0.8 },
       );
       window.pendingDuplicateDetection = null;
     }
-    
+
     // Move statistics calculation to background
     if (window.pendingStatistics) {
       await backgroundProcessor.calculateStats(window.pendingStatistics);
@@ -326,15 +326,15 @@ class PerformanceService {
    */
   getCriticalImages() {
     const images = [];
-    
+
     // Get visible manga covers
-    const visibleCards = document.querySelectorAll('.manga-card img[src]');
-    visibleCards.forEach(img => {
+    const visibleCards = document.querySelectorAll(".manga-card img[src]");
+    visibleCards.forEach((img) => {
       if (img.src && this.isInViewport(img)) {
         images.push(img.src);
       }
     });
-    
+
     return images.slice(0, 10); // Limit to 10 images
   }
 
@@ -356,9 +356,9 @@ class PerformanceService {
    */
   enableLazyLoading() {
     // Add lazy loading attributes to images
-    const images = document.querySelectorAll('img:not([loading])');
-    images.forEach(img => {
-      img.loading = 'lazy';
+    const images = document.querySelectorAll("img:not([loading])");
+    images.forEach((img) => {
+      img.loading = "lazy";
     });
   }
 
@@ -367,11 +367,12 @@ class PerformanceService {
    */
   clearUnusedImages() {
     // Remove images that are not visible
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
+    const images = document.querySelectorAll("img");
+    images.forEach((img) => {
       if (!this.isInViewport(img) && img.src) {
         // Create a small placeholder
-        const placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB2aWV3Qm94PSIwIDAgMSAxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4=';
+        const placeholder =
+          "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB2aWV3Qm94PSIwIDAgMSAxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4=";
         img.dataset.originalSrc = img.src;
         img.src = placeholder;
       }
@@ -386,7 +387,7 @@ class PerformanceService {
       performance: this.metrics,
       cache: cache.getStats(),
       memory: memory.getUsage(),
-      cdn: cdn.status()
+      cdn: cdn.status(),
     };
   }
 
@@ -399,7 +400,7 @@ class PerformanceService {
       status[id] = {
         name: optimization.name,
         enabled: optimization.enabled,
-        triggers: optimization.trigger
+        triggers: optimization.trigger,
       };
     }
     return status;

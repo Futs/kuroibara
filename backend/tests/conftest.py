@@ -4,7 +4,6 @@ import os
 os.environ["ENABLE_PROVIDER_MONITORING"] = "false"
 os.environ["ENABLE_DB_INIT"] = "false"
 
-import asyncio
 from typing import AsyncGenerator, Generator
 
 import asyncpg

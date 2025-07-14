@@ -2,8 +2,7 @@ import os
 import shutil
 import uuid
 import zipfile
-from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import magic
 from fastapi import HTTPException, UploadFile, status

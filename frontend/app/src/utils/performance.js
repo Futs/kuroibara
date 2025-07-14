@@ -7,8 +7,10 @@ class PerformanceMonitor {
     this.metrics = new Map();
     this.observers = new Map();
     this.budgets = new Map();
-    this.isEnabled = process.env.NODE_ENV === 'development' || localStorage.getItem('enablePerformanceMonitoring') === 'true';
-    
+    this.isEnabled =
+      process.env.NODE_ENV === "development" ||
+      localStorage.getItem("enablePerformanceMonitoring") === "true";
+
     if (this.isEnabled) {
       this.initializeObservers();
     }
@@ -19,81 +21,81 @@ class PerformanceMonitor {
    */
   initializeObservers() {
     // Performance Observer for navigation timing
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       try {
         const navObserver = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            this.recordMetric('navigation', {
+            this.recordMetric("navigation", {
               type: entry.entryType,
               name: entry.name,
               duration: entry.duration,
               startTime: entry.startTime,
-              ...entry
+              ...entry,
             });
           }
         });
-        navObserver.observe({ entryTypes: ['navigation'] });
-        this.observers.set('navigation', navObserver);
+        navObserver.observe({ entryTypes: ["navigation"] });
+        this.observers.set("navigation", navObserver);
 
         // Resource timing observer
         const resourceObserver = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            this.recordMetric('resource', {
+            this.recordMetric("resource", {
               type: entry.entryType,
               name: entry.name,
               duration: entry.duration,
               transferSize: entry.transferSize,
               encodedBodySize: entry.encodedBodySize,
-              decodedBodySize: entry.decodedBodySize
+              decodedBodySize: entry.decodedBodySize,
             });
           }
         });
-        resourceObserver.observe({ entryTypes: ['resource'] });
-        this.observers.set('resource', resourceObserver);
+        resourceObserver.observe({ entryTypes: ["resource"] });
+        this.observers.set("resource", resourceObserver);
 
         // Measure observer for custom metrics
         const measureObserver = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            this.recordMetric('measure', {
+            this.recordMetric("measure", {
               name: entry.name,
               duration: entry.duration,
-              startTime: entry.startTime
+              startTime: entry.startTime,
             });
           }
         });
-        measureObserver.observe({ entryTypes: ['measure'] });
-        this.observers.set('measure', measureObserver);
+        measureObserver.observe({ entryTypes: ["measure"] });
+        this.observers.set("measure", measureObserver);
 
         // Long task observer
-        if ('longtask' in PerformanceObserver.supportedEntryTypes) {
+        if ("longtask" in PerformanceObserver.supportedEntryTypes) {
           const longTaskObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
-              this.recordMetric('longtask', {
+              this.recordMetric("longtask", {
                 duration: entry.duration,
                 startTime: entry.startTime,
-                attribution: entry.attribution
+                attribution: entry.attribution,
               });
-              
+
               // Warn about long tasks
               console.warn(`Long task detected: ${entry.duration}ms`, entry);
             }
           });
-          longTaskObserver.observe({ entryTypes: ['longtask'] });
-          this.observers.set('longtask', longTaskObserver);
+          longTaskObserver.observe({ entryTypes: ["longtask"] });
+          this.observers.set("longtask", longTaskObserver);
         }
       } catch (error) {
-        console.warn('Failed to initialize performance observers:', error);
+        console.warn("Failed to initialize performance observers:", error);
       }
     }
 
     // Memory monitoring
-    if ('memory' in performance) {
+    if ("memory" in performance) {
       setInterval(() => {
-        this.recordMetric('memory', {
+        this.recordMetric("memory", {
           usedJSHeapSize: performance.memory.usedJSHeapSize,
           totalJSHeapSize: performance.memory.totalJSHeapSize,
           jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }, 5000); // Every 5 seconds
     }
@@ -112,7 +114,7 @@ class PerformanceMonitor {
     const metrics = this.metrics.get(category);
     metrics.push({
       ...data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Keep only last 100 entries per category
@@ -137,7 +139,7 @@ class PerformanceMonitor {
    */
   endTiming(name) {
     if (!this.isEnabled) return;
-    
+
     try {
       performance.mark(`${name}-end`);
       performance.measure(name, `${name}-start`, `${name}-end`);
@@ -154,7 +156,7 @@ class PerformanceMonitor {
 
     this.startTiming(name);
     const result = fn();
-    
+
     if (result instanceof Promise) {
       return result.finally(() => this.endTiming(name));
     } else {
@@ -179,12 +181,16 @@ class PerformanceMonitor {
 
     for (const [key, limit] of Object.entries(budget)) {
       if (data[key] && data[key] > limit) {
-        console.warn(`Performance budget exceeded for ${category}.${key}: ${data[key]} > ${limit}`);
-        
+        console.warn(
+          `Performance budget exceeded for ${category}.${key}: ${data[key]} > ${limit}`,
+        );
+
         // Emit custom event for budget violations
-        window.dispatchEvent(new CustomEvent('performance-budget-exceeded', {
-          detail: { category, key, value: data[key], limit }
-        }));
+        window.dispatchEvent(
+          new CustomEvent("performance-budget-exceeded", {
+            detail: { category, key, value: data[key], limit },
+          }),
+        );
       }
     }
   }
@@ -212,25 +218,25 @@ class PerformanceMonitor {
    */
   getSummary() {
     const summary = {};
-    
+
     for (const [category, metrics] of this.metrics.entries()) {
       if (metrics.length === 0) continue;
-      
+
       const durations = metrics
-        .filter(m => typeof m.duration === 'number')
-        .map(m => m.duration);
-      
+        .filter((m) => typeof m.duration === "number")
+        .map((m) => m.duration);
+
       if (durations.length > 0) {
         summary[category] = {
           count: metrics.length,
           avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
           minDuration: Math.min(...durations),
           maxDuration: Math.max(...durations),
-          totalDuration: durations.reduce((a, b) => a + b, 0)
+          totalDuration: durations.reduce((a, b) => a + b, 0),
         };
       }
     }
-    
+
     return summary;
   }
 
@@ -245,13 +251,17 @@ class PerformanceMonitor {
    * Export metrics as JSON
    */
   export() {
-    return JSON.stringify({
-      metrics: this.getAllMetrics(),
-      summary: this.getSummary(),
-      timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-      url: window.location.href
-    }, null, 2);
+    return JSON.stringify(
+      {
+        metrics: this.getAllMetrics(),
+        summary: this.getSummary(),
+        timestamp: Date.now(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+      },
+      null,
+      2,
+    );
   }
 
   /**
@@ -269,22 +279,22 @@ class PerformanceMonitor {
 const performanceMonitor = new PerformanceMonitor();
 
 // Set default budgets
-performanceMonitor.setBudget('navigation', {
+performanceMonitor.setBudget("navigation", {
   duration: 3000, // 3 seconds for navigation
   domContentLoadedEventEnd: 2000, // 2 seconds for DOM ready
-  loadEventEnd: 5000 // 5 seconds for full load
+  loadEventEnd: 5000, // 5 seconds for full load
 });
 
-performanceMonitor.setBudget('resource', {
-  duration: 1000 // 1 second for resource loading
+performanceMonitor.setBudget("resource", {
+  duration: 1000, // 1 second for resource loading
 });
 
-performanceMonitor.setBudget('measure', {
-  duration: 100 // 100ms for custom operations
+performanceMonitor.setBudget("measure", {
+  duration: 100, // 100ms for custom operations
 });
 
-performanceMonitor.setBudget('longtask', {
-  duration: 50 // 50ms for long tasks
+performanceMonitor.setBudget("longtask", {
+  duration: 50, // 50ms for long tasks
 });
 
 // Utility functions
@@ -293,41 +303,41 @@ export const perf = {
    * Start timing an operation
    */
   start: (name) => performanceMonitor.startTiming(name),
-  
+
   /**
    * End timing an operation
    */
   end: (name) => performanceMonitor.endTiming(name),
-  
+
   /**
    * Time a function
    */
   time: (name, fn) => performanceMonitor.timeFunction(name, fn),
-  
+
   /**
    * Record a custom metric
    */
   record: (category, data) => performanceMonitor.recordMetric(category, data),
-  
+
   /**
    * Get metrics
    */
   getMetrics: (category) => performanceMonitor.getMetrics(category),
-  
+
   /**
    * Get summary
    */
   getSummary: () => performanceMonitor.getSummary(),
-  
+
   /**
    * Export all data
    */
   export: () => performanceMonitor.export(),
-  
+
   /**
    * Clear metrics
    */
-  clear: () => performanceMonitor.clear()
+  clear: () => performanceMonitor.clear(),
 };
 
 // Memory management utilities
@@ -336,12 +346,15 @@ export const memory = {
    * Get current memory usage
    */
   getUsage() {
-    if ('memory' in performance) {
+    if ("memory" in performance) {
       return {
         used: performance.memory.usedJSHeapSize,
         total: performance.memory.totalJSHeapSize,
         limit: performance.memory.jsHeapSizeLimit,
-        percentage: (performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100
+        percentage:
+          (performance.memory.usedJSHeapSize /
+            performance.memory.jsHeapSizeLimit) *
+          100,
       };
     }
     return null;
@@ -366,7 +379,7 @@ export const memory = {
         callback(usage);
       }
     }, interval);
-  }
+  },
 };
 
 // Image optimization utilities
@@ -376,29 +389,29 @@ export const imageOptimizer = {
    */
   getOptimizedUrl(url, options = {}) {
     if (!url) return url;
-    
+
     try {
       const urlObj = new URL(url, window.location.origin);
-      
+
       if (options.quality) {
-        urlObj.searchParams.set('quality', options.quality);
+        urlObj.searchParams.set("quality", options.quality);
       }
-      
+
       if (options.width) {
-        urlObj.searchParams.set('w', options.width);
+        urlObj.searchParams.set("w", options.width);
       }
-      
+
       if (options.height) {
-        urlObj.searchParams.set('h', options.height);
+        urlObj.searchParams.set("h", options.height);
       }
-      
+
       if (options.format) {
-        urlObj.searchParams.set('format', options.format);
+        urlObj.searchParams.set("format", options.format);
       }
-      
+
       return urlObj.toString();
     } catch (error) {
-      console.warn('Failed to optimize image URL:', error);
+      console.warn("Failed to optimize image URL:", error);
       return url;
     }
   },
@@ -406,24 +419,24 @@ export const imageOptimizer = {
   /**
    * Preload images with priority
    */
-  preload(urls, priority = 'low') {
-    const promises = urls.map(url => {
+  preload(urls, priority = "low") {
+    const promises = urls.map((url) => {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = reject;
-        
+
         // Set loading priority if supported
-        if ('loading' in img) {
-          img.loading = priority === 'high' ? 'eager' : 'lazy';
+        if ("loading" in img) {
+          img.loading = priority === "high" ? "eager" : "lazy";
         }
-        
+
         img.src = url;
       });
     });
-    
+
     return Promise.allSettled(promises);
-  }
+  },
 };
 
 export default performanceMonitor;

@@ -1,12 +1,12 @@
 <template>
-  <div 
+  <div
     ref="container"
     class="virtual-scroller"
     :style="containerStyle"
     @scroll="handleScroll"
   >
     <!-- Spacer for items before visible range -->
-    <div 
+    <div
       v-if="offsetY > 0"
       :style="{ height: `${offsetY}px` }"
       class="virtual-spacer-top"
@@ -19,7 +19,7 @@
       :style="getItemStyle(item)"
       class="virtual-item"
     >
-      <slot 
+      <slot
         :item="item.data"
         :index="item.index"
         :visible="item.visible"
@@ -27,23 +27,27 @@
     </div>
 
     <!-- Spacer for items after visible range -->
-    <div 
+    <div
       v-if="bottomSpacerHeight > 0"
       :style="{ height: `${bottomSpacerHeight}px` }"
       class="virtual-spacer-bottom"
     ></div>
 
     <!-- Loading indicator -->
-    <div 
+    <div
       v-if="loading && hasMore"
       class="virtual-loading flex items-center justify-center py-4"
     >
-      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-      <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Loading more...</span>
+      <div
+        class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"
+      ></div>
+      <span class="ml-2 text-sm text-gray-600 dark:text-gray-400"
+        >Loading more...</span
+      >
     </div>
 
     <!-- End of list indicator -->
-    <div 
+    <div
       v-else-if="!hasMore && items.length > 0"
       class="virtual-end text-center py-4 text-sm text-gray-500 dark:text-gray-400"
     >
@@ -53,60 +57,65 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 
 const props = defineProps({
   items: {
     type: Array,
-    required: true
+    required: true,
   },
   itemHeight: {
     type: [Number, Function],
-    default: 200
+    default: 200,
   },
   containerHeight: {
     type: Number,
-    default: 600
+    default: 600,
   },
   overscan: {
     type: Number,
-    default: 5
+    default: 5,
   },
   keyField: {
     type: String,
-    default: 'id'
+    default: "id",
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   hasMore: {
     type: Boolean,
-    default: true
+    default: true,
   },
   loadMoreThreshold: {
     type: Number,
-    default: 200
+    default: 200,
   },
   endMessage: {
     type: String,
-    default: 'No more items to load'
+    default: "No more items to load",
   },
   estimatedItemHeight: {
     type: Number,
-    default: 200
+    default: 200,
   },
   horizontal: {
     type: Boolean,
-    default: false
+    default: false,
   },
   gridCols: {
     type: Number,
-    default: 1
-  }
+    default: 1,
+  },
 });
 
-const emit = defineEmits(['scroll', 'load-more', 'item-visible', 'item-hidden']);
+const emit = defineEmits([
+  "scroll",
+  "load-more",
+  "item-visible",
+  "item-hidden",
+]);
 
 // Reactive state
 const container = ref(null);
@@ -121,13 +130,13 @@ const measuredItems = ref(new Set());
 // Computed properties
 const containerStyle = computed(() => ({
   height: `${containerHeightRef.value}px`,
-  overflow: 'auto',
-  position: 'relative'
+  overflow: "auto",
+  position: "relative",
 }));
 
 const totalHeight = computed(() => {
   if (props.items.length === 0) return 0;
-  
+
   let height = 0;
   for (let i = 0; i < props.items.length; i++) {
     height += getItemHeight(i);
@@ -136,39 +145,42 @@ const totalHeight = computed(() => {
 });
 
 const visibleRange = computed(() => {
-  const start = Math.floor(scrollTop.value / getAverageItemHeight()) - props.overscan;
-  const visibleCount = Math.ceil(containerHeightRef.value / getAverageItemHeight()) + props.overscan * 2;
-  
+  const start =
+    Math.floor(scrollTop.value / getAverageItemHeight()) - props.overscan;
+  const visibleCount =
+    Math.ceil(containerHeightRef.value / getAverageItemHeight()) +
+    props.overscan * 2;
+
   return {
     start: Math.max(0, start),
-    end: Math.min(props.items.length - 1, start + visibleCount)
+    end: Math.min(props.items.length - 1, start + visibleCount),
   };
 });
 
 const visibleItems = computed(() => {
   const items = [];
   let currentY = 0;
-  
+
   for (let i = 0; i <= visibleRange.value.end; i++) {
     if (i < visibleRange.value.start) {
       currentY += getItemHeight(i);
       continue;
     }
-    
+
     const item = props.items[i];
     if (!item) continue;
-    
+
     items.push({
       data: item,
       index: i,
       y: currentY,
       height: getItemHeight(i),
-      visible: true
+      visible: true,
     });
-    
+
     currentY += getItemHeight(i);
   }
-  
+
   return items;
 });
 
@@ -190,15 +202,15 @@ const bottomSpacerHeight = computed(() => {
 
 // Methods
 const getItemHeight = (index) => {
-  if (typeof props.itemHeight === 'function') {
+  if (typeof props.itemHeight === "function") {
     return props.itemHeight(props.items[index], index);
   }
-  
+
   // Use measured height if available
   if (itemHeights.value.has(index)) {
     return itemHeights.value.get(index);
   }
-  
+
   return props.itemHeight || props.estimatedItemHeight;
 };
 
@@ -206,7 +218,7 @@ const getAverageItemHeight = () => {
   if (itemHeights.value.size === 0) {
     return props.estimatedItemHeight;
   }
-  
+
   const heights = Array.from(itemHeights.value.values());
   return heights.reduce((sum, height) => sum + height, 0) / heights.length;
 };
@@ -217,12 +229,12 @@ const getItemKey = (item) => {
 
 const getItemStyle = (item) => {
   return {
-    position: 'absolute',
+    position: "absolute",
     top: `${item.y}px`,
-    left: '0',
-    right: '0',
+    left: "0",
+    right: "0",
     height: `${item.height}px`,
-    transform: 'translateZ(0)' // Force GPU acceleration
+    transform: "translateZ(0)", // Force GPU acceleration
   };
 };
 
@@ -230,22 +242,23 @@ const handleScroll = (event) => {
   const target = event.target;
   scrollTop.value = target.scrollTop;
   scrollLeft.value = target.scrollLeft;
-  
-  emit('scroll', {
+
+  emit("scroll", {
     scrollTop: scrollTop.value,
     scrollLeft: scrollLeft.value,
     scrollHeight: target.scrollHeight,
-    clientHeight: target.clientHeight
+    clientHeight: target.clientHeight,
   });
-  
+
   // Check if we need to load more items
   if (props.hasMore && !props.loading) {
-    const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+    const distanceToBottom =
+      target.scrollHeight - target.scrollTop - target.clientHeight;
     if (distanceToBottom < props.loadMoreThreshold) {
-      emit('load-more');
+      emit("load-more");
     }
   }
-  
+
   // Emit visibility events
   checkItemVisibility();
 };
@@ -253,18 +266,18 @@ const handleScroll = (event) => {
 const checkItemVisibility = () => {
   const containerRect = container.value?.getBoundingClientRect();
   if (!containerRect) return;
-  
-  visibleItems.value.forEach(item => {
+
+  visibleItems.value.forEach((item) => {
     const itemTop = item.y - scrollTop.value;
     const itemBottom = itemTop + item.height;
-    
+
     const isVisible = itemBottom > 0 && itemTop < containerHeightRef.value;
-    
+
     if (isVisible && !item.wasVisible) {
-      emit('item-visible', item.data, item.index);
+      emit("item-visible", item.data, item.index);
       item.wasVisible = true;
     } else if (!isVisible && item.wasVisible) {
-      emit('item-hidden', item.data, item.index);
+      emit("item-hidden", item.data, item.index);
       item.wasVisible = false;
     }
   });
@@ -274,7 +287,7 @@ const measureItem = (index, height) => {
   if (height && height !== itemHeights.value.get(index)) {
     itemHeights.value.set(index, height);
     measuredItems.value.add(index);
-    
+
     // Trigger re-calculation of positions
     nextTick(() => {
       updateItemPositions();
@@ -284,42 +297,42 @@ const measureItem = (index, height) => {
 
 const updateItemPositions = () => {
   let currentY = 0;
-  
+
   for (let i = 0; i < props.items.length; i++) {
     itemPositions.value.set(i, currentY);
     currentY += getItemHeight(i);
   }
 };
 
-const scrollToIndex = (index, behavior = 'smooth') => {
+const scrollToIndex = (index, behavior = "smooth") => {
   if (!container.value || index < 0 || index >= props.items.length) return;
-  
+
   let targetY = 0;
   for (let i = 0; i < index; i++) {
     targetY += getItemHeight(i);
   }
-  
+
   container.value.scrollTo({
     top: targetY,
-    behavior
+    behavior,
   });
 };
 
-const scrollToTop = (behavior = 'smooth') => {
+const scrollToTop = (behavior = "smooth") => {
   if (!container.value) return;
-  
+
   container.value.scrollTo({
     top: 0,
-    behavior
+    behavior,
   });
 };
 
-const scrollToBottom = (behavior = 'smooth') => {
+const scrollToBottom = (behavior = "smooth") => {
   if (!container.value) return;
-  
+
   container.value.scrollTo({
     top: container.value.scrollHeight,
-    behavior
+    behavior,
   });
 };
 
@@ -337,12 +350,13 @@ const refresh = () => {
 // Lifecycle
 onMounted(() => {
   if (container.value) {
-    containerHeightRef.value = container.value.clientHeight || props.containerHeight;
+    containerHeightRef.value =
+      container.value.clientHeight || props.containerHeight;
     containerWidth.value = container.value.clientWidth;
   }
-  
+
   updateItemPositions();
-  
+
   // Set up ResizeObserver for container
   if (window.ResizeObserver) {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -351,11 +365,11 @@ onMounted(() => {
         containerWidth.value = entry.contentRect.width;
       }
     });
-    
+
     if (container.value) {
       resizeObserver.observe(container.value);
     }
-    
+
     onUnmounted(() => {
       resizeObserver.disconnect();
     });
@@ -363,9 +377,13 @@ onMounted(() => {
 });
 
 // Watch for items changes
-watch(() => props.items, () => {
-  updateItemPositions();
-}, { deep: true });
+watch(
+  () => props.items,
+  () => {
+    updateItemPositions();
+  },
+  { deep: true },
+);
 
 // Expose methods
 defineExpose({
@@ -374,7 +392,7 @@ defineExpose({
   scrollToBottom,
   getVisibleRange,
   refresh,
-  measureItem
+  measureItem,
 });
 </script>
 

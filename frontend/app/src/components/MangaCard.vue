@@ -232,37 +232,40 @@ const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 // Image quality based on viewport and connection
 const imageQuality = computed(() => {
   // Check connection speed if available
-  if ('connection' in navigator) {
+  if ("connection" in navigator) {
     const connection = navigator.connection;
-    if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
-      return 'low';
-    } else if (connection.effectiveType === '3g') {
-      return 'medium';
+    if (
+      connection.effectiveType === "slow-2g" ||
+      connection.effectiveType === "2g"
+    ) {
+      return "low";
+    } else if (connection.effectiveType === "3g") {
+      return "medium";
     }
   }
 
   // Default to high quality
-  return 'high';
+  return "high";
 });
 
 // Performance methods
 const onImageLoad = () => {
   imageLoaded.value = true;
   imageError.value = false;
-  perf.record('manga-card-image', {
-    action: 'load',
+  perf.record("manga-card-image", {
+    action: "load",
     mangaId: getMangaId.value,
-    quality: imageQuality.value
+    quality: imageQuality.value,
   });
 };
 
 const onImageError = () => {
   imageError.value = true;
   imageLoaded.value = false;
-  perf.record('manga-card-image', {
-    action: 'error',
+  perf.record("manga-card-image", {
+    action: "error",
     mangaId: getMangaId.value,
-    quality: imageQuality.value
+    quality: imageQuality.value,
   });
 };
 
@@ -273,9 +276,9 @@ const viewDetails = (event) => {
     return;
   }
 
-  perf.start('manga-card-navigation');
+  perf.start("manga-card-navigation");
   router.push(`/manga/${getMangaId.value}`);
-  perf.end('manga-card-navigation');
+  perf.end("manga-card-navigation");
 };
 
 defineEmits(["remove"]);

@@ -5,7 +5,7 @@ API endpoints for backup and restore operations.
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import (
     APIRouter,

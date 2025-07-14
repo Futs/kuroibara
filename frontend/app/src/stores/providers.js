@@ -49,9 +49,9 @@ export const useProvidersStore = defineStore("providers", {
     },
 
     // UI state
-    filterStatus: 'all', // all, healthy, unhealthy, disabled
-    sortBy: 'name',
-    sortOrder: 'asc',
+    filterStatus: "all", // all, healthy, unhealthy, disabled
+    sortBy: "name",
+    sortOrder: "asc",
   }),
 
   getters: {

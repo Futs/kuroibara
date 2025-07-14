@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 
 from app.core.services.provider_monitor import ProviderMonitorService
-from app.models.provider import ProviderStatus, ProviderStatusEnum
+from app.models.provider import ProviderStatusEnum
 
 
 class TestProviderHealthChecks:

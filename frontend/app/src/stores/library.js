@@ -49,8 +49,8 @@ export const useLibraryStore = defineStore("library", {
     bulkOperationMode: false,
 
     // View options
-    viewMode: localStorage.getItem('libraryViewMode') || 'grid', // 'grid', 'list', 'compact', 'detailed'
-    gridSize: localStorage.getItem('libraryGridSize') || 'medium', // 'small', 'medium', 'large'
+    viewMode: localStorage.getItem("libraryViewMode") || "grid", // 'grid', 'list', 'compact', 'detailed'
+    gridSize: localStorage.getItem("libraryGridSize") || "medium", // 'small', 'medium', 'large'
 
     // Statistics
     statistics: {
@@ -71,11 +71,11 @@ export const useLibraryStore = defineStore("library", {
 
     // Collections and tags
     collections: [],
-    customTags: JSON.parse(localStorage.getItem('customTags')) || [],
+    customTags: JSON.parse(localStorage.getItem("customTags")) || [],
 
     pagination: {
       page: 1,
-      limit: parseInt(localStorage.getItem('libraryPageSize')) || 20,
+      limit: parseInt(localStorage.getItem("libraryPageSize")) || 20,
       total: 0,
     },
   }),
@@ -98,59 +98,69 @@ export const useLibraryStore = defineStore("library", {
       // Apply search filter
       if (state.filters.search) {
         const searchTerm = state.filters.search.toLowerCase();
-        filtered = filtered.filter(item =>
-          item.manga.title.toLowerCase().includes(searchTerm) ||
-          item.manga.description?.toLowerCase().includes(searchTerm) ||
-          item.manga.authors?.some(author => author.name.toLowerCase().includes(searchTerm))
+        filtered = filtered.filter(
+          (item) =>
+            item.manga.title.toLowerCase().includes(searchTerm) ||
+            item.manga.description?.toLowerCase().includes(searchTerm) ||
+            item.manga.authors?.some((author) =>
+              author.name.toLowerCase().includes(searchTerm),
+            ),
         );
       }
 
       // Apply read status filter
       if (state.filters.readStatus.length > 0) {
-        filtered = filtered.filter(item =>
-          state.filters.readStatus.includes(item.read_status || 'unread')
+        filtered = filtered.filter((item) =>
+          state.filters.readStatus.includes(item.read_status || "unread"),
         );
       }
 
       // Apply rating filter
       if (state.filters.rating.min > 0 || state.filters.rating.max < 10) {
-        filtered = filtered.filter(item => {
+        filtered = filtered.filter((item) => {
           const rating = item.rating || 0;
-          return rating >= state.filters.rating.min && rating <= state.filters.rating.max;
+          return (
+            rating >= state.filters.rating.min &&
+            rating <= state.filters.rating.max
+          );
         });
       }
 
       // Apply genre filter
       if (state.filters.genres.length > 0) {
-        filtered = filtered.filter(item =>
-          item.manga.genres?.some(genre =>
-            state.filters.genres.includes(genre.name)
-          )
+        filtered = filtered.filter((item) =>
+          item.manga.genres?.some((genre) =>
+            state.filters.genres.includes(genre.name),
+          ),
         );
       }
 
       // Apply custom tags filter
       if (state.filters.customTags.length > 0) {
-        filtered = filtered.filter(item =>
-          item.custom_tags?.some(tag =>
-            state.filters.customTags.includes(tag)
-          )
+        filtered = filtered.filter((item) =>
+          item.custom_tags?.some((tag) =>
+            state.filters.customTags.includes(tag),
+          ),
         );
       }
 
       // Apply favorite filter
       if (state.filters.isFavorite !== null) {
-        filtered = filtered.filter(item =>
-          Boolean(item.is_favorite) === state.filters.isFavorite
+        filtered = filtered.filter(
+          (item) => Boolean(item.is_favorite) === state.filters.isFavorite,
         );
       }
 
       // Apply date filters
       if (state.filters.dateAdded.start || state.filters.dateAdded.end) {
-        filtered = filtered.filter(item => {
+        filtered = filtered.filter((item) => {
           const addedDate = new Date(item.created_at);
-          const start = state.filters.dateAdded.start ? new Date(state.filters.dateAdded.start) : null;
-          const end = state.filters.dateAdded.end ? new Date(state.filters.dateAdded.end) : null;
+          const start = state.filters.dateAdded.start
+            ? new Date(state.filters.dateAdded.start)
+            : null;
+          const end = state.filters.dateAdded.end
+            ? new Date(state.filters.dateAdded.end)
+            : null;
 
           if (start && addedDate < start) return false;
           if (end && addedDate > end) return false;
@@ -164,24 +174,24 @@ export const useLibraryStore = defineStore("library", {
     // Available filter options
     getAvailableGenres: (state) => {
       const genres = new Set();
-      state.manga.forEach(item => {
-        item.manga.genres?.forEach(genre => genres.add(genre.name));
+      state.manga.forEach((item) => {
+        item.manga.genres?.forEach((genre) => genres.add(genre.name));
       });
       return Array.from(genres).sort();
     },
 
     getAvailableAuthors: (state) => {
       const authors = new Set();
-      state.manga.forEach(item => {
-        item.manga.authors?.forEach(author => authors.add(author.name));
+      state.manga.forEach((item) => {
+        item.manga.authors?.forEach((author) => authors.add(author.name));
       });
       return Array.from(authors).sort();
     },
 
     getAvailableLanguages: (state) => {
       const languages = new Set();
-      state.manga.forEach(item => {
-        item.manga.chapters?.forEach(chapter => {
+      state.manga.forEach((item) => {
+        item.manga.chapters?.forEach((chapter) => {
           if (chapter.language) languages.add(chapter.language);
         });
       });
@@ -189,11 +199,11 @@ export const useLibraryStore = defineStore("library", {
     },
 
     getAvailableReadStatuses: () => [
-      { value: 'unread', label: 'Unread', color: 'gray' },
-      { value: 'reading', label: 'Reading', color: 'blue' },
-      { value: 'completed', label: 'Completed', color: 'green' },
-      { value: 'on-hold', label: 'On Hold', color: 'yellow' },
-      { value: 'dropped', label: 'Dropped', color: 'red' },
+      { value: "unread", label: "Unread", color: "gray" },
+      { value: "reading", label: "Reading", color: "blue" },
+      { value: "completed", label: "Completed", color: "green" },
+      { value: "on-hold", label: "On Hold", color: "yellow" },
+      { value: "dropped", label: "Dropped", color: "red" },
     ],
   },
 
@@ -357,18 +367,18 @@ export const useLibraryStore = defineStore("library", {
     setPageSize(size) {
       this.pagination.limit = size;
       this.pagination.page = 1;
-      localStorage.setItem('libraryPageSize', size.toString());
+      localStorage.setItem("libraryPageSize", size.toString());
       this.fetchLibrary();
     },
 
     setViewMode(mode) {
       this.viewMode = mode;
-      localStorage.setItem('libraryViewMode', mode);
+      localStorage.setItem("libraryViewMode", mode);
     },
 
     setGridSize(size) {
       this.gridSize = size;
-      localStorage.setItem('libraryGridSize', size);
+      localStorage.setItem("libraryGridSize", size);
     },
 
     async fetchLibraryItemDetailed(libraryItemId) {
@@ -453,7 +463,7 @@ export const useLibraryStore = defineStore("library", {
     },
 
     selectAllManga() {
-      this.manga.forEach(item => this.selectedManga.add(item.id));
+      this.manga.forEach((item) => this.selectedManga.add(item.id));
     },
 
     deselectAllManga() {
@@ -465,11 +475,11 @@ export const useLibraryStore = defineStore("library", {
 
       try {
         const mangaIds = Array.from(this.selectedManga);
-        await api.post('/v1/library/bulk/mark-read', { manga_ids: mangaIds });
+        await api.post("/v1/library/bulk/mark-read", { manga_ids: mangaIds });
         await this.fetchLibrary();
         this.selectedManga.clear();
       } catch (error) {
-        console.error('Bulk mark as read error:', error);
+        console.error("Bulk mark as read error:", error);
         throw error;
       }
     },
@@ -479,11 +489,11 @@ export const useLibraryStore = defineStore("library", {
 
       try {
         const mangaIds = Array.from(this.selectedManga);
-        await api.post('/v1/library/bulk/mark-unread', { manga_ids: mangaIds });
+        await api.post("/v1/library/bulk/mark-unread", { manga_ids: mangaIds });
         await this.fetchLibrary();
         this.selectedManga.clear();
       } catch (error) {
-        console.error('Bulk mark as unread error:', error);
+        console.error("Bulk mark as unread error:", error);
         throw error;
       }
     },
@@ -493,11 +503,13 @@ export const useLibraryStore = defineStore("library", {
 
       try {
         const mangaIds = Array.from(this.selectedManga);
-        await api.post('/v1/library/bulk/add-favorites', { manga_ids: mangaIds });
+        await api.post("/v1/library/bulk/add-favorites", {
+          manga_ids: mangaIds,
+        });
         await this.fetchLibrary();
         this.selectedManga.clear();
       } catch (error) {
-        console.error('Bulk add to favorites error:', error);
+        console.error("Bulk add to favorites error:", error);
         throw error;
       }
     },
@@ -507,11 +519,13 @@ export const useLibraryStore = defineStore("library", {
 
       try {
         const mangaIds = Array.from(this.selectedManga);
-        await api.post('/v1/library/bulk/remove-favorites', { manga_ids: mangaIds });
+        await api.post("/v1/library/bulk/remove-favorites", {
+          manga_ids: mangaIds,
+        });
         await this.fetchLibrary();
         this.selectedManga.clear();
       } catch (error) {
-        console.error('Bulk remove from favorites error:', error);
+        console.error("Bulk remove from favorites error:", error);
         throw error;
       }
     },
@@ -521,11 +535,11 @@ export const useLibraryStore = defineStore("library", {
 
       try {
         const mangaIds = Array.from(this.selectedManga);
-        await api.post('/v1/library/bulk/delete', { manga_ids: mangaIds });
+        await api.post("/v1/library/bulk/delete", { manga_ids: mangaIds });
         await this.fetchLibrary();
         this.selectedManga.clear();
       } catch (error) {
-        console.error('Bulk delete error:', error);
+        console.error("Bulk delete error:", error);
         throw error;
       }
     },
@@ -535,14 +549,14 @@ export const useLibraryStore = defineStore("library", {
 
       try {
         const mangaIds = Array.from(this.selectedManga);
-        await api.post('/v1/library/bulk/update-tags', {
+        await api.post("/v1/library/bulk/update-tags", {
           manga_ids: mangaIds,
-          tags
+          tags,
         });
         await this.fetchLibrary();
         this.selectedManga.clear();
       } catch (error) {
-        console.error('Bulk update tags error:', error);
+        console.error("Bulk update tags error:", error);
         throw error;
       }
     },
@@ -550,11 +564,11 @@ export const useLibraryStore = defineStore("library", {
     // Statistics and analytics
     async fetchStatistics() {
       try {
-        const response = await api.get('/v1/library/statistics');
+        const response = await api.get("/v1/library/statistics");
         this.statistics = response.data;
         return response.data;
       } catch (error) {
-        console.error('Error fetching statistics:', error);
+        console.error("Error fetching statistics:", error);
         throw error;
       }
     },
@@ -575,9 +589,9 @@ export const useLibraryStore = defineStore("library", {
         languageDistribution: {},
       };
 
-      this.manga.forEach(item => {
+      this.manga.forEach((item) => {
         // Count by read status
-        const status = item.read_status || 'unread';
+        const status = item.read_status || "unread";
         stats[status] = (stats[status] || 0) + 1;
 
         // Count favorites
@@ -587,19 +601,22 @@ export const useLibraryStore = defineStore("library", {
         if (item.is_downloaded) stats.downloaded++;
 
         // Genre distribution
-        item.manga.genres?.forEach(genre => {
-          stats.genreDistribution[genre.name] = (stats.genreDistribution[genre.name] || 0) + 1;
+        item.manga.genres?.forEach((genre) => {
+          stats.genreDistribution[genre.name] =
+            (stats.genreDistribution[genre.name] || 0) + 1;
         });
 
         // Author distribution
-        item.manga.authors?.forEach(author => {
-          stats.authorDistribution[author.name] = (stats.authorDistribution[author.name] || 0) + 1;
+        item.manga.authors?.forEach((author) => {
+          stats.authorDistribution[author.name] =
+            (stats.authorDistribution[author.name] || 0) + 1;
         });
 
         // Language distribution
-        item.manga.chapters?.forEach(chapter => {
+        item.manga.chapters?.forEach((chapter) => {
           if (chapter.language) {
-            stats.languageDistribution[chapter.language] = (stats.languageDistribution[chapter.language] || 0) + 1;
+            stats.languageDistribution[chapter.language] =
+              (stats.languageDistribution[chapter.language] || 0) + 1;
           }
         });
       });
@@ -610,38 +627,38 @@ export const useLibraryStore = defineStore("library", {
 
     // Custom tags management
     createCustomTag(tag) {
-      if (!this.customTags.find(t => t.name === tag.name)) {
+      if (!this.customTags.find((t) => t.name === tag.name)) {
         this.customTags.push({
           id: Date.now().toString(),
           name: tag.name,
-          color: tag.color || '#3B82F6',
-          description: tag.description || '',
+          color: tag.color || "#3B82F6",
+          description: tag.description || "",
           createdAt: new Date().toISOString(),
         });
-        localStorage.setItem('customTags', JSON.stringify(this.customTags));
+        localStorage.setItem("customTags", JSON.stringify(this.customTags));
       }
     },
 
     updateCustomTag(tagId, updates) {
-      const index = this.customTags.findIndex(t => t.id === tagId);
+      const index = this.customTags.findIndex((t) => t.id === tagId);
       if (index !== -1) {
         this.customTags[index] = { ...this.customTags[index], ...updates };
-        localStorage.setItem('customTags', JSON.stringify(this.customTags));
+        localStorage.setItem("customTags", JSON.stringify(this.customTags));
       }
     },
 
     deleteCustomTag(tagId) {
-      this.customTags = this.customTags.filter(t => t.id !== tagId);
-      localStorage.setItem('customTags', JSON.stringify(this.customTags));
+      this.customTags = this.customTags.filter((t) => t.id !== tagId);
+      localStorage.setItem("customTags", JSON.stringify(this.customTags));
     },
 
     // Duplicate detection
     async findDuplicates() {
       try {
-        const response = await api.get('/v1/library/duplicates');
+        const response = await api.get("/v1/library/duplicates");
         return response.data;
       } catch (error) {
-        console.error('Error finding duplicates:', error);
+        console.error("Error finding duplicates:", error);
         throw error;
       }
     },
@@ -650,10 +667,11 @@ export const useLibraryStore = defineStore("library", {
       const duplicates = [];
       const titleMap = new Map();
 
-      this.manga.forEach(item => {
-        const normalizedTitle = item.manga.title.toLowerCase()
-          .replace(/[^\w\s]/g, '')
-          .replace(/\s+/g, ' ')
+      this.manga.forEach((item) => {
+        const normalizedTitle = item.manga.title
+          .toLowerCase()
+          .replace(/[^\w\s]/g, "")
+          .replace(/\s+/g, " ")
           .trim();
 
         if (titleMap.has(normalizedTitle)) {
@@ -681,19 +699,22 @@ export const useLibraryStore = defineStore("library", {
 
       // Author similarity
       if (manga1.authors && manga2.authors) {
-        const authors1 = manga1.authors.map(a => a.name.toLowerCase());
-        const authors2 = manga2.authors.map(a => a.name.toLowerCase());
-        const commonAuthors = authors1.filter(a => authors2.includes(a));
-        score += (commonAuthors.length / Math.max(authors1.length, authors2.length)) * 30;
+        const authors1 = manga1.authors.map((a) => a.name.toLowerCase());
+        const authors2 = manga2.authors.map((a) => a.name.toLowerCase());
+        const commonAuthors = authors1.filter((a) => authors2.includes(a));
+        score +=
+          (commonAuthors.length / Math.max(authors1.length, authors2.length)) *
+          30;
       }
       factors += 30;
 
       // Genre similarity
       if (manga1.genres && manga2.genres) {
-        const genres1 = manga1.genres.map(g => g.name.toLowerCase());
-        const genres2 = manga2.genres.map(g => g.name.toLowerCase());
-        const commonGenres = genres1.filter(g => genres2.includes(g));
-        score += (commonGenres.length / Math.max(genres1.length, genres2.length)) * 20;
+        const genres1 = manga1.genres.map((g) => g.name.toLowerCase());
+        const genres2 = manga2.genres.map((g) => g.name.toLowerCase());
+        const commonGenres = genres1.filter((g) => genres2.includes(g));
+        score +=
+          (commonGenres.length / Math.max(genres1.length, genres2.length)) * 20;
       }
       factors += 20;
 
@@ -703,8 +724,11 @@ export const useLibraryStore = defineStore("library", {
         const desc2 = manga2.description.toLowerCase();
         const words1 = desc1.split(/\s+/);
         const words2 = desc2.split(/\s+/);
-        const commonWords = words1.filter(w => words2.includes(w) && w.length > 3);
-        score += (commonWords.length / Math.max(words1.length, words2.length)) * 10;
+        const commonWords = words1.filter(
+          (w) => words2.includes(w) && w.length > 3,
+        );
+        score +=
+          (commonWords.length / Math.max(words1.length, words2.length)) * 10;
       }
       factors += 10;
 
@@ -714,32 +738,35 @@ export const useLibraryStore = defineStore("library", {
     // Metadata management
     async updateMangaMetadata(mangaId, metadata) {
       try {
-        const response = await api.put(`/v1/library/${mangaId}/metadata`, metadata);
+        const response = await api.put(
+          `/v1/library/${mangaId}/metadata`,
+          metadata,
+        );
 
         // Update local manga data
-        const index = this.manga.findIndex(item => item.id === mangaId);
+        const index = this.manga.findIndex((item) => item.id === mangaId);
         if (index !== -1) {
           this.manga[index] = { ...this.manga[index], ...response.data };
         }
 
         return response.data;
       } catch (error) {
-        console.error('Error updating metadata:', error);
+        console.error("Error updating metadata:", error);
         throw error;
       }
     },
 
     async bulkUpdateMetadata(mangaIds, metadata) {
       try {
-        await api.post('/v1/library/bulk/update-metadata', {
+        await api.post("/v1/library/bulk/update-metadata", {
           manga_ids: mangaIds,
-          metadata
+          metadata,
         });
 
         // Refresh library to get updated data
         await this.fetchLibrary();
       } catch (error) {
-        console.error('Error bulk updating metadata:', error);
+        console.error("Error bulk updating metadata:", error);
         throw error;
       }
     },
@@ -749,13 +776,13 @@ export const useLibraryStore = defineStore("library", {
         await api.delete(`/v1/library/${mangaId}`);
 
         // Remove from local state
-        this.manga = this.manga.filter(item => item.id !== mangaId);
+        this.manga = this.manga.filter((item) => item.id !== mangaId);
         this.selectedManga.delete(mangaId);
 
         // Update statistics
         this.calculateLocalStatistics();
       } catch (error) {
-        console.error('Error deleting manga:', error);
+        console.error("Error deleting manga:", error);
         throw error;
       }
     },
@@ -764,13 +791,14 @@ export const useLibraryStore = defineStore("library", {
     async saveSearch(searchQuery, filters) {
       const savedSearch = {
         id: Date.now().toString(),
-        name: searchQuery || 'Untitled Search',
+        name: searchQuery || "Untitled Search",
         query: searchQuery,
         filters: { ...filters },
         createdAt: new Date().toISOString(),
       };
 
-      const savedSearches = JSON.parse(localStorage.getItem('savedSearches')) || [];
+      const savedSearches =
+        JSON.parse(localStorage.getItem("savedSearches")) || [];
       savedSearches.unshift(savedSearch);
 
       // Keep only last 20 searches
@@ -778,18 +806,19 @@ export const useLibraryStore = defineStore("library", {
         savedSearches.splice(20);
       }
 
-      localStorage.setItem('savedSearches', JSON.stringify(savedSearches));
+      localStorage.setItem("savedSearches", JSON.stringify(savedSearches));
       return savedSearch;
     },
 
     getSavedSearches() {
-      return JSON.parse(localStorage.getItem('savedSearches')) || [];
+      return JSON.parse(localStorage.getItem("savedSearches")) || [];
     },
 
     deleteSavedSearch(searchId) {
-      const savedSearches = JSON.parse(localStorage.getItem('savedSearches')) || [];
-      const filtered = savedSearches.filter(search => search.id !== searchId);
-      localStorage.setItem('savedSearches', JSON.stringify(filtered));
+      const savedSearches =
+        JSON.parse(localStorage.getItem("savedSearches")) || [];
+      const filtered = savedSearches.filter((search) => search.id !== searchId);
+      localStorage.setItem("savedSearches", JSON.stringify(filtered));
     },
 
     // Library export/import
@@ -800,23 +829,26 @@ export const useLibraryStore = defineStore("library", {
           customTags: this.customTags,
           statistics: this.statistics,
           exportDate: new Date().toISOString(),
-          version: '1.0'
+          version: "1.0",
         };
 
         return JSON.stringify(exportData, null, 2);
       } catch (error) {
-        console.error('Error exporting library:', error);
+        console.error("Error exporting library:", error);
         throw error;
       }
     },
 
     async importLibrary(libraryData) {
       try {
-        const data = typeof libraryData === 'string' ? JSON.parse(libraryData) : libraryData;
+        const data =
+          typeof libraryData === "string"
+            ? JSON.parse(libraryData)
+            : libraryData;
 
         if (data.customTags) {
           this.customTags = [...this.customTags, ...data.customTags];
-          localStorage.setItem('customTags', JSON.stringify(this.customTags));
+          localStorage.setItem("customTags", JSON.stringify(this.customTags));
         }
 
         // Import would typically involve API calls to add manga
@@ -828,7 +860,7 @@ export const useLibraryStore = defineStore("library", {
 
         return true;
       } catch (error) {
-        console.error('Error importing library:', error);
+        console.error("Error importing library:", error);
         return false;
       }
     },

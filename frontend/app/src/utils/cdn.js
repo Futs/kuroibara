@@ -14,9 +14,9 @@ class CDNManager {
       enableLazyLoading: true,
       enableProgressiveJPEG: true,
       maxRetries: 3,
-      retryDelay: 1000
+      retryDelay: 1000,
     };
-    
+
     this.initializeProviders();
   }
 
@@ -25,41 +25,41 @@ class CDNManager {
    */
   initializeProviders() {
     // Cloudinary provider
-    this.providers.set('cloudinary', {
-      name: 'Cloudinary',
-      baseUrl: process.env.VITE_CLOUDINARY_URL || '',
+    this.providers.set("cloudinary", {
+      name: "Cloudinary",
+      baseUrl: process.env.VITE_CLOUDINARY_URL || "",
       transform: (url, options) => this.cloudinaryTransform(url, options),
-      priority: 1
+      priority: 1,
     });
 
     // ImageKit provider
-    this.providers.set('imagekit', {
-      name: 'ImageKit',
-      baseUrl: process.env.VITE_IMAGEKIT_URL || '',
+    this.providers.set("imagekit", {
+      name: "ImageKit",
+      baseUrl: process.env.VITE_IMAGEKIT_URL || "",
       transform: (url, options) => this.imagekitTransform(url, options),
-      priority: 2
+      priority: 2,
     });
 
     // Custom CDN provider
-    this.providers.set('custom', {
-      name: 'Custom CDN',
-      baseUrl: process.env.VITE_CDN_URL || '',
+    this.providers.set("custom", {
+      name: "Custom CDN",
+      baseUrl: process.env.VITE_CDN_URL || "",
       transform: (url, options) => this.customTransform(url, options),
-      priority: 3
+      priority: 3,
     });
 
     // Original source (fallback)
-    this.providers.set('original', {
-      name: 'Original',
-      baseUrl: '',
+    this.providers.set("original", {
+      name: "Original",
+      baseUrl: "",
       transform: (url, options) => this.originalTransform(url, options),
-      priority: 999
+      priority: 999,
     });
 
     // Set fallback chain based on priority
     this.fallbackChain = Array.from(this.providers.values())
       .sort((a, b) => a.priority - b.priority)
-      .filter(provider => provider.baseUrl || provider.name === 'Original');
+      .filter((provider) => provider.baseUrl || provider.name === "Original");
   }
 
   /**
@@ -73,9 +73,9 @@ class CDNManager {
       height: options.height,
       quality: options.quality || this.config.defaultQuality,
       format: this.getBestFormat(options.format),
-      fit: options.fit || 'cover',
+      fit: options.fit || "cover",
       progressive: options.progressive !== false,
-      ...options
+      ...options,
     };
 
     // Try each provider in fallback chain
@@ -99,12 +99,12 @@ class CDNManager {
    * Cloudinary URL transformation
    */
   cloudinaryTransform(url, options) {
-    if (!this.providers.get('cloudinary').baseUrl) return null;
+    if (!this.providers.get("cloudinary").baseUrl) return null;
 
     const transformations = [];
 
     if (options.width || options.height) {
-      const resize = `c_${options.fit || 'fill'}`;
+      const resize = `c_${options.fit || "fill"}`;
       if (options.width) transformations.push(`w_${options.width}`);
       if (options.height) transformations.push(`h_${options.height}`);
       transformations.push(resize);
@@ -119,15 +119,15 @@ class CDNManager {
     }
 
     if (options.progressive) {
-      transformations.push('fl_progressive');
+      transformations.push("fl_progressive");
     }
 
-    const transformString = transformations.join(',');
-    const baseUrl = this.providers.get('cloudinary').baseUrl;
-    
+    const transformString = transformations.join(",");
+    const baseUrl = this.providers.get("cloudinary").baseUrl;
+
     // Extract filename from original URL
     const filename = this.extractFilename(url);
-    
+
     return `${baseUrl}/${transformString}/${filename}`;
   }
 
@@ -135,42 +135,42 @@ class CDNManager {
    * ImageKit URL transformation
    */
   imagekitTransform(url, options) {
-    if (!this.providers.get('imagekit').baseUrl) return null;
+    if (!this.providers.get("imagekit").baseUrl) return null;
 
     const params = new URLSearchParams();
 
-    if (options.width) params.set('w', options.width);
-    if (options.height) params.set('h', options.height);
-    if (options.quality) params.set('q', options.quality);
-    if (options.format) params.set('f', options.format);
-    if (options.fit) params.set('c', options.fit);
-    if (options.progressive) params.set('pr', 'true');
+    if (options.width) params.set("w", options.width);
+    if (options.height) params.set("h", options.height);
+    if (options.quality) params.set("q", options.quality);
+    if (options.format) params.set("f", options.format);
+    if (options.fit) params.set("c", options.fit);
+    if (options.progressive) params.set("pr", "true");
 
-    const baseUrl = this.providers.get('imagekit').baseUrl;
+    const baseUrl = this.providers.get("imagekit").baseUrl;
     const filename = this.extractFilename(url);
     const queryString = params.toString();
-    
-    return `${baseUrl}/${filename}${queryString ? `?${queryString}` : ''}`;
+
+    return `${baseUrl}/${filename}${queryString ? `?${queryString}` : ""}`;
   }
 
   /**
    * Custom CDN transformation
    */
   customTransform(url, options) {
-    if (!this.providers.get('custom').baseUrl) return null;
+    if (!this.providers.get("custom").baseUrl) return null;
 
     const params = new URLSearchParams();
 
-    if (options.width) params.set('width', options.width);
-    if (options.height) params.set('height', options.height);
-    if (options.quality) params.set('quality', options.quality);
-    if (options.format) params.set('format', options.format);
+    if (options.width) params.set("width", options.width);
+    if (options.height) params.set("height", options.height);
+    if (options.quality) params.set("quality", options.quality);
+    if (options.format) params.set("format", options.format);
 
-    const baseUrl = this.providers.get('custom').baseUrl;
+    const baseUrl = this.providers.get("custom").baseUrl;
     const filename = this.extractFilename(url);
     const queryString = params.toString();
-    
-    return `${baseUrl}/${filename}${queryString ? `?${queryString}` : ''}`;
+
+    return `${baseUrl}/${filename}${queryString ? `?${queryString}` : ""}`;
   }
 
   /**
@@ -181,23 +181,23 @@ class CDNManager {
 
     try {
       const urlObj = new URL(url, window.location.origin);
-      
+
       if (options.quality && options.quality !== this.config.defaultQuality) {
-        urlObj.searchParams.set('quality', options.quality);
+        urlObj.searchParams.set("quality", options.quality);
       }
-      
+
       if (options.width) {
-        urlObj.searchParams.set('w', options.width);
+        urlObj.searchParams.set("w", options.width);
       }
-      
+
       if (options.height) {
-        urlObj.searchParams.set('h', options.height);
+        urlObj.searchParams.set("h", options.height);
       }
-      
+
       if (options.format) {
-        urlObj.searchParams.set('format', options.format);
+        urlObj.searchParams.set("format", options.format);
       }
-      
+
       return urlObj.toString();
     } catch (error) {
       return url;
@@ -210,9 +210,9 @@ class CDNManager {
   extractFilename(url) {
     try {
       const urlObj = new URL(url);
-      return urlObj.pathname.split('/').pop() || 'image';
+      return urlObj.pathname.split("/").pop() || "image";
     } catch (error) {
-      return url.split('/').pop() || 'image';
+      return url.split("/").pop() || "image";
     }
   }
 
@@ -221,53 +221,53 @@ class CDNManager {
    */
   getBestFormat(requestedFormat) {
     if (requestedFormat) return requestedFormat;
-    
-    if (this.config.enableAVIF) return 'avif';
-    if (this.config.enableWebP) return 'webp';
-    return 'auto';
+
+    if (this.config.enableAVIF) return "avif";
+    if (this.config.enableWebP) return "webp";
+    return "auto";
   }
 
   /**
    * Check WebP support
    */
   supportsWebP() {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 1;
     canvas.height = 1;
-    return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    return canvas.toDataURL("image/webp").indexOf("data:image/webp") === 0;
   }
 
   /**
    * Check AVIF support
    */
   supportsAVIF() {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 1;
     canvas.height = 1;
-    return canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0;
+    return canvas.toDataURL("image/avif").indexOf("data:image/avif") === 0;
   }
 
   /**
    * Preload images with CDN optimization
    */
   async preloadImages(urls, options = {}) {
-    const preloadPromises = urls.map(url => {
+    const preloadPromises = urls.map((url) => {
       const optimizedUrl = this.getOptimizedUrl(url, {
         ...options,
         quality: options.quality || 60, // Lower quality for preloading
-        width: options.width || 400 // Smaller size for preloading
+        width: options.width || 400, // Smaller size for preloading
       });
 
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve({ url, optimizedUrl, success: true });
         img.onerror = () => resolve({ url, optimizedUrl, success: false });
-        
+
         // Set loading priority
-        if ('loading' in img) {
-          img.loading = options.priority === 'high' ? 'eager' : 'lazy';
+        if ("loading" in img) {
+          img.loading = options.priority === "high" ? "eager" : "lazy";
         }
-        
+
         img.src = optimizedUrl;
       });
     });
@@ -279,14 +279,18 @@ class CDNManager {
    * Get responsive image URLs for different screen sizes
    */
   getResponsiveUrls(url, options = {}) {
-    const breakpoints = options.breakpoints || [320, 640, 768, 1024, 1280, 1920];
+    const breakpoints = options.breakpoints || [
+      320, 640, 768, 1024, 1280, 1920,
+    ];
     const urls = {};
 
     for (const width of breakpoints) {
       urls[`${width}w`] = this.getOptimizedUrl(url, {
         ...options,
         width,
-        height: options.height ? Math.round((options.height * width) / (options.width || width)) : undefined
+        height: options.height
+          ? Math.round((options.height * width) / (options.width || width))
+          : undefined,
       });
     }
 
@@ -298,10 +302,10 @@ class CDNManager {
    */
   generateSrcSet(url, options = {}) {
     const responsiveUrls = this.getResponsiveUrls(url, options);
-    
+
     return Object.entries(responsiveUrls)
       .map(([descriptor, url]) => `${url} ${descriptor}`)
-      .join(', ');
+      .join(", ");
   }
 
   /**
@@ -323,15 +327,15 @@ class CDNManager {
    */
   getProviderStatus() {
     const status = {};
-    
+
     for (const [name, provider] of this.providers.entries()) {
       status[name] = {
         name: provider.name,
-        available: Boolean(provider.baseUrl || name === 'original'),
-        priority: provider.priority
+        available: Boolean(provider.baseUrl || name === "original"),
+        priority: provider.priority,
       };
     }
-    
+
     return status;
   }
 }
@@ -369,7 +373,7 @@ export const cdn = {
   /**
    * Get status
    */
-  status: () => cdnManager.getProviderStatus()
+  status: () => cdnManager.getProviderStatus(),
 };
 
 export default cdnManager;

@@ -1,8 +1,5 @@
-import json
 import logging
-import os
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urlencode
+from typing import Any, Dict, List, Tuple
 
 import httpx
 

@@ -6,8 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
 
-from app.models.manga import MangaStatus, MangaType
-from app.schemas.search import SearchFilter, SearchResult
+from app.schemas.search import SearchResult
 
 logger = logging.getLogger(__name__)
 
@@ -19,19 +18,16 @@ class BaseProvider(ABC):
     @abstractmethod
     def name(self) -> str:
         """Get the name of the provider."""
-        pass
 
     @property
     @abstractmethod
     def url(self) -> str:
         """Get the URL of the provider."""
-        pass
 
     @property
     @abstractmethod
     def supports_nsfw(self) -> bool:
         """Check if the provider supports NSFW content."""
-        pass
 
     @abstractmethod
     async def search(
@@ -51,7 +47,6 @@ class BaseProvider(ABC):
             - Total number of results
             - Whether there are more results
         """
-        pass
 
     @abstractmethod
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
@@ -64,7 +59,6 @@ class BaseProvider(ABC):
         Returns:
             A dictionary containing manga details
         """
-        pass
 
     @abstractmethod
     async def get_chapters(
@@ -84,7 +78,6 @@ class BaseProvider(ABC):
             - Total number of chapters
             - Whether there are more chapters
         """
-        pass
 
     @abstractmethod
     async def get_pages(self, manga_id: str, chapter_id: str) -> List[str]:
@@ -98,7 +91,6 @@ class BaseProvider(ABC):
         Returns:
             A list of page URLs
         """
-        pass
 
     @abstractmethod
     async def download_page(self, page_url: str) -> bytes:
@@ -111,7 +103,6 @@ class BaseProvider(ABC):
         Returns:
             The page content as bytes
         """
-        pass
 
     @abstractmethod
     async def download_cover(self, manga_id: str) -> bytes:
@@ -124,7 +115,6 @@ class BaseProvider(ABC):
         Returns:
             The cover content as bytes
         """
-        pass
 
     async def health_check(
         self, timeout: int = 30

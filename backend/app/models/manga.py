@@ -1,5 +1,4 @@
 import enum
-from typing import List, Optional
 
 from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID

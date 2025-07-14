@@ -2,11 +2,10 @@ import os
 import shutil
 import tempfile
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     Depends,
     File,
     Form,
@@ -21,7 +20,6 @@ from app.core.deps import get_current_user, get_db
 from app.core.services.import_file import (
     create_manga_from_import,
     import_archive,
-    import_directory,
 )
 from app.models.library import MangaUserLibrary
 from app.models.manga import Manga, MangaStatus, MangaType

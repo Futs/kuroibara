@@ -25,7 +25,8 @@ export const useReaderStore = defineStore("reader", {
     readingStats: {
       totalTimeSpent: parseInt(localStorage.getItem("totalTimeSpent")) || 0,
       totalPagesRead: parseInt(localStorage.getItem("totalPagesRead")) || 0,
-      totalChaptersRead: parseInt(localStorage.getItem("totalChaptersRead")) || 0,
+      totalChaptersRead:
+        parseInt(localStorage.getItem("totalChaptersRead")) || 0,
       totalMangaRead: parseInt(localStorage.getItem("totalMangaRead")) || 0,
       currentStreak: parseInt(localStorage.getItem("currentStreak")) || 0,
       longestStreak: parseInt(localStorage.getItem("longestStreak")) || 0,
@@ -34,7 +35,8 @@ export const useReaderStore = defineStore("reader", {
     bookmarks: JSON.parse(localStorage.getItem("bookmarks")) || [],
     readingHistory: JSON.parse(localStorage.getItem("readingHistory")) || [],
     achievements: JSON.parse(localStorage.getItem("achievements")) || [],
-    unlockedAchievements: JSON.parse(localStorage.getItem("unlockedAchievements")) || [],
+    unlockedAchievements:
+      JSON.parse(localStorage.getItem("unlockedAchievements")) || [],
     settings: {
       readingDirection: localStorage.getItem("readingDirection") || "rtl", // rtl, ltr
       pageLayout: localStorage.getItem("pageLayout") || "single", // single, double, list, adaptive
@@ -81,7 +83,7 @@ export const useReaderStore = defineStore("reader", {
 
     // Double-page mode getters
     getCurrentPagePair: (state) => {
-      if (state.settings.pageLayout !== 'double' || !state.pages.length) {
+      if (state.settings.pageLayout !== "double" || !state.pages.length) {
         const page = state.pages[state.currentPage - 1];
         return page ? [{ ...page, url: state.getCurrentPageUrl }] : [];
       }
@@ -95,17 +97,17 @@ export const useReaderStore = defineStore("reader", {
         const targetQuality = state.settings.imageQuality;
         let url = page.url;
 
-        if (targetQuality !== 'high' && page.url.includes('?')) {
+        if (targetQuality !== "high" && page.url.includes("?")) {
           try {
             const urlObj = new URL(page.url);
             switch (targetQuality) {
-              case 'medium':
-                urlObj.searchParams.set('quality', '75');
-                urlObj.searchParams.set('width', '1200');
+              case "medium":
+                urlObj.searchParams.set("quality", "75");
+                urlObj.searchParams.set("width", "1200");
                 break;
-              case 'low':
-                urlObj.searchParams.set('quality', '60');
-                urlObj.searchParams.set('width', '800');
+              case "low":
+                urlObj.searchParams.set("quality", "60");
+                urlObj.searchParams.set("width", "800");
                 break;
             }
             url = urlObj.toString();
@@ -121,15 +123,19 @@ export const useReaderStore = defineStore("reader", {
       const processedRight = processPage(rightPage);
 
       // For RTL reading, swap the pages
-      if (state.settings.readingDirection === 'rtl') {
-        return processedRight ? [processedRight, processedLeft] : [processedLeft];
+      if (state.settings.readingDirection === "rtl") {
+        return processedRight
+          ? [processedRight, processedLeft]
+          : [processedLeft];
       } else {
-        return processedRight ? [processedLeft, processedRight] : [processedLeft];
+        return processedRight
+          ? [processedLeft, processedRight]
+          : [processedLeft];
       }
     },
 
     getEffectivePageCount: (state) => {
-      if (state.settings.pageLayout === 'double') {
+      if (state.settings.pageLayout === "double") {
         // In double-page mode, count page pairs
         return Math.ceil(state.pages.length / 2);
       }
@@ -137,7 +143,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     getCurrentPageDisplay: (state, getters) => {
-      if (state.settings.pageLayout === 'double') {
+      if (state.settings.pageLayout === "double") {
         const pairIndex = Math.ceil(state.currentPage / 2);
         return `${pairIndex} / ${getters.getEffectivePageCount}`;
       }
@@ -145,14 +151,19 @@ export const useReaderStore = defineStore("reader", {
     },
 
     getCurrentPageUrl: (state) => {
-      if (!state.pages || !state.pages.length || state.currentPage > state.pages.length) return null;
+      if (
+        !state.pages ||
+        !state.pages.length ||
+        state.currentPage > state.pages.length
+      )
+        return null;
       const page = state.pages[state.currentPage - 1];
       if (!page || !page.url) return null;
 
       const targetQuality = state.settings.imageQuality;
 
       // If original quality or no quality parameters available, return original URL
-      if (targetQuality === 'high' || !page.url.includes('?')) {
+      if (targetQuality === "high" || !page.url.includes("?")) {
         return page.url;
       }
 
@@ -160,13 +171,13 @@ export const useReaderStore = defineStore("reader", {
       try {
         const url = new URL(page.url);
         switch (targetQuality) {
-          case 'medium':
-            url.searchParams.set('quality', '75');
-            url.searchParams.set('width', '1200');
+          case "medium":
+            url.searchParams.set("quality", "75");
+            url.searchParams.set("width", "1200");
             break;
-          case 'low':
-            url.searchParams.set('quality', '60');
-            url.searchParams.set('width', '800');
+          case "low":
+            url.searchParams.set("quality", "60");
+            url.searchParams.set("width", "800");
             break;
           default:
             break;
@@ -196,24 +207,33 @@ export const useReaderStore = defineStore("reader", {
 
     getTodayReadingTime: (state) => {
       const today = new Date().toDateString();
-      const todayHistory = state.readingHistory.filter(session =>
-        new Date(session.date).toDateString() === today
+      const todayHistory = state.readingHistory.filter(
+        (session) => new Date(session.date).toDateString() === today,
       );
 
-      return todayHistory.reduce((total, session) => total + (session.timeSpent || 0), 0);
+      return todayHistory.reduce(
+        (total, session) => total + (session.timeSpent || 0),
+        0,
+      );
     },
 
     getWeeklyReadingStats: (state) => {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      const weeklyHistory = state.readingHistory.filter(session =>
-        new Date(session.date) >= oneWeekAgo
+      const weeklyHistory = state.readingHistory.filter(
+        (session) => new Date(session.date) >= oneWeekAgo,
       );
 
       return {
-        timeSpent: weeklyHistory.reduce((total, session) => total + (session.timeSpent || 0), 0),
-        pagesRead: weeklyHistory.reduce((total, session) => total + (session.pagesRead || 0), 0),
+        timeSpent: weeklyHistory.reduce(
+          (total, session) => total + (session.timeSpent || 0),
+          0,
+        ),
+        pagesRead: weeklyHistory.reduce(
+          (total, session) => total + (session.pagesRead || 0),
+          0,
+        ),
         chaptersRead: weeklyHistory.length,
       };
     },
@@ -299,7 +319,7 @@ export const useReaderStore = defineStore("reader", {
         this.pages = response.data;
 
         // Trigger adaptive mode analysis if enabled
-        if (this.settings.pageLayout === 'adaptive') {
+        if (this.settings.pageLayout === "adaptive") {
           setTimeout(() => this.analyzeContentType(), 100);
         }
 
@@ -339,7 +359,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     nextPage() {
-      const increment = this.settings.pageLayout === 'double' ? 2 : 1;
+      const increment = this.settings.pageLayout === "double" ? 2 : 1;
 
       if (this.currentPage + increment <= this.pages.length) {
         this.currentPage += increment;
@@ -349,7 +369,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     prevPage() {
-      const decrement = this.settings.pageLayout === 'double' ? 2 : 1;
+      const decrement = this.settings.pageLayout === "double" ? 2 : 1;
 
       if (this.currentPage - decrement >= 1) {
         this.currentPage -= decrement;
@@ -403,7 +423,7 @@ export const useReaderStore = defineStore("reader", {
 
     // Adaptive mode detection
     async analyzeContentType() {
-      if (!this.pages.length || this.settings.pageLayout !== 'adaptive') return;
+      if (!this.pages.length || this.settings.pageLayout !== "adaptive") return;
 
       try {
         const sampleSize = Math.min(5, this.pages.length); // Analyze first 5 pages
@@ -419,35 +439,45 @@ export const useReaderStore = defineStore("reader", {
         if (imageAnalyses.length === 0) return;
 
         // Calculate average dimensions and aspect ratios
-        const avgWidth = imageAnalyses.reduce((sum, img) => sum + img.width, 0) / imageAnalyses.length;
-        const avgHeight = imageAnalyses.reduce((sum, img) => sum + img.height, 0) / imageAnalyses.length;
+        const avgWidth =
+          imageAnalyses.reduce((sum, img) => sum + img.width, 0) /
+          imageAnalyses.length;
+        const avgHeight =
+          imageAnalyses.reduce((sum, img) => sum + img.height, 0) /
+          imageAnalyses.length;
         const avgAspectRatio = avgWidth / avgHeight;
 
         // Determine optimal reading mode
-        let detectedMode = 'single';
+        let detectedMode = "single";
 
         // Check for long-strip content (webtoons)
-        const tallImages = imageAnalyses.filter(img => img.height / img.width > 2).length;
+        const tallImages = imageAnalyses.filter(
+          (img) => img.height / img.width > 2,
+        ).length;
         if (tallImages / imageAnalyses.length > 0.6) {
-          detectedMode = 'list';
+          detectedMode = "list";
         }
         // Check for wide images that might benefit from double-page
         else if (avgAspectRatio > 1.4 && avgWidth > 1200) {
-          detectedMode = 'double';
+          detectedMode = "double";
         }
         // Check if images are consistently wide enough for double-page
-        else if (imageAnalyses.filter(img => img.width > img.height * 1.3).length / imageAnalyses.length > 0.7) {
-          detectedMode = 'double';
+        else if (
+          imageAnalyses.filter((img) => img.width > img.height * 1.3).length /
+            imageAnalyses.length >
+          0.7
+        ) {
+          detectedMode = "double";
         }
 
         // Apply detected mode
-        if (detectedMode !== 'adaptive') {
+        if (detectedMode !== "adaptive") {
           this.settings.pageLayout = detectedMode;
-          localStorage.setItem('pageLayout', detectedMode);
+          localStorage.setItem("pageLayout", detectedMode);
           console.log(`Adaptive mode detected: ${detectedMode}`);
         }
       } catch (error) {
-        console.error('Error analyzing content type:', error);
+        console.error("Error analyzing content type:", error);
       }
     },
 
@@ -458,7 +488,7 @@ export const useReaderStore = defineStore("reader", {
           resolve({
             width: img.naturalWidth,
             height: img.naturalHeight,
-            aspectRatio: img.naturalWidth / img.naturalHeight
+            aspectRatio: img.naturalWidth / img.naturalHeight,
           });
         };
         img.onerror = () => resolve(null);
@@ -496,10 +526,10 @@ export const useReaderStore = defineStore("reader", {
       const img = new Image();
       img.onload = () => {
         this.preloadedImages.set(url, img);
-        this.preloadQueue = this.preloadQueue.filter(u => u !== url);
+        this.preloadQueue = this.preloadQueue.filter((u) => u !== url);
       };
       img.onerror = () => {
-        this.preloadQueue = this.preloadQueue.filter(u => u !== url);
+        this.preloadQueue = this.preloadQueue.filter((u) => u !== url);
       };
       img.src = url;
     },
@@ -508,11 +538,14 @@ export const useReaderStore = defineStore("reader", {
       const distance = this.settings.preloadDistance;
       const currentIndex = this.currentPage - 1;
       const keepStart = Math.max(0, currentIndex - distance);
-      const keepEnd = Math.min(this.pages.length - 1, currentIndex + distance * 2);
+      const keepEnd = Math.min(
+        this.pages.length - 1,
+        currentIndex + distance * 2,
+      );
 
       // Remove images that are too far from current position
       for (const [url] of this.preloadedImages) {
-        const pageIndex = this.pages.findIndex(p => p.url === url);
+        const pageIndex = this.pages.findIndex((p) => p.url === url);
         if (pageIndex < keepStart || pageIndex > keepEnd) {
           this.preloadedImages.delete(url);
         }
@@ -530,20 +563,20 @@ export const useReaderStore = defineStore("reader", {
       const targetQuality = quality || this.settings.imageQuality;
 
       // If original quality or no quality parameters available, return original URL
-      if (targetQuality === 'high' || !page.url.includes('?')) {
+      if (targetQuality === "high" || !page.url.includes("?")) {
         return page.url;
       }
 
       // Add quality parameters to URL
       const url = new URL(page.url);
       switch (targetQuality) {
-        case 'medium':
-          url.searchParams.set('quality', '75');
-          url.searchParams.set('width', '1200');
+        case "medium":
+          url.searchParams.set("quality", "75");
+          url.searchParams.set("width", "1200");
           break;
-        case 'low':
-          url.searchParams.set('quality', '60');
-          url.searchParams.set('width', '800');
+        case "low":
+          url.searchParams.set("quality", "60");
+          url.searchParams.set("width", "800");
           break;
         default:
           break;
@@ -556,22 +589,22 @@ export const useReaderStore = defineStore("reader", {
     async detectConnectionSpeed() {
       try {
         const startTime = performance.now();
-        const response = await fetch('/api/speed-test', { method: 'HEAD' });
+        const response = await fetch("/api/speed-test", { method: "HEAD" });
         const endTime = performance.now();
         const duration = endTime - startTime;
 
         // Simple heuristic: if response takes more than 500ms, use lower quality
         if (duration > 1000) {
-          this.updateSettings({ imageQuality: 'low' });
+          this.updateSettings({ imageQuality: "low" });
         } else if (duration > 500) {
-          this.updateSettings({ imageQuality: 'medium' });
+          this.updateSettings({ imageQuality: "medium" });
         } else {
-          this.updateSettings({ imageQuality: 'high' });
+          this.updateSettings({ imageQuality: "high" });
         }
       } catch (error) {
         // Fallback to medium quality if speed test fails
-        console.log('Connection speed test failed, using medium quality');
-        this.updateSettings({ imageQuality: 'medium' });
+        console.log("Connection speed test failed, using medium quality");
+        this.updateSettings({ imageQuality: "medium" });
       }
     },
 
@@ -592,7 +625,7 @@ export const useReaderStore = defineStore("reader", {
 
       this.readingSession.endTime = Date.now();
       this.readingSession.timeSpent = Math.floor(
-        (this.readingSession.endTime - this.readingSession.startTime) / 1000
+        (this.readingSession.endTime - this.readingSession.startTime) / 1000,
       );
 
       // Update overall statistics
@@ -643,7 +676,7 @@ export const useReaderStore = defineStore("reader", {
           this.readingStats.currentStreak++;
           this.readingStats.longestStreak = Math.max(
             this.readingStats.longestStreak,
-            this.readingStats.currentStreak
+            this.readingStats.currentStreak,
           );
         } else if (lastRead.toDateString() !== today) {
           // Streak broken
@@ -659,8 +692,8 @@ export const useReaderStore = defineStore("reader", {
       const sessionData = {
         ...this.readingSession,
         date: new Date().toISOString(),
-        mangaTitle: this.manga?.title || 'Unknown',
-        chapterTitle: this.chapter?.title || 'Unknown',
+        mangaTitle: this.manga?.title || "Unknown",
+        chapterTitle: this.chapter?.title || "Unknown",
       };
 
       this.readingHistory.unshift(sessionData);
@@ -670,7 +703,10 @@ export const useReaderStore = defineStore("reader", {
         this.readingHistory = this.readingHistory.slice(0, 100);
       }
 
-      localStorage.setItem('readingHistory', JSON.stringify(this.readingHistory));
+      localStorage.setItem(
+        "readingHistory",
+        JSON.stringify(this.readingHistory),
+      );
     },
 
     saveReadingStats() {
@@ -683,7 +719,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     // Bookmark management
-    addBookmark(note = '') {
+    addBookmark(note = "") {
       if (!this.manga || !this.chapter) return;
 
       const bookmark = {
@@ -699,44 +735,47 @@ export const useReaderStore = defineStore("reader", {
       };
 
       this.bookmarks.unshift(bookmark);
-      localStorage.setItem('bookmarks', JSON.stringify(this.bookmarks));
+      localStorage.setItem("bookmarks", JSON.stringify(this.bookmarks));
 
       return bookmark;
     },
 
     removeBookmark(bookmarkId) {
-      this.bookmarks = this.bookmarks.filter(b => b.id !== bookmarkId);
-      localStorage.setItem('bookmarks', JSON.stringify(this.bookmarks));
+      this.bookmarks = this.bookmarks.filter((b) => b.id !== bookmarkId);
+      localStorage.setItem("bookmarks", JSON.stringify(this.bookmarks));
     },
 
     updateBookmark(bookmarkId, updates) {
-      const index = this.bookmarks.findIndex(b => b.id === bookmarkId);
+      const index = this.bookmarks.findIndex((b) => b.id === bookmarkId);
       if (index !== -1) {
         this.bookmarks[index] = { ...this.bookmarks[index], ...updates };
-        localStorage.setItem('bookmarks', JSON.stringify(this.bookmarks));
+        localStorage.setItem("bookmarks", JSON.stringify(this.bookmarks));
       }
     },
 
     getBookmarksForManga(mangaId) {
-      return this.bookmarks.filter(b => b.mangaId === mangaId);
+      return this.bookmarks.filter((b) => b.mangaId === mangaId);
     },
 
     getBookmarksForChapter(mangaId, chapterId) {
-      return this.bookmarks.filter(b => b.mangaId === mangaId && b.chapterId === chapterId);
+      return this.bookmarks.filter(
+        (b) => b.mangaId === mangaId && b.chapterId === chapterId,
+      );
     },
 
     hasBookmarkOnCurrentPage() {
-      return this.bookmarks.some(b =>
-        b.mangaId === this.manga?.id &&
-        b.chapterId === this.chapter?.id &&
-        b.page === this.currentPage
+      return this.bookmarks.some(
+        (b) =>
+          b.mangaId === this.manga?.id &&
+          b.chapterId === this.chapter?.id &&
+          b.page === this.currentPage,
       );
     },
 
     // Resume reading functionality
     getLastReadPosition(mangaId) {
       const recentSessions = this.readingHistory
-        .filter(session => session.mangaId === mangaId)
+        .filter((session) => session.mangaId === mangaId)
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
       return recentSessions[0] || null;
@@ -753,7 +792,10 @@ export const useReaderStore = defineStore("reader", {
         pageLayout: this.settings.pageLayout,
       };
 
-      localStorage.setItem(`readingPosition_${this.manga.id}`, JSON.stringify(position));
+      localStorage.setItem(
+        `readingPosition_${this.manga.id}`,
+        JSON.stringify(position),
+      );
     },
 
     getReadingPosition(mangaId) {
@@ -765,88 +807,91 @@ export const useReaderStore = defineStore("reader", {
     getAchievementDefinitions() {
       return [
         {
-          id: 'first_page',
-          title: 'First Steps',
-          description: 'Read your first page',
-          icon: '📖',
-          requirement: { type: 'pages', value: 1 },
+          id: "first_page",
+          title: "First Steps",
+          description: "Read your first page",
+          icon: "📖",
+          requirement: { type: "pages", value: 1 },
         },
         {
-          id: 'page_turner',
-          title: 'Page Turner',
-          description: 'Read 100 pages',
-          icon: '📚',
-          requirement: { type: 'pages', value: 100 },
+          id: "page_turner",
+          title: "Page Turner",
+          description: "Read 100 pages",
+          icon: "📚",
+          requirement: { type: "pages", value: 100 },
         },
         {
-          id: 'bookworm',
-          title: 'Bookworm',
-          description: 'Read 1000 pages',
-          icon: '🐛',
-          requirement: { type: 'pages', value: 1000 },
+          id: "bookworm",
+          title: "Bookworm",
+          description: "Read 1000 pages",
+          icon: "🐛",
+          requirement: { type: "pages", value: 1000 },
         },
         {
-          id: 'speed_reader',
-          title: 'Speed Reader',
-          description: 'Read 10000 pages',
-          icon: '⚡',
-          requirement: { type: 'pages', value: 10000 },
+          id: "speed_reader",
+          title: "Speed Reader",
+          description: "Read 10000 pages",
+          icon: "⚡",
+          requirement: { type: "pages", value: 10000 },
         },
         {
-          id: 'first_hour',
-          title: 'Getting Started',
-          description: 'Spend 1 hour reading',
-          icon: '⏰',
-          requirement: { type: 'time', value: 3600 }, // 1 hour in seconds
+          id: "first_hour",
+          title: "Getting Started",
+          description: "Spend 1 hour reading",
+          icon: "⏰",
+          requirement: { type: "time", value: 3600 }, // 1 hour in seconds
         },
         {
-          id: 'dedicated_reader',
-          title: 'Dedicated Reader',
-          description: 'Spend 10 hours reading',
-          icon: '🕐',
-          requirement: { type: 'time', value: 36000 }, // 10 hours
+          id: "dedicated_reader",
+          title: "Dedicated Reader",
+          description: "Spend 10 hours reading",
+          icon: "🕐",
+          requirement: { type: "time", value: 36000 }, // 10 hours
         },
         {
-          id: 'marathon_reader',
-          title: 'Marathon Reader',
-          description: 'Spend 100 hours reading',
-          icon: '🏃',
-          requirement: { type: 'time', value: 360000 }, // 100 hours
+          id: "marathon_reader",
+          title: "Marathon Reader",
+          description: "Spend 100 hours reading",
+          icon: "🏃",
+          requirement: { type: "time", value: 360000 }, // 100 hours
         },
         {
-          id: 'streak_starter',
-          title: 'Streak Starter',
-          description: 'Read for 3 consecutive days',
-          icon: '🔥',
-          requirement: { type: 'streak', value: 3 },
+          id: "streak_starter",
+          title: "Streak Starter",
+          description: "Read for 3 consecutive days",
+          icon: "🔥",
+          requirement: { type: "streak", value: 3 },
         },
         {
-          id: 'consistent_reader',
-          title: 'Consistent Reader',
-          description: 'Read for 7 consecutive days',
-          icon: '📅',
-          requirement: { type: 'streak', value: 7 },
+          id: "consistent_reader",
+          title: "Consistent Reader",
+          description: "Read for 7 consecutive days",
+          icon: "📅",
+          requirement: { type: "streak", value: 7 },
         },
         {
-          id: 'reading_master',
-          title: 'Reading Master',
-          description: 'Read for 30 consecutive days',
-          icon: '👑',
-          requirement: { type: 'streak', value: 30 },
+          id: "reading_master",
+          title: "Reading Master",
+          description: "Read for 30 consecutive days",
+          icon: "👑",
+          requirement: { type: "streak", value: 30 },
         },
         {
-          id: 'bookmark_collector',
-          title: 'Bookmark Collector',
-          description: 'Create 10 bookmarks',
-          icon: '🔖',
-          requirement: { type: 'bookmarks', value: 10 },
+          id: "bookmark_collector",
+          title: "Bookmark Collector",
+          description: "Create 10 bookmarks",
+          icon: "🔖",
+          requirement: { type: "bookmarks", value: 10 },
         },
         {
-          id: 'explorer',
-          title: 'Explorer',
-          description: 'Try all reading modes',
-          icon: '🧭',
-          requirement: { type: 'modes', value: ['single', 'double', 'list', 'adaptive'] },
+          id: "explorer",
+          title: "Explorer",
+          description: "Try all reading modes",
+          icon: "🧭",
+          requirement: {
+            type: "modes",
+            value: ["single", "double", "list", "adaptive"],
+          },
         },
       ];
     },
@@ -855,30 +900,38 @@ export const useReaderStore = defineStore("reader", {
       const definitions = this.getAchievementDefinitions();
       const newAchievements = [];
 
-      definitions.forEach(achievement => {
+      definitions.forEach((achievement) => {
         // Skip if already unlocked
         if (this.unlockedAchievements.includes(achievement.id)) return;
 
         let unlocked = false;
 
         switch (achievement.requirement.type) {
-          case 'pages':
-            unlocked = this.readingStats.totalPagesRead >= achievement.requirement.value;
+          case "pages":
+            unlocked =
+              this.readingStats.totalPagesRead >= achievement.requirement.value;
             break;
-          case 'time':
-            unlocked = this.readingStats.totalTimeSpent >= achievement.requirement.value;
+          case "time":
+            unlocked =
+              this.readingStats.totalTimeSpent >= achievement.requirement.value;
             break;
-          case 'streak':
-            unlocked = this.readingStats.currentStreak >= achievement.requirement.value ||
-                      this.readingStats.longestStreak >= achievement.requirement.value;
+          case "streak":
+            unlocked =
+              this.readingStats.currentStreak >=
+                achievement.requirement.value ||
+              this.readingStats.longestStreak >= achievement.requirement.value;
             break;
-          case 'bookmarks':
+          case "bookmarks":
             unlocked = this.bookmarks.length >= achievement.requirement.value;
             break;
-          case 'modes':
-            const usedModes = JSON.parse(localStorage.getItem('usedReadingModes')) || [];
-            unlocked = achievement.requirement.value.every(mode => usedModes.includes(mode));
+          case "modes": {
+            const usedModes =
+              JSON.parse(localStorage.getItem("usedReadingModes")) || [];
+            unlocked = achievement.requirement.value.every((mode) =>
+              usedModes.includes(mode),
+            );
             break;
+          }
         }
 
         if (unlocked) {
@@ -888,7 +941,10 @@ export const useReaderStore = defineStore("reader", {
       });
 
       if (newAchievements.length > 0) {
-        localStorage.setItem('unlockedAchievements', JSON.stringify(this.unlockedAchievements));
+        localStorage.setItem(
+          "unlockedAchievements",
+          JSON.stringify(this.unlockedAchievements),
+        );
         this.showAchievementNotifications(newAchievements);
       }
 
@@ -897,44 +953,72 @@ export const useReaderStore = defineStore("reader", {
 
     showAchievementNotifications(achievements) {
       // This will be handled by the UI component
-      achievements.forEach(achievement => {
-        console.log(`🎉 Achievement Unlocked: ${achievement.title} - ${achievement.description}`);
+      achievements.forEach((achievement) => {
+        console.log(
+          `🎉 Achievement Unlocked: ${achievement.title} - ${achievement.description}`,
+        );
       });
     },
 
     trackReadingModeUsage(mode) {
-      const usedModes = JSON.parse(localStorage.getItem('usedReadingModes')) || [];
+      const usedModes =
+        JSON.parse(localStorage.getItem("usedReadingModes")) || [];
       if (!usedModes.includes(mode)) {
         usedModes.push(mode);
-        localStorage.setItem('usedReadingModes', JSON.stringify(usedModes));
+        localStorage.setItem("usedReadingModes", JSON.stringify(usedModes));
       }
     },
 
     getUnlockedAchievements() {
       const definitions = this.getAchievementDefinitions();
-      return definitions.filter(achievement =>
-        this.unlockedAchievements.includes(achievement.id)
+      return definitions.filter((achievement) =>
+        this.unlockedAchievements.includes(achievement.id),
       );
     },
 
     getAchievementProgress(achievementId) {
-      const achievement = this.getAchievementDefinitions().find(a => a.id === achievementId);
+      const achievement = this.getAchievementDefinitions().find(
+        (a) => a.id === achievementId,
+      );
       if (!achievement) return 0;
 
       switch (achievement.requirement.type) {
-        case 'pages':
-          return Math.min(100, (this.readingStats.totalPagesRead / achievement.requirement.value) * 100);
-        case 'time':
-          return Math.min(100, (this.readingStats.totalTimeSpent / achievement.requirement.value) * 100);
-        case 'streak':
-          return Math.min(100, (Math.max(this.readingStats.currentStreak, this.readingStats.longestStreak) / achievement.requirement.value) * 100);
-        case 'bookmarks':
-          return Math.min(100, (this.bookmarks.length / achievement.requirement.value) * 100);
-        case 'modes':
-          const usedModes = JSON.parse(localStorage.getItem('usedReadingModes')) || [];
+        case "pages":
+          return Math.min(
+            100,
+            (this.readingStats.totalPagesRead / achievement.requirement.value) *
+              100,
+          );
+        case "time":
+          return Math.min(
+            100,
+            (this.readingStats.totalTimeSpent / achievement.requirement.value) *
+              100,
+          );
+        case "streak":
+          return Math.min(
+            100,
+            (Math.max(
+              this.readingStats.currentStreak,
+              this.readingStats.longestStreak,
+            ) /
+              achievement.requirement.value) *
+              100,
+          );
+        case "bookmarks":
+          return Math.min(
+            100,
+            (this.bookmarks.length / achievement.requirement.value) * 100,
+          );
+        case "modes": {
+          const usedModes =
+            JSON.parse(localStorage.getItem("usedReadingModes")) || [];
           const requiredModes = achievement.requirement.value;
-          const completedModes = requiredModes.filter(mode => usedModes.includes(mode)).length;
+          const completedModes = requiredModes.filter((mode) =>
+            usedModes.includes(mode),
+          ).length;
           return Math.min(100, (completedModes / requiredModes.length) * 100);
+        }
         default:
           return 0;
       }
@@ -944,114 +1028,114 @@ export const useReaderStore = defineStore("reader", {
     getThemeDefinitions() {
       return {
         dark: {
-          id: 'dark',
-          name: 'Dark',
-          description: 'Classic dark theme for comfortable reading',
+          id: "dark",
+          name: "Dark",
+          description: "Classic dark theme for comfortable reading",
           colors: {
-            background: '#1a1a1a',
-            surface: '#2d2d2d',
-            primary: '#3b82f6',
-            secondary: '#6b7280',
-            accent: '#8b5cf6',
-            text: '#ffffff',
-            textSecondary: '#d1d5db',
-            border: '#374151',
-            success: '#10b981',
-            warning: '#f59e0b',
-            error: '#ef4444',
+            background: "#1a1a1a",
+            surface: "#2d2d2d",
+            primary: "#3b82f6",
+            secondary: "#6b7280",
+            accent: "#8b5cf6",
+            text: "#ffffff",
+            textSecondary: "#d1d5db",
+            border: "#374151",
+            success: "#10b981",
+            warning: "#f59e0b",
+            error: "#ef4444",
           },
           ui: {
-            toolbarBg: 'rgba(45, 45, 45, 0.95)',
-            overlayBg: 'rgba(0, 0, 0, 0.8)',
-            buttonHover: 'rgba(255, 255, 255, 0.1)',
-            shadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-          }
+            toolbarBg: "rgba(45, 45, 45, 0.95)",
+            overlayBg: "rgba(0, 0, 0, 0.8)",
+            buttonHover: "rgba(255, 255, 255, 0.1)",
+            shadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+          },
         },
         light: {
-          id: 'light',
-          name: 'Light',
-          description: 'Clean light theme for daytime reading',
+          id: "light",
+          name: "Light",
+          description: "Clean light theme for daytime reading",
           colors: {
-            background: '#ffffff',
-            surface: '#f8fafc',
-            primary: '#3b82f6',
-            secondary: '#6b7280',
-            accent: '#8b5cf6',
-            text: '#1f2937',
-            textSecondary: '#6b7280',
-            border: '#e5e7eb',
-            success: '#10b981',
-            warning: '#f59e0b',
-            error: '#ef4444',
+            background: "#ffffff",
+            surface: "#f8fafc",
+            primary: "#3b82f6",
+            secondary: "#6b7280",
+            accent: "#8b5cf6",
+            text: "#1f2937",
+            textSecondary: "#6b7280",
+            border: "#e5e7eb",
+            success: "#10b981",
+            warning: "#f59e0b",
+            error: "#ef4444",
           },
           ui: {
-            toolbarBg: 'rgba(248, 250, 252, 0.95)',
-            overlayBg: 'rgba(255, 255, 255, 0.9)',
-            buttonHover: 'rgba(0, 0, 0, 0.05)',
-            shadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          }
+            toolbarBg: "rgba(248, 250, 252, 0.95)",
+            overlayBg: "rgba(255, 255, 255, 0.9)",
+            buttonHover: "rgba(0, 0, 0, 0.05)",
+            shadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+          },
         },
         sepia: {
-          id: 'sepia',
-          name: 'Sepia',
-          description: 'Warm sepia theme to reduce eye strain',
+          id: "sepia",
+          name: "Sepia",
+          description: "Warm sepia theme to reduce eye strain",
           colors: {
-            background: '#f4f1e8',
-            surface: '#ede6d3',
-            primary: '#8b4513',
-            secondary: '#a0522d',
-            accent: '#cd853f',
-            text: '#3e2723',
-            textSecondary: '#5d4037',
-            border: '#d7ccc8',
-            success: '#689f38',
-            warning: '#f57c00',
-            error: '#d32f2f',
+            background: "#f4f1e8",
+            surface: "#ede6d3",
+            primary: "#8b4513",
+            secondary: "#a0522d",
+            accent: "#cd853f",
+            text: "#3e2723",
+            textSecondary: "#5d4037",
+            border: "#d7ccc8",
+            success: "#689f38",
+            warning: "#f57c00",
+            error: "#d32f2f",
           },
           ui: {
-            toolbarBg: 'rgba(237, 230, 211, 0.95)',
-            overlayBg: 'rgba(244, 241, 232, 0.9)',
-            buttonHover: 'rgba(62, 39, 35, 0.1)',
-            shadow: '0 4px 12px rgba(62, 39, 35, 0.2)',
-          }
+            toolbarBg: "rgba(237, 230, 211, 0.95)",
+            overlayBg: "rgba(244, 241, 232, 0.9)",
+            buttonHover: "rgba(62, 39, 35, 0.1)",
+            shadow: "0 4px 12px rgba(62, 39, 35, 0.2)",
+          },
         },
         night: {
-          id: 'night',
-          name: 'Night',
-          description: 'Ultra-dark theme for late night reading',
+          id: "night",
+          name: "Night",
+          description: "Ultra-dark theme for late night reading",
           colors: {
-            background: '#0a0a0a',
-            surface: '#1a1a1a',
-            primary: '#4f46e5',
-            secondary: '#6b7280',
-            accent: '#7c3aed',
-            text: '#e5e7eb',
-            textSecondary: '#9ca3af',
-            border: '#374151',
-            success: '#059669',
-            warning: '#d97706',
-            error: '#dc2626',
+            background: "#0a0a0a",
+            surface: "#1a1a1a",
+            primary: "#4f46e5",
+            secondary: "#6b7280",
+            accent: "#7c3aed",
+            text: "#e5e7eb",
+            textSecondary: "#9ca3af",
+            border: "#374151",
+            success: "#059669",
+            warning: "#d97706",
+            error: "#dc2626",
           },
           ui: {
-            toolbarBg: 'rgba(26, 26, 26, 0.98)',
-            overlayBg: 'rgba(0, 0, 0, 0.9)',
-            buttonHover: 'rgba(255, 255, 255, 0.05)',
-            shadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-          }
+            toolbarBg: "rgba(26, 26, 26, 0.98)",
+            overlayBg: "rgba(0, 0, 0, 0.9)",
+            buttonHover: "rgba(255, 255, 255, 0.05)",
+            shadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
+          },
         },
         custom: {
-          id: 'custom',
-          name: 'Custom',
-          description: 'Your personalized theme',
+          id: "custom",
+          name: "Custom",
+          description: "Your personalized theme",
           colors: {},
-          ui: {}
-        }
+          ui: {},
+        },
       };
     },
 
     getCurrentTheme() {
       const themes = this.getThemeDefinitions();
-      if (this.settings.theme === 'custom' && this.settings.customTheme) {
+      if (this.settings.theme === "custom" && this.settings.customTheme) {
         return { ...themes.custom, ...this.settings.customTheme };
       }
       return themes[this.settings.theme] || themes.dark;
@@ -1061,9 +1145,9 @@ export const useReaderStore = defineStore("reader", {
       this.settings.theme = themeId;
       if (customTheme) {
         this.settings.customTheme = customTheme;
-        localStorage.setItem('customTheme', JSON.stringify(customTheme));
+        localStorage.setItem("customTheme", JSON.stringify(customTheme));
       }
-      localStorage.setItem('readerTheme', themeId);
+      localStorage.setItem("readerTheme", themeId);
       this.applyTheme();
     },
 
@@ -1082,8 +1166,10 @@ export const useReaderStore = defineStore("reader", {
 
       // Apply display options
       Object.entries(this.settings.displayOptions).forEach(([key, value]) => {
-        root.style.setProperty(`--reader-display-${key}`,
-          typeof value === 'number' ? `${value}px` : value);
+        root.style.setProperty(
+          `--reader-display-${key}`,
+          typeof value === "number" ? `${value}px` : value,
+        );
       });
 
       // Apply typography
@@ -1096,13 +1182,13 @@ export const useReaderStore = defineStore("reader", {
       const baseTheme = this.getThemeDefinitions()[baseThemeId];
       const customTheme = {
         ...baseTheme,
-        id: 'custom',
-        name: 'Custom Theme',
+        id: "custom",
+        name: "Custom Theme",
         colors: { ...baseTheme.colors, ...customizations.colors },
-        ui: { ...baseTheme.ui, ...customizations.ui }
+        ui: { ...baseTheme.ui, ...customizations.ui },
       };
 
-      this.updateTheme('custom', customTheme);
+      this.updateTheme("custom", customTheme);
       return customTheme;
     },
 
@@ -1114,7 +1200,7 @@ export const useReaderStore = defineStore("reader", {
         displayOptions: this.settings.displayOptions,
         uiLayout: this.settings.uiLayout,
         exportDate: new Date().toISOString(),
-        version: '1.0'
+        version: "1.0",
       };
 
       return JSON.stringify(exportData, null, 2);
@@ -1122,105 +1208,127 @@ export const useReaderStore = defineStore("reader", {
 
     importTheme(themeData) {
       try {
-        const data = typeof themeData === 'string' ? JSON.parse(themeData) : themeData;
+        const data =
+          typeof themeData === "string" ? JSON.parse(themeData) : themeData;
 
         if (data.theme) {
-          this.updateTheme('custom', data.theme);
+          this.updateTheme("custom", data.theme);
         }
 
         if (data.typography) {
-          this.settings.typography = { ...this.settings.typography, ...data.typography };
-          localStorage.setItem('typography', JSON.stringify(this.settings.typography));
+          this.settings.typography = {
+            ...this.settings.typography,
+            ...data.typography,
+          };
+          localStorage.setItem(
+            "typography",
+            JSON.stringify(this.settings.typography),
+          );
         }
 
         if (data.displayOptions) {
-          this.settings.displayOptions = { ...this.settings.displayOptions, ...data.displayOptions };
-          localStorage.setItem('displayOptions', JSON.stringify(this.settings.displayOptions));
+          this.settings.displayOptions = {
+            ...this.settings.displayOptions,
+            ...data.displayOptions,
+          };
+          localStorage.setItem(
+            "displayOptions",
+            JSON.stringify(this.settings.displayOptions),
+          );
         }
 
         if (data.uiLayout) {
           this.settings.uiLayout = data.uiLayout;
-          localStorage.setItem('uiLayout', data.uiLayout);
+          localStorage.setItem("uiLayout", data.uiLayout);
         }
 
         this.applyTheme();
         return true;
       } catch (error) {
-        console.error('Failed to import theme:', error);
+        console.error("Failed to import theme:", error);
         return false;
       }
     },
 
     updateTypography(updates) {
       this.settings.typography = { ...this.settings.typography, ...updates };
-      localStorage.setItem('typography', JSON.stringify(this.settings.typography));
+      localStorage.setItem(
+        "typography",
+        JSON.stringify(this.settings.typography),
+      );
       this.applyTheme();
     },
 
     updateDisplayOptions(updates) {
-      this.settings.displayOptions = { ...this.settings.displayOptions, ...updates };
-      localStorage.setItem('displayOptions', JSON.stringify(this.settings.displayOptions));
+      this.settings.displayOptions = {
+        ...this.settings.displayOptions,
+        ...updates,
+      };
+      localStorage.setItem(
+        "displayOptions",
+        JSON.stringify(this.settings.displayOptions),
+      );
       this.applyTheme();
     },
 
     updateUILayout(layout) {
       this.settings.uiLayout = layout;
-      localStorage.setItem('uiLayout', layout);
+      localStorage.setItem("uiLayout", layout);
       this.applyUILayout();
     },
 
     applyUILayout() {
       const root = document.documentElement;
-      root.setAttribute('data-ui-layout', this.settings.uiLayout);
+      root.setAttribute("data-ui-layout", this.settings.uiLayout);
     },
 
     getUILayoutDefinitions() {
       return {
         default: {
-          id: 'default',
-          name: 'Default',
-          description: 'Standard layout with top toolbar',
-          toolbar: { position: 'top', alignment: 'center' },
-          pageNumbers: { position: 'bottom-center', visible: true },
-          navigation: { position: 'sides', visible: true },
-          bookmarkButton: { position: 'toolbar', visible: true },
+          id: "default",
+          name: "Default",
+          description: "Standard layout with top toolbar",
+          toolbar: { position: "top", alignment: "center" },
+          pageNumbers: { position: "bottom-center", visible: true },
+          navigation: { position: "sides", visible: true },
+          bookmarkButton: { position: "toolbar", visible: true },
         },
         minimal: {
-          id: 'minimal',
-          name: 'Minimal',
-          description: 'Clean layout with minimal UI',
-          toolbar: { position: 'top', alignment: 'center', autoHide: true },
-          pageNumbers: { position: 'bottom-right', visible: true },
-          navigation: { position: 'hidden', visible: false },
-          bookmarkButton: { position: 'floating-right', visible: true },
+          id: "minimal",
+          name: "Minimal",
+          description: "Clean layout with minimal UI",
+          toolbar: { position: "top", alignment: "center", autoHide: true },
+          pageNumbers: { position: "bottom-right", visible: true },
+          navigation: { position: "hidden", visible: false },
+          bookmarkButton: { position: "floating-right", visible: true },
         },
         immersive: {
-          id: 'immersive',
-          name: 'Immersive',
-          description: 'Full-screen reading with hidden UI',
-          toolbar: { position: 'hidden', alignment: 'center', autoHide: true },
-          pageNumbers: { position: 'hidden', visible: false },
-          navigation: { position: 'overlay', visible: true },
-          bookmarkButton: { position: 'floating-bottom', visible: true },
+          id: "immersive",
+          name: "Immersive",
+          description: "Full-screen reading with hidden UI",
+          toolbar: { position: "hidden", alignment: "center", autoHide: true },
+          pageNumbers: { position: "hidden", visible: false },
+          navigation: { position: "overlay", visible: true },
+          bookmarkButton: { position: "floating-bottom", visible: true },
         },
         sidebar: {
-          id: 'sidebar',
-          name: 'Sidebar',
-          description: 'Vertical toolbar on the side',
-          toolbar: { position: 'left', alignment: 'top' },
-          pageNumbers: { position: 'bottom-left', visible: true },
-          navigation: { position: 'toolbar', visible: true },
-          bookmarkButton: { position: 'toolbar', visible: true },
+          id: "sidebar",
+          name: "Sidebar",
+          description: "Vertical toolbar on the side",
+          toolbar: { position: "left", alignment: "top" },
+          pageNumbers: { position: "bottom-left", visible: true },
+          navigation: { position: "toolbar", visible: true },
+          bookmarkButton: { position: "toolbar", visible: true },
         },
         bottom: {
-          id: 'bottom',
-          name: 'Bottom Bar',
-          description: 'Controls at the bottom',
-          toolbar: { position: 'bottom', alignment: 'center' },
-          pageNumbers: { position: 'top-center', visible: true },
-          navigation: { position: 'toolbar', visible: true },
-          bookmarkButton: { position: 'toolbar', visible: true },
-        }
+          id: "bottom",
+          name: "Bottom Bar",
+          description: "Controls at the bottom",
+          toolbar: { position: "bottom", alignment: "center" },
+          pageNumbers: { position: "top-center", visible: true },
+          navigation: { position: "toolbar", visible: true },
+          bookmarkButton: { position: "toolbar", visible: true },
+        },
       };
     },
 
@@ -1230,7 +1338,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     resetToDefaultTheme() {
-      this.settings.theme = 'dark';
+      this.settings.theme = "dark";
       this.settings.customTheme = null;
       this.settings.typography = {
         fontFamily: "system-ui",
@@ -1248,14 +1356,14 @@ export const useReaderStore = defineStore("reader", {
         backgroundColor: "#1a1a1a",
         uiOpacity: 0.9,
       };
-      this.settings.uiLayout = 'default';
+      this.settings.uiLayout = "default";
 
       // Clear localStorage
-      localStorage.removeItem('readerTheme');
-      localStorage.removeItem('customTheme');
-      localStorage.removeItem('typography');
-      localStorage.removeItem('displayOptions');
-      localStorage.removeItem('uiLayout');
+      localStorage.removeItem("readerTheme");
+      localStorage.removeItem("customTheme");
+      localStorage.removeItem("typography");
+      localStorage.removeItem("displayOptions");
+      localStorage.removeItem("uiLayout");
 
       this.applyTheme();
       this.applyUILayout();

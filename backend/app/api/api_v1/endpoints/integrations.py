@@ -2,36 +2,38 @@
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from sqlalchemy import select, delete
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
-from app.core.services.integrations import AnilistClient, MyAnimeListClient, KitsuClient
+from app.core.services.integrations import AnilistClient, MyAnimeListClient
 from app.core.services.integrations.sync_service import SyncService
 from app.models.external_integration import (
     ExternalIntegration,
-    ExternalMangaMapping,
     IntegrationType,
     SyncStatus,
 )
 from app.models.user import User
 from app.schemas.external_integration import (
     AnilistAuthRequest,
-    MyAnimeListAuthRequest,
-    KitsuAuthRequest,
+)
+from app.schemas.external_integration import (
     ExternalIntegration as ExternalIntegrationSchema,
-    ExternalIntegrationCreate,
+)
+from app.schemas.external_integration import (
     ExternalIntegrationUpdate,
+    IntegrationSettings,
     IntegrationSetupRequest,
+    IntegrationStatus,
+    KitsuAuthRequest,
+    MyAnimeListAuthRequest,
     SyncRequest,
     SyncResponse,
-    IntegrationSettings,
-    IntegrationStatus,
 )
 
 router = APIRouter()

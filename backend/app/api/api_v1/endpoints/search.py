@@ -1,8 +1,8 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, List
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +20,6 @@ from app.schemas.search import (
     SearchFilter,
     SearchQuery,
     SearchResponse,
-    SearchResult,
 )
 
 logger = logging.getLogger(__name__)

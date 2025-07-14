@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -73,8 +73,6 @@ class UserUpdate(BaseModel):
 # Properties to return via API
 class User(UserBase, BaseSchema):
     """User schema for responses."""
-
-    pass
 
 
 # Properties for user in DB

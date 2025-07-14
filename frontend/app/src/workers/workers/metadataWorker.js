@@ -21,30 +21,36 @@ class MetadataWorker {
       // Process in batches to avoid blocking
       for (let i = 0; i < mangaList.length; i += batchSize) {
         const batch = mangaList.slice(i, i + batchSize);
-        
+
         for (const manga of batch) {
           if (this.isJobCancelled(jobId)) {
-            throw new Error('Job cancelled');
+            throw new Error("Job cancelled");
           }
 
           try {
-            const updatedMetadata = await this.processMetadataItem(manga, options);
+            const updatedMetadata = await this.processMetadataItem(
+              manga,
+              options,
+            );
             results.push(updatedMetadata);
             processed++;
 
             // Report progress
             this.postMessage({
               jobId,
-              type: 'progress',
+              type: "progress",
               data: {
                 processed,
                 total,
                 percentage: Math.round((processed / total) * 100),
-                current: manga.title
-              }
+                current: manga.title,
+              },
             });
           } catch (error) {
-            console.warn(`Failed to process metadata for ${manga.title}:`, error);
+            console.warn(
+              `Failed to process metadata for ${manga.title}:`,
+              error,
+            );
             results.push({ ...manga, error: error.message });
             processed++;
           }
@@ -56,14 +62,14 @@ class MetadataWorker {
 
       this.postMessage({
         jobId,
-        type: 'complete',
-        data: results
+        type: "complete",
+        data: results,
       });
     } catch (error) {
       this.postMessage({
         jobId,
-        type: 'error',
-        error: error.message
+        type: "error",
+        error: error.message,
       });
     }
   }
@@ -115,8 +121,8 @@ class MetadataWorker {
   normalizeTitle(title) {
     return title
       .toLowerCase()
-      .replace(/[^\w\s]/g, '') // Remove special characters
-      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/[^\w\s]/g, "") // Remove special characters
+      .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
   }
 
@@ -125,27 +131,27 @@ class MetadataWorker {
    */
   normalizeGenres(genres) {
     const genreMap = {
-      'action': ['action', 'fighting', 'battle'],
-      'adventure': ['adventure', 'journey'],
-      'comedy': ['comedy', 'humor', 'funny'],
-      'drama': ['drama', 'dramatic'],
-      'fantasy': ['fantasy', 'magic', 'magical'],
-      'horror': ['horror', 'scary', 'terror'],
-      'mystery': ['mystery', 'detective', 'investigation'],
-      'romance': ['romance', 'love', 'romantic'],
-      'sci-fi': ['sci-fi', 'science fiction', 'scifi', 'futuristic'],
-      'slice of life': ['slice of life', 'daily life', 'everyday'],
-      'sports': ['sports', 'athletic', 'competition'],
-      'supernatural': ['supernatural', 'paranormal', 'occult'],
-      'thriller': ['thriller', 'suspense', 'tension']
+      action: ["action", "fighting", "battle"],
+      adventure: ["adventure", "journey"],
+      comedy: ["comedy", "humor", "funny"],
+      drama: ["drama", "dramatic"],
+      fantasy: ["fantasy", "magic", "magical"],
+      horror: ["horror", "scary", "terror"],
+      mystery: ["mystery", "detective", "investigation"],
+      romance: ["romance", "love", "romantic"],
+      "sci-fi": ["sci-fi", "science fiction", "scifi", "futuristic"],
+      "slice of life": ["slice of life", "daily life", "everyday"],
+      sports: ["sports", "athletic", "competition"],
+      supernatural: ["supernatural", "paranormal", "occult"],
+      thriller: ["thriller", "suspense", "tension"],
     };
 
     const normalized = [];
-    
+
     for (const genre of genres) {
       const lowerGenre = genre.toLowerCase();
       let found = false;
-      
+
       for (const [canonical, variants] of Object.entries(genreMap)) {
         if (variants.includes(lowerGenre)) {
           if (!normalized.includes(canonical)) {
@@ -155,7 +161,7 @@ class MetadataWorker {
           break;
         }
       }
-      
+
       if (!found) {
         normalized.push(lowerGenre);
       }
@@ -168,13 +174,13 @@ class MetadataWorker {
    * Normalize authors
    */
   normalizeAuthors(authors) {
-    return authors.map(author => ({
+    return authors.map((author) => ({
       ...author,
       normalizedName: author.name
         .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim()
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, " ")
+        .trim(),
     }));
   }
 
@@ -182,20 +188,20 @@ class MetadataWorker {
    * Calculate content rating based on genres and keywords
    */
   calculateContentRating(metadata) {
-    const matureGenres = ['horror', 'mature', 'adult', 'ecchi', 'hentai'];
-    const matureKeywords = ['violence', 'blood', 'gore', 'sexual', 'adult'];
-    
+    const matureGenres = ["horror", "mature", "adult", "ecchi", "hentai"];
+    const matureKeywords = ["violence", "blood", "gore", "sexual", "adult"];
+
     let score = 0;
-    
+
     // Check genres
     if (metadata.genres) {
       for (const genre of metadata.genres) {
-        if (matureGenres.some(mg => genre.toLowerCase().includes(mg))) {
+        if (matureGenres.some((mg) => genre.toLowerCase().includes(mg))) {
           score += 2;
         }
       }
     }
-    
+
     // Check description for mature keywords
     if (metadata.description) {
       const description = metadata.description.toLowerCase();
@@ -205,10 +211,10 @@ class MetadataWorker {
         }
       }
     }
-    
-    if (score >= 4) return 'mature';
-    if (score >= 2) return 'teen';
-    return 'everyone';
+
+    if (score >= 4) return "mature";
+    if (score >= 2) return "teen";
+    return "everyone";
   }
 
   /**
@@ -216,16 +222,43 @@ class MetadataWorker {
    */
   extractKeywords(description) {
     const stopWords = new Set([
-      'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-      'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have',
-      'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should'
+      "the",
+      "a",
+      "an",
+      "and",
+      "or",
+      "but",
+      "in",
+      "on",
+      "at",
+      "to",
+      "for",
+      "of",
+      "with",
+      "by",
+      "is",
+      "are",
+      "was",
+      "were",
+      "be",
+      "been",
+      "have",
+      "has",
+      "had",
+      "do",
+      "does",
+      "did",
+      "will",
+      "would",
+      "could",
+      "should",
     ]);
 
     const words = description
       .toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
+      .replace(/[^\w\s]/g, " ")
       .split(/\s+/)
-      .filter(word => word.length > 3 && !stopWords.has(word));
+      .filter((word) => word.length > 3 && !stopWords.has(word));
 
     // Count word frequency
     const frequency = {};
@@ -235,7 +268,7 @@ class MetadataWorker {
 
     // Return top keywords
     return Object.entries(frequency)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
       .map(([word]) => word);
   }
@@ -245,13 +278,13 @@ class MetadataWorker {
    */
   calculateSimilarityHash(metadata) {
     const components = [
-      metadata.normalizedTitle || '',
-      (metadata.normalizedAuthors || []).map(a => a.normalizedName).join(''),
-      (metadata.normalizedGenres || []).join(''),
-      (metadata.keywords || []).slice(0, 5).join('')
+      metadata.normalizedTitle || "",
+      (metadata.normalizedAuthors || []).map((a) => a.normalizedName).join(""),
+      (metadata.normalizedGenres || []).join(""),
+      (metadata.keywords || []).slice(0, 5).join(""),
     ];
 
-    return this.simpleHash(components.join(''));
+    return this.simpleHash(components.join(""));
   }
 
   /**
@@ -261,7 +294,7 @@ class MetadataWorker {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash.toString(36);
@@ -272,25 +305,31 @@ class MetadataWorker {
    */
   calculateCompleteness(metadata) {
     const fields = [
-      'title', 'description', 'authors', 'genres', 'status',
-      'rating', 'language', 'cover_url'
+      "title",
+      "description",
+      "authors",
+      "genres",
+      "status",
+      "rating",
+      "language",
+      "cover_url",
     ];
-    
+
     let score = 0;
     let total = fields.length;
-    
+
     for (const field of fields) {
       if (metadata[field]) {
         if (Array.isArray(metadata[field])) {
           score += metadata[field].length > 0 ? 1 : 0;
-        } else if (typeof metadata[field] === 'string') {
+        } else if (typeof metadata[field] === "string") {
           score += metadata[field].trim().length > 0 ? 1 : 0;
         } else {
           score += 1;
         }
       }
     }
-    
+
     return Math.round((score / total) * 100);
   }
 
@@ -314,7 +353,7 @@ class MetadataWorker {
    * Sleep utility
    */
   sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -329,25 +368,25 @@ class MetadataWorker {
 const worker = new MetadataWorker();
 
 // Handle messages from main thread
-self.onmessage = async function(event) {
+self.onmessage = async function (event) {
   const { jobId, task, data, options } = event.data;
-  
+
   switch (task) {
-    case 'updateMetadata':
+    case "updateMetadata":
       worker.activeJobs.set(jobId, { cancelled: false });
       await worker.updateMetadata(jobId, data, options);
       worker.activeJobs.delete(jobId);
       break;
-      
-    case 'cancel':
+
+    case "cancel":
       worker.cancelJob(jobId);
       break;
-      
+
     default:
       worker.postMessage({
         jobId,
-        type: 'error',
-        error: `Unknown task: ${task}`
+        type: "error",
+        error: `Unknown task: ${task}`,
       });
   }
 };

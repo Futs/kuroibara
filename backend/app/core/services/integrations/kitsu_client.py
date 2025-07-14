@@ -1,14 +1,12 @@
 """Kitsu API client for external integration."""
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-import aiohttp
 from aiohttp import ClientSession
 
 from app.models.external_integration import IntegrationType
+
 from .base_client import BaseIntegrationClient
 
 logger = logging.getLogger(__name__)

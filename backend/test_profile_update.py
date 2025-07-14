@@ -5,8 +5,8 @@ This script validates the new current password requirement.
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 # Add the backend directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
@@ -17,8 +17,9 @@ async def test_user_update_schema():
     print("🔐 Testing UserUpdate Schema...")
 
     try:
-        from app.schemas.user import UserUpdate
         from pydantic import ValidationError
+
+        from app.schemas.user import UserUpdate
 
         # Test that current_password is required
         try:
@@ -54,7 +55,7 @@ async def test_password_verification_import():
     print("🔑 Testing Password Verification...")
 
     try:
-        from app.core.security import verify_password, get_password_hash
+        from app.core.security import get_password_hash, verify_password
 
         # Test password hashing and verification
         password = "test123"
@@ -77,7 +78,6 @@ async def test_user_endpoint_import():
 
     try:
         from app.api.api_v1.endpoints.users import update_current_user
-        from app.schemas.user import UserUpdate
 
         # Check that the function exists and can be imported
         assert callable(update_current_user)
@@ -95,8 +95,9 @@ async def test_api_endpoint_live():
     print("🌐 Testing Live User Update Endpoint...")
 
     try:
+        pass
+
         import aiohttp
-        import json
 
         async with aiohttp.ClientSession() as session:
             # Test user update endpoint (should require auth)

@@ -370,9 +370,7 @@
                   >
                     {{
                       libraryItemDetails.download_summary.downloaded_chapters
-                    }}/{{
-                      libraryItemDetails.download_summary.total_chapters
-                    }}
+                    }}/{{ libraryItemDetails.download_summary.total_chapters }}
                     downloaded
                   </div>
 

@@ -1,7 +1,6 @@
 import os
 import tempfile
 import uuid
-import zipfile
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,7 +11,7 @@ from app.core.services.import_file import (
     import_archive,
     import_directory,
 )
-from app.models.manga import Chapter, Manga, MangaStatus, MangaType, Page
+from app.models.manga import Manga, MangaStatus, MangaType
 
 
 @pytest.mark.asyncio

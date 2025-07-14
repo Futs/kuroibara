@@ -2,10 +2,9 @@
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
-from app.models.external_integration import IntegrationType, SyncStatus
+from app.models.external_integration import IntegrationType
 from app.schemas.external_integration import ExternalMangaData, ExternalMangaList
 
 logger = logging.getLogger(__name__)
@@ -29,7 +28,6 @@ class BaseIntegrationClient(ABC):
         Returns:
             Dict containing access_token, refresh_token, expires_at, user_info
         """
-        pass
 
     @abstractmethod
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
@@ -42,7 +40,6 @@ class BaseIntegrationClient(ABC):
         Returns:
             Dict containing new access_token, refresh_token, expires_at
         """
-        pass
 
     @abstractmethod
     async def get_user_info(self, access_token: str) -> Dict[str, Any]:
@@ -55,7 +52,6 @@ class BaseIntegrationClient(ABC):
         Returns:
             Dict containing user_id, username, and other user info
         """
-        pass
 
     @abstractmethod
     async def get_manga_list(
@@ -77,7 +73,6 @@ class BaseIntegrationClient(ABC):
         Returns:
             ExternalMangaList containing manga data
         """
-        pass
 
     @abstractmethod
     async def update_manga_status(
@@ -103,7 +98,6 @@ class BaseIntegrationClient(ABC):
         Returns:
             True if successful, False otherwise
         """
-        pass
 
     @abstractmethod
     async def search_manga(
@@ -120,7 +114,6 @@ class BaseIntegrationClient(ABC):
         Returns:
             List of ExternalMangaData
         """
-        pass
 
     async def validate_token(self, access_token: str) -> bool:
         """

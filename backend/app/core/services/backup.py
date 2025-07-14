@@ -9,23 +9,16 @@ This module provides comprehensive backup functionality including:
 """
 
 import asyncio
-import gzip
 import logging
 import os
 import shutil
-import subprocess
 import tarfile
 import tempfile
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Tuple
-from uuid import UUID, uuid4
 
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
 

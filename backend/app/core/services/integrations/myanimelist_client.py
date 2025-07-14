@@ -1,16 +1,16 @@
 """MyAnimeList API client for manga list integration."""
 
-import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-import aiohttp
-import json
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
+
+import aiohttp
 
 from app.core.config import settings
 from app.models.external_integration import IntegrationType
 from app.schemas.external_integration import ExternalMangaData, ExternalMangaList
+
 from .base_client import BaseIntegrationClient
 
 logger = logging.getLogger(__name__)

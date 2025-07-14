@@ -6,11 +6,11 @@
         @click="toggleBulkMode"
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
       >
-        {{ bulkMode ? 'Exit Bulk Mode' : 'Bulk Operations' }}
+        {{ bulkMode ? "Exit Bulk Mode" : "Bulk Operations" }}
       </button>
-      
+
       <div v-if="bulkMode" class="text-sm text-gray-600 dark:text-gray-400">
-        {{ selectedCount }} item{{ selectedCount !== 1 ? 's' : '' }} selected
+        {{ selectedCount }} item{{ selectedCount !== 1 ? "s" : "" }} selected
       </div>
     </div>
 
@@ -34,54 +34,61 @@
             Deselect All
           </button>
         </div>
-        
+
         <button
           @click="toggleBulkMode"
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
           </svg>
         </button>
       </div>
 
       <!-- Bulk Actions -->
-      <div v-if="selectedCount > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+      <div
+        v-if="selectedCount > 0"
+        class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2"
+      >
         <button
           @click="markAsRead"
           class="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
         >
           Mark Read
         </button>
-        
+
         <button
           @click="markAsUnread"
           class="px-3 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
         >
           Mark Unread
         </button>
-        
+
         <button
           @click="addToFavorites"
           class="px-3 py-2 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
         >
           Add to Favorites
         </button>
-        
+
         <button
           @click="removeFromFavorites"
           class="px-3 py-2 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
         >
           Remove Favorites
         </button>
-        
+
         <button
           @click="showTagEditor = true"
           class="px-3 py-2 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
         >
           Edit Tags
         </button>
-        
+
         <button
           @click="confirmDelete"
           class="px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
@@ -89,8 +96,11 @@
           Delete
         </button>
       </div>
-      
-      <div v-else class="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+
+      <div
+        v-else
+        class="text-sm text-gray-500 dark:text-gray-400 text-center py-2"
+      >
         Select items to perform bulk operations
       </div>
     </div>
@@ -101,19 +111,31 @@
       class="fixed inset-0 z-50 overflow-y-auto"
       @click.self="showTagEditor = false"
     >
-      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-        
-        <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        ></div>
+
+        <div
+          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+        >
           <div>
-            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
-              Edit Tags for {{ selectedCount }} item{{ selectedCount !== 1 ? 's' : '' }}
+            <h3
+              class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4"
+            >
+              Edit Tags for {{ selectedCount }} item{{
+                selectedCount !== 1 ? "s" : ""
+              }}
             </h3>
-            
+
             <div class="space-y-4">
               <!-- Existing Tags -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Available Tags
                 </label>
                 <div class="flex flex-wrap gap-2">
@@ -122,19 +144,27 @@
                     :key="tag.id"
                     @click="toggleTagSelection(tag.name)"
                     class="px-3 py-1 text-sm rounded-full border transition-colors"
-                    :class="selectedTags.includes(tag.name)
-                      ? 'text-white border-transparent'
-                      : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600'"
-                    :style="selectedTags.includes(tag.name) ? { backgroundColor: tag.color } : {}"
+                    :class="
+                      selectedTags.includes(tag.name)
+                        ? 'text-white border-transparent'
+                        : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600'
+                    "
+                    :style="
+                      selectedTags.includes(tag.name)
+                        ? { backgroundColor: tag.color }
+                        : {}
+                    "
                   >
                     {{ tag.name }}
                   </button>
                 </div>
               </div>
-              
+
               <!-- Create New Tag -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Create New Tag
                 </label>
                 <div class="flex space-x-2">
@@ -159,7 +189,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="mt-5 sm:mt-6 flex space-x-3">
             <button
               @click="applyTags"
@@ -184,23 +214,46 @@
       class="fixed inset-0 z-50 overflow-y-auto"
       @click.self="showDeleteConfirm = false"
     >
-      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-        
-        <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        ></div>
+
+        <div
+          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+        >
           <div class="sm:flex sm:items-start">
-            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <div
+              class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"
+            >
+              <svg
+                class="h-6 w-6 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
               </svg>
             </div>
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                Delete {{ selectedCount }} item{{ selectedCount !== 1 ? 's' : '' }}
+              <h3
+                class="text-lg leading-6 font-medium text-gray-900 dark:text-white"
+              >
+                Delete {{ selectedCount }} item{{
+                  selectedCount !== 1 ? "s" : ""
+                }}
               </h3>
               <div class="mt-2">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Are you sure you want to delete the selected manga? This action cannot be undone.
+                  Are you sure you want to delete the selected manga? This
+                  action cannot be undone.
                 </p>
               </div>
             </div>
@@ -226,8 +279,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useLibraryStore } from '../stores/library';
+import { ref, computed } from "vue";
+import { useLibraryStore } from "../stores/library";
 
 const libraryStore = useLibraryStore();
 
@@ -235,8 +288,8 @@ const libraryStore = useLibraryStore();
 const showTagEditor = ref(false);
 const showDeleteConfirm = ref(false);
 const selectedTags = ref([]);
-const newTagName = ref('');
-const newTagColor = ref('#3B82F6');
+const newTagName = ref("");
+const newTagColor = ref("#3B82F6");
 
 // Computed properties
 const bulkMode = computed(() => libraryStore.bulkOperationMode);
@@ -260,7 +313,7 @@ const markAsRead = async () => {
   try {
     await libraryStore.bulkMarkAsRead();
   } catch (error) {
-    console.error('Failed to mark as read:', error);
+    console.error("Failed to mark as read:", error);
   }
 };
 
@@ -268,7 +321,7 @@ const markAsUnread = async () => {
   try {
     await libraryStore.bulkMarkAsUnread();
   } catch (error) {
-    console.error('Failed to mark as unread:', error);
+    console.error("Failed to mark as unread:", error);
   }
 };
 
@@ -276,7 +329,7 @@ const addToFavorites = async () => {
   try {
     await libraryStore.bulkAddToFavorites();
   } catch (error) {
-    console.error('Failed to add to favorites:', error);
+    console.error("Failed to add to favorites:", error);
   }
 };
 
@@ -284,7 +337,7 @@ const removeFromFavorites = async () => {
   try {
     await libraryStore.bulkRemoveFromFavorites();
   } catch (error) {
-    console.error('Failed to remove from favorites:', error);
+    console.error("Failed to remove from favorites:", error);
   }
 };
 
@@ -297,7 +350,7 @@ const performDelete = async () => {
     await libraryStore.bulkDelete();
     showDeleteConfirm.value = false;
   } catch (error) {
-    console.error('Failed to delete:', error);
+    console.error("Failed to delete:", error);
   }
 };
 
@@ -317,8 +370,8 @@ const createAndSelectTag = () => {
       color: newTagColor.value,
     });
     selectedTags.value.push(newTagName.value.trim());
-    newTagName.value = '';
-    newTagColor.value = '#3B82F6';
+    newTagName.value = "";
+    newTagColor.value = "#3B82F6";
   }
 };
 
@@ -328,7 +381,7 @@ const applyTags = async () => {
     showTagEditor.value = false;
     selectedTags.value = [];
   } catch (error) {
-    console.error('Failed to update tags:', error);
+    console.error("Failed to update tags:", error);
   }
 };
 </script>

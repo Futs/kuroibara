@@ -1,12 +1,11 @@
 """Sync service for external integrations."""
 
-import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, Optional
 from uuid import UUID
 
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -19,11 +18,11 @@ from app.models.external_integration import (
 )
 from app.models.library import MangaUserLibrary, ReadingProgress
 from app.models.manga import Manga
-from app.models.user import User
 from app.schemas.external_integration import ExternalMangaData
+
 from .anilist_client import AnilistClient
-from .myanimelist_client import MyAnimeListClient
 from .kitsu_client import KitsuClient
+from .myanimelist_client import MyAnimeListClient
 
 logger = logging.getLogger(__name__)
 

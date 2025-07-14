@@ -1,8 +1,8 @@
 import os
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,21 +12,18 @@ from app.core.providers.registry import provider_registry
 from app.core.utils import (
     get_cover_storage_path,
     get_manga_storage_path,
-    get_page_storage_path,
 )
 from app.models.manga import Author, Chapter, Genre, Manga, Page
 from app.models.user import User
 from app.schemas.manga import Chapter as ChapterSchema
 from app.schemas.manga import (
     ChapterCreate,
-    ChapterUpdate,
 )
 from app.schemas.manga import Manga as MangaSchema
 from app.schemas.manga import (
     MangaCreate,
     MangaUpdate,
 )
-from app.schemas.search import SearchResult
 
 router = APIRouter()
 
@@ -373,7 +370,7 @@ async def get_manga_cover(
         or manga.cover_image.startswith("https://")
     ):
         # Download and cache the external cover
-        import tempfile
+        pass
 
         import httpx
 

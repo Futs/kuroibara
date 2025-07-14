@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from app.schemas.base import BaseSchema
 from app.schemas.manga import Manga
@@ -22,8 +22,6 @@ class CategoryBase(BaseModel):
 
 class CategoryCreate(CategoryBase):
     """Category creation schema."""
-
-    pass
 
 
 class CategoryUpdate(CategoryBase):

@@ -1,6 +1,4 @@
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def test_provider_preferences_api(client: TestClient, token: str):

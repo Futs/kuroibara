@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from sqlalchemy import Boolean, Column, Integer, String, Text
 from sqlalchemy.orm import relationship
 

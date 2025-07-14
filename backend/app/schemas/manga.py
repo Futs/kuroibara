@@ -1,7 +1,7 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.base import BaseSchema
@@ -20,8 +20,6 @@ class GenreBase(BaseModel):
 class GenreCreate(GenreBase):
     """Genre creation schema."""
 
-    pass
-
 
 class GenreUpdate(GenreBase):
     """Genre update schema."""
@@ -31,8 +29,6 @@ class GenreUpdate(GenreBase):
 
 class Genre(GenreBase, BaseSchema):
     """Genre schema for responses."""
-
-    pass
 
 
 # Author schemas
@@ -49,8 +45,6 @@ class AuthorBase(BaseModel):
 class AuthorCreate(AuthorBase):
     """Author creation schema."""
 
-    pass
-
 
 class AuthorUpdate(AuthorBase):
     """Author update schema."""
@@ -60,8 +54,6 @@ class AuthorUpdate(AuthorBase):
 
 class Author(AuthorBase, BaseSchema):
     """Author schema for responses."""
-
-    pass
 
 
 # Chapter schemas
@@ -78,8 +70,6 @@ class PageBase(BaseModel):
 
 class PageCreate(PageBase):
     """Page creation schema."""
-
-    pass
 
 
 class Page(PageBase, BaseSchema):

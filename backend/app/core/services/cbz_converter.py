@@ -11,16 +11,13 @@ import os
 import shutil
 import tempfile
 import zipfile
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from uuid import UUID
+from typing import Dict, List, Tuple
 
 from pyunpack import Archive
 
 from app.core.services.naming import naming_engine
 from app.core.utils import get_image_dimensions, is_image_file
 from app.models.manga import Chapter, Manga
-from app.models.user import User
 
 logger = logging.getLogger(__name__)
 

@@ -11,15 +11,14 @@ import os
 import re
 import shutil
 import zipfile
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from uuid import UUID, uuid4
+from typing import Dict, List, Optional
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.utils import get_manga_storage_path, is_image_file
+from app.core.utils import get_manga_storage_path
 from app.models.library import MangaUserLibrary
 from app.models.manga import Chapter, Manga, MangaStatus, MangaType
 from app.models.organization import ChapterMetadata, MangaMetadata

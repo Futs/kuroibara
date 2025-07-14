@@ -1,11 +1,10 @@
 import asyncio
-import json
 import logging
 import os
 import random
 import re
 from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 import httpx
 from bs4 import BeautifulSoup

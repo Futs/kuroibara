@@ -19,9 +19,6 @@ from app.core.services.storage_recovery import storage_recovery_service
 from app.db.session import AsyncSessionLocal
 from app.models.manga import Chapter, Manga
 from app.models.organization import (
-    ChapterMetadata,
-    MangaMetadata,
-    OrganizationHistory,
     OrganizationJob,
 )
 from app.models.user import User
@@ -30,15 +27,7 @@ from app.schemas.organization import (
     BatchRecoveryRequest,
     BatchRecoveryResponse,
 )
-from app.schemas.organization import ChapterMetadata as ChapterMetadataSchema
 from app.schemas.organization import (
-    ChapterMetadataCreate,
-    ChapterMetadataUpdate,
-)
-from app.schemas.organization import MangaMetadata as MangaMetadataSchema
-from app.schemas.organization import (
-    MangaMetadataCreate,
-    MangaMetadataUpdate,
     NamingFormatValidation,
     NamingFormatValidationResponse,
     NamingSettings,

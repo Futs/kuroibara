@@ -5,10 +5,8 @@ This script validates all components before committing the feature branch.
 """
 
 import asyncio
-import sys
 import os
-import json
-from datetime import datetime
+import sys
 
 # Add the backend directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
@@ -19,14 +17,14 @@ async def test_database_models():
     print("🗄️  Testing Database Models...")
 
     try:
+        from uuid import uuid4
+
         from app.models.external_integration import (
             ExternalIntegration,
             ExternalMangaMapping,
             IntegrationType,
             SyncStatus,
         )
-        from app.models.user import User
-        from uuid import uuid4
 
         # Test enum values
         assert IntegrationType.ANILIST == "anilist"
@@ -63,16 +61,12 @@ async def test_api_schemas():
     print("📋 Testing API Schemas...")
 
     try:
-        from app.schemas.external_integration import (
-            ExternalIntegrationCreate,
-            ExternalIntegrationUpdate,
-            IntegrationSetupRequest,
-            AnilistAuthRequest,
-            MyAnimeListAuthRequest,
-            SyncRequest,
-            IntegrationSettings,
-        )
         from app.models.external_integration import IntegrationType
+        from app.schemas.external_integration import (
+            AnilistAuthRequest,
+            IntegrationSetupRequest,
+            SyncRequest,
+        )
 
         # Test schema creation
         setup_request = IntegrationSetupRequest(
@@ -137,9 +131,10 @@ async def test_sync_service():
     print("🔄 Testing Sync Service...")
 
     try:
+        from uuid import uuid4
+
         from app.core.services.integrations.sync_service import SyncService
         from app.models.external_integration import ExternalIntegration, IntegrationType
-        from uuid import uuid4
 
         sync_service = SyncService()
 
@@ -169,7 +164,6 @@ async def test_api_endpoints():
 
     try:
         from app.api.api_v1.endpoints.integrations import router
-        from app.api.api_v1.api import api_router
 
         # Check that routes are registered
         routes = [route.path for route in router.routes]
@@ -200,8 +194,6 @@ async def test_backend_startup():
 
     try:
         # Import main app components
-        from app.main import app
-        from app.models import ExternalIntegration, ExternalMangaMapping
         from app.api.api_v1.api import api_router
 
         # Check that the app has the integration routes
@@ -228,6 +220,7 @@ async def test_database_tables():
 
     try:
         from sqlalchemy import text
+
         from app.db.session import AsyncSessionLocal
 
         async with AsyncSessionLocal() as session:

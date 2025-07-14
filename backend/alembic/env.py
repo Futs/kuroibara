@@ -1,9 +1,7 @@
-import asyncio
 from logging.config import fileConfig
 
 from sqlalchemy import create_engine, pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
@@ -21,24 +19,6 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from app.db.session import Base
-from app.models.base import BaseModel
-from app.models.library import (
-    Bookmark,
-    LibraryCategory,
-    MangaUserLibrary,
-    ReadingList,
-    ReadingProgress,
-)
-from app.models.manga import Author, Chapter, Genre, Manga, Page
-from app.models.organization import (
-    ChapterMetadata,
-    MangaMetadata,
-    OrganizationHistory,
-    OrganizationJob,
-)
-from app.models.provider import ProviderStatus
-from app.models.user import User
-from app.models.user_provider_preference import UserProviderPreference
 
 target_metadata = Base.metadata
 

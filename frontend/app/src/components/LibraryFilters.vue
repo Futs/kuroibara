@@ -1,7 +1,11 @@
 <template>
-  <div class="library-filters bg-white dark:bg-dark-800 rounded-lg shadow-lg p-6">
+  <div
+    class="library-filters bg-white dark:bg-dark-800 rounded-lg shadow-lg p-6"
+  >
     <div class="flex items-center justify-between mb-6">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Filters</h3>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Filters
+      </h3>
       <div class="flex space-x-2">
         <button
           @click="resetFilters"
@@ -13,14 +17,16 @@
           @click="toggleAdvanced"
           class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
         >
-          {{ showAdvanced ? 'Simple' : 'Advanced' }}
+          {{ showAdvanced ? "Simple" : "Advanced" }}
         </button>
       </div>
     </div>
 
     <!-- Search -->
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+      >
         Search
       </label>
       <input
@@ -34,7 +40,9 @@
 
     <!-- Read Status -->
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+      >
         Read Status
       </label>
       <div class="flex flex-wrap gap-2">
@@ -43,9 +51,11 @@
           :key="status.value"
           @click="toggleReadStatus(status.value)"
           class="px-3 py-1 text-sm rounded-full border transition-colors"
-          :class="localFilters.readStatus.includes(status.value)
-            ? `bg-${status.color}-500 text-white border-${status.color}-500`
-            : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600'"
+          :class="
+            localFilters.readStatus.includes(status.value)
+              ? `bg-${status.color}-500 text-white border-${status.color}-500`
+              : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600'
+          "
         >
           {{ status.label }}
         </button>
@@ -60,7 +70,9 @@
           type="checkbox"
           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
-        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Favorites only</span>
+        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+          >Favorites only</span
+        >
       </label>
     </div>
 
@@ -68,7 +80,9 @@
     <div v-if="showAdvanced" class="space-y-4">
       <!-- Rating Range -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
           Rating: {{ localFilters.rating.min }} - {{ localFilters.rating.max }}
         </label>
         <div class="flex items-center space-x-4">
@@ -95,7 +109,9 @@
 
       <!-- Date Added -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
           Date Added
         </label>
         <div class="grid grid-cols-2 gap-2">
@@ -116,10 +132,14 @@
 
       <!-- Genres -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
           Genres
         </label>
-        <div class="max-h-32 overflow-y-auto border border-gray-300 dark:border-dark-600 rounded-md p-2">
+        <div
+          class="max-h-32 overflow-y-auto border border-gray-300 dark:border-dark-600 rounded-md p-2"
+        >
           <div
             v-for="genre in availableGenres"
             :key="genre"
@@ -145,7 +165,9 @@
 
       <!-- Authors -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
           Authors
         </label>
         <select
@@ -162,7 +184,10 @@
             {{ author }}
           </option>
         </select>
-        <div v-if="localFilters.authors.length > 0" class="mt-2 flex flex-wrap gap-1">
+        <div
+          v-if="localFilters.authors.length > 0"
+          class="mt-2 flex flex-wrap gap-1"
+        >
           <span
             v-for="author in localFilters.authors"
             :key="author"
@@ -181,7 +206,9 @@
 
       <!-- Custom Tags -->
       <div v-if="customTags.length > 0">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
           Custom Tags
         </label>
         <div class="flex flex-wrap gap-2">
@@ -190,10 +217,16 @@
             :key="tag.id"
             @click="toggleCustomTag(tag.name)"
             class="px-3 py-1 text-sm rounded-full border transition-colors"
-            :class="localFilters.customTags.includes(tag.name)
-              ? 'text-white border-transparent'
-              : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600'"
-            :style="localFilters.customTags.includes(tag.name) ? { backgroundColor: tag.color } : {}"
+            :class="
+              localFilters.customTags.includes(tag.name)
+                ? 'text-white border-transparent'
+                : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-dark-600 hover:bg-gray-200 dark:hover:bg-dark-600'
+            "
+            :style="
+              localFilters.customTags.includes(tag.name)
+                ? { backgroundColor: tag.color }
+                : {}
+            "
           >
             {{ tag.name }}
           </button>
@@ -209,9 +242,11 @@
             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             @change="updateFilters"
           />
-          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Has unread chapters</span>
+          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+            >Has unread chapters</span
+          >
         </label>
-        
+
         <label class="flex items-center">
           <input
             v-model="localFilters.isDownloaded"
@@ -219,9 +254,11 @@
             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             @change="updateFilters"
           />
-          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Downloaded</span>
+          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+            >Downloaded</span
+          >
         </label>
-        
+
         <label class="flex items-center">
           <input
             v-model="localFilters.hasBookmarks"
@@ -229,9 +266,11 @@
             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             @change="updateFilters"
           />
-          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Has bookmarks</span>
+          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+            >Has bookmarks</span
+          >
         </label>
-        
+
         <label class="flex items-center">
           <input
             v-model="localFilters.duplicatesOnly"
@@ -239,14 +278,21 @@
             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             @change="updateFilters"
           />
-          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Show duplicates only</span>
+          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+            >Show duplicates only</span
+          >
         </label>
       </div>
     </div>
 
     <!-- Active Filters Summary -->
-    <div v-if="hasActiveFilters" class="mt-6 pt-4 border-t border-gray-200 dark:border-dark-600">
-      <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Active filters:</div>
+    <div
+      v-if="hasActiveFilters"
+      class="mt-6 pt-4 border-t border-gray-200 dark:border-dark-600"
+    >
+      <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+        Active filters:
+      </div>
       <div class="flex flex-wrap gap-1">
         <span
           v-for="filter in activeFiltersSummary"
@@ -267,64 +313,78 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { useLibraryStore } from '../stores/library';
-import { debounce } from 'lodash-es';
+import { ref, computed, watch } from "vue";
+import { useLibraryStore } from "../stores/library";
+import { debounce } from "lodash-es";
 
 const libraryStore = useLibraryStore();
 
 // Local state
 const showAdvanced = ref(false);
-const selectedAuthor = ref('');
+const selectedAuthor = ref("");
 
 // Local filters (for immediate UI updates)
 const localFilters = ref({ ...libraryStore.filters });
 
 // Computed properties
-const availableReadStatuses = computed(() => libraryStore.getAvailableReadStatuses);
+const availableReadStatuses = computed(
+  () => libraryStore.getAvailableReadStatuses,
+);
 const availableGenres = computed(() => libraryStore.getAvailableGenres);
 const availableAuthors = computed(() => libraryStore.getAvailableAuthors);
 const customTags = computed(() => libraryStore.getCustomTags);
 
 const hasActiveFilters = computed(() => {
-  return localFilters.value.search ||
-         localFilters.value.readStatus.length > 0 ||
-         localFilters.value.genres.length > 0 ||
-         localFilters.value.authors.length > 0 ||
-         localFilters.value.customTags.length > 0 ||
-         localFilters.value.isFavorite ||
-         localFilters.value.rating.min > 0 ||
-         localFilters.value.rating.max < 10;
+  return (
+    localFilters.value.search ||
+    localFilters.value.readStatus.length > 0 ||
+    localFilters.value.genres.length > 0 ||
+    localFilters.value.authors.length > 0 ||
+    localFilters.value.customTags.length > 0 ||
+    localFilters.value.isFavorite ||
+    localFilters.value.rating.min > 0 ||
+    localFilters.value.rating.max < 10
+  );
 });
 
 const activeFiltersSummary = computed(() => {
   const summary = [];
-  
+
   if (localFilters.value.search) {
-    summary.push({ key: 'search', label: `Search: ${localFilters.value.search}`, value: null });
+    summary.push({
+      key: "search",
+      label: `Search: ${localFilters.value.search}`,
+      value: null,
+    });
   }
-  
-  localFilters.value.readStatus.forEach(status => {
-    const statusObj = availableReadStatuses.value.find(s => s.value === status);
-    summary.push({ key: 'readStatus', label: statusObj?.label || status, value: status });
+
+  localFilters.value.readStatus.forEach((status) => {
+    const statusObj = availableReadStatuses.value.find(
+      (s) => s.value === status,
+    );
+    summary.push({
+      key: "readStatus",
+      label: statusObj?.label || status,
+      value: status,
+    });
   });
-  
-  localFilters.value.genres.forEach(genre => {
-    summary.push({ key: 'genres', label: `Genre: ${genre}`, value: genre });
+
+  localFilters.value.genres.forEach((genre) => {
+    summary.push({ key: "genres", label: `Genre: ${genre}`, value: genre });
   });
-  
-  localFilters.value.authors.forEach(author => {
-    summary.push({ key: 'authors', label: `Author: ${author}`, value: author });
+
+  localFilters.value.authors.forEach((author) => {
+    summary.push({ key: "authors", label: `Author: ${author}`, value: author });
   });
-  
-  localFilters.value.customTags.forEach(tag => {
-    summary.push({ key: 'customTags', label: `Tag: ${tag}`, value: tag });
+
+  localFilters.value.customTags.forEach((tag) => {
+    summary.push({ key: "customTags", label: `Tag: ${tag}`, value: tag });
   });
-  
+
   if (localFilters.value.isFavorite) {
-    summary.push({ key: 'isFavorite', label: 'Favorites', value: null });
+    summary.push({ key: "isFavorite", label: "Favorites", value: null });
   }
-  
+
   return summary;
 });
 
@@ -357,9 +417,12 @@ const toggleReadStatus = (status) => {
 };
 
 const addAuthorFilter = () => {
-  if (selectedAuthor.value && !localFilters.value.authors.includes(selectedAuthor.value)) {
+  if (
+    selectedAuthor.value &&
+    !localFilters.value.authors.includes(selectedAuthor.value)
+  ) {
     localFilters.value.authors.push(selectedAuthor.value);
-    selectedAuthor.value = '';
+    selectedAuthor.value = "";
     updateFilters();
   }
 };
@@ -389,9 +452,9 @@ const removeFilter = (key, value) => {
       localFilters.value[key].splice(index, 1);
     }
   } else {
-    if (key === 'search') {
-      localFilters.value.search = '';
-    } else if (key === 'isFavorite') {
+    if (key === "search") {
+      localFilters.value.search = "";
+    } else if (key === "isFavorite") {
       localFilters.value.isFavorite = null;
     }
   }
@@ -399,9 +462,13 @@ const removeFilter = (key, value) => {
 };
 
 // Watch for external filter changes
-watch(() => libraryStore.filters, (newFilters) => {
-  localFilters.value = { ...newFilters };
-}, { deep: true });
+watch(
+  () => libraryStore.filters,
+  (newFilters) => {
+    localFilters.value = { ...newFilters };
+  },
+  { deep: true },
+);
 </script>
 
 <style scoped>

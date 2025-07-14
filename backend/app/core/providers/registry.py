@@ -156,7 +156,9 @@ class ProviderRegistry:
             if community_dir.exists():
                 community_files = list(community_dir.glob("*.json"))
                 if community_files:
-                    logger.info(f"Found {len(community_files)} community provider files")
+                    logger.info(
+                        f"Found {len(community_files)} community provider files"
+                    )
                     # Add community files to the list
                     for community_file in sorted(community_files):
                         config_files.append(f"community/{community_file.name}")

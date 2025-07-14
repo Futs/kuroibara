@@ -1,6 +1,7 @@
 # Models package
 
 from app.models.base import BaseModel
+from app.models.external_integration import ExternalIntegration, ExternalMangaMapping
 from app.models.library import (
     Bookmark,
     LibraryCategory,
@@ -18,7 +19,6 @@ from app.models.organization import (
 from app.models.provider import ProviderStatus
 from app.models.user import User
 from app.models.user_provider_preference import UserProviderPreference
-from app.models.external_integration import ExternalIntegration, ExternalMangaMapping
 
 __all__ = [
     "BaseModel",

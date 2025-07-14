@@ -16,18 +16,18 @@ class BackgroundProcessor {
    * Initialize worker pool
    */
   async initializeWorkers() {
-    const workerTypes = ['metadata', 'image', 'duplicate', 'statistics'];
-    
+    const workerTypes = ["metadata", "image", "duplicate", "statistics"];
+
     for (const type of workerTypes) {
       try {
         const worker = new Worker(
           new URL(`./workers/${type}Worker.js`, import.meta.url),
-          { type: 'module' }
+          { type: "module" },
         );
-        
+
         worker.onmessage = (event) => this.handleWorkerMessage(type, event);
         worker.onerror = (error) => this.handleWorkerError(type, error);
-        
+
         this.workers.set(type, worker);
       } catch (error) {
         console.warn(`Failed to initialize ${type} worker:`, error);
@@ -41,18 +41,18 @@ class BackgroundProcessor {
   handleWorkerMessage(workerType, event) {
     const { jobId, type, data, error } = event.data;
     const job = this.activeJobs.get(jobId);
-    
+
     if (!job) return;
-    
+
     switch (type) {
-      case 'progress':
+      case "progress":
         job.onProgress?.(data);
         break;
-      case 'complete':
+      case "complete":
         job.resolve(data);
         this.activeJobs.delete(jobId);
         break;
-      case 'error':
+      case "error":
         job.reject(new Error(error));
         this.activeJobs.delete(jobId);
         break;
@@ -64,7 +64,7 @@ class BackgroundProcessor {
    */
   handleWorkerError(workerType, error) {
     console.error(`Worker ${workerType} error:`, error);
-    
+
     // Find and reject all jobs for this worker
     for (const [jobId, job] of this.activeJobs.entries()) {
       if (job.workerType === workerType) {
@@ -81,12 +81,12 @@ class BackgroundProcessor {
     return new Promise((resolve, reject) => {
       const jobId = ++this.jobId;
       const worker = this.workers.get(workerType);
-      
+
       if (!worker) {
         reject(new Error(`Worker ${workerType} not available`));
         return;
       }
-      
+
       const job = {
         jobId,
         workerType,
@@ -96,25 +96,25 @@ class BackgroundProcessor {
         resolve,
         reject,
         onProgress: options.onProgress,
-        createdAt: Date.now()
+        createdAt: Date.now(),
       };
-      
+
       this.activeJobs.set(jobId, job);
-      
+
       // Send job to worker
       worker.postMessage({
         jobId,
         task,
         data,
-        options
+        options,
       });
-      
+
       // Set timeout if specified
       if (options.timeout) {
         setTimeout(() => {
           if (this.activeJobs.has(jobId)) {
             this.activeJobs.delete(jobId);
-            reject(new Error('Job timeout'));
+            reject(new Error("Job timeout"));
           }
         }, options.timeout);
       }
@@ -125,9 +125,9 @@ class BackgroundProcessor {
    * Process metadata updates in background
    */
   async processMetadataUpdates(mangaList, options = {}) {
-    return this.submitJob('metadata', 'updateMetadata', mangaList, {
+    return this.submitJob("metadata", "updateMetadata", mangaList, {
       ...options,
-      batchSize: options.batchSize || 10
+      batchSize: options.batchSize || 10,
     });
   }
 
@@ -135,10 +135,10 @@ class BackgroundProcessor {
    * Process image optimization in background
    */
   async processImageOptimization(imageUrls, options = {}) {
-    return this.submitJob('image', 'optimizeImages', imageUrls, {
+    return this.submitJob("image", "optimizeImages", imageUrls, {
       ...options,
-      quality: options.quality || 'medium',
-      format: options.format || 'webp'
+      quality: options.quality || "medium",
+      format: options.format || "webp",
     });
   }
 
@@ -146,10 +146,10 @@ class BackgroundProcessor {
    * Detect duplicates in background
    */
   async detectDuplicates(mangaList, options = {}) {
-    return this.submitJob('duplicate', 'detectDuplicates', mangaList, {
+    return this.submitJob("duplicate", "detectDuplicates", mangaList, {
       ...options,
       threshold: options.threshold || 0.8,
-      algorithm: options.algorithm || 'similarity'
+      algorithm: options.algorithm || "similarity",
     });
   }
 
@@ -157,11 +157,11 @@ class BackgroundProcessor {
    * Calculate statistics in background
    */
   async calculateStatistics(mangaList, options = {}) {
-    return this.submitJob('statistics', 'calculateStats', mangaList, {
+    return this.submitJob("statistics", "calculateStats", mangaList, {
       ...options,
       includeGenres: options.includeGenres !== false,
       includeAuthors: options.includeAuthors !== false,
-      includeReadingTime: options.includeReadingTime !== false
+      includeReadingTime: options.includeReadingTime !== false,
     });
   }
 
@@ -176,7 +176,7 @@ class BackgroundProcessor {
         workerType: job.workerType,
         task: job.task,
         createdAt: job.createdAt,
-        duration: Date.now() - job.createdAt
+        duration: Date.now() - job.createdAt,
       });
     }
     return jobs;
@@ -188,15 +188,15 @@ class BackgroundProcessor {
   cancelJob(jobId) {
     const job = this.activeJobs.get(jobId);
     if (job) {
-      job.reject(new Error('Job cancelled'));
+      job.reject(new Error("Job cancelled"));
       this.activeJobs.delete(jobId);
-      
+
       // Send cancel message to worker
       const worker = this.workers.get(job.workerType);
       if (worker) {
         worker.postMessage({
           jobId,
-          task: 'cancel'
+          task: "cancel",
         });
       }
     }
@@ -216,11 +216,11 @@ class BackgroundProcessor {
    */
   terminate() {
     this.cancelAllJobs();
-    
+
     for (const worker of this.workers.values()) {
       worker.terminate();
     }
-    
+
     this.workers.clear();
   }
 }
@@ -229,8 +229,8 @@ class BackgroundProcessor {
 const backgroundProcessor = new BackgroundProcessor();
 
 // Initialize workers when module loads
-backgroundProcessor.initializeWorkers().catch(error => {
-  console.warn('Failed to initialize background workers:', error);
+backgroundProcessor.initializeWorkers().catch((error) => {
+  console.warn("Failed to initialize background workers:", error);
 });
 
 export default backgroundProcessor;
@@ -240,25 +240,25 @@ export const background = {
   /**
    * Process metadata updates
    */
-  updateMetadata: (mangaList, options) => 
+  updateMetadata: (mangaList, options) =>
     backgroundProcessor.processMetadataUpdates(mangaList, options),
 
   /**
    * Optimize images
    */
-  optimizeImages: (imageUrls, options) => 
+  optimizeImages: (imageUrls, options) =>
     backgroundProcessor.processImageOptimization(imageUrls, options),
 
   /**
    * Detect duplicates
    */
-  detectDuplicates: (mangaList, options) => 
+  detectDuplicates: (mangaList, options) =>
     backgroundProcessor.detectDuplicates(mangaList, options),
 
   /**
    * Calculate statistics
    */
-  calculateStats: (mangaList, options) => 
+  calculateStats: (mangaList, options) =>
     backgroundProcessor.calculateStatistics(mangaList, options),
 
   /**
@@ -274,10 +274,10 @@ export const background = {
   /**
    * Cancel all jobs
    */
-  cancelAll: () => backgroundProcessor.cancelAllJobs()
+  cancelAll: () => backgroundProcessor.cancelAllJobs(),
 };
 
 // Cleanup on page unload
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
   backgroundProcessor.terminate();
 });

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,8 +20,6 @@ class ProviderStatusBase(BaseModel):
 
 class ProviderStatusCreate(ProviderStatusBase):
     """Provider status creation schema."""
-
-    pass
 
 
 class ProviderStatusUpdate(BaseModel):

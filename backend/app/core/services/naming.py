@@ -8,8 +8,7 @@ following the *arr suite conventions (Sonarr, Radarr, etc.).
 import logging
 import re
 import unicodedata
-from typing import Any, Dict, Optional, Tuple
-from uuid import UUID
+from typing import Dict, Optional, Tuple
 
 from app.models.manga import Chapter, Manga
 
@@ -45,7 +44,6 @@ class NamingFormatEngine:
 
     def __init__(self):
         """Initialize the naming format engine."""
-        pass
 
     def sanitize_filename(self, filename: str) -> str:
         """

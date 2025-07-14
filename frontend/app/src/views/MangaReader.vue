@@ -6,17 +6,22 @@
       :class="[
         getToolbarClasses(),
         {
-          '-translate-y-full': !showControls && currentUILayout.toolbar.position === 'top',
-          'translate-y-full': !showControls && currentUILayout.toolbar.position === 'bottom',
-          '-translate-x-full': !showControls && currentUILayout.toolbar.position === 'left',
-          'translate-x-full': !showControls && currentUILayout.toolbar.position === 'right',
-          'opacity-0 pointer-events-none': !showControls && currentUILayout.toolbar.position === 'hidden'
-        }
+          '-translate-y-full':
+            !showControls && currentUILayout.toolbar.position === 'top',
+          'translate-y-full':
+            !showControls && currentUILayout.toolbar.position === 'bottom',
+          '-translate-x-full':
+            !showControls && currentUILayout.toolbar.position === 'left',
+          'translate-x-full':
+            !showControls && currentUILayout.toolbar.position === 'right',
+          'opacity-0 pointer-events-none':
+            !showControls && currentUILayout.toolbar.position === 'hidden',
+        },
       ]"
       :style="{
         backgroundColor: currentTheme.ui.toolbarBg,
         boxShadow: currentTheme.ui.shadow,
-        opacity: displayOptions.uiOpacity
+        opacity: displayOptions.uiOpacity,
       }"
     >
       <div
@@ -525,10 +530,16 @@
                       min="1"
                       max="10"
                       :value="settings.preloadDistance"
-                      @input="updateSettings({ preloadDistance: parseInt($event.target.value) })"
+                      @input="
+                        updateSettings({
+                          preloadDistance: parseInt($event.target.value),
+                        })
+                      "
                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                     />
-                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <div
+                      class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1"
+                    >
                       <span>1</span>
                       <span>5</span>
                       <span>10</span>
@@ -557,7 +568,10 @@
                     >
                       <div
                         class="w-4 h-4 rounded-full mr-2"
-                        :style="{ backgroundColor: theme.colors.background, border: `2px solid ${theme.colors.primary}` }"
+                        :style="{
+                          backgroundColor: theme.colors.background,
+                          border: `2px solid ${theme.colors.primary}`,
+                        }"
                       ></div>
                       {{ theme.name }}
                     </button>
@@ -573,39 +587,68 @@
                   </label>
                   <div class="space-y-3">
                     <div>
-                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Page Margin: {{ displayOptions.pageMargin }}px</label>
+                      <label
+                        class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
+                        >Page Margin: {{ displayOptions.pageMargin }}px</label
+                      >
                       <input
                         type="range"
                         min="0"
                         max="50"
                         :value="displayOptions.pageMargin"
-                        @input="updateDisplayOptions({ pageMargin: parseInt($event.target.value) })"
+                        @input="
+                          updateDisplayOptions({
+                            pageMargin: parseInt($event.target.value),
+                          })
+                        "
                         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                       />
                     </div>
 
                     <div>
-                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Border Radius: {{ displayOptions.borderRadius }}px</label>
+                      <label
+                        class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
+                        >Border Radius:
+                        {{ displayOptions.borderRadius }}px</label
+                      >
                       <input
                         type="range"
                         min="0"
                         max="20"
                         :value="displayOptions.borderRadius"
-                        @input="updateDisplayOptions({ borderRadius: parseInt($event.target.value) })"
+                        @input="
+                          updateDisplayOptions({
+                            borderRadius: parseInt($event.target.value),
+                          })
+                        "
                         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                       />
                     </div>
 
                     <div class="flex items-center justify-between">
-                      <label class="text-sm text-gray-600 dark:text-gray-400">Show Shadows</label>
+                      <label class="text-sm text-gray-600 dark:text-gray-400"
+                        >Show Shadows</label
+                      >
                       <button
-                        @click="updateDisplayOptions({ showShadows: !displayOptions.showShadows })"
+                        @click="
+                          updateDisplayOptions({
+                            showShadows: !displayOptions.showShadows,
+                          })
+                        "
                         class="relative inline-flex flex-shrink-0 h-5 w-9 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200"
-                        :class="displayOptions.showShadows ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600'"
+                        :class="
+                          displayOptions.showShadows
+                            ? 'bg-primary-600'
+                            : 'bg-gray-200 dark:bg-gray-600'
+                        "
                       >
                         <span
                           class="pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
-                          :class="displayOptions.showShadows ? 'translate-x-4' : 'translate-x-0'"
+                          :class="
+                            displayOptions.showShadows
+                              ? 'translate-x-4'
+                              : 'translate-x-0'
+                          "
                         ></span>
                       </button>
                     </div>
@@ -638,7 +681,9 @@
                         class="ml-3 block text-sm text-gray-700 dark:text-gray-200"
                       >
                         <div class="font-medium">{{ layout.name }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ layout.description }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                          {{ layout.description }}
+                        </div>
                       </label>
                     </div>
                   </div>
@@ -685,7 +730,9 @@
 
               <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Navigation</h4>
+                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
+                    Navigation
+                  </h4>
                   <div class="space-y-1 text-gray-600 dark:text-gray-300">
                     <div class="flex justify-between">
                       <span>← →</span>
@@ -703,7 +750,9 @@
                 </div>
 
                 <div>
-                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Reading Modes</h4>
+                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
+                    Reading Modes
+                  </h4>
                   <div class="space-y-1 text-gray-600 dark:text-gray-300">
                     <div class="flex justify-between">
                       <span>1</span>
@@ -725,7 +774,9 @@
                 </div>
 
                 <div>
-                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Fit Modes</h4>
+                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
+                    Fit Modes
+                  </h4>
                   <div class="space-y-1 text-gray-600 dark:text-gray-300">
                     <div class="flex justify-between">
                       <span>Q</span>
@@ -747,7 +798,9 @@
                 </div>
 
                 <div>
-                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Controls</h4>
+                  <h4 class="font-semibold text-gray-900 dark:text-white mb-2">
+                    Controls
+                  </h4>
                   <div class="space-y-1 text-gray-600 dark:text-gray-300">
                     <div class="flex justify-between">
                       <span>S</span>
@@ -874,7 +927,10 @@
               </h3>
 
               <div class="mt-4 max-h-96 overflow-y-auto">
-                <div v-if="bookmarks.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div
+                  v-if="bookmarks.length === 0"
+                  class="text-center py-8 text-gray-500 dark:text-gray-400"
+                >
                   No bookmarks yet. Press 'M' to bookmark the current page.
                 </div>
 
@@ -892,10 +948,15 @@
                       <div class="text-sm text-gray-600 dark:text-gray-300">
                         {{ bookmark.chapterTitle }} - Page {{ bookmark.page }}
                       </div>
-                      <div v-if="bookmark.note" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <div
+                        v-if="bookmark.note"
+                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                      >
                         {{ bookmark.note }}
                       </div>
-                      <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      <div
+                        class="text-xs text-gray-400 dark:text-gray-500 mt-1"
+                      >
                         {{ formatBookmarkDate(bookmark.createdAt) }}
                       </div>
                     </div>
@@ -904,8 +965,16 @@
                       @click.stop="removeBookmark(bookmark.id)"
                       class="ml-3 p-1 text-red-500 hover:text-red-700"
                     >
-                      <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      <svg
+                        class="h-4 w-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -938,15 +1007,23 @@
           <div class="text-2xl mr-3">🏆</div>
           <div class="flex-1">
             <div class="font-bold">Achievement Unlocked!</div>
-            <div class="text-sm opacity-90">{{ notification.achievement.title }}</div>
-            <div class="text-xs opacity-75 mt-1">{{ notification.achievement.description }}</div>
+            <div class="text-sm opacity-90">
+              {{ notification.achievement.title }}
+            </div>
+            <div class="text-xs opacity-75 mt-1">
+              {{ notification.achievement.description }}
+            </div>
           </div>
           <button
             @click="dismissNotification(notification.id)"
             class="ml-2 text-white hover:text-gray-200"
           >
             <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              <path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -958,7 +1035,7 @@
       class="reader-content min-h-screen flex items-center justify-center transition-colors duration-300"
       :style="{
         backgroundColor: currentTheme.colors.background,
-        padding: `${displayOptions.pageMargin}px`
+        padding: `${displayOptions.pageMargin}px`,
       }"
       @click="handleContentClick"
       @mousemove="handleMouseMove"
@@ -1060,7 +1137,10 @@
           'reader-fit-both': settings.fitMode === 'both',
         }"
       >
-        <div class="flex gap-1" :class="{ 'flex-row-reverse': settings.readingDirection === 'rtl' }">
+        <div
+          class="flex gap-1"
+          :class="{ 'flex-row-reverse': settings.readingDirection === 'rtl' }"
+        >
           <img
             v-for="(page, index) in currentPagePair"
             :key="page.id || index"
@@ -1068,8 +1148,10 @@
             :alt="`Page ${page.number || currentPage + index}`"
             class="reader-page"
             :class="{
-              'max-w-[50vw]': settings.fitMode === 'width' || settings.fitMode === 'both',
-              'max-h-screen': settings.fitMode === 'height' || settings.fitMode === 'both',
+              'max-w-[50vw]':
+                settings.fitMode === 'width' || settings.fitMode === 'both',
+              'max-h-screen':
+                settings.fitMode === 'height' || settings.fitMode === 'both',
               'w-auto h-auto': settings.fitMode === 'original',
             }"
           />
@@ -1103,7 +1185,8 @@
             :id="`list-page-${index + 1}`"
             class="reader-page list-page"
             :class="{
-              'max-w-full': settings.fitMode === 'width' || settings.fitMode === 'both',
+              'max-w-full':
+                settings.fitMode === 'width' || settings.fitMode === 'both',
               'w-auto h-auto': settings.fitMode === 'original',
             }"
             @load="handleImageLoad(index + 1)"
@@ -1150,7 +1233,9 @@
         </div>
 
         <!-- Adaptive mode indicator -->
-        <div class="fixed top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
+        <div
+          class="fixed top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm"
+        >
           Analyzing content...
         </div>
       </div>

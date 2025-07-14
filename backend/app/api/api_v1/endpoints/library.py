@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import uuid
 from typing import Any, Dict, List, Optional
@@ -7,10 +6,8 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
-    File,
     HTTPException,
     Query,
-    UploadFile,
     status,
 )
 from sqlalchemy import insert, select
@@ -31,7 +28,6 @@ from app.models.user import User
 from app.schemas.library import Bookmark as BookmarkSchema
 from app.schemas.library import (
     BookmarkCreate,
-    BookmarkUpdate,
 )
 from app.schemas.library import MangaUserLibrary as MangaUserLibrarySchema
 from app.schemas.library import (
@@ -41,7 +37,6 @@ from app.schemas.library import (
 from app.schemas.library import ReadingProgress as ReadingProgressSchema
 from app.schemas.library import (
     ReadingProgressCreate,
-    ReadingProgressUpdate,
 )
 
 logger = logging.getLogger(__name__)

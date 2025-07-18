@@ -49,24 +49,59 @@ export const useReaderStore = defineStore("reader", {
 
       // Theme and customization settings
       theme: localStorage.getItem("readerTheme") || "dark",
-      customTheme: JSON.parse(localStorage.getItem("customTheme")) || null,
+      customTheme: (() => {
+        try {
+          const stored = localStorage.getItem("customTheme");
+          return stored ? JSON.parse(stored) : null;
+        } catch {
+          return null;
+        }
+      })(),
       uiLayout: localStorage.getItem("uiLayout") || "default",
-      typography: JSON.parse(localStorage.getItem("typography")) || {
-        fontFamily: "system-ui",
-        fontSize: "16px",
-        lineHeight: "1.6",
-        letterSpacing: "0px",
-        textColor: "#ffffff",
-      },
-      displayOptions: JSON.parse(localStorage.getItem("displayOptions")) || {
-        pageMargin: 20,
-        pagePadding: 10,
-        borderRadius: 8,
-        showShadows: true,
-        transitionDuration: 300,
-        backgroundColor: "#1a1a1a",
-        uiOpacity: 0.9,
-      },
+      typography: (() => {
+        try {
+          const stored = localStorage.getItem("typography");
+          return stored ? JSON.parse(stored) : {
+            fontFamily: "system-ui",
+            fontSize: "16px",
+            lineHeight: "1.6",
+            letterSpacing: "0px",
+            textColor: "#ffffff",
+          };
+        } catch {
+          return {
+            fontFamily: "system-ui",
+            fontSize: "16px",
+            lineHeight: "1.6",
+            letterSpacing: "0px",
+            textColor: "#ffffff",
+          };
+        }
+      })(),
+      displayOptions: (() => {
+        try {
+          const stored = localStorage.getItem("displayOptions");
+          return stored ? JSON.parse(stored) : {
+            pageMargin: 20,
+            pagePadding: 10,
+            borderRadius: 8,
+            showShadows: true,
+            transitionDuration: 300,
+            backgroundColor: "#1a1a1a",
+            uiOpacity: 0.9,
+          };
+        } catch {
+          return {
+            pageMargin: 20,
+            pagePadding: 10,
+            borderRadius: 8,
+            showShadows: true,
+            transitionDuration: 300,
+            backgroundColor: "#1a1a1a",
+            uiOpacity: 0.9,
+          };
+        }
+      })(),
     },
   }),
 
@@ -250,6 +285,19 @@ export const useReaderStore = defineStore("reader", {
         (c) => c.id === state.chapter.id,
       );
       return currentIndex > 0;
+    },
+
+    // Theme and UI getters
+    getCurrentTheme: (state) => {
+      if (state.settings.customTheme) {
+        return state.settings.customTheme;
+      }
+      return state.themes[state.settings.theme] || state.themes.dark;
+    },
+    getDisplayOptions: (state) => state.settings.displayOptions,
+    getCurrentUILayout: (state) => {
+      const layout = state.settings.uiLayout;
+      return state.uiLayouts[layout] || state.uiLayouts.default;
     },
   },
 

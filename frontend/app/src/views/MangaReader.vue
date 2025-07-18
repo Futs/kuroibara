@@ -1311,6 +1311,19 @@ const settings = computed(() => readerStore.getSettings);
 const loading = computed(() => readerStore.loading);
 const error = computed(() => readerStore.error);
 
+// Theme and UI
+const currentTheme = computed(() => readerStore.getCurrentTheme || {
+  ui: {
+    toolbarBg: '#1f2937',
+    shadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    background: '#111827',
+    text: '#f9fafb'
+  }
+});
+const displayOptions = computed(() => readerStore.getDisplayOptions || {
+  uiOpacity: 0.9
+});
+
 // Computed values
 const totalPages = computed(() => readerStore.getTotalPages);
 const hasNextPage = computed(() => readerStore.hasNextPage);

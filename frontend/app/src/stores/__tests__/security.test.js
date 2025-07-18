@@ -14,6 +14,9 @@ vi.mock("../../services/api", () => ({
 import { useSecurityStore, ROLES, CONTENT_RATINGS } from "../security";
 import api from "../../services/api";
 
+// Create a reference to the mocked API
+const mockApi = api;
+
 describe("Security Store", () => {
   let securityStore;
 

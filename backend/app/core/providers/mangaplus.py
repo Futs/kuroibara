@@ -1,8 +1,5 @@
-import json
 import logging
-import os
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urlencode
+from typing import Any, Dict, List, Tuple
 
 import httpx
 
@@ -252,6 +249,14 @@ class MangaPlusProvider(BaseProvider):
                         # Get chapter number
                         chapter_number = chapter.get("number", "")
 
+                        # Get dates from MangaPlus API (if available)
+                        publish_at = chapter.get("publishAt") or chapter.get(
+                            "startTimeStamp"
+                        )
+                        readable_at = chapter.get("readableAt") or chapter.get(
+                            "endTimeStamp"
+                        )
+
                         # Create chapter
                         chapters.append(
                             {
@@ -262,6 +267,9 @@ class MangaPlusProvider(BaseProvider):
                                 "language": "en",
                                 "pages_count": 0,  # We don't know the page count yet
                                 "manga_id": manga_id,
+                                "publish_at": publish_at,
+                                "readable_at": readable_at,
+                                "source": "MangaPlus",
                             }
                         )
 

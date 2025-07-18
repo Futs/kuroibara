@@ -5,7 +5,7 @@ API endpoints for backup and restore operations.
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import (
     APIRouter,
@@ -298,7 +298,7 @@ async def check_for_orphaned_storage(
                 if orphaned_manga
                 else "No orphaned files found"
             ),
-            "recovery_url": "/recovery" if orphaned_manga else None,
+            "recovery_url": "/settings?tab=backup" if orphaned_manga else None,
         }
 
     except Exception as e:

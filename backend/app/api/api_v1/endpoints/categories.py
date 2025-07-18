@@ -2,7 +2,7 @@ import uuid
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
@@ -30,7 +30,7 @@ async def read_categories(
     # Get default categories and user's categories
     result = await db.execute(
         select(Category)
-        .where((Category.is_default is True) | (Category.user_id == current_user.id))
+        .where(or_(Category.is_default.is_(True), Category.user_id == current_user.id))
         .offset(skip)
         .limit(limit)
     )

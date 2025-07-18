@@ -2,11 +2,9 @@
 Enhanced Generic Provider with Cloudflare bypass support.
 """
 
-import asyncio
-import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 import httpx
 from bs4 import BeautifulSoup

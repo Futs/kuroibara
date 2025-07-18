@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_active_superuser, get_current_user, get_db
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.models.user import User
 from app.schemas.user import User as UserSchema
 from app.schemas.user import (
@@ -37,6 +37,13 @@ async def update_current_user(
     """
     Update current user.
     """
+    # Verify current password
+    if not verify_password(user_update.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
     # Check if username is being updated and if it's already taken
     if user_update.username and user_update.username != current_user.username:
         result = await db.execute(
@@ -58,7 +65,9 @@ async def update_current_user(
             )
 
     # Update user fields
-    update_data = user_update.model_dump(exclude_unset=True)
+    update_data = user_update.model_dump(
+        exclude_unset=True, exclude={"current_password"}
+    )
 
     # Hash password if it's being updated
     if "password" in update_data:
@@ -120,6 +129,17 @@ async def get_user_settings(
         nsfw_blur=current_user.nsfw_blur,
         download_quality=current_user.download_quality,
         download_path=current_user.download_path,
+        naming_format_manga=current_user.naming_format_manga,
+        naming_format_chapter=current_user.naming_format_chapter,
+        auto_organize_imports=current_user.auto_organize_imports,
+        create_cbz_files=current_user.create_cbz_files,
+        preserve_original_files=current_user.preserve_original_files,
+        chapter_auto_refresh_interval=current_user.chapter_auto_refresh_interval,
+        chapter_check_on_tab_focus=current_user.chapter_check_on_tab_focus,
+        chapter_show_update_notifications=current_user.chapter_show_update_notifications,
+        chapter_enable_manual_refresh=current_user.chapter_enable_manual_refresh,
+        storage_type=current_user.storage_type,
+        max_upload_size=current_user.max_upload_size,
     )
 
 
@@ -147,4 +167,15 @@ async def update_user_settings(
         nsfw_blur=current_user.nsfw_blur,
         download_quality=current_user.download_quality,
         download_path=current_user.download_path,
+        naming_format_manga=current_user.naming_format_manga,
+        naming_format_chapter=current_user.naming_format_chapter,
+        auto_organize_imports=current_user.auto_organize_imports,
+        create_cbz_files=current_user.create_cbz_files,
+        preserve_original_files=current_user.preserve_original_files,
+        chapter_auto_refresh_interval=current_user.chapter_auto_refresh_interval,
+        chapter_check_on_tab_focus=current_user.chapter_check_on_tab_focus,
+        chapter_show_update_notifications=current_user.chapter_show_update_notifications,
+        chapter_enable_manual_refresh=current_user.chapter_enable_manual_refresh,
+        storage_type=current_user.storage_type,
+        max_upload_size=current_user.max_upload_size,
     )

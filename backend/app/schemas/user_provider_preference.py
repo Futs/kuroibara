@@ -20,8 +20,6 @@ class UserProviderPreferenceBase(BaseModel):
 class UserProviderPreferenceCreate(UserProviderPreferenceBase):
     """User provider preference creation schema."""
 
-    pass
-
 
 class UserProviderPreferenceUpdate(BaseModel):
     """User provider preference update schema."""

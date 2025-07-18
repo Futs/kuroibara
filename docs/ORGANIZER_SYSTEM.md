@@ -331,7 +331,7 @@ The storage recovery system helps recover manga when the database is lost but st
 
 #### Frontend Recovery Interface
 
-Access via: **User Menu → Storage Recovery**
+Access via: **Settings → Backup & Recovery → Storage Recovery**
 
 The recovery interface provides:
 - **Storage Scanning**: One-click scan for recoverable manga

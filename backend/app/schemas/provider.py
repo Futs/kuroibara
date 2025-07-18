@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,8 +20,6 @@ class ProviderStatusBase(BaseModel):
 
 class ProviderStatusCreate(ProviderStatusBase):
     """Provider status creation schema."""
-
-    pass
 
 
 class ProviderStatusUpdate(BaseModel):
@@ -57,6 +55,7 @@ class ProviderInfo(BaseModel):
     name: str
     url: str
     supports_nsfw: bool
+    requires_flaresolverr: bool = False
     status: str = ProviderStatusEnum.UNKNOWN.value
     is_enabled: bool = True
     last_check: Optional[datetime] = None

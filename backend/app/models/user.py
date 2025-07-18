@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from sqlalchemy import Boolean, Column, Integer, String, Text
 from sqlalchemy.orm import relationship
 
@@ -62,6 +60,26 @@ class User(BaseModel):
         Boolean, default=False, nullable=False
     )  # Keep original files after organization
 
+    # Chapter update settings
+    chapter_auto_refresh_interval = Column(
+        Integer, default=300, nullable=False
+    )  # Auto-refresh interval in seconds (5 minutes default)
+    chapter_check_on_tab_focus = Column(
+        Boolean, default=True, nullable=False
+    )  # Check for updates when tab becomes active
+    chapter_show_update_notifications = Column(
+        Boolean, default=True, nullable=False
+    )  # Show notifications when new chapters are found
+    chapter_enable_manual_refresh = Column(
+        Boolean, default=True, nullable=False
+    )  # Enable manual refresh button
+    storage_type = Column(
+        String(20), default="local", nullable=False
+    )  # Storage type (local, s3, etc.)
+    max_upload_size = Column(
+        String(10), default="100MB", nullable=False
+    )  # Maximum upload size
+
     # Relationships
     manga_items = relationship(
         "MangaUserLibrary", back_populates="user", cascade="all, delete-orphan"
@@ -80,4 +98,7 @@ class User(BaseModel):
     )
     provider_preferences = relationship(
         "UserProviderPreference", back_populates="user", cascade="all, delete-orphan"
+    )
+    external_integrations = relationship(
+        "ExternalIntegration", back_populates="user", cascade="all, delete-orphan"
     )

@@ -1,4 +1,4 @@
-import asyncio
+import logging
 import uuid
 from typing import Any, Dict, List, Optional
 
@@ -6,10 +6,8 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
-    File,
     HTTPException,
     Query,
-    UploadFile,
     status,
 )
 from sqlalchemy import insert, select
@@ -30,28 +28,30 @@ from app.models.user import User
 from app.schemas.library import Bookmark as BookmarkSchema
 from app.schemas.library import (
     BookmarkCreate,
-    BookmarkUpdate,
 )
 from app.schemas.library import MangaUserLibrary as MangaUserLibrarySchema
 from app.schemas.library import (
     MangaUserLibraryCreate,
+    MangaUserLibrarySummary,
     MangaUserLibraryUpdate,
 )
 from app.schemas.library import ReadingProgress as ReadingProgressSchema
 from app.schemas.library import (
     ReadingProgressCreate,
-    ReadingProgressUpdate,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@router.get("", response_model=List[MangaUserLibrarySchema])
+@router.get("", response_model=List[MangaUserLibrarySummary])
 async def read_library(
     skip: int = 0,
     limit: int = 100,
     category_id: Optional[str] = None,
     is_favorite: Optional[bool] = None,
+    manga_id: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
@@ -79,6 +79,10 @@ async def read_library(
     if is_favorite is not None:
         query = query.where(MangaUserLibrary.is_favorite == is_favorite)
 
+    # Filter by manga_id
+    if manga_id:
+        query = query.where(MangaUserLibrary.manga_id == uuid.UUID(manga_id))
+
     # Apply pagination
     query = query.offset(skip).limit(limit)
 
@@ -86,6 +90,39 @@ async def read_library(
     library_items = result.scalars().all()
 
     return library_items
+
+
+@router.get("/check/{manga_id}", response_model=Dict[str, Any])
+async def check_library_status(
+    manga_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Check if a manga is in the user's library.
+    """
+    try:
+        # Check if manga exists in user's library
+        result = await db.execute(
+            select(MangaUserLibrary).where(
+                (MangaUserLibrary.user_id == current_user.id)
+                & (MangaUserLibrary.manga_id == uuid.UUID(manga_id))
+            )
+        )
+        library_item = result.scalars().first()
+
+        return {
+            "manga_id": manga_id,
+            "in_library": library_item is not None,
+            "library_item_id": str(library_item.id) if library_item else None,
+        }
+    except Exception:
+        # If there's any error (like invalid UUID), return not in library
+        return {
+            "manga_id": manga_id,
+            "in_library": False,
+            "library_item_id": None,
+        }
 
 
 @router.post("", response_model=MangaUserLibrarySchema)
@@ -202,6 +239,169 @@ async def read_library_item(
     return library_item
 
 
+@router.get("/{library_item_id}/detailed", response_model=Dict[str, Any])
+async def read_library_item_detailed(
+    library_item_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Get detailed library item information including chapters with download status.
+    """
+    # Get library item with all relationships
+    result = await db.execute(
+        select(MangaUserLibrary)
+        .options(
+            selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
+            selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
+            selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
+            selectinload(MangaUserLibrary.categories),
+        )
+        .where(MangaUserLibrary.id == uuid.UUID(library_item_id))
+    )
+    library_item = result.scalars().first()
+
+    if not library_item or library_item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Library item not found",
+        )
+
+    # Get reading progress for all chapters
+    progress_result = await db.execute(
+        select(ReadingProgress).where(
+            (ReadingProgress.user_id == current_user.id)
+            & (ReadingProgress.manga_id == library_item.manga_id)
+        )
+    )
+    progress_by_chapter = {
+        progress.chapter_id: progress for progress in progress_result.scalars().all()
+    }
+
+    # Enhance chapters with download and reading status
+    enhanced_chapters = []
+    for chapter in library_item.manga.chapters:
+        progress = progress_by_chapter.get(chapter.id)
+
+        # Determine download status
+        download_status = "not_downloaded"
+        if chapter.file_path:
+            import os
+
+            if os.path.exists(chapter.file_path):
+                download_status = "downloaded"
+            else:
+                download_status = "error"  # File path exists but file is missing
+
+        enhanced_chapters.append(
+            {
+                "id": str(chapter.id),
+                "title": chapter.title,
+                "number": chapter.number,
+                "volume": chapter.volume,
+                "language": chapter.language,
+                "pages_count": chapter.pages_count,
+                "file_path": chapter.file_path,
+                "file_size": chapter.file_size,
+                "source": chapter.source,
+                "created_at": chapter.created_at,
+                "updated_at": chapter.updated_at,
+                "download_status": download_status,
+                "reading_progress": (
+                    {
+                        "page": progress.page if progress else 1,
+                        "is_completed": progress.is_completed if progress else False,
+                    }
+                    if progress
+                    else None
+                ),
+            }
+        )
+
+    # Sort chapters by volume and number
+    enhanced_chapters.sort(
+        key=lambda x: (
+            (
+                float(x["volume"])
+                if x["volume"] and x["volume"].replace(".", "").isdigit()
+                else 0
+            ),
+            (
+                float(x["number"])
+                if x["number"] and x["number"].replace(".", "").isdigit()
+                else 0
+            ),
+        )
+    )
+
+    return {
+        "library_item": {
+            "id": str(library_item.id),
+            "user_id": str(library_item.user_id),
+            "manga_id": str(library_item.manga_id),
+            "custom_title": library_item.custom_title,
+            "custom_cover": library_item.custom_cover,
+            "notes": library_item.notes,
+            "is_favorite": library_item.is_favorite,
+            "rating": library_item.rating,
+            "is_downloaded": library_item.is_downloaded,
+            "download_path": library_item.download_path,
+            "created_at": library_item.created_at,
+            "updated_at": library_item.updated_at,
+            "manga": {
+                "id": str(library_item.manga.id),
+                "title": library_item.manga.title,
+                "alternative_titles": library_item.manga.alternative_titles,
+                "description": library_item.manga.description,
+                "cover_image": library_item.manga.cover_image,
+                "type": library_item.manga.type,
+                "status": library_item.manga.status,
+                "year": library_item.manga.year,
+                "is_nsfw": library_item.manga.is_nsfw,
+                "provider": library_item.manga.provider,
+                "external_id": library_item.manga.external_id,
+                "external_url": library_item.manga.external_url,
+                "external_ids": library_item.manga.external_ids,
+                "created_at": library_item.manga.created_at,
+                "updated_at": library_item.manga.updated_at,
+                "genres": [
+                    {"id": str(g.id), "name": g.name, "description": g.description}
+                    for g in library_item.manga.genres
+                ],
+                "authors": [
+                    {
+                        "id": str(a.id),
+                        "name": a.name,
+                        "alternative_names": a.alternative_names,
+                        "biography": a.biography,
+                    }
+                    for a in library_item.manga.authors
+                ],
+            },
+            "categories": [
+                {
+                    "id": str(c.id),
+                    "name": c.name,
+                    "description": c.description,
+                    "color": c.color,
+                    "icon": c.icon,
+                }
+                for c in library_item.categories
+            ],
+        },
+        "chapters": enhanced_chapters,
+        "download_summary": {
+            "total_chapters": len(enhanced_chapters),
+            "downloaded_chapters": len(
+                [c for c in enhanced_chapters if c["download_status"] == "downloaded"]
+            ),
+            "failed_chapters": len(
+                [c for c in enhanced_chapters if c["download_status"] == "error"]
+            ),
+        },
+    }
+
+
 @router.put("/{library_item_id}", response_model=MangaUserLibrarySchema)
 async def update_library_item(
     library_item_id: str,
@@ -271,9 +471,9 @@ async def remove_from_library(
 @router.post("/{library_item_id}/download", response_model=Dict[str, Any])
 async def download_manga(
     library_item_id: str,
-    provider: str,
-    external_id: str,
-    background_tasks: BackgroundTasks,
+    provider: str = Query(...),
+    external_id: str = Query(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
@@ -607,3 +807,152 @@ async def cancel_download_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Failed to cancel download task",
         )
+
+
+@router.post("/{library_item_id}/download-chapter", response_model=Dict[str, Any])
+async def download_chapter_endpoint(
+    library_item_id: str,
+    chapter_id: str,
+    provider: str,
+    external_manga_id: str,
+    external_chapter_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Download a specific chapter for a manga in the user's library.
+    """
+    # Get library item
+    library_item = await db.get(MangaUserLibrary, uuid.UUID(library_item_id))
+    if not library_item or library_item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Library item not found",
+        )
+
+    # Get chapter
+    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+    if not chapter or chapter.manga_id != library_item.manga_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chapter not found",
+        )
+
+    # Check if provider exists
+    from app.core.providers.registry import provider_registry
+
+    provider_instance = provider_registry.get_provider(provider)
+    if not provider_instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Provider '{provider}' not found",
+        )
+
+    try:
+        # Import download function
+        from app.core.services.download import download_chapter
+
+        # Create task ID
+        task_id = f"{current_user.id}_{library_item.manga_id}_{chapter_id}"
+
+        # Add download task to background tasks
+        background_tasks.add_task(
+            download_chapter,
+            manga_id=library_item.manga_id,
+            chapter_id=chapter.id,
+            provider_name=provider,
+            external_manga_id=external_manga_id,
+            external_chapter_id=external_chapter_id,
+            db=db,
+        )
+
+        # Return task information
+        return {
+            "task_id": task_id,
+            "manga_id": str(library_item.manga_id),
+            "chapter_id": str(chapter.id),
+            "user_id": str(current_user.id),
+            "provider": provider,
+            "status": "queued",
+            "message": "Chapter download task has been queued",
+        }
+
+    except Exception as e:
+        logger.error(f"Error starting chapter download: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to start chapter download",
+        )
+
+
+@router.get("/{library_item_id}/chapters/filter", response_model=Dict[str, Any])
+async def get_filtered_chapters(
+    library_item_id: str,
+    language: Optional[str] = Query(None),
+    volume: Optional[str] = Query(None),
+    downloaded_only: Optional[bool] = Query(False),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Get filtered chapters for a library item.
+    """
+    # Get library item
+    library_item = await db.get(MangaUserLibrary, uuid.UUID(library_item_id))
+    if not library_item or library_item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Library item not found",
+        )
+
+    # Build query
+    query = select(Chapter).where(Chapter.manga_id == library_item.manga_id)
+
+    if language:
+        query = query.where(Chapter.language == language)
+
+    if volume:
+        query = query.where(Chapter.volume == volume)
+
+    if downloaded_only:
+        query = query.where(Chapter.file_path.isnot(None))
+
+    # Execute query
+    result = await db.execute(query.order_by(Chapter.volume, Chapter.number))
+    chapters = result.scalars().all()
+
+    # Get available languages and volumes for filtering
+    all_chapters_result = await db.execute(
+        select(Chapter).where(Chapter.manga_id == library_item.manga_id)
+    )
+    all_chapters = all_chapters_result.scalars().all()
+
+    available_languages = list(set(c.language for c in all_chapters if c.language))
+    available_volumes = list(set(c.volume for c in all_chapters if c.volume))
+    available_volumes.sort(
+        key=lambda x: float(x) if x and x.replace(".", "").isdigit() else 0
+    )
+
+    return {
+        "chapters": [
+            {
+                "id": str(chapter.id),
+                "title": chapter.title,
+                "number": chapter.number,
+                "volume": chapter.volume,
+                "language": chapter.language,
+                "pages_count": chapter.pages_count,
+                "file_path": chapter.file_path,
+                "is_downloaded": bool(chapter.file_path),
+                "created_at": chapter.created_at,
+                "updated_at": chapter.updated_at,
+            }
+            for chapter in chapters
+        ],
+        "filters": {
+            "available_languages": available_languages,
+            "available_volumes": available_volumes,
+        },
+        "total": len(chapters),
+    }

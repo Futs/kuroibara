@@ -12,7 +12,7 @@ from uuid import uuid4
 import pytest
 
 from app.core.services.storage_recovery import StorageRecoveryService
-from app.models.manga import Manga, MangaStatus, MangaType
+from app.models.manga import Manga
 from app.models.user import User
 
 

@@ -269,28 +269,18 @@
     <!-- Add/Edit Reading List Modal -->
     <div
       v-if="showAddListModal || showEditListModal"
-      class="fixed z-10 inset-0 overflow-y-auto"
+      class="fixed z-50 inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
+      @click.self="closeModal"
+      style="background-color: rgba(0, 0, 0, 0.5)"
     >
-      <div
-        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-      >
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <!-- Modal Content -->
         <div
-          class="fixed inset-0 bg-gray-500 dark:bg-dark-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
-          aria-hidden="true"
-          @click="closeModal"
-        ></div>
-
-        <span
-          class="hidden sm:inline-block sm:align-middle sm:h-screen"
-          aria-hidden="true"
-          >&#8203;</span
-        >
-
-        <div
-          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+          class="bg-white dark:bg-dark-800 rounded-lg shadow-xl max-w-lg w-full p-6 relative z-10"
+          @click.stop
         >
           <div>
             <div class="mt-3 text-center sm:mt-5">
@@ -392,7 +382,7 @@
     <!-- Delete Confirmation Modal -->
     <div
       v-if="showDeleteModal"
-      class="fixed z-10 inset-0 overflow-y-auto"
+      class="fixed z-50 inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -524,11 +514,26 @@ const fetchReadingLists = async () => {
   error.value = null;
 
   try {
+    console.log("Fetching reading lists...");
     const response = await api.get("/v1/reading-lists");
+    console.log("Reading lists response:", response);
     readingLists.value = response.data;
+    console.log("Reading lists loaded:", readingLists.value.length);
   } catch (err) {
-    error.value = err.response?.data?.detail || "Failed to load reading lists";
     console.error("Error fetching reading lists:", err);
+    console.error("Error response:", err.response);
+    console.error("Error status:", err.response?.status);
+    console.error("Error data:", err.response?.data);
+
+    if (err.response?.status === 401) {
+      error.value = "Authentication required. Please log in again.";
+    } else if (err.response?.status === 403) {
+      error.value =
+        "Access denied. You don't have permission to view reading lists.";
+    } else {
+      error.value =
+        err.response?.data?.detail || "Failed to load reading lists";
+    }
   } finally {
     loading.value = false;
   }

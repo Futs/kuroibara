@@ -40,14 +40,51 @@ A modern, full-featured web application for manga, manhua, and manhwa enthusiast
 ## ✨ Key Features
 
 - **Multi-Provider Search**: Access 80+ manga providers including MangaDex, MangaPlus, TCBScans, and more
+- **Enhanced Filtering**: Multi-select genre filtering, status, type, year, content rating, and language filters
+- **Smart Discovery**: Find manga by combining multiple criteria (e.g., Action + Adventure + Ongoing)
 - **Cloudflare Bypass**: Optional FlareSolverr integration for accessing Cloudflare-protected providers
 - **Smart Library Management**: Personal library with automatic metadata and cover art
 - **Background Downloads**: Queue and download manga chapters with background processing
+- **Content Filtering**: Safe/NSFW content filtering with granular controls
 - **User Profiles**: Customizable profiles with external account linking (AniList, MyAnimeList)
 - **Provider Health Monitoring**: Real-time monitoring with automatic status updates
 - **2FA Authentication**: Secure user registration and login
 - **Dark/Light Theme**: Modern responsive design with system theme support and quick toggle
 - **Responsive Design**: Modern Vue.js interface with Tailwind CSS 4.0
+
+### 📖 Advanced Reading Experience
+
+- **Multiple Reading Modes**:
+  - **Single Page**: Traditional page-by-page reading
+  - **Double-Page Spread**: Side-by-side pages for manga spreads
+  - **List View**: Continuous scrolling for webtoons and long-strip content
+  - **Adaptive Mode**: Intelligent content detection that auto-selects optimal reading mode
+- **Advanced Image Handling**:
+  - Multiple fit modes (width, height, both, original size)
+  - Quality settings for different network conditions (high/medium/low)
+  - Smart image preloading (configurable 1-10 pages ahead)
+  - Memory management with automatic cleanup
+- **Comprehensive Keyboard Shortcuts**: Full keyboard navigation and control
+- **Reading Direction Support**: RTL/LTR with proper double-page handling
+
+### 📊 Reading Progress & Analytics
+
+- **Reading Statistics**: Track time spent, pages read, and reading sessions
+- **Smart Bookmarking**: Bookmark specific pages with notes and quick access
+- **Resume Reading**: Intelligent resume from last position across sessions
+- **Reading Streaks**: Track consecutive reading days with achievement system
+- **Achievement System**: Unlock achievements for reading milestones and goals
+- **Analytics Dashboard**: Comprehensive reading statistics and progress visualization
+- **Reading History**: Detailed session history with timestamps and progress
+
+### 🎨 Interface & Customization
+
+- **Custom Color Themes**: Predefined themes (Dark, Light, Sepia, Night) with full customization
+- **Typography Control**: Font family, size, line height, and letter spacing adjustments
+- **UI Layout Options**: Multiple layout presets (Default, Minimal, Immersive, Sidebar, Bottom)
+- **Display Customization**: Page margins, padding, border radius, shadows, and transitions
+- **Theme Management**: Export/import themes, real-time preview, and reset options
+- **Advanced Styling**: CSS custom properties integration for dynamic theming
 
 ## 🛠️ Tech Stack
 
@@ -139,6 +176,15 @@ We welcome contributions! Here's how to get started:
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+### **For Provider Contributors** 🔌
+Want to add a new manga provider? No coding required!
+1. **[📝 Submit a Provider Request](https://github.com/Futs/kuroibara/issues/new?template=provider-request.yml)** - Fill out our simple template
+2. **🤖 Automatic Validation** - Our system tests your provider automatically
+3. **🔄 Auto-PR Creation** - If validation passes, a PR is created automatically
+4. **✅ Review & Merge** - Maintainers review and merge to add your provider
+
+See our **[🔌 Template Provider System Guide](docs/TEMPLATE_PROVIDER_SYSTEM.md)** for detailed instructions.
 
 See our **[🏗️ Development Guide](docs/DEVELOPMENT.md)** and **[📋 Git Guidelines](docs/GIT_GUIDELINES.md)** for detailed contributing guidelines.
 

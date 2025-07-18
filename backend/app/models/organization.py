@@ -6,7 +6,6 @@ replacing JSON file-based tracking with database-backed solutions.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID

@@ -2,27 +2,12 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.db.session import AsyncSessionLocal, Base, engine
 from app.models.library import (
-    Bookmark,
     LibraryCategory,
-    MangaUserLibrary,
-    ReadingList,
-    ReadingProgress,
 )
-from app.models.manga import Chapter, Manga
-from app.models.organization import (
-    ChapterMetadata,
-    MangaMetadata,
-    OrganizationHistory,
-    OrganizationJob,
-)
-from app.models.provider import ProviderStatus
 
 # Import all models to ensure they are registered with Base.metadata
-from app.models.user import User
-from app.models.user_provider_preference import UserProviderPreference
 
 logger = logging.getLogger(__name__)
 

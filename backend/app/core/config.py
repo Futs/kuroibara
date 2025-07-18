@@ -50,10 +50,8 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
 
-    # Storage
-    STORAGE_TYPE: str = "local"
+    # Storage settings
     STORAGE_PATH: str = "/app/storage"
-    MAX_UPLOAD_SIZE: str = "100MB"
 
     # Backup settings
     BACKUP_PATH: str = "/app/backups"
@@ -96,6 +94,12 @@ class Settings(BaseSettings):
 
     # FlareSolverr
     FLARESOLVERR_URL: Optional[str] = None
+
+    # External Integrations
+    ANILIST_CLIENT_ID: Optional[str] = None
+    ANILIST_CLIENT_SECRET: Optional[str] = None
+    MAL_CLIENT_ID: Optional[str] = None
+    MAL_CLIENT_SECRET: Optional[str] = None
 
 
 settings = Settings()

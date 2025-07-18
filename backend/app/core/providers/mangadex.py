@@ -1,5 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urlencode
+from typing import Any, Dict, List, Tuple
 
 import httpx
 
@@ -35,7 +34,7 @@ class MangaDexProvider(BaseProvider):
             "title": query,
             "limit": limit,
             "offset": offset,
-            "includes[]": ["cover_art", "author", "artist"],
+            "includes[]": ["cover_art", "author", "artist", "tag"],
             "contentRating[]": ["safe", "suggestive", "erotica", "pornographic"],
         }
 
@@ -78,7 +77,13 @@ class MangaDexProvider(BaseProvider):
                 genres = []
                 if "tags" in attributes:
                     for tag in attributes["tags"]:
-                        if tag["type"] == "genre":
+                        # MangaDex uses type "tag" for all tags, not "genre"
+                        if (
+                            tag["type"] == "tag"
+                            and "attributes" in tag
+                            and "name" in tag["attributes"]
+                            and "en" in tag["attributes"]["name"]
+                        ):
                             genres.append(tag["attributes"]["name"]["en"])
 
                 # Determine manga type
@@ -171,7 +176,7 @@ class MangaDexProvider(BaseProvider):
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.url}/manga/{manga_id}",
-                params={"includes[]": ["cover_art", "author", "artist"]},
+                params={"includes[]": ["cover_art", "author", "artist", "tag"]},
             )
 
             # Check if request was successful
@@ -204,7 +209,13 @@ class MangaDexProvider(BaseProvider):
             genres = []
             if "tags" in attributes:
                 for tag in attributes["tags"]:
-                    if tag["type"] == "genre":
+                    # MangaDex uses type "tag" for all tags, not "genre"
+                    if (
+                        tag["type"] == "tag"
+                        and "attributes" in tag
+                        and "name" in tag["attributes"]
+                        and "en" in tag["attributes"]["name"]
+                    ):
                         genres.append(tag["attributes"]["name"]["en"])
 
             # Determine manga type
@@ -327,6 +338,10 @@ class MangaDexProvider(BaseProvider):
                 # Get language
                 language = attributes.get("translatedLanguage", "en")
 
+                # Get dates
+                publish_at = attributes.get("publishAt")
+                readable_at = attributes.get("readableAt")
+
                 # Create chapter
                 chapters.append(
                     {
@@ -337,6 +352,9 @@ class MangaDexProvider(BaseProvider):
                         "language": language,
                         "pages_count": attributes.get("pages", 0),
                         "manga_id": manga_id,
+                        "publish_at": publish_at,
+                        "readable_at": readable_at,
+                        "source": "MangaDex",
                     }
                 )
 

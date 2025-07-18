@@ -14,9 +14,9 @@ import MangaReader from "../views/MangaReader.vue";
 import Search from "../views/Search.vue";
 import Categories from "../views/Categories.vue";
 import ReadingLists from "../views/ReadingLists.vue";
+import Providers from "../views/Providers.vue";
 import Settings from "../views/Settings.vue";
-import Recovery from "../views/Recovery.vue";
-import Backup from "../views/Backup.vue";
+
 import NotFound from "../views/NotFound.vue";
 
 // Route Guards
@@ -96,23 +96,24 @@ const routes = [
         beforeEnter: requireAuth,
       },
       {
+        path: "providers",
+        name: "providers",
+        component: Providers,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: "providers/:providerId/manga/:mangaId",
+        name: "provider-manga-details",
+        component: MangaDetails,
+        beforeEnter: requireAuth,
+      },
+      {
         path: "settings",
         name: "settings",
         component: Settings,
         beforeEnter: requireAuth,
       },
-      {
-        path: "recovery",
-        name: "recovery",
-        component: Recovery,
-        beforeEnter: requireAuth,
-      },
-      {
-        path: "backup",
-        name: "backup",
-        component: Backup,
-        beforeEnter: requireAuth,
-      },
+
       {
         path: "/:pathMatch(.*)*",
         name: "not-found",
@@ -129,6 +130,17 @@ const routes = [
         name: "LinkAccounts",
         component: () => import("../views/auth/LinkAccounts.vue"),
         meta: { requiresAuth: true },
+      },
+      {
+        path: "/integrations/anilist/callback",
+        name: "AnilistCallback",
+        component: () => import("../views/integrations/AnilistCallback.vue"),
+      },
+      {
+        path: "/integrations/mal/callback",
+        name: "MyAnimeListCallback",
+        component: () =>
+          import("../views/integrations/MyAnimeListCallback.vue"),
       },
     ],
   },

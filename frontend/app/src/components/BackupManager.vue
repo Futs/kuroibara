@@ -1,15 +1,16 @@
 <template>
   <div class="backup-manager">
-    <div class="bg-white dark:bg-dark-800 shadow rounded-lg overflow-hidden">
-      <div class="px-4 py-5 sm:px-6">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-          Backup Management
-        </h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Create, download, and restore backups of your manga library
-        </p>
-      </div>
+    <!-- Section Header -->
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        Backup Management
+      </h2>
+      <p class="text-gray-600 dark:text-gray-400">
+        Create, download, and restore backups of your manga library
+      </p>
+    </div>
 
+    <div class="bg-white dark:bg-dark-800 shadow rounded-lg overflow-hidden">
       <div class="border-t border-gray-200 dark:border-dark-600">
         <!-- Action Buttons -->
         <div class="px-4 py-4 border-b border-gray-200 dark:border-dark-600">

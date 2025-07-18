@@ -1,8 +1,8 @@
 import os
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,21 +12,20 @@ from app.core.providers.registry import provider_registry
 from app.core.utils import (
     get_cover_storage_path,
     get_manga_storage_path,
-    get_page_storage_path,
 )
+from app.models.library import MangaUserLibrary
 from app.models.manga import Author, Chapter, Genre, Manga, Page
 from app.models.user import User
 from app.schemas.manga import Chapter as ChapterSchema
 from app.schemas.manga import (
     ChapterCreate,
-    ChapterUpdate,
 )
 from app.schemas.manga import Manga as MangaSchema
 from app.schemas.manga import (
     MangaCreate,
+    MangaSummary,
     MangaUpdate,
 )
-from app.schemas.search import SearchResult
 
 router = APIRouter()
 
@@ -95,7 +94,7 @@ async def create_manga(
     return manga
 
 
-@router.get("/{manga_id}", response_model=MangaSchema)
+@router.get("/{manga_id}", response_model=MangaSummary)
 async def read_manga_by_id(
     manga_id: str,
     current_user: User = Depends(get_current_user),
@@ -373,7 +372,7 @@ async def get_manga_cover(
         or manga.cover_image.startswith("https://")
     ):
         # Download and cache the external cover
-        import tempfile
+        pass
 
         import httpx
 
@@ -609,4 +608,189 @@ async def create_manga_from_external(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create manga from external source: {str(e)}",
+        )
+
+
+@router.post("/{manga_id}/organize-chapters")
+async def organize_chapters(
+    manga_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Organize and rename chapters based on smart matching.
+
+    This endpoint will:
+    1. Analyze chapter titles and numbers
+    2. Match imported chapters with downloaded chapters
+    3. Rename chapters to have consistent naming
+    4. Sort chapters properly
+    """
+    # Check if manga exists and belongs to user
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    # Check if user has access to manga
+    result = await db.execute(
+        select(MangaUserLibrary).where(
+            (MangaUserLibrary.user_id == current_user.id)
+            & (MangaUserLibrary.manga_id == uuid.UUID(manga_id))
+        )
+    )
+    library_item = result.scalars().first()
+    if not library_item:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    # Get all chapters for this manga
+    chapters_result = await db.execute(
+        select(Chapter)
+        .where(Chapter.manga_id == uuid.UUID(manga_id))
+        .order_by(Chapter.number.asc())
+    )
+    chapters = chapters_result.scalars().all()
+
+    changes = []
+
+    try:
+        # Organize chapters by smart matching and renaming
+        for chapter in chapters:
+            original_title = chapter.title
+
+            # Smart title cleaning and normalization
+            new_title = _normalize_chapter_title(chapter.title, chapter.number)
+
+            if new_title != original_title:
+                chapter.title = new_title
+                changes.append(
+                    {
+                        "id": str(chapter.id),
+                        "description": f"Chapter {chapter.number}: '{original_title}' → '{new_title}'",
+                    }
+                )
+
+        await db.commit()
+
+        return {
+            "message": f"Organized {len(changes)} chapters successfully",
+            "changes": changes,
+        }
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to organize chapters: {str(e)}",
+        )
+
+
+def _normalize_chapter_title(title: str, chapter_number: str) -> str:
+    """
+    Normalize chapter title by removing redundant information and cleaning up formatting.
+    """
+    import re
+
+    if not title:
+        return ""
+
+    # Remove file extensions
+    title = re.sub(r"\.(cbz|cbr|zip|rar|7z)$", "", title, flags=re.IGNORECASE)
+
+    # Remove chapter number if it's at the beginning
+    title = re.sub(
+        rf"^ch\.?\s*{re.escape(chapter_number)}\s*:?\s*", "", title, flags=re.IGNORECASE
+    )
+    title = re.sub(
+        rf"^chapter\s*{re.escape(chapter_number)}\s*:?\s*",
+        "",
+        title,
+        flags=re.IGNORECASE,
+    )
+    title = re.sub(rf"^{re.escape(chapter_number)}\s*:?\s*", "", title)
+
+    # Remove volume information
+    title = re.sub(r"vol\.?\s*\d+\s*", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"volume\s*\d+\s*", "", title, flags=re.IGNORECASE)
+
+    # Remove scan group information in brackets/parentheses at the end
+    title = re.sub(r"\s*\([^)]*scan[^)]*\)\s*$", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"\s*\[[^\]]*scan[^\]]*\]\s*$", "", title, flags=re.IGNORECASE)
+
+    # Remove language codes
+    title = re.sub(r"\s*\(en\)\s*", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"\s*\[en\]\s*", "", title, flags=re.IGNORECASE)
+
+    # Clean up extra whitespace and dashes
+    title = re.sub(r"\s*-\s*$", "", title)  # Remove trailing dash
+    title = re.sub(r"^\s*-\s*", "", title)  # Remove leading dash
+    title = re.sub(r"\s+", " ", title)  # Normalize whitespace
+    title = title.strip()
+
+    return title
+
+
+@router.patch("/{manga_id}/chapters/batch-update")
+async def batch_update_chapters(
+    manga_id: str,
+    updates: dict,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Batch update chapter titles.
+    """
+    # Check if manga exists and belongs to user
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    # Check if user has access to manga
+    result = await db.execute(
+        select(MangaUserLibrary).where(
+            (MangaUserLibrary.user_id == current_user.id)
+            & (MangaUserLibrary.manga_id == uuid.UUID(manga_id))
+        )
+    )
+    library_item = result.scalars().first()
+    if not library_item:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    try:
+        updated_count = 0
+        for update in updates.get("updates", []):
+            chapter_id = update.get("id")
+            new_title = update.get("title")
+
+            if not chapter_id or new_title is None:
+                continue
+
+            chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+            if chapter and chapter.manga_id == uuid.UUID(manga_id):
+                chapter.title = new_title
+                updated_count += 1
+
+        await db.commit()
+
+        return {
+            "message": f"Updated {updated_count} chapters successfully",
+            "updated_count": updated_count,
+        }
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update chapters: {str(e)}",
         )

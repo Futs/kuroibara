@@ -1,11 +1,10 @@
 import asyncio
-import json
 import logging
 import os
 import random
 import re
 from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 import httpx
 from bs4 import BeautifulSoup
@@ -628,6 +627,29 @@ class GenericProvider(BaseProvider):
                         if chapter_title_elem:
                             chapter_title = chapter_title_elem.text.strip()
 
+                        # Try to extract date information from common patterns
+                        publish_at = None
+                        readable_at = None
+
+                        # Look for date elements with common class names
+                        date_elem = item.select_one(
+                            ".chapter-date, .date, .publish-date, .release-date, .updated, .time"
+                        )
+                        if date_elem:
+                            date_text = date_elem.text.strip()
+                            # Try to parse the date (this is basic - could be enhanced)
+                            try:
+                                import re
+                                from datetime import datetime
+
+                                # Look for common date patterns
+                                if re.search(r"\d{4}-\d{2}-\d{2}", date_text):
+                                    publish_at = date_text
+                                elif re.search(r"\d{1,2}/\d{1,2}/\d{4}", date_text):
+                                    publish_at = date_text
+                            except Exception:
+                                pass
+
                         # Create chapter
                         chapters.append(
                             {
@@ -638,6 +660,9 @@ class GenericProvider(BaseProvider):
                                 "language": "en",
                                 "pages_count": 0,  # We don't know the page count yet
                                 "manga_id": manga_id,
+                                "publish_at": publish_at,
+                                "readable_at": readable_at,
+                                "source": self.name,
                             }
                         )
                     except Exception as e:

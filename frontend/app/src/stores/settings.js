@@ -21,6 +21,20 @@ export const useSettingsStore = defineStore("settings", {
     preserveOriginalFiles:
       localStorage.getItem("preserveOriginalFiles") === "true", // default false
 
+    // Chapter update settings
+    chapterAutoRefreshInterval:
+      parseInt(localStorage.getItem("chapterAutoRefreshInterval")) || 300, // 5 minutes
+    chapterCheckOnTabFocus:
+      localStorage.getItem("chapterCheckOnTabFocus") !== "false", // default true
+    chapterShowUpdateNotifications:
+      localStorage.getItem("chapterShowUpdateNotifications") !== "false", // default true
+    chapterEnableManualRefresh:
+      localStorage.getItem("chapterEnableManualRefresh") !== "false", // default true
+
+    // Storage settings
+    storageType: localStorage.getItem("storageType") || "local",
+    maxUploadSize: localStorage.getItem("maxUploadSize") || "100MB",
+
     loading: false,
     error: null,
   }),
@@ -37,6 +51,17 @@ export const useSettingsStore = defineStore("settings", {
     getAutoOrganizeImports: (state) => state.autoOrganizeImports,
     getCreateCbzFiles: (state) => state.createCbzFiles,
     getPreserveOriginalFiles: (state) => state.preserveOriginalFiles,
+
+    // Chapter update settings getters
+    getChapterAutoRefreshInterval: (state) => state.chapterAutoRefreshInterval,
+    getChapterCheckOnTabFocus: (state) => state.chapterCheckOnTabFocus,
+    getChapterShowUpdateNotifications: (state) =>
+      state.chapterShowUpdateNotifications,
+    getChapterEnableManualRefresh: (state) => state.chapterEnableManualRefresh,
+
+    // Storage settings getters
+    getStorageType: (state) => state.storageType,
+    getMaxUploadSize: (state) => state.maxUploadSize,
   },
 
   actions: {
@@ -58,6 +83,12 @@ export const useSettingsStore = defineStore("settings", {
           auto_organize_imports,
           create_cbz_files,
           preserve_original_files,
+          chapter_auto_refresh_interval,
+          chapter_check_on_tab_focus,
+          chapter_show_update_notifications,
+          chapter_enable_manual_refresh,
+          storage_type,
+          max_upload_size,
         } = response.data;
 
         this.theme = theme || this.theme;
@@ -81,6 +112,28 @@ export const useSettingsStore = defineStore("settings", {
           preserve_original_files !== undefined
             ? preserve_original_files
             : this.preserveOriginalFiles;
+
+        // Update chapter update settings
+        this.chapterAutoRefreshInterval =
+          chapter_auto_refresh_interval !== undefined
+            ? chapter_auto_refresh_interval
+            : this.chapterAutoRefreshInterval;
+        this.chapterCheckOnTabFocus =
+          chapter_check_on_tab_focus !== undefined
+            ? chapter_check_on_tab_focus
+            : this.chapterCheckOnTabFocus;
+        this.chapterShowUpdateNotifications =
+          chapter_show_update_notifications !== undefined
+            ? chapter_show_update_notifications
+            : this.chapterShowUpdateNotifications;
+        this.chapterEnableManualRefresh =
+          chapter_enable_manual_refresh !== undefined
+            ? chapter_enable_manual_refresh
+            : this.chapterEnableManualRefresh;
+
+        // Update storage settings
+        this.storageType = storage_type || this.storageType;
+        this.maxUploadSize = max_upload_size || this.maxUploadSize;
 
         // Save to localStorage and apply theme
         this.saveToLocalStorage();
@@ -114,6 +167,13 @@ export const useSettingsStore = defineStore("settings", {
           auto_organize_imports: this.autoOrganizeImports,
           create_cbz_files: this.createCbzFiles,
           preserve_original_files: this.preserveOriginalFiles,
+          chapter_auto_refresh_interval: this.chapterAutoRefreshInterval,
+          chapter_check_on_tab_focus: this.chapterCheckOnTabFocus,
+          chapter_show_update_notifications:
+            this.chapterShowUpdateNotifications,
+          chapter_enable_manual_refresh: this.chapterEnableManualRefresh,
+          storage_type: this.storageType,
+          max_upload_size: this.maxUploadSize,
         });
 
         // Save to localStorage
@@ -173,6 +233,35 @@ export const useSettingsStore = defineStore("settings", {
       this.saveToLocalStorage();
     },
 
+    // Chapter update settings methods
+    setChapterUpdateSettings(settings) {
+      if (settings.chapterAutoRefreshInterval !== undefined) {
+        this.chapterAutoRefreshInterval = settings.chapterAutoRefreshInterval;
+      }
+      if (settings.chapterCheckOnTabFocus !== undefined) {
+        this.chapterCheckOnTabFocus = settings.chapterCheckOnTabFocus;
+      }
+      if (settings.chapterShowUpdateNotifications !== undefined) {
+        this.chapterShowUpdateNotifications =
+          settings.chapterShowUpdateNotifications;
+      }
+      if (settings.chapterEnableManualRefresh !== undefined) {
+        this.chapterEnableManualRefresh = settings.chapterEnableManualRefresh;
+      }
+      this.saveToLocalStorage();
+    },
+
+    // Storage settings methods
+    setStorageType(type) {
+      this.storageType = type;
+      this.saveToLocalStorage();
+    },
+
+    setMaxUploadSize(size) {
+      this.maxUploadSize = size;
+      this.saveToLocalStorage();
+    },
+
     saveToLocalStorage() {
       localStorage.setItem("theme", this.theme);
       localStorage.setItem("nsfwBlur", this.nsfwBlur.toString());
@@ -191,6 +280,28 @@ export const useSettingsStore = defineStore("settings", {
         "preserveOriginalFiles",
         this.preserveOriginalFiles.toString(),
       );
+
+      // Save chapter update settings
+      localStorage.setItem(
+        "chapterAutoRefreshInterval",
+        this.chapterAutoRefreshInterval.toString(),
+      );
+      localStorage.setItem(
+        "chapterCheckOnTabFocus",
+        this.chapterCheckOnTabFocus.toString(),
+      );
+      localStorage.setItem(
+        "chapterShowUpdateNotifications",
+        this.chapterShowUpdateNotifications.toString(),
+      );
+      localStorage.setItem(
+        "chapterEnableManualRefresh",
+        this.chapterEnableManualRefresh.toString(),
+      );
+
+      // Save storage settings
+      localStorage.setItem("storageType", this.storageType);
+      localStorage.setItem("maxUploadSize", this.maxUploadSize);
     },
 
     applyTheme() {

@@ -3,7 +3,6 @@ import os
 import shutil
 import tempfile
 import zipfile
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -34,6 +33,7 @@ async def import_archive(
     title: Optional[str] = None,
     volume: Optional[str] = None,
     language: str = "en",
+    replace_existing: bool = False,
 ) -> Chapter:
     """
     Import a CBZ/CBR/7Z archive as a chapter.
@@ -47,9 +47,13 @@ async def import_archive(
         title: Chapter title (optional)
         volume: Volume number (optional)
         language: Language code (default: "en")
+        replace_existing: Whether to replace existing chapter (default: False)
 
     Returns:
         The imported chapter
+
+    Raises:
+        ValueError: If chapter already exists and replace_existing is False
     """
     # Get file extension
     file_ext = os.path.splitext(file_path)[1].lower()
@@ -76,6 +80,30 @@ async def import_archive(
 
         # Sort image files by name
         image_files.sort()
+
+        # Check for existing chapter
+        from sqlalchemy import select
+
+        existing_chapter_result = await db.execute(
+            select(Chapter).where(
+                (Chapter.manga_id == manga_id)
+                & (Chapter.number == chapter_number)
+                & (Chapter.language == language)
+            )
+        )
+        existing_chapter = existing_chapter_result.scalars().first()
+
+        if existing_chapter:
+            if not replace_existing:
+                raise ValueError(
+                    f"Chapter {chapter_number} already exists for this manga. "
+                    f"Use replace_existing=True to overwrite."
+                )
+            else:
+                # Delete existing chapter and its files
+                await _delete_chapter_files(existing_chapter)
+                await db.delete(existing_chapter)
+                await db.flush()
 
         # Create chapter
         chapter = Chapter(
@@ -465,3 +493,50 @@ async def create_manga_from_external_source(
     except Exception as e:
         await db.rollback()
         raise e
+
+
+async def _delete_chapter_files(chapter: Chapter) -> None:
+    """
+    Delete all files associated with a chapter.
+
+    Args:
+        chapter: The chapter to delete files for
+    """
+    import shutil
+
+    # Get chapter directory path
+    chapter_path = get_chapter_storage_path(chapter.manga_id, chapter.id)
+
+    # Delete chapter directory if it exists
+    if os.path.exists(chapter_path):
+        shutil.rmtree(chapter_path)
+
+
+async def check_chapter_exists(
+    manga_id: UUID,
+    chapter_number: str,
+    language: str,
+    db: AsyncSession,
+) -> Optional[Chapter]:
+    """
+    Check if a chapter already exists for the given manga.
+
+    Args:
+        manga_id: ID of the manga
+        chapter_number: Chapter number to check
+        language: Language code
+        db: Database session
+
+    Returns:
+        Existing chapter if found, None otherwise
+    """
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(Chapter).where(
+            (Chapter.manga_id == manga_id)
+            & (Chapter.number == chapter_number)
+            & (Chapter.language == language)
+        )
+    )
+    return result.scalars().first()

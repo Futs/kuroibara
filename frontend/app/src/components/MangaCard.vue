@@ -4,12 +4,18 @@
       <div
         class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
       >
-        <img
+        <LazyImage
           v-if="getMangaCover"
           :src="getMangaCover"
           :alt="getMangaTitle"
-          class="w-full h-full object-center object-cover"
+          :quality="imageQuality"
+          :lazy="true"
+          :progressive="true"
+          container-class="w-full h-full"
+          image-class="w-full h-full object-center object-cover transition-all duration-300"
           :class="{ 'blur-md': isNsfw && blurNsfw }"
+          @load="onImageLoad"
+          @error="onImageError"
         />
         <div
           v-else
@@ -78,6 +84,48 @@
           </router-link>
 
           <button
+            @click.stop="$emit('download', getLibraryItemId)"
+            class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400"
+            title="Download Manga"
+          >
+            <svg
+              class="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </button>
+
+          <button
+            @click.stop="$emit('import', getLibraryItemId)"
+            class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+            title="Import Files"
+          >
+            <svg
+              class="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+              />
+            </svg>
+          </button>
+
+          <button
             @click.stop="$emit('remove', getLibraryItemId)"
             class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400"
             title="Remove from Library"
@@ -119,9 +167,11 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useSettingsStore } from "../stores/settings";
+import LazyImage from "./LazyImage.vue";
+import { perf } from "../utils/performance";
 
 const props = defineProps({
   manga: {
@@ -132,6 +182,11 @@ const props = defineProps({
 
 const router = useRouter();
 const settingsStore = useSettingsStore();
+
+// Performance tracking
+const loading = ref(false);
+const imageLoaded = ref(false);
+const imageError = ref(false);
 
 // Handle both library items (MangaUserLibrary) and direct manga objects
 const getMangaId = computed(() => {
@@ -216,6 +271,46 @@ const isNsfw = computed(() => {
 
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
 
+// Image quality based on viewport and connection
+const imageQuality = computed(() => {
+  // Check connection speed if available
+  if ("connection" in navigator) {
+    const connection = navigator.connection;
+    if (
+      connection.effectiveType === "slow-2g" ||
+      connection.effectiveType === "2g"
+    ) {
+      return "low";
+    } else if (connection.effectiveType === "3g") {
+      return "medium";
+    }
+  }
+
+  // Default to high quality
+  return "high";
+});
+
+// Performance methods
+const onImageLoad = () => {
+  imageLoaded.value = true;
+  imageError.value = false;
+  perf.record("manga-card-image", {
+    action: "load",
+    mangaId: getMangaId.value,
+    quality: imageQuality.value,
+  });
+};
+
+const onImageError = () => {
+  imageError.value = true;
+  imageLoaded.value = false;
+  perf.record("manga-card-image", {
+    action: "error",
+    mangaId: getMangaId.value,
+    quality: imageQuality.value,
+  });
+};
+
 // Methods
 const viewDetails = (event) => {
   // Prevent navigation if clicking on action buttons
@@ -223,8 +318,10 @@ const viewDetails = (event) => {
     return;
   }
 
+  perf.start("manga-card-navigation");
   router.push(`/manga/${getMangaId.value}`);
+  perf.end("manga-card-navigation");
 };
 
-defineEmits(["remove"]);
+defineEmits(["remove", "download", "import"]);
 </script>

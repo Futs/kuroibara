@@ -2,12 +2,8 @@ import json
 import tempfile
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from app.core.providers.base import BaseProvider
 from app.core.providers.factory import ProviderFactory
-from app.core.providers.generic import GenericProvider
-from app.core.providers.mangadex import MangaDexProvider
 
 
 class MockProvider(BaseProvider):

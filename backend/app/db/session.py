@@ -1,8 +1,5 @@
-import asyncio
-
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
-    async_scoped_session,
     create_async_engine,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker

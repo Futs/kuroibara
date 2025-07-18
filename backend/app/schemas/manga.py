@@ -1,7 +1,8 @@
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.base import BaseSchema
@@ -20,8 +21,6 @@ class GenreBase(BaseModel):
 class GenreCreate(GenreBase):
     """Genre creation schema."""
 
-    pass
-
 
 class GenreUpdate(GenreBase):
     """Genre update schema."""
@@ -31,8 +30,6 @@ class GenreUpdate(GenreBase):
 
 class Genre(GenreBase, BaseSchema):
     """Genre schema for responses."""
-
-    pass
 
 
 # Author schemas
@@ -49,8 +46,6 @@ class AuthorBase(BaseModel):
 class AuthorCreate(AuthorBase):
     """Author creation schema."""
 
-    pass
-
 
 class AuthorUpdate(AuthorBase):
     """Author update schema."""
@@ -60,8 +55,6 @@ class AuthorUpdate(AuthorBase):
 
 class Author(AuthorBase, BaseSchema):
     """Author schema for responses."""
-
-    pass
 
 
 # Chapter schemas
@@ -78,8 +71,6 @@ class PageBase(BaseModel):
 
 class PageCreate(PageBase):
     """Page creation schema."""
-
-    pass
 
 
 class Page(PageBase, BaseSchema):
@@ -101,6 +92,8 @@ class ChapterBase(BaseModel):
     file_path: Optional[str] = None
     file_size: Optional[int] = None
     source: Optional[str] = None
+    publish_at: Optional[datetime] = None
+    readable_at: Optional[datetime] = None
 
 
 class ChapterCreate(ChapterBase):
@@ -120,6 +113,12 @@ class ChapterUpdate(ChapterBase):
     file_path: Optional[str] = None
     file_size: Optional[int] = None
     source: Optional[str] = None
+
+
+class ChapterSummary(ChapterBase, BaseSchema):
+    """Chapter schema for responses without pages (for library listings)."""
+
+    manga_id: UUID
 
 
 class Chapter(ChapterBase, BaseSchema):
@@ -173,6 +172,14 @@ class MangaUpdate(MangaBase):
     external_ids: Optional[Dict[str, str]] = None
     genres: Optional[List[str]] = None
     authors: Optional[List[str]] = None
+
+
+class MangaSummary(MangaBase, BaseSchema):
+    """Manga schema for responses without chapter pages (for library listings)."""
+
+    genres: List[Genre] = []
+    authors: List[Author] = []
+    chapters: Optional[List[ChapterSummary]] = None
 
 
 class Manga(MangaBase, BaseSchema):

@@ -8,13 +8,9 @@ naming conventions and folder structures.
 import logging
 import os
 import shutil
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.config import settings
 from app.core.services.naming import naming_engine
 from app.core.utils import create_cbz_from_directory, get_manga_storage_path
 from app.models.manga import Chapter, Manga

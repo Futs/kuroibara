@@ -1,7 +1,16 @@
 import enum
-from typing import List, Optional
 
-from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
@@ -135,6 +144,8 @@ class Chapter(BaseModel):
     source = Column(
         String(50), nullable=True
     )  # Source of the chapter (website, scanner, etc.)
+    publish_at = Column(DateTime, nullable=True)  # When the chapter was published
+    readable_at = Column(DateTime, nullable=True)  # When the chapter became readable
 
     # Relationships
     manga = relationship("Manga", back_populates="chapters")

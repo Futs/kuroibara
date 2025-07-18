@@ -3,7 +3,6 @@ FlareSolverr integration for bypassing Cloudflare protection.
 """
 
 import asyncio
-import json
 import logging
 from typing import Any, Dict, Optional
 

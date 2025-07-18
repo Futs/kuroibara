@@ -1,6 +1,7 @@
 # Models package
 
 from app.models.base import BaseModel
+from app.models.external_integration import ExternalIntegration, ExternalMangaMapping
 from app.models.library import (
     Bookmark,
     LibraryCategory,
@@ -35,4 +36,6 @@ __all__ = [
     "ChapterMetadata",
     "OrganizationHistory",
     "OrganizationJob",
+    "ExternalIntegration",
+    "ExternalMangaMapping",
 ]

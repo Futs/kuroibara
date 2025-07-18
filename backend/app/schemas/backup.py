@@ -2,10 +2,9 @@
 Schemas for backup and restore operations.
 """
 
-from datetime import datetime
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class BackupCreateRequest(BaseModel):

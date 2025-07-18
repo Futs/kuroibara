@@ -10,11 +10,10 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urljoin, urlparse
+from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 import httpx
-from bs4 import BeautifulSoup
 
 # Add the backend directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent))

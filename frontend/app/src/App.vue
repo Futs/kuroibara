@@ -3,10 +3,12 @@ import { onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useSettingsStore } from "./stores/settings";
 import { useAuthStore } from "./stores/auth";
+import { useDownloadsStore } from "./stores/downloads";
 
 const route = useRoute();
 const settingsStore = useSettingsStore();
 const authStore = useAuthStore();
+const downloadsStore = useDownloadsStore();
 
 // Apply theme on route change
 watch(
@@ -26,6 +28,12 @@ onMounted(async () => {
   // Initialize auth
   authStore.initAuth();
   console.log("App.vue: Auth initialized");
+
+  // Initialize downloads store if authenticated
+  if (authStore.isAuthenticated) {
+    downloadsStore.init();
+    console.log("App.vue: Downloads store initialized");
+  }
 });
 </script>
 

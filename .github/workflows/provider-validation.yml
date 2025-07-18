@@ -1,0 +1,233 @@
+name: 🧪 Provider Validation and Auto-PR
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  validate-provider:
+    if: contains(github.event.issue.labels.*.name, 'provider')
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        pip install beautifulsoup4 aiohttp pytest pytest-asyncio
+        
+    - name: Parse issue template
+      id: parse
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue = context.payload.issue;
+          const body = issue.body;
+          
+          console.log('Issue body:', body);
+          
+          // Parse GitHub issue form fields
+          const parseFormField = (fieldId) => {
+            // Look for the field pattern: ### Field Name\n\nvalue
+            const patterns = [
+              new RegExp(`### ${fieldId}\\s*\\n\\s*([\\s\\S]*?)(?=\\n### |$)`, 'i'),
+              new RegExp(`\\*\\*${fieldId}\\*\\*\\s*\\n\\s*([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
+              new RegExp(`${fieldId}:\\s*([^\\n]+)`, 'i')
+            ];
+            
+            for (const pattern of patterns) {
+              const match = body.match(pattern);
+              if (match && match[1]) {
+                return match[1].trim();
+              }
+            }
+            return '';
+          };
+          
+          const providerData = {
+            name: parseFormField('Provider Name'),
+            id: parseFormField('Provider ID'),
+            base_url: parseFormField('Base URL'),
+            search_url: parseFormField('Search URL Pattern'),
+            type: parseFormField('Provider Type'),
+            priority: parseFormField('Provider Priority'),
+            selectors: parseFormField('CSS Selectors'),
+            test_manga: parseFormField('Test Manga Information'),
+            additional_info: parseFormField('Additional Information'),
+            features: body.includes('- [x] Supports NSFW content') ? ['nsfw'] : [],
+            requires_flaresolverr: body.includes('- [x] Requires Cloudflare bypass'),
+            issue_number: issue.number
+          };
+          
+          console.log('Parsed provider data:', JSON.stringify(providerData, null, 2));
+          
+          // Validate required fields
+          const requiredFields = ['name', 'id', 'base_url', 'search_url', 'type', 'selectors'];
+          const missingFields = requiredFields.filter(field => !providerData[field]);
+          
+          if (missingFields.length > 0) {
+            core.setFailed(`Missing required fields: ${missingFields.join(', ')}`);
+            return;
+          }
+          
+          // Save to file for next steps
+          const fs = require('fs');
+          fs.writeFileSync('provider_config.json', JSON.stringify(providerData, null, 2));
+          
+          return providerData;
+          
+    - name: Generate provider config
+      run: |
+        python scripts/generate_provider_config.py
+        
+    - name: Test provider functionality
+      run: |
+        python scripts/test_provider.py
+        
+    - name: Create provider branch and files
+      if: success()
+      run: |
+        # Read provider data
+        PROVIDER_DATA=$(cat provider_config.json)
+        PROVIDER_ID=$(echo $PROVIDER_DATA | jq -r '.id')
+        PROVIDER_NAME=$(echo $PROVIDER_DATA | jq -r '.name')
+        
+        # Create new branch
+        BRANCH_NAME="provider/add-${PROVIDER_ID}"
+        git checkout -b $BRANCH_NAME
+        
+        # Copy generated config to appropriate location
+        mkdir -p backend/app/core/providers/config/community
+        cp generated_provider.json backend/app/core/providers/config/community/${PROVIDER_ID}.json
+        
+        # Configure git
+        git config user.name "Provider Bot"
+        git config user.email "bot@kuroibara.dev"
+        
+        # Commit changes
+        git add .
+        git commit -m "Add ${PROVIDER_NAME} provider
+        
+        - Provider ID: ${PROVIDER_ID}
+        - Auto-generated from issue #${{ github.event.issue.number }}
+        - Validated and tested automatically"
+        
+        # Push branch
+        git push origin $BRANCH_NAME
+        
+    - name: Create Pull Request
+      if: success()
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const providerData = JSON.parse(fs.readFileSync('provider_config.json'));
+          
+          const branchName = `provider/add-${providerData.id}`;
+          
+          // Create PR
+          const pr = await github.rest.pulls.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🔌 Add ${providerData.name} provider`,
+            head: branchName,
+            base: 'main',
+            body: `## 🔌 New Provider: ${providerData.name}
+            
+            **Auto-generated from issue #${providerData.issue_number}**
+            
+            ### Provider Details
+            - **Name**: ${providerData.name}
+            - **ID**: ${providerData.id}
+            - **Base URL**: ${providerData.base_url}
+            - **Type**: ${providerData.type}
+            - **Priority**: ${providerData.priority}
+            - **Requires FlareSolverr**: ${providerData.requires_flaresolverr ? 'Yes' : 'No'}
+            
+            ### Validation Status
+            - ✅ Configuration generated successfully
+            - ✅ Provider functionality tested
+            - ✅ CSS selectors validated
+            - ✅ Search functionality verified
+            
+            ### Files Added
+            - \`backend/app/core/providers/config/community/${providerData.id}.json\`
+            
+            ### Next Steps
+            1. Review the generated configuration
+            2. Test the provider manually if needed
+            3. Merge to add the provider to Kuroibara
+            
+            **Note**: This provider will be automatically loaded when the PR is merged.
+            
+            Closes #${providerData.issue_number}`
+          });
+          
+          // Comment on the original issue
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: providerData.issue_number,
+            body: `🤖 **Provider validation completed!**
+            
+            ✅ Your provider request has been validated and a pull request has been created: #${pr.data.number}
+            
+            The provider configuration has been automatically generated and tested. Once the PR is reviewed and merged, the ${providerData.name} provider will be available in Kuroibara.
+            
+            **What happens next:**
+            1. Maintainers will review the generated configuration
+            2. Additional testing may be performed
+            3. The PR will be merged if everything looks good
+            4. The provider will be automatically available in the next deployment
+            
+            Thank you for contributing to Kuroibara! 🎉`
+          });
+          
+    - name: Handle validation failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: `❌ **Provider validation failed**
+            
+            There was an issue validating your provider request. Please check the following:
+            
+            1. **Required fields**: Ensure all required fields are filled out correctly
+            2. **CSS selectors**: Verify the selectors work on the target website
+            3. **URLs**: Check that the base URL and search URL are accessible
+            4. **JSON format**: Ensure the CSS selectors are in valid JSON format
+            
+            Please update your issue with the correct information and we'll automatically re-validate.
+            
+            **Common issues:**
+            - Invalid JSON in CSS selectors field
+            - Inaccessible website URLs
+            - Missing required fields
+            - CSS selectors that don't match any elements
+            
+            Check the [Actions tab](${context.payload.repository.html_url}/actions) for detailed error logs.`
+          });
+          
+          // Add failure label
+          await github.rest.issues.addLabels({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            labels: ['validation-failed']
+          });

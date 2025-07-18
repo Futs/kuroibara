@@ -1,10 +1,10 @@
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from app.schemas.base import BaseSchema
-from app.schemas.manga import Manga
+from app.schemas.manga import Manga, MangaSummary
 
 
 # Category schemas
@@ -22,8 +22,6 @@ class CategoryBase(BaseModel):
 
 class CategoryCreate(CategoryBase):
     """Category creation schema."""
-
-    pass
 
 
 class CategoryUpdate(CategoryBase):
@@ -75,6 +73,15 @@ class MangaUserLibraryUpdate(MangaUserLibraryBase):
     is_downloaded: Optional[bool] = None
     download_path: Optional[str] = None
     category_ids: Optional[List[UUID]] = None
+
+
+class MangaUserLibrarySummary(MangaUserLibraryBase, BaseSchema):
+    """Manga user library schema for responses without chapter pages (for library listings)."""
+
+    user_id: UUID
+    manga_id: UUID
+    manga: Optional[MangaSummary] = None
+    categories: List[Category] = []
 
 
 class MangaUserLibrary(MangaUserLibraryBase, BaseSchema):

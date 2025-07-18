@@ -1,15 +1,9 @@
-import asyncio
 import logging
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.services.download import download_manga
 from app.db.session import AsyncSessionLocal
-from app.models.library import MangaUserLibrary
-from app.models.manga import Manga
 
 logger = logging.getLogger(__name__)
 

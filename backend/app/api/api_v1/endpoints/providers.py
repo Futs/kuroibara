@@ -1,8 +1,8 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any, List, Optional
+from typing import Any, Dict, List
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -54,6 +54,7 @@ async def get_providers(
                 name=provider_info["name"],
                 url=provider_info["url"],
                 supports_nsfw=provider_info["supports_nsfw"],
+                requires_flaresolverr=provider_info["requires_flaresolverr"],
                 status=status_record.status if status_record else "unknown",
                 is_enabled=status_record.is_enabled if status_record else True,
                 last_check=status_record.last_check if status_record else None,
@@ -366,6 +367,111 @@ async def trigger_daily_health_check(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to trigger health check",
+        )
+
+
+@router.get("/{provider_id}/manga", response_model=Dict[str, Any])
+async def get_provider_manga(
+    provider_id: str,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    search: str = Query("", description="Search query to filter manga by title"),
+    genre: str = Query("", description="Genre/tag to filter manga by"),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get all available manga from a specific provider with optional filtering.
+    """
+    try:
+        # Get provider from registry
+        provider = provider_registry.get_provider(provider_id)
+        if not provider:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Provider '{provider_id}' not found",
+            )
+
+        # Use search parameter for provider search
+        # If no search term provided, use empty string to get popular/recent manga
+        results, total, has_more = await provider.search(search, page=page, limit=limit)
+
+        # Filter by genre if specified
+        if genre:
+            genre_lower = genre.lower()
+            filtered_results = []
+            for result in results:
+                # Check if any of the manga's genres match the filter
+                if any(g.lower() == genre_lower for g in result.genres):
+                    filtered_results.append(result)
+            results = filtered_results
+            total = len(results)
+            # Recalculate has_more based on filtered results
+            has_more = False  # For simplicity, disable pagination for filtered results
+
+        return {
+            "provider_id": provider_id,
+            "provider_name": provider.name,
+            "manga": [result.model_dump() for result in results],
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total,
+                "has_more": has_more,
+            },
+            "filters": {
+                "search": search,
+                "genre": genre,
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching manga from provider {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch manga from provider: {str(e)}",
+        )
+
+
+@router.get("/{provider_id}/manga/{manga_id}", response_model=Dict[str, Any])
+async def get_provider_manga_details(
+    provider_id: str,
+    manga_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get detailed information about a specific manga from a provider.
+    """
+    try:
+        # Get provider from registry
+        provider = provider_registry.get_provider(provider_id)
+        if not provider:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Provider '{provider_id}' not found",
+            )
+
+        # Get manga details
+        manga_details = await provider.get_manga_details(manga_id)
+
+        # Get chapters
+        chapters, total_chapters, has_more_chapters = await provider.get_chapters(
+            manga_id
+        )
+
+        return {
+            "provider_id": provider_id,
+            "provider_name": provider.name,
+            "manga": manga_details,
+            "chapters": chapters,
+            "total_chapters": total_chapters,
+            "has_more_chapters": has_more_chapters,
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching manga details from provider {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch manga details: {str(e)}",
         )
 
 

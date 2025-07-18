@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Test script to verify database configuration"""
 
-import asyncio
 import os
 import sys
 

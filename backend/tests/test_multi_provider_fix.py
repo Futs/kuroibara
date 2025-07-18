@@ -4,7 +4,6 @@ Test script to verify the multi-provider search improvements.
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio

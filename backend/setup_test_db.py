@@ -4,7 +4,6 @@ Simple script to create test database for PostgreSQL testing.
 Run this before running tests.
 """
 
-import os
 import subprocess
 import sys
 

@@ -323,13 +323,11 @@ class TestOrganizerIntegration:
         # This would be a more complex integration test
         # that tests the full workflow with a real database
         # and file system operations
-        pass
 
     async def test_batch_organization_workflow(self):
         """Test batch organization workflow."""
         # This would test the batch organizer with multiple
         # manga and chapters
-        pass
 
 
 if __name__ == "__main__":

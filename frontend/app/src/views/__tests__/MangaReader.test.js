@@ -53,6 +53,14 @@ describe("MangaReader Component", () => {
     store.loading = false;
     store.error = null;
 
+    // Set default settings for proper rendering
+    store.settings = {
+      pageLayout: 'single',
+      fitMode: 'width',
+      imageQuality: 'medium',
+      ...store.settings
+    };
+
     wrapper = mount(MangaReader, {
       global: {
         plugins: [pinia, router],

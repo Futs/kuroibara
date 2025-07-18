@@ -1335,7 +1335,7 @@ const hasBookmarkOnCurrentPage = computed(() => {
 
 const currentPageUrl = computed(() => {
   const page = pages.value[currentPage.value - 1];
-  return page ? readerStore.getCurrentPageUrl : null;
+  return page || null;
 });
 
 const currentPagePair = computed(() => {
@@ -1352,10 +1352,15 @@ const getQualityImageUrl = (page) => {
   if (!baseUrl) return '';
 
   const quality = settings.value.imageQuality || 'medium';
+
+  // High quality returns original URL unchanged
+  if (quality === 'high') {
+    return baseUrl;
+  }
+
   const qualityMap = {
     low: { quality: 60, width: 800 },
     medium: { quality: 75, width: 1200 },
-    high: { quality: 90, width: 1600 },
     original: { quality: 100, width: null }
   };
 
@@ -1390,6 +1395,9 @@ const handleKeydown = (event) => {
       readerStore.updateSettings({ pageLayout: 'double' });
       break;
     case '3':
+      readerStore.updateSettings({ pageLayout: 'list' });
+      break;
+    case '4':
       readerStore.updateSettings({ pageLayout: 'webtoon' });
       break;
     case 'q':
@@ -1476,6 +1484,11 @@ const nextPage = () => readerStore.nextPage();
 const prevPage = () => readerStore.prevPage();
 const nextChapter = () => readerStore.nextChapter();
 const prevChapter = () => readerStore.prevChapter();
+
+// UI methods
+const toggleSettings = () => {
+  showSettings.value = !showSettings.value;
+};
 
 // Load content on mount
 const loadContent = async () => {

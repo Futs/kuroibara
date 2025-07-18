@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
 
+    # Storage settings
+    STORAGE_PATH: str = "/app/storage"
+
     # Backup settings
     BACKUP_PATH: str = "/app/backups"
 

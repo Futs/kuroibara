@@ -364,10 +364,30 @@ async def read_library_item_detailed(
                 "external_ids": library_item.manga.external_ids,
                 "created_at": library_item.manga.created_at,
                 "updated_at": library_item.manga.updated_at,
-                "genres": [{"id": str(g.id), "name": g.name, "description": g.description} for g in library_item.manga.genres],
-                "authors": [{"id": str(a.id), "name": a.name, "alternative_names": a.alternative_names, "biography": a.biography} for a in library_item.manga.authors],
+                "genres": [
+                    {"id": str(g.id), "name": g.name, "description": g.description}
+                    for g in library_item.manga.genres
+                ],
+                "authors": [
+                    {
+                        "id": str(a.id),
+                        "name": a.name,
+                        "alternative_names": a.alternative_names,
+                        "biography": a.biography,
+                    }
+                    for a in library_item.manga.authors
+                ],
             },
-            "categories": [{"id": str(c.id), "name": c.name, "description": c.description, "color": c.color, "icon": c.icon} for c in library_item.categories],
+            "categories": [
+                {
+                    "id": str(c.id),
+                    "name": c.name,
+                    "description": c.description,
+                    "color": c.color,
+                    "icon": c.icon,
+                }
+                for c in library_item.categories
+            ],
         },
         "chapters": enhanced_chapters,
         "download_summary": {

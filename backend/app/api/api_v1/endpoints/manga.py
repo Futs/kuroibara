@@ -649,7 +649,8 @@ async def organize_chapters(
 
     # Get all chapters for this manga
     chapters_result = await db.execute(
-        select(Chapter).where(Chapter.manga_id == uuid.UUID(manga_id))
+        select(Chapter)
+        .where(Chapter.manga_id == uuid.UUID(manga_id))
         .order_by(Chapter.number.asc())
     )
     chapters = chapters_result.scalars().all()
@@ -666,10 +667,12 @@ async def organize_chapters(
 
             if new_title != original_title:
                 chapter.title = new_title
-                changes.append({
-                    "id": str(chapter.id),
-                    "description": f"Chapter {chapter.number}: '{original_title}' → '{new_title}'"
-                })
+                changes.append(
+                    {
+                        "id": str(chapter.id),
+                        "description": f"Chapter {chapter.number}: '{original_title}' → '{new_title}'",
+                    }
+                )
 
         await db.commit()
 
@@ -696,29 +699,36 @@ def _normalize_chapter_title(title: str, chapter_number: str) -> str:
         return ""
 
     # Remove file extensions
-    title = re.sub(r'\.(cbz|cbr|zip|rar|7z)$', '', title, flags=re.IGNORECASE)
+    title = re.sub(r"\.(cbz|cbr|zip|rar|7z)$", "", title, flags=re.IGNORECASE)
 
     # Remove chapter number if it's at the beginning
-    title = re.sub(rf'^ch\.?\s*{re.escape(chapter_number)}\s*:?\s*', '', title, flags=re.IGNORECASE)
-    title = re.sub(rf'^chapter\s*{re.escape(chapter_number)}\s*:?\s*', '', title, flags=re.IGNORECASE)
-    title = re.sub(rf'^{re.escape(chapter_number)}\s*:?\s*', '', title)
+    title = re.sub(
+        rf"^ch\.?\s*{re.escape(chapter_number)}\s*:?\s*", "", title, flags=re.IGNORECASE
+    )
+    title = re.sub(
+        rf"^chapter\s*{re.escape(chapter_number)}\s*:?\s*",
+        "",
+        title,
+        flags=re.IGNORECASE,
+    )
+    title = re.sub(rf"^{re.escape(chapter_number)}\s*:?\s*", "", title)
 
     # Remove volume information
-    title = re.sub(r'vol\.?\s*\d+\s*', '', title, flags=re.IGNORECASE)
-    title = re.sub(r'volume\s*\d+\s*', '', title, flags=re.IGNORECASE)
+    title = re.sub(r"vol\.?\s*\d+\s*", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"volume\s*\d+\s*", "", title, flags=re.IGNORECASE)
 
     # Remove scan group information in brackets/parentheses at the end
-    title = re.sub(r'\s*\([^)]*scan[^)]*\)\s*$', '', title, flags=re.IGNORECASE)
-    title = re.sub(r'\s*\[[^\]]*scan[^\]]*\]\s*$', '', title, flags=re.IGNORECASE)
+    title = re.sub(r"\s*\([^)]*scan[^)]*\)\s*$", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"\s*\[[^\]]*scan[^\]]*\]\s*$", "", title, flags=re.IGNORECASE)
 
     # Remove language codes
-    title = re.sub(r'\s*\(en\)\s*', '', title, flags=re.IGNORECASE)
-    title = re.sub(r'\s*\[en\]\s*', '', title, flags=re.IGNORECASE)
+    title = re.sub(r"\s*\(en\)\s*", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"\s*\[en\]\s*", "", title, flags=re.IGNORECASE)
 
     # Clean up extra whitespace and dashes
-    title = re.sub(r'\s*-\s*$', '', title)  # Remove trailing dash
-    title = re.sub(r'^\s*-\s*', '', title)  # Remove leading dash
-    title = re.sub(r'\s+', ' ', title)      # Normalize whitespace
+    title = re.sub(r"\s*-\s*$", "", title)  # Remove trailing dash
+    title = re.sub(r"^\s*-\s*", "", title)  # Remove leading dash
+    title = re.sub(r"\s+", " ", title)  # Normalize whitespace
     title = title.strip()
 
     return title

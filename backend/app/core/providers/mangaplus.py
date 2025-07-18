@@ -250,8 +250,12 @@ class MangaPlusProvider(BaseProvider):
                         chapter_number = chapter.get("number", "")
 
                         # Get dates from MangaPlus API (if available)
-                        publish_at = chapter.get("publishAt") or chapter.get("startTimeStamp")
-                        readable_at = chapter.get("readableAt") or chapter.get("endTimeStamp")
+                        publish_at = chapter.get("publishAt") or chapter.get(
+                            "startTimeStamp"
+                        )
+                        readable_at = chapter.get("readableAt") or chapter.get(
+                            "endTimeStamp"
+                        )
 
                         # Create chapter
                         chapters.append(

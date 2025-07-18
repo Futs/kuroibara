@@ -83,11 +83,12 @@ async def import_archive(
 
         # Check for existing chapter
         from sqlalchemy import select
+
         existing_chapter_result = await db.execute(
             select(Chapter).where(
-                (Chapter.manga_id == manga_id) &
-                (Chapter.number == chapter_number) &
-                (Chapter.language == language)
+                (Chapter.manga_id == manga_id)
+                & (Chapter.number == chapter_number)
+                & (Chapter.language == language)
             )
         )
         existing_chapter = existing_chapter_result.scalars().first()
@@ -533,9 +534,9 @@ async def check_chapter_exists(
 
     result = await db.execute(
         select(Chapter).where(
-            (Chapter.manga_id == manga_id) &
-            (Chapter.number == chapter_number) &
-            (Chapter.language == language)
+            (Chapter.manga_id == manga_id)
+            & (Chapter.number == chapter_number)
+            & (Chapter.language == language)
         )
     )
     return result.scalars().first()

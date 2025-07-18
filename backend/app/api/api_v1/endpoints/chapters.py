@@ -1,6 +1,7 @@
 """
 Chapter management endpoints.
 """
+
 import os
 import shutil
 import uuid
@@ -22,7 +23,9 @@ router = APIRouter()
 
 def get_chapter_storage_path(manga_id: uuid.UUID, chapter_id: uuid.UUID) -> str:
     """Get the storage path for a chapter."""
-    return os.path.join(settings.STORAGE_PATH, "manga", str(manga_id), "chapters", str(chapter_id))
+    return os.path.join(
+        settings.STORAGE_PATH, "manga", str(manga_id), "chapters", str(chapter_id)
+    )
 
 
 @router.delete("/{chapter_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -135,7 +138,7 @@ async def redownload_chapter(
         # Reset chapter status to trigger re-download
         chapter.download_status = "pending"
         chapter.download_error = None
-        
+
         await db.commit()
         await db.refresh(chapter)
 

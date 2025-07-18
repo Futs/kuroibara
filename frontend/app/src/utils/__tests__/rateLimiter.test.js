@@ -323,7 +323,7 @@ describe("Proxy Manager", () => {
     });
 
     it("should record proxy usage", () => {
-      const providerId = "test-provider";
+      const providerId = "test-provider-usage";
       const proxyConfig = { host: "127.0.0.1", port: 8080 };
 
       const proxyId = proxyManager.addProxy(providerId, proxyConfig);

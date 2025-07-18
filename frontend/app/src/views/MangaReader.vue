@@ -1324,6 +1324,24 @@ const displayOptions = computed(() => readerStore.getDisplayOptions || {
   uiOpacity: 0.9
 });
 
+// Missing computed properties that the template expects
+const hasBookmarkOnCurrentPage = computed(() => {
+  return readerStore.bookmarks.some(bookmark =>
+    bookmark.mangaId === manga.value?.id &&
+    bookmark.chapterId === chapter.value?.id &&
+    bookmark.page === currentPage.value
+  );
+});
+
+const currentPageUrl = computed(() => {
+  const page = pages.value[currentPage.value - 1];
+  return page ? readerStore.getCurrentPageUrl : null;
+});
+
+const currentPagePair = computed(() => {
+  return readerStore.getCurrentPagePair || [];
+});
+
 // Computed values
 const totalPages = computed(() => readerStore.getTotalPages);
 const hasNextPage = computed(() => readerStore.hasNextPage);

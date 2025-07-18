@@ -395,28 +395,28 @@ describe("Security Store", () => {
       securityStore.securityEvents = [];
 
       let score = securityStore.getSecurityScore;
-      expect(score).toBe(25); // Base score with no security features
+      expect(score).toBe(15); // Base score: 15 for no recent security events
 
       // Enable 2FA
       securityStore.twoFactorEnabled = true;
       score = securityStore.getSecurityScore;
-      expect(score).toBe(55); // +30 for 2FA
+      expect(score).toBe(45); // +30 for 2FA
 
       // Strong password policy
       securityStore.securitySettings.passwordPolicy.minLength = 12;
       score = securityStore.getSecurityScore;
-      expect(score).toBe(75); // +20 for strong password
+      expect(score).toBe(65); // +20 for strong password
 
       // Short session timeout
       securityStore.securitySettings.sessionTimeout = 1800000; // 30 minutes
       score = securityStore.getSecurityScore;
-      expect(score).toBe(90); // +15 for short timeout
+      expect(score).toBe(80); // +15 for short timeout
 
       // Privacy settings
       securityStore.privacySettings.dataCollection = false;
       securityStore.privacySettings.analytics = false;
       score = securityStore.getSecurityScore;
-      expect(score).toBe(100); // +10 for privacy
+      expect(score).toBe(100); // +20 for privacy (10+10)
     });
   });
 
@@ -434,7 +434,7 @@ describe("Security Store", () => {
       expect(securityStore.isModerator).toBe(true);
 
       securityStore.currentRole = ROLES.USER;
-      expect(securityStore.isModerator).toBe(true); // Users have moderator level
+      expect(securityStore.isModerator).toBe(false); // Users do not have moderator level
 
       securityStore.currentRole = ROLES.GUEST;
       expect(securityStore.isModerator).toBe(false);

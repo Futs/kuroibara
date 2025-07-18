@@ -16,12 +16,12 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add storage_type and max_upload_size columns to user table
-    op.add_column('user', sa.Column('storage_type', sa.String(20), nullable=False, server_default='local'))
-    op.add_column('user', sa.Column('max_upload_size', sa.String(10), nullable=False, server_default='100MB'))
+    # Add storage_type and max_upload_size columns to users table
+    op.add_column('users', sa.Column('storage_type', sa.String(20), nullable=False, server_default='local'))
+    op.add_column('users', sa.Column('max_upload_size', sa.String(10), nullable=False, server_default='100MB'))
 
 
 def downgrade() -> None:
     # Remove the columns
-    op.drop_column('user', 'max_upload_size')
-    op.drop_column('user', 'storage_type')
+    op.drop_column('users', 'max_upload_size')
+    op.drop_column('users', 'storage_type')

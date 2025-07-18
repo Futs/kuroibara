@@ -2,11 +2,13 @@
 Tests for storage settings functionality
 """
 
+import os
+
 import pytest
 from sqlalchemy import create_engine, text
-from app.schemas.user import UserSettings, UserSettingsUpdate
+
 from app.models.user import User
-import os
+from app.schemas.user import UserSettings, UserSettingsUpdate
 
 
 class TestStorageSettings:
@@ -69,7 +71,7 @@ class TestStorageSettings:
         DB_PASSWORD = os.getenv("DB_PASSWORD", "testpass")
         DB_HOST = os.getenv("DB_HOST", "localhost")
         DB_PORT = os.getenv("DB_PORT", "5432")
-        DB_DATABASE = os.getenv("DB_DATABASE", "kuroibara_test")
+        DB_DATABASE = os.getenv("DB_DATABASE", "testdb")
 
         # Skip test if database connection info is not available
         if not all([DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE]):

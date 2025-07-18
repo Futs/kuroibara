@@ -2,7 +2,6 @@ import logging
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-
 from app.core.services.download import download_manga
 from app.db.session import AsyncSessionLocal
 

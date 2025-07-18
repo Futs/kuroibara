@@ -11,7 +11,6 @@ import shutil
 from typing import List, Optional
 from uuid import UUID
 
-
 from app.core.services.naming import naming_engine
 from app.core.utils import create_cbz_from_directory, get_manga_storage_path
 from app.models.manga import Chapter, Manga

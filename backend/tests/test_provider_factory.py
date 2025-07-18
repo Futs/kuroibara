@@ -2,7 +2,6 @@ import json
 import tempfile
 from unittest.mock import MagicMock, patch
 
-
 from app.core.providers.base import BaseProvider
 from app.core.providers.factory import ProviderFactory
 

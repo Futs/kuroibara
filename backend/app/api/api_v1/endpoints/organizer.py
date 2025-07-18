@@ -26,8 +26,6 @@ from app.schemas.organization import (
     BatchOrganizeRequest,
     BatchRecoveryRequest,
     BatchRecoveryResponse,
-)
-from app.schemas.organization import (
     NamingFormatValidation,
     NamingFormatValidationResponse,
     NamingSettings,

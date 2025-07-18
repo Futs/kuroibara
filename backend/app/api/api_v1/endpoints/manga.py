@@ -20,9 +20,9 @@ from app.schemas.manga import (
     ChapterCreate,
 )
 from app.schemas.manga import Manga as MangaSchema
-from app.schemas.manga import MangaSummary
 from app.schemas.manga import (
     MangaCreate,
+    MangaSummary,
     MangaUpdate,
 )
 

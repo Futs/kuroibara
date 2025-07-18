@@ -30,9 +30,9 @@ from app.schemas.library import (
     BookmarkCreate,
 )
 from app.schemas.library import MangaUserLibrary as MangaUserLibrarySchema
-from app.schemas.library import MangaUserLibrarySummary
 from app.schemas.library import (
     MangaUserLibraryCreate,
+    MangaUserLibrarySummary,
     MangaUserLibraryUpdate,
 )
 from app.schemas.library import ReadingProgress as ReadingProgressSchema

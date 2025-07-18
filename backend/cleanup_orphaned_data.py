@@ -10,8 +10,9 @@ import sys
 sys.path.insert(0, "/app")
 
 from sqlalchemy import text
-from app.db.session import get_db
+
 from app.core.config import settings
+from app.db.session import get_db
 
 
 async def cleanup_orphaned_data():

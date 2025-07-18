@@ -32,6 +32,12 @@ class UserBase(BaseModel):
     auto_organize_imports: bool = True
     create_cbz_files: bool = True
     preserve_original_files: bool = False
+    chapter_auto_refresh_interval: int = 300
+    chapter_check_on_tab_focus: bool = True
+    chapter_show_update_notifications: bool = True
+    chapter_enable_manual_refresh: bool = True
+    storage_type: str = "local"
+    max_upload_size: str = "100MB"
 
 
 # Properties to receive via API on creation
@@ -68,6 +74,12 @@ class UserUpdate(BaseModel):
     auto_organize_imports: Optional[bool] = None
     create_cbz_files: Optional[bool] = None
     preserve_original_files: Optional[bool] = None
+    chapter_auto_refresh_interval: Optional[int] = None
+    chapter_check_on_tab_focus: Optional[bool] = None
+    chapter_show_update_notifications: Optional[bool] = None
+    chapter_enable_manual_refresh: Optional[bool] = None
+    storage_type: Optional[str] = None
+    max_upload_size: Optional[str] = None
 
 
 # Properties to return via API
@@ -100,6 +112,12 @@ class UserSettings(BaseModel):
     auto_organize_imports: bool = True
     create_cbz_files: bool = True
     preserve_original_files: bool = False
+    chapter_auto_refresh_interval: int = 300
+    chapter_check_on_tab_focus: bool = True
+    chapter_show_update_notifications: bool = True
+    chapter_enable_manual_refresh: bool = True
+    storage_type: str = "local"
+    max_upload_size: str = "100MB"
 
 
 class UserSettingsUpdate(BaseModel):
@@ -114,3 +132,9 @@ class UserSettingsUpdate(BaseModel):
     auto_organize_imports: Optional[bool] = None
     create_cbz_files: Optional[bool] = None
     preserve_original_files: Optional[bool] = None
+    chapter_auto_refresh_interval: Optional[int] = None
+    chapter_check_on_tab_focus: Optional[bool] = None
+    chapter_show_update_notifications: Optional[bool] = None
+    chapter_enable_manual_refresh: Optional[bool] = None
+    storage_type: Optional[str] = None
+    max_upload_size: Optional[str] = None

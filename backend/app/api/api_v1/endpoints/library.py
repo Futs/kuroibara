@@ -30,6 +30,7 @@ from app.schemas.library import (
     BookmarkCreate,
 )
 from app.schemas.library import MangaUserLibrary as MangaUserLibrarySchema
+from app.schemas.library import MangaUserLibrarySummary
 from app.schemas.library import (
     MangaUserLibraryCreate,
     MangaUserLibraryUpdate,
@@ -44,12 +45,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("", response_model=List[MangaUserLibrarySchema])
+@router.get("", response_model=List[MangaUserLibrarySummary])
 async def read_library(
     skip: int = 0,
     limit: int = 100,
     category_id: Optional[str] = None,
     is_favorite: Optional[bool] = None,
+    manga_id: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
@@ -77,6 +79,10 @@ async def read_library(
     if is_favorite is not None:
         query = query.where(MangaUserLibrary.is_favorite == is_favorite)
 
+    # Filter by manga_id
+    if manga_id:
+        query = query.where(MangaUserLibrary.manga_id == uuid.UUID(manga_id))
+
     # Apply pagination
     query = query.offset(skip).limit(limit)
 
@@ -84,6 +90,39 @@ async def read_library(
     library_items = result.scalars().all()
 
     return library_items
+
+
+@router.get("/check/{manga_id}", response_model=Dict[str, Any])
+async def check_library_status(
+    manga_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Check if a manga is in the user's library.
+    """
+    try:
+        # Check if manga exists in user's library
+        result = await db.execute(
+            select(MangaUserLibrary).where(
+                (MangaUserLibrary.user_id == current_user.id)
+                & (MangaUserLibrary.manga_id == uuid.UUID(manga_id))
+            )
+        )
+        library_item = result.scalars().first()
+
+        return {
+            "manga_id": manga_id,
+            "in_library": library_item is not None,
+            "library_item_id": str(library_item.id) if library_item else None,
+        }
+    except Exception as e:
+        # If there's any error (like invalid UUID), return not in library
+        return {
+            "manga_id": manga_id,
+            "in_library": False,
+            "library_item_id": None,
+        }
 
 
 @router.post("", response_model=MangaUserLibrarySchema)
@@ -296,7 +335,40 @@ async def read_library_item_detailed(
     )
 
     return {
-        "library_item": library_item,
+        "library_item": {
+            "id": str(library_item.id),
+            "user_id": str(library_item.user_id),
+            "manga_id": str(library_item.manga_id),
+            "custom_title": library_item.custom_title,
+            "custom_cover": library_item.custom_cover,
+            "notes": library_item.notes,
+            "is_favorite": library_item.is_favorite,
+            "rating": library_item.rating,
+            "is_downloaded": library_item.is_downloaded,
+            "download_path": library_item.download_path,
+            "created_at": library_item.created_at,
+            "updated_at": library_item.updated_at,
+            "manga": {
+                "id": str(library_item.manga.id),
+                "title": library_item.manga.title,
+                "alternative_titles": library_item.manga.alternative_titles,
+                "description": library_item.manga.description,
+                "cover_image": library_item.manga.cover_image,
+                "type": library_item.manga.type,
+                "status": library_item.manga.status,
+                "year": library_item.manga.year,
+                "is_nsfw": library_item.manga.is_nsfw,
+                "provider": library_item.manga.provider,
+                "external_id": library_item.manga.external_id,
+                "external_url": library_item.manga.external_url,
+                "external_ids": library_item.manga.external_ids,
+                "created_at": library_item.manga.created_at,
+                "updated_at": library_item.manga.updated_at,
+                "genres": [{"id": str(g.id), "name": g.name, "description": g.description} for g in library_item.manga.genres],
+                "authors": [{"id": str(a.id), "name": a.name, "alternative_names": a.alternative_names, "biography": a.biography} for a in library_item.manga.authors],
+            },
+            "categories": [{"id": str(c.id), "name": c.name, "description": c.description, "color": c.color, "icon": c.icon} for c in library_item.categories],
+        },
         "chapters": enhanced_chapters,
         "download_summary": {
             "total_chapters": len(enhanced_chapters),
@@ -379,9 +451,9 @@ async def remove_from_library(
 @router.post("/{library_item_id}/download", response_model=Dict[str, Any])
 async def download_manga(
     library_item_id: str,
-    provider: str,
-    external_id: str,
-    background_tasks: BackgroundTasks,
+    provider: str = Query(...),
+    external_id: str = Query(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:

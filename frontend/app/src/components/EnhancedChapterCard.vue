@@ -130,6 +130,78 @@
               Read
             </button>
 
+            <!-- Re-Download Button (for downloaded chapters) -->
+            <button
+              v-if="chapter.download_status === 'downloaded'"
+              @click="$emit('redownload-chapter', chapter)"
+              :disabled="downloading"
+              class="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-dark-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Re-download this chapter"
+            >
+              <svg
+                class="h-3 w-3 mr-1"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Re-Download
+            </button>
+
+            <!-- Delete Button -->
+            <button
+              v-if="chapter.download_status === 'downloaded'"
+              @click="confirmDelete"
+              :disabled="deleting"
+              class="inline-flex items-center px-3 py-1 border border-red-300 dark:border-red-600 text-sm leading-4 font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-dark-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Delete this chapter"
+            >
+              <svg
+                v-if="deleting"
+                class="animate-spin -ml-1 mr-1 h-3 w-3 text-current"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <svg
+                v-else
+                class="h-3 w-3 mr-1"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Delete
+            </button>
+
             <!-- Download Button or Progress -->
             <div v-if="chapter.download_status !== 'downloaded'">
               <!-- Show progress if actively downloading -->
@@ -229,10 +301,16 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["read-chapter", "download-chapter"]);
+const emit = defineEmits([
+  "read-chapter",
+  "download-chapter",
+  "redownload-chapter",
+  "delete-chapter"
+]);
 
 const downloadsStore = useDownloadsStore();
 const downloading = ref(false);
+const deleting = ref(false);
 
 const progressPercentage = computed(() => {
   if (!props.chapter.reading_progress || !props.chapter.pages_count) return 0;
@@ -258,6 +336,13 @@ const cancelDownload = async () => {
     } catch (error) {
       console.error("Error canceling download:", error);
     }
+  }
+};
+
+const confirmDelete = () => {
+  if (confirm(`Are you sure you want to delete Chapter ${props.chapter.number}${props.chapter.title ? `: ${props.chapter.title}` : ''}?`)) {
+    deleting.value = true;
+    emit('delete-chapter', props.chapter);
   }
 };
 </script>

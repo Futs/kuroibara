@@ -338,6 +338,12 @@ class MangaDexProvider(BaseProvider):
                 # Get language
                 language = attributes.get("translatedLanguage", "en")
 
+                # Get dates
+                publish_at = attributes.get("publishAt")
+                readable_at = attributes.get("readableAt")
+                created_at = attributes.get("createdAt")
+                updated_at = attributes.get("updatedAt")
+
                 # Create chapter
                 chapters.append(
                     {
@@ -348,6 +354,9 @@ class MangaDexProvider(BaseProvider):
                         "language": language,
                         "pages_count": attributes.get("pages", 0),
                         "manga_id": manga_id,
+                        "publish_at": publish_at,
+                        "readable_at": readable_at,
+                        "source": "MangaDex",
                     }
                 )
 

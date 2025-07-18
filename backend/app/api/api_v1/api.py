@@ -4,6 +4,7 @@ from app.api.api_v1.endpoints import (
     auth,
     backup,
     categories,
+    chapters,
     favorites,
     import_files,
     integrations,
@@ -23,6 +24,7 @@ api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(manga.router, prefix="/manga", tags=["Manga"])
+api_router.include_router(chapters.router, prefix="/chapters", tags=["Chapters"])
 api_router.include_router(categories.router, prefix="/categories", tags=["Categories"])
 api_router.include_router(
     reading_lists.router, prefix="/reading-lists", tags=["Reading Lists"]

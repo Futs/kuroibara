@@ -129,6 +129,17 @@ async def get_user_settings(
         nsfw_blur=current_user.nsfw_blur,
         download_quality=current_user.download_quality,
         download_path=current_user.download_path,
+        naming_format_manga=current_user.naming_format_manga,
+        naming_format_chapter=current_user.naming_format_chapter,
+        auto_organize_imports=current_user.auto_organize_imports,
+        create_cbz_files=current_user.create_cbz_files,
+        preserve_original_files=current_user.preserve_original_files,
+        chapter_auto_refresh_interval=current_user.chapter_auto_refresh_interval,
+        chapter_check_on_tab_focus=current_user.chapter_check_on_tab_focus,
+        chapter_show_update_notifications=current_user.chapter_show_update_notifications,
+        chapter_enable_manual_refresh=current_user.chapter_enable_manual_refresh,
+        storage_type=current_user.storage_type,
+        max_upload_size=current_user.max_upload_size,
     )
 
 
@@ -156,4 +167,15 @@ async def update_user_settings(
         nsfw_blur=current_user.nsfw_blur,
         download_quality=current_user.download_quality,
         download_path=current_user.download_path,
+        naming_format_manga=current_user.naming_format_manga,
+        naming_format_chapter=current_user.naming_format_chapter,
+        auto_organize_imports=current_user.auto_organize_imports,
+        create_cbz_files=current_user.create_cbz_files,
+        preserve_original_files=current_user.preserve_original_files,
+        chapter_auto_refresh_interval=current_user.chapter_auto_refresh_interval,
+        chapter_check_on_tab_focus=current_user.chapter_check_on_tab_focus,
+        chapter_show_update_notifications=current_user.chapter_show_update_notifications,
+        chapter_enable_manual_refresh=current_user.chapter_enable_manual_refresh,
+        storage_type=current_user.storage_type,
+        max_upload_size=current_user.max_upload_size,
     )

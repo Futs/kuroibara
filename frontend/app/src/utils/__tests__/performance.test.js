@@ -107,17 +107,21 @@ describe("Performance Utilities", () => {
     });
 
     it("should record custom metrics", () => {
-      const timestamp = Date.now();
+      const beforeTimestamp = Date.now();
       const metric = {
         category: "test",
-        data: { value: 100, timestamp },
+        data: { value: 100 },
       };
 
       perf.record(metric.category, metric.data);
+      const afterTimestamp = Date.now();
       const metrics = perf.getMetrics(metric.category);
 
       expect(metrics).toHaveLength(1);
-      expect(metrics[0]).toMatchObject(metric.data);
+      expect(metrics[0]).toMatchObject({ value: 100 });
+      // Check timestamp is within reasonable range
+      expect(metrics[0].timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(metrics[0].timestamp).toBeLessThanOrEqual(afterTimestamp);
     });
 
     it("should get performance summary", () => {

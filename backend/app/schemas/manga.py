@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List, Optional
 from uuid import UUID
 
@@ -91,6 +92,8 @@ class ChapterBase(BaseModel):
     file_path: Optional[str] = None
     file_size: Optional[int] = None
     source: Optional[str] = None
+    publish_at: Optional[datetime] = None
+    readable_at: Optional[datetime] = None
 
 
 class ChapterCreate(ChapterBase):
@@ -110,6 +113,12 @@ class ChapterUpdate(ChapterBase):
     file_path: Optional[str] = None
     file_size: Optional[int] = None
     source: Optional[str] = None
+
+
+class ChapterSummary(ChapterBase, BaseSchema):
+    """Chapter schema for responses without pages (for library listings)."""
+
+    manga_id: UUID
 
 
 class Chapter(ChapterBase, BaseSchema):
@@ -163,6 +172,14 @@ class MangaUpdate(MangaBase):
     external_ids: Optional[Dict[str, str]] = None
     genres: Optional[List[str]] = None
     authors: Optional[List[str]] = None
+
+
+class MangaSummary(MangaBase, BaseSchema):
+    """Manga schema for responses without chapter pages (for library listings)."""
+
+    genres: List[Genre] = []
+    authors: List[Author] = []
+    chapters: Optional[List[ChapterSummary]] = None
 
 
 class Manga(MangaBase, BaseSchema):

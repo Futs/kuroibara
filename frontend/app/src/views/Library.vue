@@ -67,6 +67,74 @@
             Duplicates
           </button>
 
+          <!-- View Mode Toggle -->
+          <div class="flex border border-gray-300 dark:border-dark-600 rounded-md">
+            <button
+              @click="setViewMode('grid')"
+              :class="[
+                'px-3 py-2 text-sm font-medium rounded-l-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
+                viewMode === 'grid'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700'
+              ]"
+              title="Grid View"
+            >
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              @click="setViewMode('list')"
+              :class="[
+                'px-3 py-2 text-sm font-medium border-l border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
+                viewMode === 'list'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700'
+              ]"
+              title="List View"
+            >
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button
+              @click="setViewMode('detailed')"
+              :class="[
+                'px-3 py-2 text-sm font-medium rounded-r-md border-l border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
+                viewMode === 'detailed'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700'
+              ]"
+              title="Detailed View"
+            >
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                <path d="M16 7a1 1 0 100-2 1 1 0 000 2zM16 11a1 1 0 100-2 1 1 0 000 2zM16 15a1 1 0 100-2 1 1 0 000 2z" />
+              </svg>
+            </button>
+          </div>
+
+          <button
+            @click="showImportDialog = true"
+            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <svg
+              class="-ml-0.5 mr-2 h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+              />
+            </svg>
+            Import
+          </button>
+
           <router-link
             to="/search"
             class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -327,9 +395,11 @@
         </div>
       </div>
 
-      <!-- Manga Grid -->
+      <!-- Manga Display -->
       <div v-else class="px-4 py-5 sm:p-6">
+        <!-- Grid View -->
         <div
+          v-if="viewMode === 'grid'"
           class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
         >
           <MangaCard
@@ -337,6 +407,80 @@
             :key="item.id"
             :manga="item"
             @remove="removeManga"
+            @download="downloadManga"
+            @import="openImportForManga"
+          />
+        </div>
+
+        <!-- List View -->
+        <div v-else-if="viewMode === 'list'" class="space-y-4">
+          <div
+            v-for="item in manga"
+            :key="item.id"
+            class="flex items-center space-x-4 p-4 bg-white dark:bg-dark-800 rounded-lg shadow hover:shadow-md transition-shadow"
+          >
+            <div class="flex-shrink-0">
+              <img
+                :src="getMangaCover(item)"
+                :alt="getMangaTitle(item)"
+                class="h-16 w-12 object-cover rounded"
+                @error="$event.target.src = '/placeholder-cover.jpg'"
+              />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white truncate">
+                {{ item.title || item.manga?.title }}
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                {{ item.author || item.manga?.author }}
+              </p>
+              <div class="flex items-center space-x-4 mt-2">
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  Status: {{ item.status || item.manga?.status || 'Unknown' }}
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  Added: {{ formatDate(item.added_date) }}
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <router-link
+                :to="`/manga/${item.manga_id || item.id}`"
+                class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+              >
+                View
+              </router-link>
+              <button
+                @click="downloadManga(item.id)"
+                class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
+              >
+                Download
+              </button>
+              <button
+                @click="openImportForManga(item.id)"
+                class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              >
+                Import
+              </button>
+              <button
+                @click="removeManga(item.id)"
+                class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed View -->
+        <div v-else-if="viewMode === 'detailed'" class="space-y-6">
+          <DetailedMangaCard
+            v-for="item in manga"
+            :key="item.id"
+            :manga="item"
+            @remove="removeManga"
+            @download="downloadManga"
+            @import="openImportForManga"
           />
         </div>
 
@@ -406,6 +550,35 @@
       </div>
     </div>
 
+    <!-- Import Dialog Modal -->
+    <div
+      v-if="showImportDialog"
+      class="fixed inset-0 z-50 overflow-y-auto"
+    >
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        @click.self="showImportDialog = false"
+      >
+        <!-- Backdrop -->
+        <div
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          @click="showImportDialog = false"
+        ></div>
+
+        <!-- Modal Content -->
+        <div
+          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full relative z-10"
+          @click.stop
+        >
+          <ImportDialog
+            :manga="selectedMangaForImport"
+            @close="showImportDialog = false"
+            @imported="onMangaImported"
+          />
+        </div>
+      </div>
+    </div>
+
     <!-- Metadata Editor Modal -->
     <div
       v-if="showMetadataEditor"
@@ -437,11 +610,13 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useLibraryStore } from "../stores/library";
 import MangaCard from "../components/MangaCard.vue";
+import DetailedMangaCard from "../components/DetailedMangaCard.vue";
 import LibraryFilters from "../components/LibraryFilters.vue";
 import BulkOperations from "../components/BulkOperations.vue";
 import LibraryStatistics from "../components/LibraryStatistics.vue";
 import DuplicateDetection from "../components/DuplicateDetection.vue";
 import MetadataEditor from "../components/MetadataEditor.vue";
+import ImportDialog from "../components/ImportDialog.vue";
 import VirtualScroller from "../components/VirtualScroller.vue";
 import { perf } from "../utils/performance";
 
@@ -453,8 +628,10 @@ const showFilters = ref(false);
 const showAdvancedFilters = ref(false);
 const showStatistics = ref(false);
 const showDuplicates = ref(false);
+const showImportDialog = ref(false);
 const showMetadataEditor = ref(false);
 const selectedMangaForEdit = ref(null);
+const selectedMangaForImport = ref(null);
 const viewMode = ref("grid");
 const categories = ref([]);
 
@@ -516,10 +693,16 @@ const resetFilters = () => {
 };
 
 const removeManga = async (mangaId) => {
-  try {
-    await libraryStore.removeFromLibrary(mangaId);
-  } catch (error) {
-    console.error("Failed to remove manga:", error);
+  // Find the manga to get its title for the confirmation dialog
+  const mangaItem = manga.value.find(item => item.id === mangaId);
+  const mangaTitle = mangaItem?.title || mangaItem?.manga?.title || "this manga";
+
+  if (confirm(`Are you sure you want to remove "${mangaTitle}" from your library?`)) {
+    try {
+      await libraryStore.removeFromLibrary(mangaId);
+    } catch (error) {
+      console.error("Failed to remove manga:", error);
+    }
   }
 };
 
@@ -550,6 +733,19 @@ const editMangaMetadata = (manga) => {
   showMetadataEditor.value = true;
 };
 
+const onMangaImported = () => {
+  showImportDialog.value = false;
+  selectedMangaForImport.value = null;
+  // Refresh library to show newly imported manga
+  libraryStore.fetchLibrary();
+};
+
+const openImportForManga = (mangaId) => {
+  const mangaItem = manga.value.find(item => item.id === mangaId);
+  selectedMangaForImport.value = mangaItem;
+  showImportDialog.value = true;
+};
+
 const onMetadataSaved = () => {
   showMetadataEditor.value = false;
   selectedMangaForEdit.value = null;
@@ -558,6 +754,38 @@ const onMetadataSaved = () => {
 
 const toggleMangaSelection = (mangaId) => {
   libraryStore.toggleMangaSelection(mangaId);
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown';
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+};
+
+const downloadManga = async (mangaId) => {
+  try {
+    await libraryStore.downloadManga(mangaId);
+  } catch (error) {
+    console.error("Failed to download manga:", error);
+  }
+};
+
+// Helper methods for manga data access
+const getMangaCover = (item) => {
+  // Check for custom cover first (library items)
+  if (item.custom_cover) {
+    return item.custom_cover;
+  }
+  // Check nested manga object
+  if (item.manga && item.manga.cover_image) {
+    return item.manga.cover_image;
+  }
+  // Direct manga object
+  return item.cover_image || item.cover_url || '/placeholder-cover.jpg';
+};
+
+const getMangaTitle = (item) => {
+  return item.title || item.manga?.title || 'Unknown Title';
 };
 
 // Watch for filter changes

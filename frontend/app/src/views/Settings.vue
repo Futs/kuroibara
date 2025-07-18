@@ -382,21 +382,176 @@
 
         <!-- Downloads Tab -->
         <div v-else-if="activeTab === 'downloads'" class="space-y-6">
-          <!-- Download Settings -->
+          <!-- Storage Settings -->
           <div>
             <div class="mb-6">
               <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Download Settings
+                Storage Settings
               </h3>
               <p class="text-gray-600 dark:text-gray-400">
-                Configure download preferences and behavior
+                Configure how and where your manga files are stored
               </p>
             </div>
-            <div class="mt-4">
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Download settings will be available when the download feature is
-                implemented.
+
+            <div class="space-y-6">
+              <!-- Storage Type -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Storage Type
+                </label>
+                <div class="flex items-center space-x-4">
+                  <select
+                    v-model="storageType"
+                    class="block w-48 px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-dark-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="local">Local Storage</option>
+                    <option value="s3">Amazon S3</option>
+                    <option value="gcs">Google Cloud Storage</option>
+                    <option value="azure">Azure Blob Storage</option>
+                  </select>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Choose where to store downloaded manga files
+                  </p>
+                </div>
+              </div>
+
+              <!-- Max Upload Size -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Maximum Upload Size
+                </label>
+                <div class="flex items-center space-x-4">
+                  <select
+                    v-model="maxUploadSize"
+                    class="block w-48 px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-dark-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="50MB">50 MB</option>
+                    <option value="100MB">100 MB</option>
+                    <option value="250MB">250 MB</option>
+                    <option value="500MB">500 MB</option>
+                    <option value="1GB">1 GB</option>
+                    <option value="2GB">2 GB</option>
+                  </select>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Maximum size for individual file uploads
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapter Update Settings -->
+          <div>
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Chapter Update Settings
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400">
+                Configure how and when chapter lists are updated from providers
               </p>
+            </div>
+
+            <div class="space-y-6">
+              <!-- Auto-Refresh Interval -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Auto-Refresh Interval
+                </label>
+                <div class="flex items-center space-x-4">
+                  <select
+                    v-model="chapterAutoRefreshInterval"
+                    class="block w-48 px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-dark-700 text-gray-900 dark:text-white"
+                  >
+                    <option :value="0">Disabled</option>
+                    <option :value="60">1 minute</option>
+                    <option :value="300">5 minutes</option>
+                    <option :value="600">10 minutes</option>
+                    <option :value="1800">30 minutes</option>
+                    <option :value="3600">1 hour</option>
+                  </select>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    How often to automatically check for new chapters
+                  </p>
+                </div>
+              </div>
+
+              <!-- Check on Tab Focus -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Check on Tab Focus
+                  </label>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Automatically check for updates when returning to the tab
+                  </p>
+                </div>
+                <button
+                  @click="chapterCheckOnTabFocus = !chapterCheckOnTabFocus"
+                  :class="[
+                    chapterCheckOnTabFocus ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700',
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                  ]"
+                >
+                  <span
+                    :class="[
+                      chapterCheckOnTabFocus ? 'translate-x-5' : 'translate-x-0',
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                    ]"
+                  />
+                </button>
+              </div>
+
+              <!-- Show Update Notifications -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Show Update Notifications
+                  </label>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Display notifications when new chapters are found
+                  </p>
+                </div>
+                <button
+                  @click="chapterShowUpdateNotifications = !chapterShowUpdateNotifications"
+                  :class="[
+                    chapterShowUpdateNotifications ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700',
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                  ]"
+                >
+                  <span
+                    :class="[
+                      chapterShowUpdateNotifications ? 'translate-x-5' : 'translate-x-0',
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                    ]"
+                  />
+                </button>
+              </div>
+
+              <!-- Enable Manual Refresh -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Enable Manual Refresh Button
+                  </label>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Show manual refresh button on manga details pages
+                  </p>
+                </div>
+                <button
+                  @click="chapterEnableManualRefresh = !chapterEnableManualRefresh"
+                  :class="[
+                    chapterEnableManualRefresh ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700',
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                  ]"
+                >
+                  <span
+                    :class="[
+                      chapterEnableManualRefresh ? 'translate-x-5' : 'translate-x-0',
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                    ]"
+                  />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -477,6 +632,16 @@ const autoOrganizeImports = ref(true);
 const createCbzFiles = ref(true);
 const preserveOriginalFiles = ref(false);
 
+// Chapter update settings
+const chapterAutoRefreshInterval = ref(settingsStore.getChapterAutoRefreshInterval);
+const chapterCheckOnTabFocus = ref(settingsStore.getChapterCheckOnTabFocus);
+const chapterShowUpdateNotifications = ref(settingsStore.getChapterShowUpdateNotifications);
+const chapterEnableManualRefresh = ref(settingsStore.getChapterEnableManualRefresh);
+
+// Storage settings
+const storageType = ref(settingsStore.getStorageType);
+const maxUploadSize = ref(settingsStore.getMaxUploadSize);
+
 // Computed
 const loading = computed(() => settingsStore.loading);
 const error = computed(() => settingsStore.error);
@@ -556,6 +721,17 @@ const saveSettings = async () => {
     preserveOriginalFiles: preserveOriginalFiles.value,
   });
 
+  settingsStore.setChapterUpdateSettings({
+    chapterAutoRefreshInterval: chapterAutoRefreshInterval.value,
+    chapterCheckOnTabFocus: chapterCheckOnTabFocus.value,
+    chapterShowUpdateNotifications: chapterShowUpdateNotifications.value,
+    chapterEnableManualRefresh: chapterEnableManualRefresh.value,
+  });
+
+  // Update storage settings
+  settingsStore.setStorageType(storageType.value);
+  settingsStore.setMaxUploadSize(maxUploadSize.value);
+
   await settingsStore.updateUserSettings();
 };
 
@@ -580,6 +756,12 @@ onMounted(async () => {
   createCbzFiles.value = settingsStore.getCreateCbzFiles ?? true;
   preserveOriginalFiles.value = settingsStore.getPreserveOriginalFiles ?? false;
 
+  // Load chapter update settings
+  chapterAutoRefreshInterval.value = settingsStore.getChapterAutoRefreshInterval;
+  chapterCheckOnTabFocus.value = settingsStore.getChapterCheckOnTabFocus;
+  chapterShowUpdateNotifications.value = settingsStore.getChapterShowUpdateNotifications;
+  chapterEnableManualRefresh.value = settingsStore.getChapterEnableManualRefresh;
+
   try {
     await settingsStore.fetchUserSettings();
     theme.value = settingsStore.getTheme;
@@ -597,6 +779,12 @@ onMounted(async () => {
       settingsStore.getCreateCbzFiles ?? createCbzFiles.value;
     preserveOriginalFiles.value =
       settingsStore.getPreserveOriginalFiles ?? preserveOriginalFiles.value;
+
+    // Update chapter update settings from server
+    chapterAutoRefreshInterval.value = settingsStore.getChapterAutoRefreshInterval;
+    chapterCheckOnTabFocus.value = settingsStore.getChapterCheckOnTabFocus;
+    chapterShowUpdateNotifications.value = settingsStore.getChapterShowUpdateNotifications;
+    chapterEnableManualRefresh.value = settingsStore.getChapterEnableManualRefresh;
   } catch (error) {
     console.log(
       "Could not fetch user settings from backend, using local storage values",

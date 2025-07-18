@@ -787,6 +787,21 @@ export const useLibraryStore = defineStore("library", {
       }
     },
 
+    async downloadManga(mangaId) {
+      try {
+        this.loading = true;
+        await api.post(`/v1/library/${mangaId}/download`);
+
+        // Refresh library to get updated download status
+        await this.fetchLibrary();
+      } catch (error) {
+        console.error("Error downloading manga:", error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // Search and filtering enhancements
     async saveSearch(searchQuery, filters) {
       const savedSearch = {

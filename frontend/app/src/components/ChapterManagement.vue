@@ -47,7 +47,7 @@
               d="M4 6h16M4 12h16M4 18h7"
             />
           </svg>
-          {{ organizing ? 'Organizing...' : 'Organize Chapters' }}
+          {{ organizing ? "Organizing..." : "Organize Chapters" }}
         </button>
         <button
           @click="showRenameDialog = true"
@@ -73,11 +73,22 @@
     </div>
 
     <!-- Organization Results -->
-    <div v-if="organizationResults" class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+    <div
+      v-if="organizationResults"
+      class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md"
+    >
       <div class="flex">
         <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          <svg
+            class="h-5 w-5 text-blue-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clip-rule="evenodd"
+            />
           </svg>
         </div>
         <div class="ml-3">
@@ -86,8 +97,14 @@
           </h3>
           <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
             <p>{{ organizationResults.message }}</p>
-            <ul v-if="organizationResults.changes.length > 0" class="mt-2 list-disc list-inside">
-              <li v-for="change in organizationResults.changes" :key="change.id">
+            <ul
+              v-if="organizationResults.changes.length > 0"
+              class="mt-2 list-disc list-inside"
+            >
+              <li
+                v-for="change in organizationResults.changes"
+                :key="change.id"
+              >
                 {{ change.description }}
               </li>
             </ul>
@@ -97,15 +114,26 @@
     </div>
 
     <!-- Rename Dialog -->
-    <div v-if="showRenameDialog" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="showRenameDialog = false">
-      <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white dark:bg-dark-800" @click.stop>
+    <div
+      v-if="showRenameDialog"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      @click="showRenameDialog = false"
+    >
+      <div
+        class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white dark:bg-dark-800"
+        @click.stop
+      >
         <div class="mt-3">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
             Rename Chapters
           </h3>
-          
+
           <div class="space-y-4 max-h-96 overflow-y-auto">
-            <div v-for="chapter in chapters" :key="chapter.id" class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-dark-600 rounded-md">
+            <div
+              v-for="chapter in chapters"
+              :key="chapter.id"
+              class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-dark-600 rounded-md"
+            >
               <div class="flex-1">
                 <p class="text-sm font-medium text-gray-900 dark:text-white">
                   Chapter {{ chapter.number }}
@@ -131,7 +159,7 @@
               :disabled="renaming"
               class="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ renaming ? 'Applying...' : 'Apply Changes' }}
+              {{ renaming ? "Applying..." : "Apply Changes" }}
             </button>
           </div>
         </div>
@@ -141,8 +169,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import api from '../services/api';
+import { ref, computed, onMounted } from "vue";
+import api from "../services/api";
 
 const props = defineProps({
   mangaId: {
@@ -155,7 +183,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['chapters-updated']);
+const emit = defineEmits(["chapters-updated"]);
 const organizing = ref(false);
 const renaming = ref(false);
 const showRenameDialog = ref(false);
@@ -169,24 +197,28 @@ onMounted(() => {
 });
 
 const resetEditableChapters = () => {
-  editableChapters.value = props.chapters.map(chapter => ({
+  editableChapters.value = props.chapters.map((chapter) => ({
     ...chapter,
-    newTitle: chapter.title || '',
+    newTitle: chapter.title || "",
   }));
 };
 
 const organizeChapters = async () => {
   organizing.value = true;
   organizationResults.value = null;
-  
+
   try {
-    const response = await api.post(`/v1/manga/${props.mangaId}/organize-chapters`);
+    const response = await api.post(
+      `/v1/manga/${props.mangaId}/organize-chapters`,
+    );
     organizationResults.value = response.data;
-    emit('chapters-updated');
+    emit("chapters-updated");
   } catch (error) {
-    console.error('Error organizing chapters:', error);
+    console.error("Error organizing chapters:", error);
     organizationResults.value = {
-      message: 'Failed to organize chapters: ' + (error.response?.data?.detail || error.message),
+      message:
+        "Failed to organize chapters: " +
+        (error.response?.data?.detail || error.message),
       changes: [],
     };
   } finally {
@@ -196,11 +228,11 @@ const organizeChapters = async () => {
 
 const applyRenames = async () => {
   renaming.value = true;
-  
+
   try {
     const updates = editableChapters.value
-      .filter(chapter => chapter.newTitle !== chapter.title)
-      .map(chapter => ({
+      .filter((chapter) => chapter.newTitle !== chapter.title)
+      .map((chapter) => ({
         id: chapter.id,
         title: chapter.newTitle,
       }));
@@ -215,10 +247,13 @@ const applyRenames = async () => {
     });
 
     showRenameDialog.value = false;
-    emit('chapters-updated');
+    emit("chapters-updated");
   } catch (error) {
-    console.error('Error renaming chapters:', error);
-    alert('Failed to rename chapters: ' + (error.response?.data?.detail || error.message));
+    console.error("Error renaming chapters:", error);
+    alert(
+      "Failed to rename chapters: " +
+        (error.response?.data?.detail || error.message),
+    );
   } finally {
     renaming.value = false;
   }

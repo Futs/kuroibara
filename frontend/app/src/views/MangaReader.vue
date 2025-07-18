@@ -1267,9 +1267,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useReaderStore } from '../stores/reader';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useReaderStore } from "../stores/reader";
 
 const route = useRoute();
 const router = useRouter();
@@ -1278,7 +1278,9 @@ const readerStore = useReaderStore();
 // Route params
 const mangaId = computed(() => route.params.id);
 const chapterId = computed(() => route.params.chapter);
-const pageParam = computed(() => route.params.page ? parseInt(route.params.page) : 1);
+const pageParam = computed(() =>
+  route.params.page ? parseInt(route.params.page) : 1,
+);
 
 // UI state
 const showControls = ref(true);
@@ -1294,7 +1296,7 @@ const currentPageInView = ref(1);
 const pageIntersectionObserver = ref(null);
 
 // Bookmark state
-const bookmarkNote = ref('');
+const bookmarkNote = ref("");
 
 // Achievement notifications
 const achievementNotifications = ref([]);
@@ -1322,32 +1324,32 @@ const getToolbarClasses = () => {
   const baseClasses = [];
 
   switch (layout.toolbar.position) {
-    case 'top':
-      baseClasses.push('top-0', 'left-0', 'right-0');
+    case "top":
+      baseClasses.push("top-0", "left-0", "right-0");
       break;
-    case 'bottom':
-      baseClasses.push('bottom-0', 'left-0', 'right-0');
+    case "bottom":
+      baseClasses.push("bottom-0", "left-0", "right-0");
       break;
-    case 'left':
-      baseClasses.push('top-0', 'left-0', 'bottom-0', 'w-16', 'flex-col');
+    case "left":
+      baseClasses.push("top-0", "left-0", "bottom-0", "w-16", "flex-col");
       break;
-    case 'right':
-      baseClasses.push('top-0', 'right-0', 'bottom-0', 'w-16', 'flex-col');
+    case "right":
+      baseClasses.push("top-0", "right-0", "bottom-0", "w-16", "flex-col");
       break;
-    case 'hidden':
-      baseClasses.push('top-4', 'right-4', 'w-auto');
+    case "hidden":
+      baseClasses.push("top-4", "right-4", "w-auto");
       break;
   }
 
   switch (layout.toolbar.alignment) {
-    case 'left':
-      baseClasses.push('justify-start');
+    case "left":
+      baseClasses.push("justify-start");
       break;
-    case 'center':
-      baseClasses.push('justify-center');
+    case "center":
+      baseClasses.push("justify-center");
       break;
-    case 'right':
-      baseClasses.push('justify-end');
+    case "right":
+      baseClasses.push("justify-end");
       break;
   }
 
@@ -1374,7 +1376,7 @@ const loadContent = async () => {
       }
     }
   } catch (error) {
-    console.error('Failed to load content:', error);
+    console.error("Failed to load content:", error);
   }
 };
 

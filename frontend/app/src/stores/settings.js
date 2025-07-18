@@ -22,10 +22,14 @@ export const useSettingsStore = defineStore("settings", {
       localStorage.getItem("preserveOriginalFiles") === "true", // default false
 
     // Chapter update settings
-    chapterAutoRefreshInterval: parseInt(localStorage.getItem("chapterAutoRefreshInterval")) || 300, // 5 minutes
-    chapterCheckOnTabFocus: localStorage.getItem("chapterCheckOnTabFocus") !== "false", // default true
-    chapterShowUpdateNotifications: localStorage.getItem("chapterShowUpdateNotifications") !== "false", // default true
-    chapterEnableManualRefresh: localStorage.getItem("chapterEnableManualRefresh") !== "false", // default true
+    chapterAutoRefreshInterval:
+      parseInt(localStorage.getItem("chapterAutoRefreshInterval")) || 300, // 5 minutes
+    chapterCheckOnTabFocus:
+      localStorage.getItem("chapterCheckOnTabFocus") !== "false", // default true
+    chapterShowUpdateNotifications:
+      localStorage.getItem("chapterShowUpdateNotifications") !== "false", // default true
+    chapterEnableManualRefresh:
+      localStorage.getItem("chapterEnableManualRefresh") !== "false", // default true
 
     // Storage settings
     storageType: localStorage.getItem("storageType") || "local",
@@ -51,7 +55,8 @@ export const useSettingsStore = defineStore("settings", {
     // Chapter update settings getters
     getChapterAutoRefreshInterval: (state) => state.chapterAutoRefreshInterval,
     getChapterCheckOnTabFocus: (state) => state.chapterCheckOnTabFocus,
-    getChapterShowUpdateNotifications: (state) => state.chapterShowUpdateNotifications,
+    getChapterShowUpdateNotifications: (state) =>
+      state.chapterShowUpdateNotifications,
     getChapterEnableManualRefresh: (state) => state.chapterEnableManualRefresh,
 
     // Storage settings getters
@@ -164,7 +169,8 @@ export const useSettingsStore = defineStore("settings", {
           preserve_original_files: this.preserveOriginalFiles,
           chapter_auto_refresh_interval: this.chapterAutoRefreshInterval,
           chapter_check_on_tab_focus: this.chapterCheckOnTabFocus,
-          chapter_show_update_notifications: this.chapterShowUpdateNotifications,
+          chapter_show_update_notifications:
+            this.chapterShowUpdateNotifications,
           chapter_enable_manual_refresh: this.chapterEnableManualRefresh,
           storage_type: this.storageType,
           max_upload_size: this.maxUploadSize,
@@ -236,7 +242,8 @@ export const useSettingsStore = defineStore("settings", {
         this.chapterCheckOnTabFocus = settings.chapterCheckOnTabFocus;
       }
       if (settings.chapterShowUpdateNotifications !== undefined) {
-        this.chapterShowUpdateNotifications = settings.chapterShowUpdateNotifications;
+        this.chapterShowUpdateNotifications =
+          settings.chapterShowUpdateNotifications;
       }
       if (settings.chapterEnableManualRefresh !== undefined) {
         this.chapterEnableManualRefresh = settings.chapterEnableManualRefresh;
@@ -275,10 +282,22 @@ export const useSettingsStore = defineStore("settings", {
       );
 
       // Save chapter update settings
-      localStorage.setItem("chapterAutoRefreshInterval", this.chapterAutoRefreshInterval.toString());
-      localStorage.setItem("chapterCheckOnTabFocus", this.chapterCheckOnTabFocus.toString());
-      localStorage.setItem("chapterShowUpdateNotifications", this.chapterShowUpdateNotifications.toString());
-      localStorage.setItem("chapterEnableManualRefresh", this.chapterEnableManualRefresh.toString());
+      localStorage.setItem(
+        "chapterAutoRefreshInterval",
+        this.chapterAutoRefreshInterval.toString(),
+      );
+      localStorage.setItem(
+        "chapterCheckOnTabFocus",
+        this.chapterCheckOnTabFocus.toString(),
+      );
+      localStorage.setItem(
+        "chapterShowUpdateNotifications",
+        this.chapterShowUpdateNotifications.toString(),
+      );
+      localStorage.setItem(
+        "chapterEnableManualRefresh",
+        this.chapterEnableManualRefresh.toString(),
+      );
 
       // Save storage settings
       localStorage.setItem("storageType", this.storageType);

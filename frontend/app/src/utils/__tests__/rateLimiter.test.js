@@ -397,9 +397,9 @@ describe("Integration Tests", () => {
     // Set up proxy
     proxyManager.addProxy(providerId, { host: "127.0.0.1", port: 8080 });
 
-    // Make requests
+    // Make requests with longer delay to ensure they stay active during status check
     const mockRequestFn = vi.fn().mockImplementation(() =>
-      new Promise(resolve => setTimeout(() => resolve("success"), 100))
+      new Promise(resolve => setTimeout(() => resolve("success"), 500))
     );
 
     // Make three requests simultaneously - first two should go through, third should be queued
@@ -407,7 +407,10 @@ describe("Integration Tests", () => {
     const promise2 = rateLimiter.makeRequest(providerId, mockRequestFn);
     const promise3 = rateLimiter.makeRequest(providerId, mockRequestFn);
 
-    // Check status immediately after starting requests
+    // Wait a bit for the rate limiter to process the requests
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Check status after requests have been processed but before they complete
     const status = rateLimiter.getStatus(providerId);
     expect(status.currentRequests).toBe(2);
     expect(status.queueLength).toBe(1);

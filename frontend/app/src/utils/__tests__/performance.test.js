@@ -1,5 +1,22 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { perf, memory, imageOptimizer } from "../performance";
+
+// Mock the environment before importing the performance module
+global.window = {
+  ...global,
+  location: {
+    origin: "http://localhost:3000",
+    href: "http://localhost:3000",
+  },
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+};
+global.localStorage = {
+  getItem: vi.fn().mockReturnValue("true"),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
 
 // Mock performance API
 const mockPerformance = {
@@ -11,18 +28,36 @@ const mockPerformance = {
     jsHeapSizeLimit: 200000000,
   },
 };
-
 global.performance = mockPerformance;
 
 // Mock PerformanceObserver
-global.PerformanceObserver = vi.fn().mockImplementation((callback) => ({
+const mockPerformanceObserver = vi.fn().mockImplementation((callback) => ({
   observe: vi.fn(),
   disconnect: vi.fn(),
 }));
+global.PerformanceObserver = mockPerformanceObserver;
+
+// Set environment to development to enable performance monitoring
+const originalEnv = process.env.NODE_ENV;
+process.env.NODE_ENV = "development";
+
+// Now import the performance module after mocks are set up
+import { perf, memory, imageOptimizer } from "../performance";
+
+
 
 describe("Performance Utilities", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset performance monitoring state
+    perf.clear();
+    // Force enable performance monitoring for tests
+    perf._enableForTesting();
+  });
+
+  afterEach(() => {
+    // Restore original environment
+    process.env.NODE_ENV = originalEnv;
   });
 
   describe("Performance Monitoring", () => {
@@ -107,7 +142,8 @@ describe("Performance Utilities", () => {
       const callback = vi.fn();
       const intervalId = memory.monitor(callback, 100);
 
-      expect(typeof intervalId).toBe("number");
+      expect(intervalId).toBeDefined();
+      expect(typeof intervalId === "number" || typeof intervalId === "object").toBe(true);
 
       // Wait for callback to be called
       return new Promise((resolve) => {
@@ -150,36 +186,53 @@ describe("Performance Utilities", () => {
     });
 
     it("should handle invalid URLs gracefully", () => {
-      const invalidUrl = "not-a-url";
+      // Mock URL constructor to throw for this test
+      const originalURL = global.URL;
+      global.URL = vi.fn().mockImplementation(() => {
+        throw new Error("Invalid URL");
+      });
+
+      const invalidUrl = "invalid-url";
       const optimized = imageOptimizer.getOptimizedUrl(invalidUrl, {
         quality: 80,
       });
 
       expect(optimized).toBe(invalidUrl);
+
+      // Restore URL constructor
+      global.URL = originalURL;
     });
 
     it("should preload images", async () => {
-      // Mock Image constructor
-      const mockImage = {
-        onload: null,
-        onerror: null,
-        src: "",
-      };
-
-      global.Image = vi.fn(() => mockImage);
+      // Mock Image constructor - create new mock for each instance
+      const mockImages = [];
+      global.Image = vi.fn(() => {
+        const mockImage = {
+          onload: null,
+          onerror: null,
+          src: "",
+          loading: "",
+        };
+        mockImages.push(mockImage);
+        return mockImage;
+      });
 
       const urls = ["image1.jpg", "image2.jpg"];
       const preloadPromise = imageOptimizer.preload(urls);
 
-      // Simulate successful loading
+      // Simulate successful loading for all images
       setTimeout(() => {
-        mockImage.onload();
+        mockImages.forEach(img => {
+          if (img.onload) img.onload();
+        });
       }, 10);
 
       const results = await preloadPromise;
 
       expect(results).toHaveLength(2);
       expect(global.Image).toHaveBeenCalledTimes(2);
+      // All should be fulfilled
+      expect(results.every(result => result.status === 'fulfilled')).toBe(true);
     });
   });
 

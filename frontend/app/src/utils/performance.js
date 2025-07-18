@@ -338,6 +338,16 @@ export const perf = {
    * Clear metrics
    */
   clear: () => performanceMonitor.clear(),
+
+  /**
+   * Force enable performance monitoring (for testing)
+   */
+  _enableForTesting: () => {
+    performanceMonitor.isEnabled = true;
+    if (!performanceMonitor.observers.size) {
+      performanceMonitor.initializeObservers();
+    }
+  },
 };
 
 // Memory management utilities

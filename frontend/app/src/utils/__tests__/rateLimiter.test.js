@@ -402,17 +402,23 @@ describe("Integration Tests", () => {
       new Promise(resolve => setTimeout(() => resolve("success"), 500))
     );
 
-    // Make three requests simultaneously - first two should go through, third should be queued
+    // Make first two requests - these should be allowed immediately
     const promise1 = rateLimiter.makeRequest(providerId, mockRequestFn);
     const promise2 = rateLimiter.makeRequest(providerId, mockRequestFn);
+
+    // Wait a tiny bit for the first two to be recorded
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Now make the third request - this should be queued
     const promise3 = rateLimiter.makeRequest(providerId, mockRequestFn);
 
-    // Wait a bit for the rate limiter to process the requests
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    // Check status after requests have been processed but before they complete
+    // Check status immediately after third request
+    await new Promise(resolve => setTimeout(resolve, 10));
     const status = rateLimiter.getStatus(providerId);
+
+    // Should have 2 requests in the time window (first two were allowed)
     expect(status.currentRequests).toBe(2);
+    // The 3rd request should be queued since limit is 2 per window
     expect(status.queueLength).toBe(1);
 
     // Wait for all requests to complete

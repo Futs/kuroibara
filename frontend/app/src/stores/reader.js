@@ -414,7 +414,9 @@ export const useReaderStore = defineStore("reader", {
 
       // Save settings to localStorage
       Object.entries(this.settings).forEach(([key, value]) => {
-        localStorage.setItem(key, value.toString());
+        if (value !== null && value !== undefined) {
+          localStorage.setItem(key, value.toString());
+        }
       });
 
       // Check achievements after settings change

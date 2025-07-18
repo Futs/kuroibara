@@ -1321,6 +1321,10 @@ const hasPrevChapter = computed(() => readerStore.hasPrevChapter);
 // UI Layout methods
 const getToolbarClasses = () => {
   const layout = currentUILayout.value;
+  if (!layout || !layout.toolbar) {
+    return ['top-0', 'left-0', 'right-0', 'justify-center']; // Default classes
+  }
+
   const baseClasses = [];
 
   switch (layout.toolbar.position) {
@@ -1357,7 +1361,19 @@ const getToolbarClasses = () => {
 };
 
 // Add other essential computed properties and methods
-const currentUILayout = computed(() => readerStore.getCurrentUILayout);
+const currentUILayout = computed(() => {
+  const layout = readerStore.getCurrentUILayout;
+  // Provide default layout if none exists
+  if (!layout) {
+    return {
+      toolbar: {
+        position: 'top',
+        alignment: 'center'
+      }
+    };
+  }
+  return layout;
+});
 
 // Basic navigation methods
 const nextPage = () => readerStore.nextPage();

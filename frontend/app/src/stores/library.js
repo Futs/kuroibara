@@ -628,15 +628,18 @@ export const useLibraryStore = defineStore("library", {
     // Custom tags management
     createCustomTag(tag) {
       if (!this.customTags.find((t) => t.name === tag.name)) {
-        this.customTags.push({
+        const newTag = {
           id: Date.now().toString(),
           name: tag.name,
           color: tag.color || "#3B82F6",
           description: tag.description || "",
           createdAt: new Date().toISOString(),
-        });
+        };
+        this.customTags.push(newTag);
         localStorage.setItem("customTags", JSON.stringify(this.customTags));
+        return newTag;
       }
+      return null;
     },
 
     updateCustomTag(tagId, updates) {

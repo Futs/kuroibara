@@ -107,9 +107,10 @@ describe("Performance Utilities", () => {
     });
 
     it("should record custom metrics", () => {
+      const timestamp = Date.now();
       const metric = {
         category: "test",
-        data: { value: 100, timestamp: Date.now() },
+        data: { value: 100, timestamp },
       };
 
       perf.record(metric.category, metric.data);

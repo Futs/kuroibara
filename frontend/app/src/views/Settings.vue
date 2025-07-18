@@ -396,7 +396,9 @@
             <div class="space-y-6">
               <!-- Storage Type -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Storage Type
                 </label>
                 <div class="flex items-center space-x-4">
@@ -417,7 +419,9 @@
 
               <!-- Max Upload Size -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Maximum Upload Size
                 </label>
                 <div class="flex items-center space-x-4">
@@ -454,7 +458,9 @@
             <div class="space-y-6">
               <!-- Auto-Refresh Interval -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Auto-Refresh Interval
                 </label>
                 <div class="flex items-center space-x-4">
@@ -478,7 +484,9 @@
               <!-- Check on Tab Focus -->
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Check on Tab Focus
                   </label>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -488,14 +496,18 @@
                 <button
                   @click="chapterCheckOnTabFocus = !chapterCheckOnTabFocus"
                   :class="[
-                    chapterCheckOnTabFocus ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700',
-                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                    chapterCheckOnTabFocus
+                      ? 'bg-primary-600'
+                      : 'bg-gray-200 dark:bg-gray-700',
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
                   ]"
                 >
                   <span
                     :class="[
-                      chapterCheckOnTabFocus ? 'translate-x-5' : 'translate-x-0',
-                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                      chapterCheckOnTabFocus
+                        ? 'translate-x-5'
+                        : 'translate-x-0',
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
                     ]"
                   />
                 </button>
@@ -504,7 +516,9 @@
               <!-- Show Update Notifications -->
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Show Update Notifications
                   </label>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -512,16 +526,23 @@
                   </p>
                 </div>
                 <button
-                  @click="chapterShowUpdateNotifications = !chapterShowUpdateNotifications"
+                  @click="
+                    chapterShowUpdateNotifications =
+                      !chapterShowUpdateNotifications
+                  "
                   :class="[
-                    chapterShowUpdateNotifications ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700',
-                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                    chapterShowUpdateNotifications
+                      ? 'bg-primary-600'
+                      : 'bg-gray-200 dark:bg-gray-700',
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
                   ]"
                 >
                   <span
                     :class="[
-                      chapterShowUpdateNotifications ? 'translate-x-5' : 'translate-x-0',
-                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                      chapterShowUpdateNotifications
+                        ? 'translate-x-5'
+                        : 'translate-x-0',
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
                     ]"
                   />
                 </button>
@@ -530,7 +551,9 @@
               <!-- Enable Manual Refresh -->
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Enable Manual Refresh Button
                   </label>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -538,16 +561,22 @@
                   </p>
                 </div>
                 <button
-                  @click="chapterEnableManualRefresh = !chapterEnableManualRefresh"
+                  @click="
+                    chapterEnableManualRefresh = !chapterEnableManualRefresh
+                  "
                   :class="[
-                    chapterEnableManualRefresh ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700',
-                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                    chapterEnableManualRefresh
+                      ? 'bg-primary-600'
+                      : 'bg-gray-200 dark:bg-gray-700',
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
                   ]"
                 >
                   <span
                     :class="[
-                      chapterEnableManualRefresh ? 'translate-x-5' : 'translate-x-0',
-                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                      chapterEnableManualRefresh
+                        ? 'translate-x-5'
+                        : 'translate-x-0',
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
                     ]"
                   />
                 </button>
@@ -633,10 +662,16 @@ const createCbzFiles = ref(true);
 const preserveOriginalFiles = ref(false);
 
 // Chapter update settings
-const chapterAutoRefreshInterval = ref(settingsStore.getChapterAutoRefreshInterval);
+const chapterAutoRefreshInterval = ref(
+  settingsStore.getChapterAutoRefreshInterval,
+);
 const chapterCheckOnTabFocus = ref(settingsStore.getChapterCheckOnTabFocus);
-const chapterShowUpdateNotifications = ref(settingsStore.getChapterShowUpdateNotifications);
-const chapterEnableManualRefresh = ref(settingsStore.getChapterEnableManualRefresh);
+const chapterShowUpdateNotifications = ref(
+  settingsStore.getChapterShowUpdateNotifications,
+);
+const chapterEnableManualRefresh = ref(
+  settingsStore.getChapterEnableManualRefresh,
+);
 
 // Storage settings
 const storageType = ref(settingsStore.getStorageType);
@@ -757,10 +792,13 @@ onMounted(async () => {
   preserveOriginalFiles.value = settingsStore.getPreserveOriginalFiles ?? false;
 
   // Load chapter update settings
-  chapterAutoRefreshInterval.value = settingsStore.getChapterAutoRefreshInterval;
+  chapterAutoRefreshInterval.value =
+    settingsStore.getChapterAutoRefreshInterval;
   chapterCheckOnTabFocus.value = settingsStore.getChapterCheckOnTabFocus;
-  chapterShowUpdateNotifications.value = settingsStore.getChapterShowUpdateNotifications;
-  chapterEnableManualRefresh.value = settingsStore.getChapterEnableManualRefresh;
+  chapterShowUpdateNotifications.value =
+    settingsStore.getChapterShowUpdateNotifications;
+  chapterEnableManualRefresh.value =
+    settingsStore.getChapterEnableManualRefresh;
 
   try {
     await settingsStore.fetchUserSettings();
@@ -781,10 +819,13 @@ onMounted(async () => {
       settingsStore.getPreserveOriginalFiles ?? preserveOriginalFiles.value;
 
     // Update chapter update settings from server
-    chapterAutoRefreshInterval.value = settingsStore.getChapterAutoRefreshInterval;
+    chapterAutoRefreshInterval.value =
+      settingsStore.getChapterAutoRefreshInterval;
     chapterCheckOnTabFocus.value = settingsStore.getChapterCheckOnTabFocus;
-    chapterShowUpdateNotifications.value = settingsStore.getChapterShowUpdateNotifications;
-    chapterEnableManualRefresh.value = settingsStore.getChapterEnableManualRefresh;
+    chapterShowUpdateNotifications.value =
+      settingsStore.getChapterShowUpdateNotifications;
+    chapterEnableManualRefresh.value =
+      settingsStore.getChapterEnableManualRefresh;
   } catch (error) {
     console.log(
       "Could not fetch user settings from backend, using local storage values",

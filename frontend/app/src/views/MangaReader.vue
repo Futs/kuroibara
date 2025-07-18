@@ -1265,3 +1265,122 @@
     ></button>
   </div>
 </template>
+
+<script setup>
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useReaderStore } from "../stores/reader";
+
+const route = useRoute();
+const router = useRouter();
+const readerStore = useReaderStore();
+
+// Route params
+const mangaId = computed(() => route.params.id);
+const chapterId = computed(() => route.params.chapter);
+const pageParam = computed(() =>
+  route.params.page ? parseInt(route.params.page) : 1,
+);
+
+// UI state
+const showControls = ref(true);
+const showSettings = ref(false);
+const showChapterSelector = ref(false);
+const showKeyboardHelp = ref(false);
+const showBookmarks = ref(false);
+const showBookmarkDialog = ref(false);
+const controlsTimeout = ref(null);
+
+// List view state
+const currentPageInView = ref(1);
+const pageIntersectionObserver = ref(null);
+
+// Bookmark state
+const bookmarkNote = ref("");
+
+// Achievement notifications
+const achievementNotifications = ref([]);
+
+// Get data from store
+const manga = computed(() => readerStore.getManga);
+const chapter = computed(() => readerStore.getChapter);
+const chapters = computed(() => readerStore.getChapters);
+const pages = computed(() => readerStore.getPages);
+const currentPage = computed(() => readerStore.getCurrentPage);
+const settings = computed(() => readerStore.getSettings);
+const loading = computed(() => readerStore.loading);
+const error = computed(() => readerStore.error);
+
+// Computed values
+const totalPages = computed(() => readerStore.getTotalPages);
+const hasNextPage = computed(() => readerStore.hasNextPage);
+const hasPrevPage = computed(() => readerStore.hasPrevPage);
+const hasNextChapter = computed(() => readerStore.hasNextChapter);
+const hasPrevChapter = computed(() => readerStore.hasPrevChapter);
+
+// UI Layout methods
+const getToolbarClasses = () => {
+  const layout = currentUILayout.value;
+  const baseClasses = [];
+
+  switch (layout.toolbar.position) {
+    case "top":
+      baseClasses.push("top-0", "left-0", "right-0");
+      break;
+    case "bottom":
+      baseClasses.push("bottom-0", "left-0", "right-0");
+      break;
+    case "left":
+      baseClasses.push("top-0", "left-0", "bottom-0", "w-16", "flex-col");
+      break;
+    case "right":
+      baseClasses.push("top-0", "right-0", "bottom-0", "w-16", "flex-col");
+      break;
+    case "hidden":
+      baseClasses.push("top-4", "right-4", "w-auto");
+      break;
+  }
+
+  switch (layout.toolbar.alignment) {
+    case "left":
+      baseClasses.push("justify-start");
+      break;
+    case "center":
+      baseClasses.push("justify-center");
+      break;
+    case "right":
+      baseClasses.push("justify-end");
+      break;
+  }
+
+  return baseClasses;
+};
+
+// Add other essential computed properties and methods
+const currentUILayout = computed(() => readerStore.getCurrentUILayout);
+
+// Basic navigation methods
+const nextPage = () => readerStore.nextPage();
+const prevPage = () => readerStore.prevPage();
+const nextChapter = () => readerStore.nextChapter();
+const prevChapter = () => readerStore.prevChapter();
+
+// Load content on mount
+const loadContent = async () => {
+  try {
+    await readerStore.fetchManga(mangaId.value);
+    if (chapterId.value) {
+      await readerStore.fetchChapter(mangaId.value, chapterId.value);
+      if (pageParam.value) {
+        readerStore.setCurrentPage(pageParam.value);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load content:", error);
+  }
+};
+
+onMounted(() => {
+  loadContent();
+});
+</script>

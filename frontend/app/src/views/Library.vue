@@ -68,19 +68,23 @@
           </button>
 
           <!-- View Mode Toggle -->
-          <div class="flex border border-gray-300 dark:border-dark-600 rounded-md">
+          <div
+            class="flex border border-gray-300 dark:border-dark-600 rounded-md"
+          >
             <button
               @click="setViewMode('grid')"
               :class="[
                 'px-3 py-2 text-sm font-medium rounded-l-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
                 viewMode === 'grid'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700'
+                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700',
               ]"
               title="Grid View"
             >
               <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                <path
+                  d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                />
               </svg>
             </button>
             <button
@@ -89,12 +93,16 @@
                 'px-3 py-2 text-sm font-medium border-l border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
                 viewMode === 'list'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700'
+                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700',
               ]"
               title="List View"
             >
               <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                <path
+                  fill-rule="evenodd"
+                  d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </button>
             <button
@@ -103,13 +111,19 @@
                 'px-3 py-2 text-sm font-medium rounded-r-md border-l border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
                 viewMode === 'detailed'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700'
+                  : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700',
               ]"
               title="Detailed View"
             >
               <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                <path d="M16 7a1 1 0 100-2 1 1 0 000 2zM16 11a1 1 0 100-2 1 1 0 000 2zM16 15a1 1 0 100-2 1 1 0 000 2z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                />
+                <path
+                  d="M16 7a1 1 0 100-2 1 1 0 000 2zM16 11a1 1 0 100-2 1 1 0 000 2zM16 15a1 1 0 100-2 1 1 0 000 2z"
+                />
               </svg>
             </button>
           </div>
@@ -428,7 +442,9 @@
               />
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white truncate">
+              <h3
+                class="text-lg font-medium text-gray-900 dark:text-white truncate"
+              >
                 {{ item.title || item.manga?.title }}
               </h3>
               <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
@@ -436,7 +452,7 @@
               </p>
               <div class="flex items-center space-x-4 mt-2">
                 <span class="text-xs text-gray-500 dark:text-gray-400">
-                  Status: {{ item.status || item.manga?.status || 'Unknown' }}
+                  Status: {{ item.status || item.manga?.status || "Unknown" }}
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">
                   Added: {{ formatDate(item.added_date) }}
@@ -551,10 +567,7 @@
     </div>
 
     <!-- Import Dialog Modal -->
-    <div
-      v-if="showImportDialog"
-      class="fixed inset-0 z-50 overflow-y-auto"
-    >
+    <div v-if="showImportDialog" class="fixed inset-0 z-50 overflow-y-auto">
       <div
         class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
         @click.self="showImportDialog = false"
@@ -694,10 +707,15 @@ const resetFilters = () => {
 
 const removeManga = async (mangaId) => {
   // Find the manga to get its title for the confirmation dialog
-  const mangaItem = manga.value.find(item => item.id === mangaId);
-  const mangaTitle = mangaItem?.title || mangaItem?.manga?.title || "this manga";
+  const mangaItem = manga.value.find((item) => item.id === mangaId);
+  const mangaTitle =
+    mangaItem?.title || mangaItem?.manga?.title || "this manga";
 
-  if (confirm(`Are you sure you want to remove "${mangaTitle}" from your library?`)) {
+  if (
+    confirm(
+      `Are you sure you want to remove "${mangaTitle}" from your library?`,
+    )
+  ) {
     try {
       await libraryStore.removeFromLibrary(mangaId);
     } catch (error) {
@@ -741,7 +759,7 @@ const onMangaImported = () => {
 };
 
 const openImportForManga = (mangaId) => {
-  const mangaItem = manga.value.find(item => item.id === mangaId);
+  const mangaItem = manga.value.find((item) => item.id === mangaId);
   selectedMangaForImport.value = mangaItem;
   showImportDialog.value = true;
 };
@@ -757,7 +775,7 @@ const toggleMangaSelection = (mangaId) => {
 };
 
 const formatDate = (dateString) => {
-  if (!dateString) return 'Unknown';
+  if (!dateString) return "Unknown";
   const date = new Date(dateString);
   return date.toLocaleDateString();
 };
@@ -781,11 +799,11 @@ const getMangaCover = (item) => {
     return item.manga.cover_image;
   }
   // Direct manga object
-  return item.cover_image || item.cover_url || '/placeholder-cover.jpg';
+  return item.cover_image || item.cover_url || "/placeholder-cover.jpg";
 };
 
 const getMangaTitle = (item) => {
-  return item.title || item.manga?.title || 'Unknown Title';
+  return item.title || item.manga?.title || "Unknown Title";
 };
 
 // Watch for filter changes

@@ -305,7 +305,7 @@ const emit = defineEmits([
   "read-chapter",
   "download-chapter",
   "redownload-chapter",
-  "delete-chapter"
+  "delete-chapter",
 ]);
 
 const downloadsStore = useDownloadsStore();
@@ -340,9 +340,13 @@ const cancelDownload = async () => {
 };
 
 const confirmDelete = () => {
-  if (confirm(`Are you sure you want to delete Chapter ${props.chapter.number}${props.chapter.title ? `: ${props.chapter.title}` : ''}?`)) {
+  if (
+    confirm(
+      `Are you sure you want to delete Chapter ${props.chapter.number}${props.chapter.title ? `: ${props.chapter.title}` : ""}?`,
+    )
+  ) {
     deleting.value = true;
-    emit('delete-chapter', props.chapter);
+    emit("delete-chapter", props.chapter);
   }
 };
 </script>

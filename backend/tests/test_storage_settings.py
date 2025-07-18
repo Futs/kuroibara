@@ -52,14 +52,22 @@ class TestStorageSettings:
 
     def test_database_schema_has_storage_columns(self):
         """Test that database has storage columns with correct defaults"""
-        DB_USERNAME = os.getenv('DB_USERNAME')
-        DB_PASSWORD = os.getenv('DB_PASSWORD')
-        DB_HOST = os.getenv('DB_HOST')
-        DB_PORT = os.getenv('DB_PORT')
-        DB_DATABASE = os.getenv('DB_DATABASE')
-        
+        DB_USERNAME = os.getenv('DB_USERNAME', 'testuser')
+        DB_PASSWORD = os.getenv('DB_PASSWORD', 'testpass')
+        DB_HOST = os.getenv('DB_HOST', 'localhost')
+        DB_PORT = os.getenv('DB_PORT', '5432')
+        DB_DATABASE = os.getenv('DB_DATABASE', 'kuroibara_test')
+
+        # Skip test if database connection info is not available
+        if not all([DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE]):
+            pytest.skip("Database connection info not available")
+
         DATABASE_URL = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}'
-        engine = create_engine(DATABASE_URL)
+
+        try:
+            engine = create_engine(DATABASE_URL)
+        except Exception:
+            pytest.skip("Database connection not available")
         
         with engine.connect() as conn:
             # Check columns exist

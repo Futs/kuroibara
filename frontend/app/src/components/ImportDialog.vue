@@ -6,13 +6,16 @@
           class="text-lg leading-6 font-medium text-gray-900 dark:text-white"
           id="modal-title"
         >
-          {{ props.manga ? `Import Files for "${getMangaTitle}"` : 'Import Manga' }}
+          {{
+            props.manga ? `Import Files for "${getMangaTitle}"` : "Import Manga"
+          }}
         </h3>
         <div class="mt-4">
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            {{ props.manga
-              ? `Import additional chapters or volumes for "${getMangaTitle}".`
-              : 'Import manga from CBZ/CBR archives or directories containing images.'
+            {{
+              props.manga
+                ? `Import additional chapters or volumes for "${getMangaTitle}".`
+                : "Import manga from CBZ/CBR archives or directories containing images."
             }}
           </p>
 
@@ -22,7 +25,9 @@
             @dragover.prevent
             @dragenter.prevent
             class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-primary-500 dark:hover:border-primary-400 transition-colors"
-            :class="{ 'border-primary-500 dark:border-primary-400': isDragging }"
+            :class="{
+              'border-primary-500 dark:border-primary-400': isDragging,
+            }"
           >
             <svg
               class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
@@ -39,7 +44,9 @@
             </svg>
             <div class="mt-4">
               <label for="file-upload" class="cursor-pointer">
-                <span class="mt-2 block text-sm font-medium text-gray-900 dark:text-white">
+                <span
+                  class="mt-2 block text-sm font-medium text-gray-900 dark:text-white"
+                >
                   Drop files here or click to browse
                 </span>
                 <input
@@ -134,20 +141,35 @@
           </div>
 
           <!-- Duplicate Warning -->
-          <div v-if="duplicateWarning" class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+          <div
+            v-if="duplicateWarning"
+            class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md"
+          >
             <div class="flex">
               <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                <svg
+                  class="h-5 w-5 text-yellow-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </div>
               <div class="ml-3">
-                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                <h3
+                  class="text-sm font-medium text-yellow-800 dark:text-yellow-200"
+                >
                   Chapter Already Exists
                 </h3>
                 <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                   <p>{{ duplicateWarning.message }}</p>
-                  <p class="mt-1">Would you like to replace the existing chapter?</p>
+                  <p class="mt-1">
+                    Would you like to replace the existing chapter?
+                  </p>
                 </div>
                 <div class="mt-4">
                   <div class="flex space-x-2">
@@ -178,24 +200,36 @@
           <!-- Progress Bar -->
           <div v-if="importing" class="mt-4">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Importing... {{ importProgress.current }}/{{ importProgress.total }}
+              <span
+                class="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Importing... {{ importProgress.current }}/{{
+                  importProgress.total
+                }}
               </span>
               <span class="text-sm text-gray-500 dark:text-gray-400">
-                {{ Math.round((importProgress.current / importProgress.total) * 100) }}%
+                {{
+                  Math.round(
+                    (importProgress.current / importProgress.total) * 100,
+                  )
+                }}%
               </span>
             </div>
             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 class="bg-primary-600 h-2 rounded-full transition-all duration-300"
-                :style="{ width: `${(importProgress.current / importProgress.total) * 100}%` }"
+                :style="{
+                  width: `${(importProgress.current / importProgress.total) * 100}%`,
+                }"
               ></div>
             </div>
           </div>
 
           <!-- Error Messages -->
           <div v-if="errors.length > 0" class="mt-4">
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
+            <div
+              class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3"
+            >
               <div class="flex">
                 <svg
                   class="h-5 w-5 text-red-400 dark:text-red-300"
@@ -209,7 +243,9 @@
                   />
                 </svg>
                 <div class="ml-3">
-                  <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                  <h3
+                    class="text-sm font-medium text-red-800 dark:text-red-200"
+                  >
                     Import Errors
                   </h3>
                   <div class="mt-2 text-sm text-red-700 dark:text-red-300">
@@ -226,7 +262,9 @@
     </div>
 
     <!-- Dialog Actions -->
-    <div class="bg-gray-50 dark:bg-dark-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+    <div
+      class="bg-gray-50 dark:bg-dark-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse"
+    >
       <button
         @click="startImport"
         :disabled="selectedFiles.length === 0 || importing"
@@ -253,14 +291,14 @@
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           ></path>
         </svg>
-        {{ importing ? 'Importing...' : 'Import' }}
+        {{ importing ? "Importing..." : "Import" }}
       </button>
       <button
         @click="$emit('close')"
         :disabled="importing"
         class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {{ importing ? 'Cancel' : 'Close' }}
+        {{ importing ? "Cancel" : "Close" }}
       </button>
     </div>
   </div>
@@ -281,8 +319,8 @@ const emit = defineEmits(["close", "imported"]);
 
 // Computed properties
 const getMangaTitle = computed(() => {
-  if (!props.manga) return '';
-  return props.manga.title || props.manga.manga?.title || 'Unknown Title';
+  if (!props.manga) return "";
+  return props.manga.title || props.manga.manga?.title || "Unknown Title";
 });
 
 // Reactive data
@@ -318,16 +356,22 @@ const handleFileSelect = (event) => {
 };
 
 const addFiles = (files) => {
-  const validFiles = files.filter(file => {
-    const validExtensions = ['.cbz', '.cbr', '.zip', '.rar', '.7z'];
-    const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    return validExtensions.includes(extension) && file.size <= 100 * 1024 * 1024; // 100MB limit
+  const validFiles = files.filter((file) => {
+    const validExtensions = [".cbz", ".cbr", ".zip", ".rar", ".7z"];
+    const extension = file.name
+      .toLowerCase()
+      .substring(file.name.lastIndexOf("."));
+    return (
+      validExtensions.includes(extension) && file.size <= 100 * 1024 * 1024
+    ); // 100MB limit
   });
-  
+
   selectedFiles.value.push(...validFiles);
-  
+
   if (validFiles.length !== files.length) {
-    errors.value.push("Some files were skipped (unsupported format or too large)");
+    errors.value.push(
+      "Some files were skipped (unsupported format or too large)",
+    );
   }
 };
 
@@ -336,11 +380,11 @@ const removeFile = (index) => {
 };
 
 const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 // Duplicate handling functions
@@ -348,22 +392,29 @@ const checkForDuplicate = async (file, chapterNumber) => {
   if (!props.manga) return false;
 
   try {
-    const response = await api.get(`/v1/import/chapter/${props.manga.id}/check`, {
-      params: {
-        chapter_number: chapterNumber,
-        language: 'en'
-      }
-    });
+    const response = await api.get(
+      `/v1/import/chapter/${props.manga.id}/check`,
+      {
+        params: {
+          chapter_number: chapterNumber,
+          language: "en",
+        },
+      },
+    );
     return response.data;
   } catch (error) {
-    console.error('Error checking for duplicate:', error);
+    console.error("Error checking for duplicate:", error);
     return false;
   }
 };
 
 const proceedWithReplace = async () => {
   if (pendingImport.value) {
-    await importSingleFile(pendingImport.value.file, pendingImport.value.index, true);
+    await importSingleFile(
+      pendingImport.value.file,
+      pendingImport.value.index,
+      true,
+    );
     duplicateWarning.value = null;
     pendingImport.value = null;
     await continueImport();
@@ -394,7 +445,7 @@ const continueImport = async () => {
     // Import complete
     importing.value = false;
     if (errors.value.length === 0) {
-      emit('imported');
+      emit("imported");
     }
   }
 };
@@ -410,8 +461,8 @@ const importSingleFile = async (file, index, replaceExisting = false) => {
 
     if (props.manga) {
       // Import chapter for existing manga
-      formData.append('chapter_file', file);
-      formData.append('language', 'en');
+      formData.append("chapter_file", file);
+      formData.append("language", "en");
 
       // Try to extract chapter info from filename
       const filename = file.name;
@@ -419,7 +470,7 @@ const importSingleFile = async (file, index, replaceExisting = false) => {
       const volumeMatch = filename.match(/vol\.?\s*(\d+)/i);
 
       // Extract chapter number (required field)
-      let chapterNumber = '1'; // Default fallback
+      let chapterNumber = "1"; // Default fallback
       if (chapterMatch) {
         chapterNumber = chapterMatch[1];
       } else {
@@ -429,11 +480,11 @@ const importSingleFile = async (file, index, replaceExisting = false) => {
           chapterNumber = numberMatch[1];
         }
       }
-      formData.append('chapter_number', chapterNumber);
+      formData.append("chapter_number", chapterNumber);
 
       // Add volume if found
       if (volumeMatch) {
-        formData.append('volume', volumeMatch[1]);
+        formData.append("volume", volumeMatch[1]);
       }
 
       // Try to extract title from filename (remove extension and common patterns)
@@ -442,11 +493,11 @@ const importSingleFile = async (file, index, replaceExisting = false) => {
       chapterTitle = chapterTitle.replace(/ch\.?\s*\d+(?:\.\d+)?/i, "").trim(); // Remove chapter info
       chapterTitle = chapterTitle.replace(/^\s*-\s*/, "").trim(); // Remove leading dash
       if (chapterTitle) {
-        formData.append('title', chapterTitle);
+        formData.append("title", chapterTitle);
       }
 
       // Add replace_existing flag
-      formData.append('replace_existing', replaceExisting.toString());
+      formData.append("replace_existing", replaceExisting.toString());
 
       // Check for duplicates if not replacing
       if (!replaceExisting) {
@@ -456,7 +507,7 @@ const importSingleFile = async (file, index, replaceExisting = false) => {
           duplicateWarning.value = {
             message: `Chapter ${chapterNumber} already exists (${duplicateCheck.chapter.pages_count} pages, created ${new Date(duplicateCheck.chapter.created_at).toLocaleDateString()})`,
             file: file,
-            chapterNumber: chapterNumber
+            chapterNumber: chapterNumber,
           };
           pendingImport.value = { file, index };
           return; // Stop processing and wait for user decision
@@ -465,17 +516,17 @@ const importSingleFile = async (file, index, replaceExisting = false) => {
 
       await api.post(`/v1/import/chapter/${props.manga.id}`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
     } else {
       // Import new manga
-      formData.append('title', file.name.replace(/\.[^/.]+$/, "")); // Remove extension
-      formData.append('cover', file);
+      formData.append("title", file.name.replace(/\.[^/.]+$/, "")); // Remove extension
+      formData.append("cover", file);
 
-      await api.post('/v1/import/manga', formData, {
+      await api.post("/v1/import/manga", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
     }
@@ -488,7 +539,9 @@ const importSingleFile = async (file, index, replaceExisting = false) => {
       // Conflict error (duplicate)
       errors.value.push(`Chapter already exists: ${file.name}`);
     } else {
-      errors.value.push(`Failed to import ${file.name}: ${error.response?.data?.detail || error.message}`);
+      errors.value.push(
+        `Failed to import ${file.name}: ${error.response?.data?.detail || error.message}`,
+      );
     }
     importProgress.current++;
     await continueImport();
@@ -508,8 +561,8 @@ const startImport = async () => {
   try {
     await processNextFile();
   } catch (error) {
-    console.error('Import error:', error);
-    errors.value.push('An unexpected error occurred during import');
+    console.error("Import error:", error);
+    errors.value.push("An unexpected error occurred during import");
     importing.value = false;
   }
 };

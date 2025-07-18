@@ -103,6 +103,68 @@ export const useReaderStore = defineStore("reader", {
         }
       })(),
     },
+
+    // Theme definitions
+    themes: {
+      dark: {
+        colors: {
+          background: "#111827",
+          surface: "#1f2937",
+          text: "#f9fafb",
+          accent: "#3b82f6",
+        },
+        ui: {
+          toolbarBg: "#1f2937",
+          shadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          background: "#111827",
+          text: "#f9fafb",
+        },
+      },
+      light: {
+        colors: {
+          background: "#ffffff",
+          surface: "#f9fafb",
+          text: "#111827",
+          accent: "#3b82f6",
+        },
+        ui: {
+          toolbarBg: "#f9fafb",
+          shadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          background: "#ffffff",
+          text: "#111827",
+        },
+      },
+      sepia: {
+        colors: {
+          background: "#f7f3e9",
+          surface: "#f0ead6",
+          text: "#5d4e37",
+          accent: "#8b4513",
+        },
+        ui: {
+          toolbarBg: "#f0ead6",
+          shadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          background: "#f7f3e9",
+          text: "#5d4e37",
+        },
+      },
+    },
+
+    // UI Layout definitions
+    uiLayouts: {
+      default: {
+        toolbar: {
+          position: "top",
+          alignment: "center",
+        },
+      },
+      minimal: {
+        toolbar: {
+          position: "bottom",
+          alignment: "center",
+        },
+      },
+    },
   }),
 
   getters: {
@@ -1202,7 +1264,12 @@ export const useReaderStore = defineStore("reader", {
     },
 
     applyTheme() {
-      const theme = this.getCurrentTheme();
+      const theme = this.getCurrentTheme;
+      if (!theme || !theme.colors || !theme.ui) {
+        console.warn("Theme not available, skipping theme application");
+        return;
+      }
+
       const root = document.documentElement;
 
       // Apply CSS custom properties
@@ -1215,17 +1282,21 @@ export const useReaderStore = defineStore("reader", {
       });
 
       // Apply display options
-      Object.entries(this.settings.displayOptions).forEach(([key, value]) => {
-        root.style.setProperty(
-          `--reader-display-${key}`,
-          typeof value === "number" ? `${value}px` : value,
-        );
-      });
+      if (this.settings.displayOptions) {
+        Object.entries(this.settings.displayOptions).forEach(([key, value]) => {
+          root.style.setProperty(
+            `--reader-display-${key}`,
+            typeof value === "number" ? `${value}px` : value,
+          );
+        });
+      }
 
       // Apply typography
-      Object.entries(this.settings.typography).forEach(([key, value]) => {
-        root.style.setProperty(`--reader-typography-${key}`, value);
-      });
+      if (this.settings.typography) {
+        Object.entries(this.settings.typography).forEach(([key, value]) => {
+          root.style.setProperty(`--reader-typography-${key}`, value);
+        });
+      }
     },
 
     createCustomTheme(baseThemeId, customizations) {
@@ -1243,7 +1314,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     exportTheme() {
-      const theme = this.getCurrentTheme();
+      const theme = this.getCurrentTheme;
       const exportData = {
         theme,
         typography: this.settings.typography,

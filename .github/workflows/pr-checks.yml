@@ -84,8 +84,6 @@ jobs:
           APP_URL=http://localhost:8000
           ALLOWED_HOSTS=localhost,127.0.0.1
           CORS_ORIGINS=http://localhost:3000,http://localhost:8080
-          STORAGE_TYPE=local
-          STORAGE_PATH=/tmp/storage
           VALKEY_HOST=localhost
           VALKEY_PORT=6379
           VALKEY_DB=0
@@ -350,10 +348,6 @@ jobs:
           ENVIRONMENT=testing
           ALLOWED_HOSTS=localhost,127.0.0.1
           CORS_ORIGINS=http://localhost:3000,http://localhost:8080
-
-          # Storage
-          STORAGE_TYPE=local
-          STORAGE_PATH=/app/storage
 
           # Disable features for testing
           ENABLE_DB_INIT=false

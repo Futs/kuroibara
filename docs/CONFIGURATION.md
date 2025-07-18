@@ -87,13 +87,19 @@ ALLOWED_HEADERS=*                          # Allowed headers
 ```
 
 ### File Storage Configuration
-```bash
-# File Storage Settings
-UPLOAD_DIR=/app/uploads                    # Upload directory
-MAX_FILE_SIZE=100MB                        # Maximum file size
-ALLOWED_EXTENSIONS=cbz,cbr,7z,zip,rar      # Allowed file extensions
 
-# Image Processing
+**Note:** Storage settings have been moved to user-specific configuration. Each user can now configure their own storage preferences through the web interface at Settings > Downloads > Storage Settings.
+
+Available storage options:
+- **Local Storage** - Files stored on the server filesystem
+- **Amazon S3** - Files stored in AWS S3 buckets
+- **Google Cloud Storage** - Files stored in GCS buckets
+- **Azure Blob Storage** - Files stored in Azure containers
+
+Upload size limits can be configured per user from 50MB to 2GB.
+
+```bash
+# Image Processing (still global settings)
 MAX_IMAGE_WIDTH=2048                       # Maximum image width for processing
 MAX_IMAGE_HEIGHT=2048                      # Maximum image height for processing
 IMAGE_QUALITY=85                           # JPEG compression quality (1-100)

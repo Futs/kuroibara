@@ -50,11 +50,6 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
 
-    # Storage
-    STORAGE_TYPE: str = "local"
-    STORAGE_PATH: str = "/app/storage"
-    MAX_UPLOAD_SIZE: str = "100MB"
-
     # Backup settings
     BACKUP_PATH: str = "/app/backups"
 

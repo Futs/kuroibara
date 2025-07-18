@@ -1,0 +1,41 @@
+# Dependency Review Configuration
+# https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/configuring-dependency-review
+
+# Allow these licenses that are compatible with our MIT license
+allow-licenses:
+  - MIT
+  - Apache-2.0
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - ISC
+  - MPL-2.0  # Mozilla Public License 2.0 (used by certifi)
+  - Python-2.0.1  # Python Software Foundation License (used by mypy)
+  - "MIT AND Python-2.0.1"  # Combined license (used by mypy)
+
+# Deny these licenses
+deny-licenses:
+  - GPL-2.0
+  - GPL-3.0
+  - AGPL-3.0
+  - LGPL-2.1
+  - LGPL-3.0
+
+# Allow these specific packages even if they have licenses we normally deny
+allow-dependencies-licenses:
+  - package-name: "certifi"
+    license: "MPL-2.0"
+    reason: "Essential for SSL certificate verification"
+  - package-name: "mypy"
+    license: "MIT AND Python-2.0.1"
+    reason: "Development dependency for type checking"
+
+# Fail on high severity vulnerabilities
+fail-on-severity: high
+
+# Allow these vulnerability severities
+allow-vulnerabilities:
+  - low
+  - moderate
+
+# Comment on PRs with dependency review results
+comment-summary-in-pr: true

@@ -33,7 +33,7 @@ async def test_database_models():
         assert SyncStatus.SUCCESS == "success"
 
         # Test model instantiation (without saving to DB)
-        integration = ExternalIntegration(
+        _integration = ExternalIntegration(
             user_id=uuid4(),
             integration_type=IntegrationType.ANILIST,
             client_id="test_client_id",
@@ -41,7 +41,7 @@ async def test_database_models():
             sync_enabled=True,
         )
 
-        mapping = ExternalMangaMapping(
+        _mapping = ExternalMangaMapping(
             integration_id=uuid4(),
             manga_id=uuid4(),
             external_manga_id="123456",
@@ -75,12 +75,12 @@ async def test_api_schemas():
             client_secret="test_secret",
         )
 
-        auth_request = AnilistAuthRequest(
+        _auth_request = AnilistAuthRequest(
             authorization_code="test_code",
             redirect_uri="http://localhost:3000/callback",
         )
 
-        sync_request = SyncRequest(
+        _sync_request = SyncRequest(
             integration_type=IntegrationType.ANILIST, force_full_sync=False
         )
 
@@ -228,8 +228,8 @@ async def test_database_tables():
             result = await session.execute(
                 text(
                     """
-                SELECT column_name, data_type 
-                FROM information_schema.columns 
+                SELECT column_name, data_type
+                FROM information_schema.columns
                 WHERE table_name = 'external_integrations'
                 ORDER BY ordinal_position
             """
@@ -264,8 +264,8 @@ async def test_database_tables():
             result = await session.execute(
                 text(
                     """
-                SELECT column_name 
-                FROM information_schema.columns 
+                SELECT column_name
+                FROM information_schema.columns
                 WHERE table_name = 'external_manga_mappings'
             """
                 )

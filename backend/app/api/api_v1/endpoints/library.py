@@ -116,7 +116,7 @@ async def check_library_status(
             "in_library": library_item is not None,
             "library_item_id": str(library_item.id) if library_item else None,
         }
-    except Exception as e:
+    except Exception:
         # If there's any error (like invalid UUID), return not in library
         return {
             "manga_id": manga_id,

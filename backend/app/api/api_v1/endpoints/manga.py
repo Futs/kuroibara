@@ -13,6 +13,7 @@ from app.core.utils import (
     get_cover_storage_path,
     get_manga_storage_path,
 )
+from app.models.library import MangaUserLibrary
 from app.models.manga import Author, Chapter, Genre, Manga, Page
 from app.models.user import User
 from app.schemas.manga import Chapter as ChapterSchema

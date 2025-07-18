@@ -341,8 +341,6 @@ class MangaDexProvider(BaseProvider):
                 # Get dates
                 publish_at = attributes.get("publishAt")
                 readable_at = attributes.get("readableAt")
-                created_at = attributes.get("createdAt")
-                updated_at = attributes.get("updatedAt")
 
                 # Create chapter
                 chapters.append(

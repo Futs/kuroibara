@@ -26,7 +26,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM manga_user_library_category 
+                DELETE FROM manga_user_library_category
                 WHERE manga_user_library_id NOT IN (
                     SELECT id FROM manga_user_library
                 )
@@ -41,7 +41,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM reading_progress 
+                DELETE FROM reading_progress
                 WHERE chapter_id NOT IN (
                     SELECT id FROM chapter
                 )
@@ -54,7 +54,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM bookmark 
+                DELETE FROM bookmark
                 WHERE chapter_id NOT IN (
                     SELECT id FROM chapter
                 )
@@ -67,7 +67,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM page 
+                DELETE FROM page
                 WHERE chapter_id NOT IN (
                     SELECT id FROM chapter
                 )
@@ -80,7 +80,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM chapter 
+                DELETE FROM chapter
                 WHERE manga_id NOT IN (
                     SELECT id FROM manga
                 )
@@ -93,7 +93,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM manga_genre 
+                DELETE FROM manga_genre
                 WHERE manga_id NOT IN (
                     SELECT id FROM manga
                 )
@@ -106,7 +106,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM manga_author 
+                DELETE FROM manga_author
                 WHERE manga_id NOT IN (
                     SELECT id FROM manga
                 )
@@ -119,7 +119,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM external_manga_mappings 
+                DELETE FROM external_manga_mappings
                 WHERE manga_id NOT IN (
                     SELECT id FROM manga
                 )
@@ -134,7 +134,7 @@ async def cleanup_orphaned_data():
             result = await session.execute(
                 text(
                     """
-                DELETE FROM reading_list_manga 
+                DELETE FROM reading_list_manga
                 WHERE manga_id NOT IN (
                     SELECT id FROM manga
                 )

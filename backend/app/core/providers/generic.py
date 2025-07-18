@@ -647,7 +647,7 @@ class GenericProvider(BaseProvider):
                                     publish_at = date_text
                                 elif re.search(r"\d{1,2}/\d{1,2}/\d{4}", date_text):
                                     publish_at = date_text
-                            except:
+                            except Exception:
                                 pass
 
                         # Create chapter

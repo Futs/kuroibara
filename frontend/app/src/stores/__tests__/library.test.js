@@ -201,13 +201,12 @@ describe("Library Store", () => {
   });
 
   describe("Custom Tags", () => {
-    it("should create custom tag", async () => {
+    it("should create custom tag", () => {
       const store = useLibraryStore();
       // Clear any existing custom tags
       store.customTags = [];
-      const mockSetItem = vi.spyOn(Storage.prototype, "setItem");
 
-      const result = await store.createCustomTag({
+      const result = store.createCustomTag({
         name: "Test Tag",
         color: "#FF0000",
         description: "Test description",
@@ -217,7 +216,8 @@ describe("Library Store", () => {
       expect(store.customTags[0].name).toBe("Test Tag");
       expect(store.customTags[0].color).toBe("#FF0000");
       expect(result).toBeTruthy();
-      expect(mockSetItem).toHaveBeenCalledWith(
+      expect(result.name).toBe("Test Tag");
+      expect(localStorage.setItem).toHaveBeenCalledWith(
         "customTags",
         expect.any(String),
       );
@@ -297,14 +297,13 @@ describe("Library Store", () => {
   describe("Metadata Management", () => {
     it("should save and load searches", async () => {
       const store = useLibraryStore();
-      const mockSetItem = vi.spyOn(Storage.prototype, "setItem");
 
       const savedSearch = await store.saveSearch("test query", { genre: "action" });
 
       expect(savedSearch.name).toBe("test query");
       expect(savedSearch.query).toBe("test query");
       expect(savedSearch.filters.genre).toBe("action");
-      expect(mockSetItem).toHaveBeenCalledWith(
+      expect(localStorage.setItem).toHaveBeenCalledWith(
         "savedSearches",
         expect.any(String),
       );

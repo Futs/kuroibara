@@ -1342,10 +1342,6 @@ const currentPagePair = computed(() => {
   return readerStore.getCurrentPagePair || [];
 });
 
-// Missing reactive properties for UI state
-const showSettings = ref(false);
-const showKeyboardHelp = ref(false);
-
 // Missing computed properties for theme and layout definitions
 const themeDefinitions = computed(() => readerStore.themes || {});
 const uiLayoutDefinitions = computed(() => readerStore.uiLayouts || {});
@@ -1479,5 +1475,12 @@ const loadContent = async () => {
 
 onMounted(() => {
   loadContent();
+  // Add keyboard event listener
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  // Clean up keyboard event listener
+  document.removeEventListener('keydown', handleKeydown);
 });
 </script>

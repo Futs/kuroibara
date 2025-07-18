@@ -65,59 +65,43 @@ class TestStorageSettings:
             settings = UserSettingsUpdate(max_upload_size=size)
             assert settings.max_upload_size == size
 
-    def test_database_schema_has_storage_columns(self):
+    @pytest.mark.asyncio
+    async def test_database_schema_has_storage_columns(self, db):
         """Test that database has storage columns with correct defaults"""
-        DB_USERNAME = os.getenv("DB_USERNAME", "testuser")
-        DB_PASSWORD = os.getenv("DB_PASSWORD", "testpass")
-        DB_HOST = os.getenv("DB_HOST", "localhost")
-        DB_PORT = os.getenv("DB_PORT", "5432")
-        DB_DATABASE = os.getenv("DB_DATABASE", "testdb")
+        # Use the test database session to check schema
+        from sqlalchemy import text
 
-        # Skip test if database connection info is not available
-        if not all([DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE]):
-            pytest.skip("Database connection info not available")
-
-        # Use test database name (same logic as conftest.py)
-        test_db_name = f"test_{DB_DATABASE}"
-        DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{test_db_name}"
-
-        try:
-            engine = create_engine(DATABASE_URL)
-        except Exception:
-            pytest.skip("Database connection not available")
-
-        with engine.connect() as conn:
-            # Check columns exist
-            result = conn.execute(
-                text(
-                    """
+        # Check columns exist using the test database session
+        result = await db.execute(
+            text(
+                """
                 SELECT column_name, data_type, column_default
                 FROM information_schema.columns
                 WHERE table_name = 'users'
                 AND column_name IN ('storage_type', 'max_upload_size')
                 ORDER BY column_name;
             """
-                )
             )
+        )
 
-            columns = {
-                row[0]: {"type": row[1], "default": row[2]} for row in result.fetchall()
-            }
+        columns = {
+            row[0]: {"type": row[1], "default": row[2]} for row in result.fetchall()
+        }
 
-            assert (
-                "storage_type" in columns
-            ), "storage_type column missing from database"
-            assert (
-                "max_upload_size" in columns
-            ), "max_upload_size column missing from database"
+        assert (
+            "storage_type" in columns
+        ), "storage_type column missing from database"
+        assert (
+            "max_upload_size" in columns
+        ), "max_upload_size column missing from database"
 
-            # Check defaults
-            assert (
-                "'local'" in columns["storage_type"]["default"]
-            ), "storage_type default should be 'local'"
-            assert (
-                "'100MB'" in columns["max_upload_size"]["default"]
-            ), "max_upload_size default should be '100MB'"
+        # Check defaults
+        assert (
+            "'local'" in columns["storage_type"]["default"]
+        ), "storage_type default should be 'local'"
+        assert (
+            "'100MB'" in columns["max_upload_size"]["default"]
+        ), "max_upload_size default should be '100MB'"
 
     def test_user_settings_complete_schema(self):
         """Test that UserSettings can be created with all fields including storage"""

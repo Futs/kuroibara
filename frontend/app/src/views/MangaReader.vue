@@ -1,5 +1,5 @@
 <template>
-  <div class="manga-reader" :class="{ dark: true }">
+  <div class="manga-reader" :class="{ dark: true }" @keydown="handleKeydown" tabindex="0">
     <!-- Reader Controls -->
     <div
       class="reader-toolbar fixed z-10 shadow-md transition-all duration-300"
@@ -1348,7 +1348,26 @@ const uiLayoutDefinitions = computed(() => readerStore.uiLayouts || {});
 
 // Missing method for image quality URL generation
 const getQualityImageUrl = (page) => {
-  return readerStore.getCurrentPageUrl || page?.url || '';
+  const baseUrl = page?.url || page || '';
+  if (!baseUrl) return '';
+
+  const quality = settings.value.imageQuality || 'medium';
+  const qualityMap = {
+    low: { quality: 60, width: 800 },
+    medium: { quality: 75, width: 1200 },
+    high: { quality: 90, width: 1600 },
+    original: { quality: 100, width: null }
+  };
+
+  const params = qualityMap[quality] || qualityMap.medium;
+  const url = new URL(baseUrl, window.location.origin);
+
+  url.searchParams.set('quality', params.quality.toString());
+  if (params.width) {
+    url.searchParams.set('width', params.width.toString());
+  }
+
+  return url.toString();
 };
 
 // Keyboard event handlers
@@ -1475,12 +1494,5 @@ const loadContent = async () => {
 
 onMounted(() => {
   loadContent();
-  // Add keyboard event listener
-  document.addEventListener('keydown', handleKeydown);
-});
-
-onBeforeUnmount(() => {
-  // Clean up keyboard event listener
-  document.removeEventListener('keydown', handleKeydown);
 });
 </script>

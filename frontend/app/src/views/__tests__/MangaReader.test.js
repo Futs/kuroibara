@@ -7,7 +7,13 @@ import MangaReader from "../MangaReader.vue";
 // Mock API
 vi.mock("../../services/api", () => ({
   default: {
-    get: vi.fn(),
+    get: vi.fn().mockResolvedValue({
+      data: {
+        id: "1",
+        title: "Test Manga",
+        chapters: [{ id: "1", title: "Chapter 1", pages: ["page1.jpg", "page2.jpg"] }]
+      }
+    }),
     post: vi.fn(),
   },
 }));
@@ -33,6 +39,19 @@ describe("MangaReader Component", () => {
     setActivePinia(pinia);
 
     await router.push("/manga/1/read/1/1");
+
+    // Mock the reader store with initial data
+    const { useReaderStore } = await import("../../stores/reader");
+    const store = useReaderStore();
+
+    // Set up mock data to prevent API calls
+    store.manga = { id: "1", title: "Test Manga" };
+    store.chapter = { id: "1", title: "Chapter 1" };
+    store.chapters = [{ id: "1", title: "Chapter 1" }];
+    store.pages = ["https://example.com/page1.jpg", "https://example.com/page2.jpg"];
+    store.currentPage = 1;
+    store.loading = false;
+    store.error = null;
 
     wrapper = mount(MangaReader, {
       global: {

@@ -1398,6 +1398,9 @@ const handleKeydown = (event) => {
       readerStore.updateSettings({ pageLayout: 'list' });
       break;
     case '4':
+      readerStore.updateSettings({ pageLayout: 'adaptive' });
+      break;
+    case '5':
       readerStore.updateSettings({ pageLayout: 'webtoon' });
       break;
     case 'q':

@@ -69,7 +69,6 @@ class TestStorageSettings:
     async def test_database_schema_has_storage_columns(self, db):
         """Test that database has storage columns with correct defaults"""
         # Use the test database session to check schema
-        from sqlalchemy import text
 
         # Check columns exist using the test database session
         result = await db.execute(

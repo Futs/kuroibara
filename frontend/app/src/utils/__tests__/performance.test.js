@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
+// Mock PerformanceObserver first
+const mockPerformanceObserver = vi.fn().mockImplementation((callback) => ({
+  observe: vi.fn(),
+  disconnect: vi.fn(),
+}));
+
 // Mock the environment before importing the performance module
 global.window = {
   ...global,
@@ -10,6 +16,7 @@ global.window = {
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
   dispatchEvent: vi.fn(),
+  PerformanceObserver: mockPerformanceObserver, // Add to window object
 };
 global.localStorage = {
   getItem: vi.fn().mockReturnValue("true"),
@@ -30,11 +37,6 @@ const mockPerformance = {
 };
 global.performance = mockPerformance;
 
-// Mock PerformanceObserver
-const mockPerformanceObserver = vi.fn().mockImplementation((callback) => ({
-  observe: vi.fn(),
-  disconnect: vi.fn(),
-}));
 global.PerformanceObserver = mockPerformanceObserver;
 
 // Set environment to development to enable performance monitoring

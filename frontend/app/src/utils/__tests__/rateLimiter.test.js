@@ -398,18 +398,22 @@ describe("Integration Tests", () => {
     proxyManager.addProxy(providerId, { host: "127.0.0.1", port: 8080 });
 
     // Make requests
-    const mockRequestFn = vi.fn().mockResolvedValue("success");
+    const mockRequestFn = vi.fn().mockImplementation(() =>
+      new Promise(resolve => setTimeout(() => resolve("success"), 100))
+    );
 
-    // First two should go through
-    await rateLimiter.makeRequest(providerId, mockRequestFn);
-    await rateLimiter.makeRequest(providerId, mockRequestFn);
+    // Make three requests simultaneously - first two should go through, third should be queued
+    const promise1 = rateLimiter.makeRequest(providerId, mockRequestFn);
+    const promise2 = rateLimiter.makeRequest(providerId, mockRequestFn);
+    const promise3 = rateLimiter.makeRequest(providerId, mockRequestFn);
 
-    // Third should be queued
-    const queuedPromise = rateLimiter.makeRequest(providerId, mockRequestFn);
-
+    // Check status immediately after starting requests
     const status = rateLimiter.getStatus(providerId);
     expect(status.currentRequests).toBe(2);
     expect(status.queueLength).toBe(1);
+
+    // Wait for all requests to complete
+    await Promise.all([promise1, promise2, promise3]);
 
     const proxy = proxyManager.getProxy(providerId);
     expect(proxy).toBeDefined();

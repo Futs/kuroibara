@@ -431,8 +431,14 @@ class ProxyManager {
     }
 
     if (responseTime) {
-      health.averageResponseTime =
-        (health.averageResponseTime + responseTime) / 2;
+      if (health.totalRequests === 1) {
+        // First measurement - set directly
+        health.averageResponseTime = responseTime;
+      } else {
+        // Subsequent measurements - use proper averaging
+        health.averageResponseTime =
+          (health.averageResponseTime * (health.totalRequests - 1) + responseTime) / health.totalRequests;
+      }
     }
 
     health.successRate =

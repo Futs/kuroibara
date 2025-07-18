@@ -33,7 +33,7 @@ async def test_database_models():
         assert SyncStatus.SUCCESS == "success"
 
         # Test model instantiation (without saving to DB)
-        _integration = ExternalIntegration(
+        _integration = ExternalIntegration(  # noqa: F841
             user_id=uuid4(),
             integration_type=IntegrationType.ANILIST,
             client_id="test_client_id",
@@ -41,7 +41,7 @@ async def test_database_models():
             sync_enabled=True,
         )
 
-        _mapping = ExternalMangaMapping(
+        _mapping = ExternalMangaMapping(  # noqa: F841
             integration_id=uuid4(),
             manga_id=uuid4(),
             external_manga_id="123456",
@@ -75,12 +75,12 @@ async def test_api_schemas():
             client_secret="test_secret",
         )
 
-        _auth_request = AnilistAuthRequest(
+        _auth_request = AnilistAuthRequest(  # noqa: F841
             authorization_code="test_code",
             redirect_uri="http://localhost:3000/callback",
         )
 
-        _sync_request = SyncRequest(
+        _sync_request = SyncRequest(  # noqa: F841
             integration_type=IntegrationType.ANILIST, force_full_sync=False
         )
 

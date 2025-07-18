@@ -20,7 +20,7 @@ async def test_auth_request_format():
     print("Testing Anilist authentication request format...")
 
     try:
-        _client = AnilistClient()
+        _client = AnilistClient()  # noqa: F841
 
         # Mock auth data
         auth_data = {

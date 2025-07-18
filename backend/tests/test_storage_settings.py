@@ -77,7 +77,9 @@ class TestStorageSettings:
         if not all([DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE]):
             pytest.skip("Database connection info not available")
 
-        DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}"
+        # Use test database name (same logic as conftest.py)
+        test_db_name = f"test_{DB_DATABASE}"
+        DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{test_db_name}"
 
         try:
             engine = create_engine(DATABASE_URL)

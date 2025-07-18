@@ -155,13 +155,19 @@ class PerformanceMonitor {
     if (!this.isEnabled) return fn();
 
     this.startTiming(name);
-    const result = fn();
 
-    if (result instanceof Promise) {
-      return result.finally(() => this.endTiming(name));
-    } else {
+    try {
+      const result = fn();
+
+      if (result instanceof Promise) {
+        return result.finally(() => this.endTiming(name));
+      } else {
+        this.endTiming(name);
+        return result;
+      }
+    } catch (error) {
       this.endTiming(name);
-      return result;
+      throw error;
     }
   }
 

@@ -255,7 +255,11 @@ describe("Performance Utilities", () => {
 
   describe("Performance Observer Integration", () => {
     it("should initialize performance observers", () => {
-      // This test verifies that PerformanceObserver is called during initialization
+      // Clear previous calls and re-enable to test observer initialization
+      vi.clearAllMocks();
+      perf._enableForTesting();
+
+      // This test verifies that PerformanceObserver is called during enablement
       expect(global.PerformanceObserver).toHaveBeenCalled();
     });
 

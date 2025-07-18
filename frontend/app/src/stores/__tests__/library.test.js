@@ -201,13 +201,13 @@ describe("Library Store", () => {
   });
 
   describe("Custom Tags", () => {
-    it("should create custom tag", () => {
+    it("should create custom tag", async () => {
       const store = useLibraryStore();
       // Clear any existing custom tags
       store.customTags = [];
       const mockSetItem = vi.spyOn(Storage.prototype, "setItem");
 
-      store.createCustomTag({
+      const result = await store.createCustomTag({
         name: "Test Tag",
         color: "#FF0000",
         description: "Test description",
@@ -216,6 +216,7 @@ describe("Library Store", () => {
       expect(store.customTags).toHaveLength(1);
       expect(store.customTags[0].name).toBe("Test Tag");
       expect(store.customTags[0].color).toBe("#FF0000");
+      expect(result).toBeTruthy();
       expect(mockSetItem).toHaveBeenCalledWith(
         "customTags",
         expect.any(String),

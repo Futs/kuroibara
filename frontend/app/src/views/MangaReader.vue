@@ -1342,6 +1342,56 @@ const currentPagePair = computed(() => {
   return readerStore.getCurrentPagePair || [];
 });
 
+// Missing reactive properties for UI state
+const showSettings = ref(false);
+const showKeyboardHelp = ref(false);
+
+// Missing computed properties for theme and layout definitions
+const themeDefinitions = computed(() => readerStore.themes || {});
+const uiLayoutDefinitions = computed(() => readerStore.uiLayouts || {});
+
+// Missing method for image quality URL generation
+const getQualityImageUrl = (page) => {
+  return readerStore.getCurrentPageUrl || page?.url || '';
+};
+
+// Keyboard event handlers
+const handleKeydown = (event) => {
+  switch (event.key.toLowerCase()) {
+    case 's':
+      showSettings.value = true;
+      break;
+    case 'h':
+      showKeyboardHelp.value = true;
+      break;
+    case 'escape':
+      showSettings.value = false;
+      showKeyboardHelp.value = false;
+      break;
+    case '1':
+      readerStore.updateSettings({ pageLayout: 'single' });
+      break;
+    case '2':
+      readerStore.updateSettings({ pageLayout: 'double' });
+      break;
+    case '3':
+      readerStore.updateSettings({ pageLayout: 'webtoon' });
+      break;
+    case 'q':
+      readerStore.updateSettings({ fitMode: 'width' });
+      break;
+    case 'w':
+      readerStore.updateSettings({ fitMode: 'height' });
+      break;
+    case 'e':
+      readerStore.updateSettings({ fitMode: 'both' });
+      break;
+    case 'r':
+      readerStore.updateSettings({ fitMode: 'original' });
+      break;
+  }
+};
+
 // Computed values
 const totalPages = computed(() => readerStore.getTotalPages);
 const hasNextPage = computed(() => readerStore.hasNextPage);

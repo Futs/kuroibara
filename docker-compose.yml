@@ -1,9 +1,7 @@
 services:
   # Backend API
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: futs/kuroibara-backend:latest
     restart: unless-stopped
     volumes:
       - manga_storage:/app/storage
@@ -26,9 +24,7 @@ services:
 
   # Frontend Vue.js application
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: futs/kuroibara-frontend:latest
     restart: unless-stopped
     ports:
       - "3000:80"

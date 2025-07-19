@@ -1,6 +1,6 @@
 # Kuroibara Documentation
 
-Welcome to the comprehensive documentation for Kuroibara, the world-class manga reading platform with enterprise-grade features.
+Welcome to the comprehensive documentation for Kuroibara, a modern manga management platform for discovering, organizing, and reading manga from 80+ online sources.
 
 ## 📚 Documentation Index
 
@@ -12,7 +12,6 @@ Welcome to the comprehensive documentation for Kuroibara, the world-class manga 
 ### 🏗️ Architecture & Setup
 - **[Backend README](BACKEND_README.md)** - Backend setup and API documentation
 - **[Frontend README](FRONTEND_README.md)** - Frontend setup and development guide
-- **[Frontend App README](FRONTEND_APP_README.md)** - Vue.js application documentation
 
 ### 🎨 Feature Documentation
 - **[Advanced Reading Features](ADVANCED_READING_FEATURES.md)** - Reading modes, image handling, and reader customization
@@ -131,7 +130,7 @@ For questions, issues, or contributions, please refer to the appropriate documen
 
 ---
 
-*Last updated: January 2024*
+*Last updated: July 2025*
 
 ### ✨ **Features Documentation**
 - **[🔍 Enhanced Filtering](features/Enhanced-Filtering.md)** - Multi-select genre filtering and advanced search capabilities

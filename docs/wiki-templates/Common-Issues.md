@@ -242,4 +242,4 @@ docker compose logs postgres
 
 ---
 
-*Last updated: December 2024 | Quick fix didn't work? Try [Troubleshooting](Troubleshooting)*
+*Last updated: July 2025 | Quick fix didn't work? Try [Troubleshooting](Troubleshooting)*

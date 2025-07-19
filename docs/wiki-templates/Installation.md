@@ -26,7 +26,14 @@ This guide will help you install and set up Kuroibara on your system. Choose the
 - 4GB+ RAM available
 - 10GB+ free disk space
 
-### **Step 1: Download Kuroibara**
+### **Step 1: Quick Start with Docker Hub**
+```bash
+# Download and start with Docker Compose
+curl -O https://raw.githubusercontent.com/Futs/kuroibara/main/docker-compose.yml
+docker compose up -d
+```
+
+### **Step 1 Alternative: From Source**
 ```bash
 # Clone the repository
 git clone https://github.com/Futs/kuroibara.git
@@ -53,7 +60,7 @@ docker compose ps
 
 ### **Step 4: Access Kuroibara**
 - **Web Interface**: http://localhost:3000
-- **API Documentation**: http://localhost:8000/api/docs
+- **API Documentation**: http://localhost:8000/docs
 - **Email Testing**: http://localhost:8025 (MailHog)
 
 ### **Step 5: Create Admin Account**
@@ -66,7 +73,7 @@ docker compose ps
 ## 🔧 **Manual Installation**
 
 ### **Prerequisites**
-- Python 3.12+
+- Python 3.13+
 - Node.js 22+
 - PostgreSQL 16+
 - Redis/Valkey

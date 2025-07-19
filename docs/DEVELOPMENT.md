@@ -3,11 +3,11 @@
 ## Getting Started
 
 ### Prerequisites
-- **Python 3.12+** - Backend development
-- **Node.js 18+** - Frontend development
+- **Python 3.13+** - Backend development
+- **Node.js 22+** - Frontend development
 - **Docker & Docker Compose** - Containerized development
 - **Git** - Version control
-- **PostgreSQL** - Database (or use Docker)
+- **PostgreSQL 16+** - Database (or use Docker)
 - **Valkey/Redis** - Cache (or use Docker)
 
 ### Development Environment Setup

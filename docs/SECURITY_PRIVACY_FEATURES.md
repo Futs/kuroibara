@@ -94,7 +94,7 @@ const filteredContent = securityStore.filterContent(contentList);
 ```javascript
 {
   id: 'unique-event-id',
-  timestamp: '2024-01-15T10:30:00Z',
+  timestamp: '2025-01-15T10:30:00Z',
   action: 'user_login',
   userId: 'user-123',
   sessionId: 'session-456',
@@ -140,8 +140,8 @@ const filteredContent = securityStore.filterContent(contentList);
   deviceName: 'Chrome on Windows',
   ipAddress: '192.168.1.100',
   location: 'New York, NY',
-  createdAt: '2024-01-15T10:00:00Z',
-  lastActive: '2024-01-15T10:30:00Z',
+  createdAt: '2025-01-15T10:00:00Z',
+  lastActive: '2025-01-15T10:30:00Z',
   isActive: true
 }
 ```

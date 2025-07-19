@@ -111,7 +111,7 @@ GET /api/v1/manga/{manga_id}
   "volumes": 100,
   "year": 1997,
   "nsfw": false,
-  "last_updated": "2024-01-15T10:30:00Z"
+  "last_updated": "2025-01-15T10:30:00Z"
 }
 ```
 
@@ -129,7 +129,7 @@ GET /api/v1/manga/{manga_id}/chapters?page={page}&limit={limit}
       "title": "The New Era",
       "volume": "100",
       "pages": 20,
-      "release_date": "2024-01-15T00:00:00Z",
+      "release_date": "2025-01-15T00:00:00Z",
       "scanlator": "TCBScans",
       "language": "en"
     }
@@ -170,7 +170,7 @@ POST /api/v1/auth/register
   "id": "user_789",
   "username": "new_user",
   "email": "user@example.com",
-  "created_at": "2024-01-15T10:30:00Z",
+  "created_at": "2025-01-15T10:30:00Z",
   "is_active": true,
   "is_verified": false
 }
@@ -216,7 +216,7 @@ GET /api/v1/favorites?page={page}&limit={limit}&sort={sort_by}
         "cover_url": "https://example.com/cover.jpg",
         "status": "ongoing"
       },
-      "added_at": "2024-01-15T10:30:00Z",
+      "added_at": "2025-01-15T10:30:00Z",
       "last_read_chapter": "1000",
       "reading_progress": 0.95
     }
@@ -241,7 +241,7 @@ GET /api/v1/providers/status
       "name": "mangadex",
       "display_name": "MangaDex",
       "status": "healthy",
-      "last_check": "2024-01-15T10:25:00Z",
+      "last_check": "2025-01-15T10:25:00Z",
       "response_time": 1.2,
       "success_rate": 0.98,
       "enabled": true
@@ -250,7 +250,7 @@ GET /api/v1/providers/status
       "name": "mangaplus",
       "display_name": "MangaPlus",
       "status": "degraded",
-      "last_check": "2024-01-15T10:25:00Z",
+      "last_check": "2025-01-15T10:25:00Z",
       "response_time": 3.5,
       "success_rate": 0.85,
       "enabled": true

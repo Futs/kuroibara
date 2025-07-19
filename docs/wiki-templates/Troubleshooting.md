@@ -295,4 +295,4 @@ If none of these solutions work:
 
 ---
 
-*Last updated: December 2024 | Having trouble? [Create an issue](https://github.com/Futs/kuroibara/issues/new)*
+*Last updated: July 2025 | Having trouble? [Create an issue](https://github.com/Futs/kuroibara/issues/new)*

@@ -37,7 +37,7 @@
   - Database migrations on startup
   - Environment-based configuration
 
-## Version 0.2.0 (Beta) - Q2 2024
+## Version 0.2.0 (Beta) - Q2 2025
 
 ### 🔄 In Progress
 - **Enhanced Manga Reader Interface**
@@ -83,7 +83,7 @@
   - Accessibility improvements
   - Multi-language support (i18n)
 
-## Version 0.3.0 (Release Candidate) - Q3 2024
+## Version 0.3.0 (Release Candidate) - Q3 2025
 
 ### 📋 Planned Features
 - **Advanced User Features**
@@ -114,7 +114,7 @@
   - Lazy loading implementations
   - Bundle size optimization
 
-## Version 1.0.0 (Stable) - Q4 2024
+## Version 1.0.0 (Stable) - Q4 2025
 
 ### 📋 Planned Features
 - **Production Readiness**

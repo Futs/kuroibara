@@ -115,7 +115,7 @@ Kuroibara is your complete manga management platform, offering:
 - **Use categories for genres** - Broad classification
 - **Use reading lists for themes** - Specific collections
 - **Create status-based lists** - "Currently Reading", "Plan to Read"
-- **Seasonal organization** - "Summer 2024 Reads"
+- **Seasonal organization** - "Summer 2025 Reads"
 
 ---
 
@@ -270,4 +270,4 @@ Kuroibara is your complete manga management platform, offering:
 
 ---
 
-*Last updated: December 2024 | Need help? Visit [Getting Help](Getting-Help)*
+*Last updated: July 2025 | Need help? Visit [Getting Help](Getting-Help)*

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+- Additional provider integrations
+- Enhanced reading analytics
+- Mobile app development
+
+## [0.5.0] - 2025-07-19
+
 ### Added
 - **🔌 Template-Based Provider System**: Community members can now add new manga providers without coding
   - GitHub issue template for provider requests with comprehensive validation
@@ -16,6 +23,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive documentation and examples for contributors
   - CSS selector validation and testing tools
   - Provider health monitoring and automatic failover support
+- **📦 Docker Hub Integration**: Official Docker images now available
+  - Backend image: `futs/kuroibara-backend`
+  - Frontend image: `futs/kuroibara-frontend`
+  - Simplified deployment with Docker Compose
+- **🔧 Storage Settings Migration**: Enhanced chapter management and storage optimization
+- **📊 Enhanced Library Features**: Improved library management with advanced filtering and analytics
+
+### Fixed
+- Backend test database connection issues
+- Frontend test timing and precision issues
+- Duplicate storage columns in migration scripts
+- Code quality improvements across backend and frontend
+
+### Changed
+- Updated to Python 3.13 for backend
+- Updated to Vue.js 3.5.17 for frontend
+- Updated to Tailwind CSS 4.0.0
+- Improved documentation structure and organization
 
 ## [0.3.0] - 2025-01-12
 

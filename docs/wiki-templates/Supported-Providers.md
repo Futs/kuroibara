@@ -1,6 +1,6 @@
 # 🌐 Supported Providers
 
-Kuroibara supports 100+ manga providers from around the world. This page lists all available sources and their current status.
+Kuroibara supports 80+ manga providers from around the world. This page lists all available sources and their current status.
 
 > 💡 **Tip**: You can enable/disable providers and set favorites in **Settings → Provider Preferences**
 
@@ -240,6 +240,27 @@ Have a provider you'd like to see added?
 
 ---
 
+## 🔌 **Community Provider System**
+
+Kuroibara now supports community-contributed providers through our template-based system:
+
+### **How to Request a New Provider**
+1. **[Create a Provider Request](https://github.com/Futs/kuroibara/issues/new?template=provider_request.md)** using our GitHub issue template
+2. **Fill in the required information** (no coding required!)
+3. **Our automated system validates** the provider configuration
+4. **If approved, a PR is automatically created** with the new provider
+
+### **Benefits of the Template System**
+- ✅ **No coding required** - Just fill out a form
+- ✅ **Automated testing** - Providers are validated before inclusion
+- ✅ **Community-driven** - Anyone can contribute
+- ✅ **Quality assurance** - All providers are tested and monitored
+
+### **Want to Contribute?**
+Visit our [Template Provider System Guide](https://github.com/Futs/kuroibara/blob/main/docs/TEMPLATE_PROVIDER_SYSTEM.md) for detailed instructions.
+
+---
+
 ## 🧭 **Navigation**
 
 **🏠 Home**: [Wiki Home](Home)  
@@ -248,4 +269,4 @@ Have a provider you'd like to see added?
 
 ---
 
-*Last updated: December 2024 | Provider not working? Check [Provider Troubleshooting](Provider-Troubleshooting)*
+*Last updated: July 2025 | Provider not working? Check [Provider Troubleshooting](Provider-Troubleshooting)*

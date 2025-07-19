@@ -3,8 +3,8 @@
 ## Backend Technologies
 
 ### Core Framework
-- **Python 3.12** - Modern Python with async/await support and improved performance
-- **FastAPI** - High-performance API framework with automatic OpenAPI documentation
+- **Python 3.13** - Latest Python with enhanced performance and async/await support
+- **FastAPI 0.115+** - High-performance API framework with automatic OpenAPI documentation
 - **Uvicorn** - Lightning-fast ASGI server for production deployment
 
 ### Database & Storage
@@ -43,14 +43,14 @@
 ## Frontend Technologies
 
 ### Core Framework
-- **Vue.js 3** - Progressive JavaScript framework with Composition API
+- **Vue.js 3.5.17** - Progressive JavaScript framework with Composition API
   - Reactive data binding
   - Component-based architecture
   - TypeScript support
   - Excellent performance
 
 ### Styling & UI
-- **Tailwind CSS** - Utility-first CSS framework for rapid UI development
+- **Tailwind CSS 4.0.0** - Utility-first CSS framework for rapid UI development
   - Responsive design utilities
   - Dark mode support
   - Custom component styling

@@ -1,6 +1,6 @@
 # 🌸 Welcome to Kuroibara Wiki
 
-**Kuroibara (Black Rose)** is a modern, full-featured web application for manga, manhua, and manhwa enthusiasts. This wiki provides comprehensive user guides, tutorials, and community resources.
+**Kuroibara (Black Rose)** is a modern manga management platform for discovering, organizing, and reading manga from 80+ online sources. This wiki provides comprehensive user guides, tutorials, and community resources.
 
 > 📋 **For technical documentation**, visit the [📋 Technical Docs](https://github.com/Futs/kuroibara/tree/main/docs) in the repository.
 
@@ -83,4 +83,4 @@ New to Kuroibara? Start here:
 
 ---
 
-*Last updated: December 2024 | Kuroibara v0.2.0*
+*Last updated: July 2025 | Kuroibara v0.5.0*

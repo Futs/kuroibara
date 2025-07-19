@@ -1,6 +1,6 @@
 # 🚀 Getting Started with Kuroibara
 
-Welcome to Kuroibara! This guide will help you get up and running with your new manga management platform.
+Welcome to Kuroibara! This guide will help you get up and running with your modern manga management platform for discovering, organizing, and reading manga from 80+ online sources.
 
 ## 📋 Prerequisites
 
@@ -37,7 +37,7 @@ For enhanced security, consider enabling 2FA in your profile settings.
 
 ### **Configure Providers**
 1. **Navigate to Settings → Provider Preferences**
-2. **Review available providers** (100+ manga sources)
+2. **Review available providers** (80+ manga sources including MangaDex, MangaPlus, TCBScans)
 3. **Enable/disable providers** based on your preferences
 4. **Set favorites** for faster search results
 5. **Reorder providers** by priority

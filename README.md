@@ -47,10 +47,8 @@ docker compose up -d
 ```
 
 **Docker Images:**
-[![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)
-[![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend)
-- **Backend**: [`futs/kuroibara-backend`](https://hub.docker.com/r/futs/kuroibara-backend)
-- **Frontend**: [`futs/kuroibara-frontend`](https://hub.docker.com/r/futs/kuroibara-frontend)
+- **Backend**: [`futs/kuroibara-backend`](https://hub.docker.com/r/futs/kuroibara-backend) | [![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)
+- **Frontend**: [`futs/kuroibara-frontend`](https://hub.docker.com/r/futs/kuroibara-frontend) | [![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend)
 
 ### 📦 From Source
 

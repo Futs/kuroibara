@@ -23,7 +23,7 @@ The backend API for the Kuroibara manga/manhua/manhwa library application.
 - Python 3.13
 - FastAPI 0.115+ with background tasks
 - PostgreSQL 16
-- Redis for caching and session storage
+- Valkey (Redis fork) for caching and session management
 - SQLAlchemy ORM with async support
 - Alembic for database migrations
 - Pytest for comprehensive testing

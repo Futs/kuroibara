@@ -18,10 +18,10 @@ from app.core.providers.generic import GenericProvider
 
 async def test_provider(provider_config, factory):
     """Test a single provider configuration."""
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"Testing: {provider_config['name']}")
     print(f"URL: {provider_config['url']}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
 
     try:
         # Create provider instance using provider ID
@@ -61,7 +61,7 @@ async def test_provider(provider_config, factory):
                         manga_id = first_result.url.split("/")[-1]
                         details = await provider.get_manga_details(manga_id)
                         if details:
-                            print(f"✅ Manga details successful")
+                            print("✅ Manga details successful")
                             print(f"   Title: {details.get('title', 'No title')}")
                             print(f"   Chapters: {len(details.get('chapters', []))}")
                         else:
@@ -112,9 +112,9 @@ async def main():
         results[provider_name] = success
 
     # Summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("EXCELLENT PERFORMANCE PROVIDERS TEST SUMMARY")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     successful = sum(1 for success in results.values() if success)
     total = len(results)
@@ -122,7 +122,7 @@ async def main():
     print(f"Total providers tested: {total}")
     print(f"Successful: {successful}")
     print(f"Failed: {total - successful}")
-    print(f"Success rate: {successful/total*100:.1f}%")
+    print(f"Success rate: {successful / total * 100:.1f}%")
 
     print("\nDetailed results:")
     for provider_name, success in results.items():

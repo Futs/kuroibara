@@ -928,6 +928,7 @@ import ChapterManagement from "../components/ChapterManagement.vue";
 import VolumeDownloadCard from "../components/VolumeDownloadCard.vue";
 import ImportDialog from "../components/ImportDialog.vue";
 import api from "../services/api";
+import imageProxy from "../utils/imageProxy";
 
 const route = useRoute();
 const router = useRouter();
@@ -1221,9 +1222,9 @@ const groupedVolumes = computed(() => {
 });
 
 const getCoverUrl = (mangaId) => {
-  // For external manga, use the cover_image URL directly
-  if (isExternal.value && manga.value && manga.value.cover_image) {
-    return manga.value.cover_image;
+  // For external manga, use the image proxy utility
+  if (isExternal.value && manga.value) {
+    return imageProxy.getCoverUrl(manga.value, mangaId);
   }
   // For internal manga, use the cover endpoint
   return `/api/v1/manga/${mangaId}/cover`;

@@ -10,6 +10,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.core.providers.base import BaseProvider
+from app.models.manga import MangaStatus
 from app.schemas.search import SearchResult
 
 logger = logging.getLogger(__name__)
@@ -219,6 +220,29 @@ class EnhancedGenericProvider(BaseProvider):
                 continue
         return None
 
+    def _clean_title(self, title: str) -> str:
+        """Clean manga title by removing common badges and indicators."""
+        if not title:
+            return title
+
+        # Remove common badges and indicators
+        badges_to_remove = [
+            "NEW", "new", "UPDATED", "updated", "HOT", "hot",
+            "COMPLETE", "complete", "ONGOING", "ongoing",
+            "LATEST", "latest", "POPULAR", "popular"
+        ]
+
+        cleaned_title = title
+        for badge in badges_to_remove:
+            # Remove badge if it appears at the end
+            if cleaned_title.endswith(badge):
+                cleaned_title = cleaned_title[:-len(badge)].strip()
+            # Remove badge if it appears at the start
+            if cleaned_title.startswith(badge):
+                cleaned_title = cleaned_title[len(badge):].strip()
+
+        return cleaned_title
+
     async def search(
         self, query: str, page: int = 1, limit: int = 20
     ) -> Tuple[List[SearchResult], int, bool]:
@@ -257,11 +281,11 @@ class EnhancedGenericProvider(BaseProvider):
                     title_element = self._find_element_with_selectors(
                         item, self._selectors["title"]
                     )
-                    title = (
-                        title_element.get_text(strip=True)
-                        if title_element
-                        else "Unknown Title"
-                    )
+                    title = "Unknown Title"
+                    if title_element:
+                        raw_title = title_element.get_text(strip=True)
+                        # Clean up title by removing common badges and indicators
+                        title = self._clean_title(raw_title)
 
                     # Extract link
                     link_element = self._find_element_with_selectors(
@@ -285,9 +309,16 @@ class EnhancedGenericProvider(BaseProvider):
                     )
                     cover_url = None
                     if cover_element:
-                        cover_url = cover_element.get("src") or cover_element.get(
-                            "data-src"
-                        )
+                        # For lazy loading sites like Toonily, prioritize data-src over src
+                        data_src = cover_element.get("data-src")
+                        src = cover_element.get("src")
+
+                        # Use data-src if it exists and is not a placeholder
+                        if data_src and "dflazy" not in data_src and "placeholder" not in data_src:
+                            cover_url = data_src
+                        else:
+                            cover_url = src or data_src
+
                         if cover_url and cover_url.startswith("/"):
                             cover_url = urljoin(self._base_url, cover_url)
 
@@ -299,11 +330,29 @@ class EnhancedGenericProvider(BaseProvider):
                         desc_element.get_text(strip=True) if desc_element else ""
                     )
 
+                    # Extract status from search results
+                    status_element = self._find_element_with_selectors(
+                        item, self._selectors.get("status", [])
+                    )
+                    status = MangaStatus.UNKNOWN
+                    if status_element:
+                        status_text = status_element.get_text(strip=True).lower()
+                        # Map status text to enum values
+                        if "ongoing" in status_text or "publishing" in status_text or "serializing" in status_text:
+                            status = MangaStatus.ONGOING
+                        elif "completed" in status_text or "finished" in status_text or "complete" in status_text:
+                            status = MangaStatus.COMPLETED
+                        elif "hiatus" in status_text or "on hold" in status_text:
+                            status = MangaStatus.HIATUS
+                        elif "cancelled" in status_text or "dropped" in status_text or "discontinued" in status_text:
+                            status = MangaStatus.CANCELLED
+
                     result = SearchResult(
                         id=manga_id,
                         title=title,
                         cover_image=cover_url,
                         description=description,
+                        status=status,
                         provider=self.name,
                         url=href,
                     )
@@ -334,9 +383,11 @@ class EnhancedGenericProvider(BaseProvider):
             title_element = self._find_element_with_selectors(
                 soup, self._selectors["title"]
             )
-            title = (
-                title_element.get_text(strip=True) if title_element else "Unknown Title"
-            )
+            title = "Unknown Title"
+            if title_element:
+                raw_title = title_element.get_text(strip=True)
+                # Clean up title by removing common badges and indicators
+                title = self._clean_title(raw_title)
 
             # Extract description
             desc_element = self._find_element_with_selectors(
@@ -344,13 +395,39 @@ class EnhancedGenericProvider(BaseProvider):
             )
             description = desc_element.get_text(strip=True) if desc_element else ""
 
+            # Extract status
+            status_element = self._find_element_with_selectors(
+                soup, self._selectors.get("status", [])
+            )
+            status = "unknown"
+            if status_element:
+                status_text = status_element.get_text(strip=True).lower()
+                # Map status text to proper values (handle formats like "StatusOnGoing")
+                if "ongoing" in status_text or "publishing" in status_text or "serializing" in status_text:
+                    status = "ongoing"
+                elif "completed" in status_text or "finished" in status_text or "complete" in status_text:
+                    status = "completed"
+                elif "hiatus" in status_text or "on hold" in status_text:
+                    status = "hiatus"
+                elif "cancelled" in status_text or "dropped" in status_text or "discontinued" in status_text:
+                    status = "cancelled"
+
             # Extract cover
             cover_element = self._find_element_with_selectors(
                 soup, self._selectors["cover"]
             )
             cover_url = None
             if cover_element:
-                cover_url = cover_element.get("src") or cover_element.get("data-src")
+                # For lazy loading sites like Toonily, prioritize data-src over src
+                data_src = cover_element.get("data-src")
+                src = cover_element.get("src")
+
+                # Use data-src if it exists and is not a placeholder
+                if data_src and "dflazy" not in data_src and "placeholder" not in data_src:
+                    cover_url = data_src
+                else:
+                    cover_url = src or data_src
+
                 if cover_url and cover_url.startswith("/"):
                     cover_url = urljoin(self._base_url, cover_url)
 
@@ -362,7 +439,7 @@ class EnhancedGenericProvider(BaseProvider):
                 "provider": self.name,
                 "url": manga_url,
                 "type": "manga",
-                "status": "unknown",
+                "status": status,
                 "is_nsfw": self._supports_nsfw,
                 "genres": [],
                 "authors": [],

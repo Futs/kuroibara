@@ -14,7 +14,7 @@
           >
             <img
               v-if="manga.cover_image || manga.cover_url"
-              :src="manga.cover_image || manga.cover_url"
+              :src="getCoverImageUrl()"
               :alt="manga.title"
               class="w-full h-full object-center object-cover"
               :class="{ 'blur-sm': isNsfw && blurNsfw }"
@@ -168,6 +168,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useSettingsStore } from "../stores/settings";
+import { getCoverUrl, handleImageError } from "../utils/imageProxy";
 
 const props = defineProps({
   manga: {
@@ -212,12 +213,15 @@ const formatStatus = (status) => {
     .join(" ");
 };
 
+const getCoverImageUrl = () => {
+  return getCoverUrl(props.manga);
+};
+
 const onImageError = (event) => {
-  // Hide the image if it fails to load
-  event.target.style.display = "none";
-  console.warn(
-    `Failed to load cover image for ${props.manga.title}: ${event.target.src}`,
-  );
+  const originalUrl = props.manga.cover_image || props.manga.cover_url;
+  handleImageError(event, originalUrl, (url) => {
+    console.warn(`Failed to load cover image for ${props.manga.title}: ${url}`);
+  });
 };
 </script>
 

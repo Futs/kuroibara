@@ -22,14 +22,12 @@ from app.core.providers.factory import ProviderFactory
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangaplus import MangaPlusProvider
-from app.core.providers.mangasee import MangaSeeProvider
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("provider_test_results.log"),
         logging.StreamHandler(),
     ],
 )
@@ -47,7 +45,6 @@ class ProviderTester:
         # Register provider classes
         self.factory.register_provider_class(MangaDexProvider)
         self.factory.register_provider_class(MangaPlusProvider)
-        self.factory.register_provider_class(MangaSeeProvider)
         self.factory.register_provider_class(GenericProvider)
 
     async def test_url_accessibility(

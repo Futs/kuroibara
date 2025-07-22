@@ -5,8 +5,8 @@ Quick test script for excellent performance providers
 
 import asyncio
 import json
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add the app directory to the Python path

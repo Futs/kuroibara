@@ -12,8 +12,8 @@ async def test_provider_registry_additional_providers():
         p.name.lower() for p in provider_registry.get_all_providers()
     ]
 
-    # Check if WeebCentral provider is registered (replacement for MangaSee)
-    assert "weebcentral" in [
+    # Check if Toonily provider is registered (active provider)
+    assert "toonily" in [
         p.name.lower() for p in provider_registry.get_all_providers()
     ]
 
@@ -27,14 +27,14 @@ async def test_provider_registry_additional_providers():
     assert provider.url == "https://jumpg-webapi.tokyo-cdn.com/api"
     assert provider.supports_nsfw is False
 
-    # Get WeebCentral provider (replacement for MangaSee)
-    provider = provider_registry.get_provider("weebcentral")
+    # Get Toonily provider (active provider)
+    provider = provider_registry.get_provider("toonily")
     assert provider is not None
-    # WeebCentral is a GenericProvider, not MangaSeeProvider
+    # Toonily is an EnhancedGenericProvider
 
     # Check provider properties
-    assert provider.name == "WeebCentral"
-    assert provider.url == "https://weebcentral.com"
+    assert provider.name == "Toonily"
+    assert provider.url == "https://toonily.com"
     assert provider.supports_nsfw is False
 
 

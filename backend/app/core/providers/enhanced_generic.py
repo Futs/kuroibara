@@ -227,19 +227,30 @@ class EnhancedGenericProvider(BaseProvider):
 
         # Remove common badges and indicators
         badges_to_remove = [
-            "NEW", "new", "UPDATED", "updated", "HOT", "hot",
-            "COMPLETE", "complete", "ONGOING", "ongoing",
-            "LATEST", "latest", "POPULAR", "popular"
+            "NEW",
+            "new",
+            "UPDATED",
+            "updated",
+            "HOT",
+            "hot",
+            "COMPLETE",
+            "complete",
+            "ONGOING",
+            "ongoing",
+            "LATEST",
+            "latest",
+            "POPULAR",
+            "popular",
         ]
 
         cleaned_title = title
         for badge in badges_to_remove:
             # Remove badge if it appears at the end
             if cleaned_title.endswith(badge):
-                cleaned_title = cleaned_title[:-len(badge)].strip()
+                cleaned_title = cleaned_title[: -len(badge)].strip()
             # Remove badge if it appears at the start
             if cleaned_title.startswith(badge):
-                cleaned_title = cleaned_title[len(badge):].strip()
+                cleaned_title = cleaned_title[len(badge) :].strip()
 
         return cleaned_title
 
@@ -314,7 +325,11 @@ class EnhancedGenericProvider(BaseProvider):
                         src = cover_element.get("src")
 
                         # Use data-src if it exists and is not a placeholder
-                        if data_src and "dflazy" not in data_src and "placeholder" not in data_src:
+                        if (
+                            data_src
+                            and "dflazy" not in data_src
+                            and "placeholder" not in data_src
+                        ):
                             cover_url = data_src
                         else:
                             cover_url = src or data_src
@@ -338,13 +353,25 @@ class EnhancedGenericProvider(BaseProvider):
                     if status_element:
                         status_text = status_element.get_text(strip=True).lower()
                         # Map status text to enum values
-                        if "ongoing" in status_text or "publishing" in status_text or "serializing" in status_text:
+                        if (
+                            "ongoing" in status_text
+                            or "publishing" in status_text
+                            or "serializing" in status_text
+                        ):
                             status = MangaStatus.ONGOING
-                        elif "completed" in status_text or "finished" in status_text or "complete" in status_text:
+                        elif (
+                            "completed" in status_text
+                            or "finished" in status_text
+                            or "complete" in status_text
+                        ):
                             status = MangaStatus.COMPLETED
                         elif "hiatus" in status_text or "on hold" in status_text:
                             status = MangaStatus.HIATUS
-                        elif "cancelled" in status_text or "dropped" in status_text or "discontinued" in status_text:
+                        elif (
+                            "cancelled" in status_text
+                            or "dropped" in status_text
+                            or "discontinued" in status_text
+                        ):
                             status = MangaStatus.CANCELLED
 
                     result = SearchResult(
@@ -403,13 +430,25 @@ class EnhancedGenericProvider(BaseProvider):
             if status_element:
                 status_text = status_element.get_text(strip=True).lower()
                 # Map status text to proper values (handle formats like "StatusOnGoing")
-                if "ongoing" in status_text or "publishing" in status_text or "serializing" in status_text:
+                if (
+                    "ongoing" in status_text
+                    or "publishing" in status_text
+                    or "serializing" in status_text
+                ):
                     status = "ongoing"
-                elif "completed" in status_text or "finished" in status_text or "complete" in status_text:
+                elif (
+                    "completed" in status_text
+                    or "finished" in status_text
+                    or "complete" in status_text
+                ):
                     status = "completed"
                 elif "hiatus" in status_text or "on hold" in status_text:
                     status = "hiatus"
-                elif "cancelled" in status_text or "dropped" in status_text or "discontinued" in status_text:
+                elif (
+                    "cancelled" in status_text
+                    or "dropped" in status_text
+                    or "discontinued" in status_text
+                ):
                     status = "cancelled"
 
             # Extract cover
@@ -423,7 +462,11 @@ class EnhancedGenericProvider(BaseProvider):
                 src = cover_element.get("src")
 
                 # Use data-src if it exists and is not a placeholder
-                if data_src and "dflazy" not in data_src and "placeholder" not in data_src:
+                if (
+                    data_src
+                    and "dflazy" not in data_src
+                    and "placeholder" not in data_src
+                ):
                     cover_url = data_src
                 else:
                     cover_url = src or data_src

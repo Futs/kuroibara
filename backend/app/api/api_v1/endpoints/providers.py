@@ -672,7 +672,10 @@ async def proxy_image(
         # Set headers to mimic browser request and avoid hotlinking protection
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Referer": url.split("/")[0] + "//" + url.split("/")[2] + "/",  # Use domain as referer
+            "Referer": url.split("/")[0]
+            + "//"
+            + url.split("/")[2]
+            + "/",  # Use domain as referer
             "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
         }

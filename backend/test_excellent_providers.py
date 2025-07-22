@@ -25,9 +25,9 @@ async def test_provider(provider_config, factory):
 
     try:
         # Create provider instance using provider ID
-        provider_id = provider_config['id']
+        provider_id = provider_config["id"]
         provider = factory.create_provider(provider_id)
-        
+
         # Test basic connectivity by trying a simple search
         print("Testing basic connectivity...")
         try:
@@ -37,24 +37,28 @@ async def test_provider(provider_config, factory):
         except Exception as e:
             print(f"❌ Connection failed: {e}")
             return False
-        
+
         # Test search functionality with a popular manga
         print("Testing search functionality...")
         try:
             results, total, has_more = await provider.search("naruto", limit=3)
             if results and len(results) > 0:
                 print(f"✅ Search successful - found {len(results)} results")
-                
+
                 # Show first result
                 first_result = results[0]
-                print(f"   First result: {first_result.title if hasattr(first_result, 'title') else 'No title'}")
-                print(f"   URL: {first_result.url if hasattr(first_result, 'url') else 'No URL'}")
+                print(
+                    f"   First result: {first_result.title if hasattr(first_result, 'title') else 'No title'}"
+                )
+                print(
+                    f"   URL: {first_result.url if hasattr(first_result, 'url') else 'No URL'}"
+                )
 
                 # Test manga details if we have a URL
-                if hasattr(first_result, 'url') and first_result.url:
+                if hasattr(first_result, "url") and first_result.url:
                     print("Testing manga details...")
                     try:
-                        manga_id = first_result.url.split('/')[-1]
+                        manga_id = first_result.url.split("/")[-1]
                         details = await provider.get_manga_details(manga_id)
                         if details:
                             print(f"✅ Manga details successful")
@@ -64,18 +68,18 @@ async def test_provider(provider_config, factory):
                             print("⚠️  Manga details returned empty")
                     except Exception as e:
                         print(f"❌ Manga details failed: {e}")
-                
+
             else:
                 print("⚠️  Search returned no results")
                 return False
-                
+
         except Exception as e:
             print(f"❌ Search failed: {e}")
             return False
-        
+
         print("✅ Provider test completed successfully")
         return True
-        
+
     except Exception as e:
         print(f"❌ Provider creation failed: {e}")
         return False
@@ -84,13 +88,13 @@ async def test_provider(provider_config, factory):
 async def main():
     """Main test function."""
     config_file = "app/core/providers/config/providers_excellent_performance.json"
-    
+
     if not os.path.exists(config_file):
         print(f"Config file not found: {config_file}")
         return
-    
+
     # Load provider configurations
-    with open(config_file, 'r') as f:
+    with open(config_file, "r") as f:
         providers = json.load(f)
 
     print(f"Testing {len(providers)} excellent performance providers...")
@@ -103,28 +107,28 @@ async def main():
     results = {}
 
     for provider_config in providers:
-        provider_name = provider_config['name']
+        provider_name = provider_config["name"]
         success = await test_provider(provider_config, factory)
         results[provider_name] = success
-    
+
     # Summary
     print(f"\n{'='*60}")
     print("EXCELLENT PERFORMANCE PROVIDERS TEST SUMMARY")
     print(f"{'='*60}")
-    
+
     successful = sum(1 for success in results.values() if success)
     total = len(results)
-    
+
     print(f"Total providers tested: {total}")
     print(f"Successful: {successful}")
     print(f"Failed: {total - successful}")
     print(f"Success rate: {successful/total*100:.1f}%")
-    
+
     print("\nDetailed results:")
     for provider_name, success in results.items():
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"  {provider_name}: {status}")
-    
+
     if successful > 0:
         print(f"\n🎉 {successful} excellent performance providers are ready to use!")
     else:

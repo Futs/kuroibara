@@ -13,9 +13,7 @@ async def test_provider_registry_additional_providers():
     ]
 
     # Check if Toonily provider is registered (active provider)
-    assert "toonily" in [
-        p.name.lower() for p in provider_registry.get_all_providers()
-    ]
+    assert "toonily" in [p.name.lower() for p in provider_registry.get_all_providers()]
 
     # Get MangaPlus provider
     provider = provider_registry.get_provider("mangaplus")

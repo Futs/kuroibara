@@ -681,7 +681,36 @@ async def proxy_image(
         }
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(url, headers=headers)
+            # Validate the URL to prevent SSRF attacks
+            parsed_url = httpx.URL(url)
+
+            # Block internal/private networks
+            if (
+                parsed_url.host in ["localhost", "127.0.0.1", "0.0.0.0"]
+                or parsed_url.host.startswith("192.168.")
+                or parsed_url.host.startswith("10.")
+                or parsed_url.host.startswith("172.")
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Access to internal networks is not allowed",
+                )
+
+            # Only allow HTTP/HTTPS
+            if parsed_url.scheme not in ["http", "https"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Only HTTP and HTTPS schemes are allowed",
+                )
+
+            # Only allow standard HTTP/HTTPS ports
+            if parsed_url.port and parsed_url.port not in [80, 443, 8080, 8443]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Only standard HTTP ports are allowed",
+                )
+
+            response = await client.get(url, headers=headers, follow_redirects=False)
 
             if response.status_code == 200:
                 content_type = response.headers.get("content-type", "image/jpeg")

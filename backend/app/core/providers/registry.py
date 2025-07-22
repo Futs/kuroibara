@@ -100,11 +100,13 @@ class ProviderRegistry:
         for provider, priority in providers_with_priority:
             provider_id = provider.name.lower()
 
-            # Get requires_flaresolverr from provider config
+            # Get requires_flaresolverr and enabled status from provider config
             requires_flaresolverr = False
+            enabled = True
             for config in provider_factory._provider_configs.values():
                 if config.get("id") == provider_id:
                     requires_flaresolverr = config.get("requires_flaresolverr", False)
+                    enabled = config.get("enabled", True)
                     break
 
             provider_info_list.append(
@@ -114,6 +116,7 @@ class ProviderRegistry:
                     "url": provider.url,
                     "supports_nsfw": provider.supports_nsfw,
                     "requires_flaresolverr": requires_flaresolverr,
+                    "enabled": enabled,
                     "is_priority": provider.name.lower() in default_providers,
                     "priority": priority,
                 }
@@ -190,8 +193,17 @@ class ProviderRegistry:
                         provider_configs = json.load(f)
 
                     # Filter out Cloudflare providers if FlareSolverr is not available
+                    # Also filter out disabled providers
                     filtered_configs = []
                     for config in provider_configs:
+                        # Check if provider is enabled (default to True if not specified)
+                        is_enabled = config.get("enabled", True)
+                        if not is_enabled:
+                            logger.info(
+                                f"Skipping {config.get('name', 'Unknown')} - provider is disabled"
+                            )
+                            continue
+
                         requires_flaresolverr = config.get(
                             "requires_flaresolverr", False
                         )

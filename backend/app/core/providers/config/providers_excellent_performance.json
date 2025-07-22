@@ -1,0 +1,130 @@
+[
+  {
+    "id": "mangabat",
+    "name": "MangaBat",
+    "class_name": "GenericProvider",
+    "url": "https://www.mangabats.com",
+    "supports_nsfw": false,
+    "priority": 10,
+    "notes": "Excellent performance (0.18s response time), English manga/webtoon",
+    "params": {
+      "base_url": "https://www.mangabats.com",
+      "search_url": "https://www.mangabats.com/genre/all",
+      "manga_url_pattern": "https://www.mangabats.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://www.mangabats.com/chapter/{chapter_id}",
+      "name": "MangaBat",
+      "search_selector": "div.list-truyen-item-wrap",
+      "title_selector": "div.list-truyen-item-wrap h3 a",
+      "cover_selector": ".item-img img",
+      "description_selector": ".item-summary",
+      "chapter_selector": ".chapter-list .row span a",
+      "page_selector": ".container-chapter-reader source",
+      "search_title_selector": ".item-title a",
+      "search_cover_selector": ".item-img img",
+      "fallback_selectors": {
+        "search_items": [".list-story-item", ".manga-item", "[class*='item']"],
+        "title": [".item-title a", "h3 a", ".manga-title"],
+        "cover": [".item-img img", ".manga-cover img", "img"]
+      },
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      }
+    }
+  },
+  {
+    "id": "mangafreak",
+    "name": "MangaFreak",
+    "class_name": "GenericProvider",
+    "url": "https://mangafreak.me",
+    "supports_nsfw": false,
+    "priority": 11,
+    "notes": "Excellent performance (0.33s response time), English manga",
+    "params": {
+      "base_url": "https://mangafreak.me",
+      "search_url": "https://mangafreak.me/Mangalist/All",
+      "manga_url_pattern": "https://mangafreak.me/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangafreak.me/read/{chapter_id}",
+      "name": "MangaFreak",
+      "search_selector": ".list_item_info",
+      "title_selector": "h3 a",
+      "cover_selector": ".list_item_img img",
+      "description_selector": ".manga_series_data",
+      "chapter_selector": ".manga_series_list table tbody tr td:first-of-type a",
+      "page_selector": ".read_image .mySlides source",
+      "search_title_selector": "h3 a",
+      "search_cover_selector": ".list_item_img img",
+      "fallback_selectors": {
+        "search_items": [".list_item_info", ".manga-item"],
+        "title": ["h3 a", ".manga-title"],
+        "cover": [".list_item_img img", ".manga-cover img", "img"]
+      },
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      }
+    }
+  },
+  {
+    "id": "mangatown",
+    "name": "MangaTown",
+    "class_name": "GenericProvider",
+    "url": "https://www.mangatown.com",
+    "supports_nsfw": false,
+    "priority": 12,
+    "notes": "Excellent performance (0.43s response time), established English manga site",
+    "params": {
+      "base_url": "http://www.mangatown.com",
+      "search_url": "http://www.mangatown.com/search",
+      "manga_url_pattern": "http://www.mangatown.com/manga/{manga_id}",
+      "chapter_url_pattern": "http://www.mangatown.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaTown",
+      "search_selector": "[class*='manga']",
+      "title_selector": "p.title a",
+      "cover_selector": ".manga_pic img",
+      "description_selector": ".manga_detail_top",
+      "chapter_selector": "ul.chapter_list li a",
+      "page_selector": ".read_img img",
+      "search_title_selector": "p.title a",
+      "search_cover_selector": ".manga_pic img",
+      "fallback_selectors": {
+        "search_items": ["[class*='manga']", ".manga-item", "[class*='item']"],
+        "title": ["p.title a", ".manga-title", "a"],
+        "cover": [".manga_pic img", ".manga-cover img", "img"]
+      },
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      }
+    }
+  },
+  {
+    "id": "mangasail",
+    "name": "MangaSail",
+    "class_name": "GenericProvider",
+    "url": "https://sailmg.com",
+    "supports_nsfw": false,
+    "priority": 13,
+    "notes": "Excellent performance (0.39s response time), fast English provider",
+    "params": {
+      "base_url": "https://sailmg.com",
+      "search_url": "https://sailmg.com/directory",
+      "manga_url_pattern": "https://sailmg.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://sailmg.com/read/{chapter_id}",
+      "name": "MangaSail",
+      "search_selector": "table.directory_list tr td:first-of-type a",
+      "title_selector": "table.directory_list tr td:first-of-type a",
+      "cover_selector": ".manga-thumb img",
+      "description_selector": ".manga-summary",
+      "chapter_selector": ".chapter-list a",
+      "page_selector": ".reader-content img",
+      "search_title_selector": "td:first-of-type a",
+      "search_cover_selector": ".manga-thumb img",
+      "fallback_selectors": {
+        "search_items": ["table.directory_list tr", ".manga-item"],
+        "title": ["td:first-of-type a", ".manga-title"],
+        "cover": [".manga-thumb img", ".manga-cover img", "img"]
+      },
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      }
+    }
+  }
+]

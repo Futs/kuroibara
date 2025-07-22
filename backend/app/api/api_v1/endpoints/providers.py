@@ -2,7 +2,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+import httpx
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -647,4 +649,109 @@ async def manually_disable_provider(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to disable provider",
+        )
+
+
+@router.get("/image-proxy")
+async def proxy_image(
+    url: str = Query(..., description="Image URL to proxy"),
+):
+    """
+    Proxy external images to avoid CORS issues.
+    This endpoint fetches images from external providers and serves them
+    with proper CORS headers so the frontend can display them.
+    """
+    try:
+        # Validate URL
+        if not url.startswith(("http://", "https://")):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid URL format",
+            )
+
+        # Set headers to mimic browser request and avoid hotlinking protection
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Referer": url.split("/")[0]
+            + "//"
+            + url.split("/")[2]
+            + "/",  # Use domain as referer
+            "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Validate the URL to prevent SSRF attacks
+            parsed_url = httpx.URL(url)
+
+            # Block internal/private networks
+            if (
+                parsed_url.host in ["localhost", "127.0.0.1", "0.0.0.0"]
+                or parsed_url.host.startswith("192.168.")
+                or parsed_url.host.startswith("10.")
+                or parsed_url.host.startswith("172.")
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Access to internal networks is not allowed",
+                )
+
+            # Only allow HTTP/HTTPS
+            if parsed_url.scheme not in ["http", "https"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Only HTTP and HTTPS schemes are allowed",
+                )
+
+            # Only allow standard HTTP/HTTPS ports
+            if parsed_url.port and parsed_url.port not in [80, 443, 8080, 8443]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Only standard HTTP ports are allowed",
+                )
+
+            response = await client.get(url, headers=headers, follow_redirects=False)
+
+            if response.status_code == 200:
+                content_type = response.headers.get("content-type", "image/jpeg")
+
+                # Ensure it's an image
+                if not content_type.startswith("image/"):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="URL does not point to an image",
+                    )
+
+                # Return image with proper CORS headers
+                return Response(
+                    content=response.content,
+                    media_type=content_type,
+                    headers={
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Methods": "GET",
+                        "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                    },
+                )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Image not found (HTTP {response.status_code})",
+                )
+
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail="Request timeout while fetching image",
+        )
+    except httpx.RequestError as e:
+        logger.error(f"Error proxying image {url}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to fetch image from external source",
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error proxying image {url}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )

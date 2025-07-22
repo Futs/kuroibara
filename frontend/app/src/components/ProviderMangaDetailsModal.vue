@@ -105,9 +105,7 @@
                   v-if="
                     getMangaData()?.cover_image || getMangaData()?.cover_url
                   "
-                  :src="
-                    getMangaData()?.cover_image || getMangaData()?.cover_url
-                  "
+                  :src="getProxiedCoverUrl()"
                   :alt="getMangaData()?.title || 'Manga Cover'"
                   class="w-full h-full object-center object-cover"
                   :class="{ 'blur-md': isNsfw && blurNsfw }"
@@ -389,6 +387,25 @@ const onImageError = (event) => {
 
 const onImageLoad = (event) => {
   console.log("Successfully loaded manga cover image:", event.target.src);
+};
+
+const getProxiedCoverUrl = () => {
+  const mangaData = getMangaData();
+  if (!mangaData) {
+    console.log('No manga data available for cover');
+    return '/placeholder-cover.jpg';
+  }
+
+  const coverUrl = mangaData.cover_image || mangaData.cover_url;
+  if (!coverUrl) {
+    console.log('No cover URL available');
+    return '/placeholder-cover.jpg';
+  }
+
+  // For external provider manga, use image proxy
+  console.log('Using image proxy for external manga cover:', coverUrl);
+  const encodedUrl = encodeURIComponent(coverUrl);
+  return `/api/v1/providers/image-proxy?url=${encodedUrl}`;
 };
 
 const getMangaData = () => {

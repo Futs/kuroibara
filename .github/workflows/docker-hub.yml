@@ -1,0 +1,214 @@
+name: Docker Hub Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  release:
+    types: [published]
+
+env:
+  DOCKER_REGISTRY: docker.io
+  DOCKER_USERNAME: futs
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  # Wait for main CI tests to pass before building images
+  wait-for-tests:
+    name: Wait for Tests
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Wait for CI tests
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.sha }}
+          check-name: 'Backend Tests'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          
+      - name: Wait for Code Quality
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.sha }}
+          check-name: 'Code Quality'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+
+  # Generate version information
+  versioning:
+    name: Generate Version
+    runs-on: ubuntu-latest
+    needs: [wait-for-tests]
+    if: always() && (needs.wait-for-tests.result == 'success' || needs.wait-for-tests.result == 'skipped')
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_release: ${{ steps.version.outputs.is_release }}
+      docker_tags: ${{ steps.version.outputs.docker_tags }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version and tags
+        id: version
+        run: |
+          chmod +x ./version.sh
+          
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            VERSION=$(QUIET=true ./version.sh current)
+            IS_RELEASE="false"
+            DOCKER_TAGS="latest,${VERSION}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            IS_RELEASE="true"
+            # Remove 'v' prefix for Docker tags
+            CLEAN_VERSION=${VERSION#v}
+            DOCKER_TAGS="latest,${CLEAN_VERSION},${VERSION}"
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            IS_RELEASE="true"
+            CLEAN_VERSION=${VERSION#v}
+            DOCKER_TAGS="latest,${CLEAN_VERSION},${VERSION}"
+          else
+            VERSION="dev"
+            IS_RELEASE="false"
+            DOCKER_TAGS="dev"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
+          echo "docker_tags=$DOCKER_TAGS" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+          echo "Docker tags: $DOCKER_TAGS"
+
+  # Build and push backend image
+  build-backend:
+    name: Build Backend Image
+    runs-on: ubuntu-latest
+    needs: [versioning]
+    if: always() && needs.versioning.result == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_USERNAME }}/kuroibara-backend
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ needs.versioning.outputs.version }}
+            type=ref,event=tag
+          labels: |
+            org.opencontainers.image.title=Kuroibara Backend
+            org.opencontainers.image.description=Kuroibara manga management backend
+            org.opencontainers.image.version=${{ needs.versioning.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      - name: Build and push Backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+          build-args: |
+            VERSION=${{ needs.versioning.outputs.version }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            GIT_SHA=${{ github.sha }}
+
+  # Build and push frontend image
+  build-frontend:
+    name: Build Frontend Image
+    runs-on: ubuntu-latest
+    needs: [versioning]
+    if: always() && needs.versioning.result == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_USERNAME }}/kuroibara-frontend
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ needs.versioning.outputs.version }}
+            type=ref,event=tag
+          labels: |
+            org.opencontainers.image.title=Kuroibara Frontend
+            org.opencontainers.image.description=Kuroibara manga management frontend
+            org.opencontainers.image.version=${{ needs.versioning.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/app
+          file: ./frontend/app/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+          build-args: |
+            VERSION=${{ needs.versioning.outputs.version }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            GIT_SHA=${{ github.sha }}
+
+  # Notify on completion
+  notify-completion:
+    name: Notify Completion
+    runs-on: ubuntu-latest
+    needs: [versioning, build-backend, build-frontend]
+    if: always()
+    
+    steps:
+      - name: Success notification
+        if: needs.build-backend.result == 'success' && needs.build-frontend.result == 'success'
+        run: |
+          echo "🎉 Docker images successfully built and pushed!"
+          echo "📦 Backend: ${{ env.DOCKER_USERNAME }}/kuroibara-backend:${{ needs.versioning.outputs.version }}"
+          echo "📦 Frontend: ${{ env.DOCKER_USERNAME }}/kuroibara-frontend:${{ needs.versioning.outputs.version }}"
+          echo "🏷️  Tags: ${{ needs.versioning.outputs.docker_tags }}"
+          
+      - name: Failure notification
+        if: needs.build-backend.result == 'failure' || needs.build-frontend.result == 'failure'
+        run: |
+          echo "❌ Docker image build failed!"
+          echo "Backend status: ${{ needs.build-backend.result }}"
+          echo "Frontend status: ${{ needs.build-frontend.result }}"
+          exit 1

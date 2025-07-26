@@ -14,10 +14,10 @@ class MangaPlusProvider(BaseProvider):
     """MangaPlus provider with improved error handling."""
 
     def __init__(self):
-        # Note: The original API endpoint appears to be deprecated/broken
-        # This provider is currently disabled until a working implementation is found
-        self._api_working = False
-        logger.warning("MangaPlus provider is currently disabled due to API issues")
+        # Updated API endpoint based on reference implementation
+        # Provider is now enabled with correct API URL
+        self._api_working = True
+        logger.info("MangaPlus provider initialized with updated API endpoint")
 
     @property
     def name(self) -> str:
@@ -25,8 +25,8 @@ class MangaPlusProvider(BaseProvider):
 
     @property
     def url(self) -> str:
-        # Keep the original URL for reference, but mark as non-functional
-        return "https://jumpg-webapi.tokyo-cdn.com/api"
+        # Updated to correct API endpoint based on reference implementation
+        return "https://jumpg-api.tokyo-cdn.com/api"
 
     @property
     def supports_nsfw(self) -> bool:

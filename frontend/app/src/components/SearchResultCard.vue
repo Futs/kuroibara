@@ -66,7 +66,13 @@
           <button
             @click.stop="addToLibrary"
             :disabled="inLibrary || adding"
-            class="p-2 bg-white dark:bg-dark-800 rounded-full text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="[
+              'p-2 rounded-full transition-colors',
+              inLibrary
+                ? 'bg-green-500 text-white cursor-default'
+                : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400',
+              (adding) && 'opacity-50 cursor-not-allowed'
+            ]"
             :title="inLibrary ? 'Already in Library' : 'Add to Library'"
           >
             <svg

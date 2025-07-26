@@ -54,7 +54,18 @@ class ProviderFactory:
 
         # Create provider instance
         try:
-            return provider_class(**config.get("params", {}))
+            # Merge top-level config with params
+            provider_kwargs = config.get("params", {}).copy()
+
+            # Add important top-level config values
+            if "supports_nsfw" in config:
+                provider_kwargs["supports_nsfw"] = config["supports_nsfw"]
+            if "use_flaresolverr" in config:
+                provider_kwargs["use_flaresolverr"] = config["use_flaresolverr"]
+            if "flaresolverr_url" in config:
+                provider_kwargs["flaresolverr_url"] = config["flaresolverr_url"]
+
+            return provider_class(**provider_kwargs)
         except Exception as e:
             logger.error(f"Error creating provider {provider_id}: {e}")
             return None

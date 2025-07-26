@@ -2,7 +2,7 @@
   {
     "id": "example_provider",
     "name": "Example Provider",
-    "class_name": "GenericProvider",
+    "class_name": "EnhancedGenericProvider",
     "url": "https://example-manga-site.com",
     "supports_nsfw": false,
     "priority": 1000,

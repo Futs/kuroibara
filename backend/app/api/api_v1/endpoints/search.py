@@ -15,6 +15,8 @@ from app.core.providers.user_preferences import (
 )
 from app.models.provider import ProviderStatus
 from app.models.user import User
+from app.models.manga import Manga
+from app.models.library import MangaUserLibrary
 from app.schemas.search import (
     ProviderInfo,
     SearchFilter,
@@ -25,6 +27,71 @@ from app.schemas.search import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+async def check_library_status(search_results: List[Any], user_id: str, db: AsyncSession) -> List[Any]:
+    """
+    Check if search results are already in the user's library and add in_library field.
+
+    Args:
+        search_results: List of search result objects
+        user_id: Current user ID
+        db: Database session
+
+    Returns:
+        List of search results with in_library field added
+    """
+    if not search_results:
+        return search_results
+
+    try:
+        # Get all manga titles and providers from search results
+        manga_lookup = {}
+        for result in search_results:
+            # Create a lookup key based on title and provider
+            key = (result.title.lower().strip(), result.provider)
+            manga_lookup[key] = result
+
+        # Query database for existing manga with matching titles and providers
+        manga_query = select(Manga).where(
+            Manga.title.in_([result.title for result in search_results])
+        )
+        manga_result = await db.execute(manga_query)
+        existing_manga = manga_result.scalars().all()
+
+        # Get manga IDs that are in the user's library
+        if existing_manga:
+            manga_ids = [manga.id for manga in existing_manga]
+            library_query = select(MangaUserLibrary.manga_id).where(
+                MangaUserLibrary.user_id == user_id,
+                MangaUserLibrary.manga_id.in_(manga_ids)
+            )
+            library_result = await db.execute(library_query)
+            library_manga_ids = set(library_result.scalars().all())
+
+            # Create a mapping of (title, provider) to manga_id for library checking
+            title_to_manga_id = {}
+            for manga in existing_manga:
+                key = (manga.title.lower().strip(), manga.provider)
+                title_to_manga_id[key] = manga.id
+        else:
+            library_manga_ids = set()
+            title_to_manga_id = {}
+
+        # Add in_library field to each search result
+        for result in search_results:
+            key = (result.title.lower().strip(), result.provider)
+            manga_id = title_to_manga_id.get(key)
+            result.in_library = manga_id is not None and manga_id in library_manga_ids
+
+        return search_results
+
+    except Exception as e:
+        logger.error(f"Error checking library status: {e}")
+        # If there's an error, just return results without library status
+        for result in search_results:
+            result.in_library = False
+        return search_results
 
 
 async def get_enabled_providers(db: AsyncSession):
@@ -163,8 +230,13 @@ async def search_manga(
                 limit=query.limit,
             )
 
+            # Check library status for single provider results
+            results_with_library_status = await check_library_status(
+                results, current_user.id, db
+            )
+
             return {
-                "results": results,
+                "results": results_with_library_status,
                 "total": total,
                 "page": query.page,
                 "limit": query.limit,
@@ -398,8 +470,13 @@ async def search_manga(
         f"Pagination: total={total_results}, offset={offset}, page_size={len(paginated_results)}, has_next={has_next}"
     )
 
+    # Check library status for paginated results
+    paginated_results_with_library_status = await check_library_status(
+        paginated_results, current_user.id, db
+    )
+
     return {
-        "results": paginated_results,
+        "results": paginated_results_with_library_status,
         "total": total_results,
         "page": query.page,
         "limit": query.limit,

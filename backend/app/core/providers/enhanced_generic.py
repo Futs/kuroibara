@@ -380,6 +380,7 @@ class EnhancedGenericProvider(BaseProvider):
                         cover_image=cover_url,
                         description=description,
                         status=status,
+                        is_nsfw=self._supports_nsfw,
                         provider=self.name,
                         url=href,
                     )

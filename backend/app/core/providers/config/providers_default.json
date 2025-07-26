@@ -12,7 +12,7 @@
     "id": "mangaplus",
     "name": "MangaPlus",
     "class_name": "MangaPlusProvider",
-    "url": "https://jumpg-webapi.tokyo-cdn.com/api",
+    "url": "https://jumpg-api.tokyo-cdn.com/api",
     "supports_nsfw": false,
     "priority": 2,
     "params": {}
@@ -109,7 +109,7 @@
     "notes": "FIXED: NSFW/Adult content site. Using correct selectors - div.hcontent containers with h3.htitle titles",
     "params": {
       "base_url": "https://mangadna.com",
-      "search_url": "https://mangadna.com/manga",
+      "search_url": "https://mangadna.com/search?q={query}",
       "manga_url_pattern": "https://mangadna.com/manga/{manga_id}",
       "chapter_url_pattern": "https://mangadna.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaDNA",
@@ -134,7 +134,7 @@
     "notes": "FIXED: NSFW/Adult content site (18+ in name). Using correct selectors - div.bigor-manga containers with h3.tt titles",
     "params": {
       "base_url": "https://manga18fx.com",
-      "search_url": "https://manga18fx.com/manga-genre/manhwa",
+      "search_url": "https://manga18fx.com/?s={query}",
       "manga_url_pattern": "https://manga18fx.com/manga/{manga_id}",
       "chapter_url_pattern": "https://manga18fx.com/manga/{manga_id}/{chapter_id}",
       "name": "Manga18FX",

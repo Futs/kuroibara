@@ -3,7 +3,8 @@
     <div class="header">
       <h3>Folder Structure Management</h3>
       <p class="subtitle">
-        Manage how your manga files are organized and migrate between different folder structures.
+        Manage how your manga files are organized and migrate between different
+        folder structures.
       </p>
     </div>
 
@@ -20,7 +21,10 @@
       </div>
       <div class="setting-item">
         <label>Structure Pattern:</label>
-        <span class="pattern-badge" :class="currentSettings.preferred_structure_pattern">
+        <span
+          class="pattern-badge"
+          :class="currentSettings.preferred_structure_pattern"
+        >
           {{ getPatternLabel(currentSettings.preferred_structure_pattern) }}
         </span>
       </div>
@@ -30,8 +34,8 @@
     <div class="template-presets card">
       <h4>Available Templates</h4>
       <div class="presets-grid">
-        <div 
-          v-for="(template, name) in availableTemplates" 
+        <div
+          v-for="(template, name) in availableTemplates"
           :key="name"
           class="preset-card"
           :class="{ active: selectedTemplate === name }"
@@ -59,39 +63,56 @@
         <div class="analysis-stats">
           <div class="stat">
             <span class="label">Total Chapters:</span>
-            <span class="value">{{ volumeAnalysis.analysis.chapter_count }}</span>
+            <span class="value">{{
+              volumeAnalysis.analysis.chapter_count
+            }}</span>
           </div>
           <div class="stat">
             <span class="label">Chapters with Volumes:</span>
-            <span class="value">{{ volumeAnalysis.analysis.chapters_with_volumes }}</span>
+            <span class="value">{{
+              volumeAnalysis.analysis.chapters_with_volumes
+            }}</span>
           </div>
           <div class="stat">
             <span class="label">Unique Volumes:</span>
-            <span class="value">{{ volumeAnalysis.analysis.volume_count }}</span>
+            <span class="value">{{
+              volumeAnalysis.analysis.volume_count
+            }}</span>
           </div>
           <div class="stat">
             <span class="label">Confidence:</span>
-            <span class="value confidence" :class="getConfidenceClass(volumeAnalysis.analysis.confidence_score)">
+            <span
+              class="value confidence"
+              :class="
+                getConfidenceClass(volumeAnalysis.analysis.confidence_score)
+              "
+            >
               {{ (volumeAnalysis.analysis.confidence_score * 100).toFixed(1) }}%
             </span>
           </div>
         </div>
-        
+
         <div class="recommendation">
           <h5>Recommendation</h5>
           <div class="recommended-pattern">
-            <span class="pattern-badge" :class="volumeAnalysis.analysis.recommended_pattern">
+            <span
+              class="pattern-badge"
+              :class="volumeAnalysis.analysis.recommended_pattern"
+            >
               {{ getPatternLabel(volumeAnalysis.analysis.recommended_pattern) }}
             </span>
             <p>{{ getRecommendationText(volumeAnalysis.analysis) }}</p>
           </div>
         </div>
 
-        <div v-if="volumeAnalysis.analysis.unique_volumes.length > 0" class="volume-list">
+        <div
+          v-if="volumeAnalysis.analysis.unique_volumes.length > 0"
+          class="volume-list"
+        >
           <h5>Detected Volumes</h5>
           <div class="volumes">
-            <span 
-              v-for="volume in volumeAnalysis.analysis.unique_volumes" 
+            <span
+              v-for="volume in volumeAnalysis.analysis.unique_volumes"
               :key="volume"
               class="volume-tag"
             >
@@ -100,7 +121,7 @@
           </div>
         </div>
       </div>
-      
+
       <div v-else class="analysis-loading">
         <div class="spinner"></div>
         <span>Analyzing volume structure...</span>
@@ -114,22 +135,31 @@
         <div class="summary-stats">
           <div class="stat">
             <span class="label">Operations:</span>
-            <span class="value">{{ migrationPlan.summary.total_operations }}</span>
+            <span class="value">{{
+              migrationPlan.summary.total_operations
+            }}</span>
           </div>
           <div class="stat">
             <span class="label">Estimated Size:</span>
-            <span class="value">{{ migrationPlan.summary.estimated_size_mb }} MB</span>
+            <span class="value"
+              >{{ migrationPlan.summary.estimated_size_mb }} MB</span
+            >
           </div>
           <div class="stat">
             <span class="label">Estimated Time:</span>
-            <span class="value">{{ migrationPlan.summary.estimated_time_minutes }} min</span>
+            <span class="value"
+              >{{ migrationPlan.summary.estimated_time_minutes }} min</span
+            >
           </div>
         </div>
 
         <div v-if="migrationPlan.summary.warnings.length > 0" class="warnings">
           <h5>Warnings</h5>
           <ul>
-            <li v-for="warning in migrationPlan.summary.warnings" :key="warning">
+            <li
+              v-for="warning in migrationPlan.summary.warnings"
+              :key="warning"
+            >
               {{ warning }}
             </li>
           </ul>
@@ -148,17 +178,24 @@
       <div class="sample-operations">
         <h5>Sample Operations</h5>
         <div class="operations-list">
-          <div 
-            v-for="(operation, index) in migrationPlan.preview.sample_operations" 
+          <div
+            v-for="(operation, index) in migrationPlan.preview
+              .sample_operations"
             :key="index"
             class="operation-item"
           >
             <div class="operation-type">
-              <span class="type-badge" :class="operation.type">{{ operation.type }}</span>
+              <span class="type-badge" :class="operation.type">{{
+                operation.type
+              }}</span>
             </div>
             <div class="operation-details">
-              <div class="source">From: <code>{{ operation.source }}</code></div>
-              <div class="target">To: <code>{{ operation.target }}</code></div>
+              <div class="source">
+                From: <code>{{ operation.source }}</code>
+              </div>
+              <div class="target">
+                To: <code>{{ operation.target }}</code>
+              </div>
             </div>
           </div>
         </div>
@@ -167,7 +204,7 @@
 
     <!-- Actions -->
     <div class="actions">
-      <button 
+      <button
         v-if="selectedManga && !volumeAnalysis"
         @click="analyzeVolumes"
         class="btn btn-secondary"
@@ -177,7 +214,7 @@
         <span v-else>Analyze Volume Structure</span>
       </button>
 
-      <button 
+      <button
         v-if="selectedTemplate && selectedManga"
         @click="createMigrationPlan"
         class="btn btn-secondary"
@@ -187,7 +224,7 @@
         <span v-else>Preview Migration</span>
       </button>
 
-      <button 
+      <button
         v-if="migrationPlan"
         @click="executeMigration"
         class="btn btn-primary"
@@ -197,187 +234,188 @@
         <span v-else>Execute Migration</span>
       </button>
 
-      <button 
-        @click="$emit('close')"
-        class="btn btn-outline"
-      >
-        Close
-      </button>
+      <button @click="$emit('close')" class="btn btn-outline">Close</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useToast } from '@/composables/useToast'
-import { api } from '@/services/api'
+import { ref, computed, onMounted, watch } from "vue";
+import { useToast } from "@/composables/useToast";
+import { api } from "@/services/api";
 
 // Props
 const props = defineProps({
   selectedManga: {
     type: Object,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
 // Emits
-const emit = defineEmits(['close', 'migration-completed'])
+const emit = defineEmits(["close", "migration-completed"]);
 
 // Composables
-const { showToast } = useToast()
+const { showToast } = useToast();
 
 // Reactive data
-const currentSettings = ref({})
-const availableTemplates = ref({})
-const templateDescriptions = ref({})
-const templateExamples = ref({})
-const selectedTemplate = ref('')
-const volumeAnalysis = ref(null)
-const migrationPlan = ref(null)
-const analyzingVolumes = ref(false)
-const creatingPlan = ref(false)
-const executingMigration = ref(false)
+const currentSettings = ref({});
+const availableTemplates = ref({});
+const templateDescriptions = ref({});
+const templateExamples = ref({});
+const selectedTemplate = ref("");
+const volumeAnalysis = ref(null);
+const migrationPlan = ref(null);
+const analyzingVolumes = ref(false);
+const creatingPlan = ref(false);
+const executingMigration = ref(false);
 
 // Computed
 const getPatternLabel = (pattern) => {
   const labels = {
-    'volume_based': 'Volume-Based',
-    'chapter_based': 'Chapter-Based',
-    'auto_detect': 'Auto-Detect'
-  }
-  return labels[pattern] || pattern
-}
+    volume_based: "Volume-Based",
+    chapter_based: "Chapter-Based",
+    auto_detect: "Auto-Detect",
+  };
+  return labels[pattern] || pattern;
+};
 
 const formatPresetName = (name) => {
-  return name.split('_').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ')
-}
+  return name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 const getPresetType = (name) => {
-  if (name.includes('volume')) return 'Volume-Based'
-  if (name.includes('chapter')) return 'Chapter-Based'
-  return 'Other'
-}
+  if (name.includes("volume")) return "Volume-Based";
+  if (name.includes("chapter")) return "Chapter-Based";
+  return "Other";
+};
 
 const getConfidenceClass = (score) => {
-  if (score >= 0.8) return 'high'
-  if (score >= 0.6) return 'medium'
-  return 'low'
-}
+  if (score >= 0.8) return "high";
+  if (score >= 0.6) return "medium";
+  return "low";
+};
 
 const getRecommendationText = (analysis) => {
-  if (analysis.recommended_pattern === 'volume_based') {
-    return 'This manga appears to use volumes. A volume-based structure is recommended.'
+  if (analysis.recommended_pattern === "volume_based") {
+    return "This manga appears to use volumes. A volume-based structure is recommended.";
   } else {
-    return 'This manga appears to be volume-less or has inconsistent volume data. A chapter-based structure is recommended.'
+    return "This manga appears to be volume-less or has inconsistent volume data. A chapter-based structure is recommended.";
   }
-}
+};
 
 // Methods
 const loadTemplates = async () => {
   try {
-    const response = await api.get('/organizer/templates')
+    const response = await api.get("/organizer/templates");
     currentSettings.value = {
       naming_format_manga: response.data.current_manga_template,
       naming_format_chapter: response.data.current_chapter_template,
-      preferred_structure_pattern: 'auto_detect' // Default for now
-    }
-    availableTemplates.value = response.data.available_presets
-    templateDescriptions.value = response.data.preset_descriptions
-    templateExamples.value = response.data.examples
+      preferred_structure_pattern: "auto_detect", // Default for now
+    };
+    availableTemplates.value = response.data.available_presets;
+    templateDescriptions.value = response.data.preset_descriptions;
+    templateExamples.value = response.data.examples;
   } catch (error) {
-    console.error('Error loading templates:', error)
-    showToast('Failed to load templates', 'error')
+    console.error("Error loading templates:", error);
+    showToast("Failed to load templates", "error");
   }
-}
+};
 
 const selectTemplate = (templateName) => {
-  selectedTemplate.value = templateName
+  selectedTemplate.value = templateName;
   // Clear previous analysis when template changes
-  migrationPlan.value = null
-}
+  migrationPlan.value = null;
+};
 
 const analyzeVolumes = async () => {
-  if (!props.selectedManga) return
-  
-  analyzingVolumes.value = true
+  if (!props.selectedManga) return;
+
+  analyzingVolumes.value = true;
   try {
-    const response = await api.post(`/organizer/migration/analyze-volume-usage/${props.selectedManga.id}`)
-    volumeAnalysis.value = response.data
+    const response = await api.post(
+      `/organizer/migration/analyze-volume-usage/${props.selectedManga.id}`,
+    );
+    volumeAnalysis.value = response.data;
   } catch (error) {
-    console.error('Error analyzing volumes:', error)
-    showToast('Failed to analyze volume structure', 'error')
+    console.error("Error analyzing volumes:", error);
+    showToast("Failed to analyze volume structure", "error");
   } finally {
-    analyzingVolumes.value = false
+    analyzingVolumes.value = false;
   }
-}
+};
 
 const createMigrationPlan = async () => {
-  if (!props.selectedManga || !selectedTemplate.value) return
-  
-  creatingPlan.value = true
+  if (!props.selectedManga || !selectedTemplate.value) return;
+
+  creatingPlan.value = true;
   try {
-    const template = availableTemplates.value[selectedTemplate.value]
+    const template = availableTemplates.value[selectedTemplate.value];
     const response = await api.post(
       `/organizer/migration/create-plan/${props.selectedManga.id}`,
       null,
       {
         params: {
           new_template: template,
-          preserve_original: true
-        }
-      }
-    )
-    migrationPlan.value = response.data
+          preserve_original: true,
+        },
+      },
+    );
+    migrationPlan.value = response.data;
   } catch (error) {
-    console.error('Error creating migration plan:', error)
-    showToast('Failed to create migration plan', 'error')
+    console.error("Error creating migration plan:", error);
+    showToast("Failed to create migration plan", "error");
   } finally {
-    creatingPlan.value = false
+    creatingPlan.value = false;
   }
-}
+};
 
 const executeMigration = async () => {
-  if (!props.selectedManga || !selectedTemplate.value) return
-  
-  executingMigration.value = true
+  if (!props.selectedManga || !selectedTemplate.value) return;
+
+  executingMigration.value = true;
   try {
-    const template = availableTemplates.value[selectedTemplate.value]
+    const template = availableTemplates.value[selectedTemplate.value];
     const response = await api.post(
       `/organizer/migration/execute/${props.selectedManga.id}`,
       null,
       {
         params: {
           new_template: template,
-          preserve_original: true
-        }
-      }
-    )
-    
-    showToast('Migration started successfully', 'success')
-    emit('migration-completed', response.data)
-    emit('close')
+          preserve_original: true,
+        },
+      },
+    );
+
+    showToast("Migration started successfully", "success");
+    emit("migration-completed", response.data);
+    emit("close");
   } catch (error) {
-    console.error('Error executing migration:', error)
-    showToast('Failed to execute migration', 'error')
+    console.error("Error executing migration:", error);
+    showToast("Failed to execute migration", "error");
   } finally {
-    executingMigration.value = false
+    executingMigration.value = false;
   }
-}
+};
 
 // Watchers
-watch(() => props.selectedManga, (newManga) => {
-  if (newManga) {
-    volumeAnalysis.value = null
-    migrationPlan.value = null
-  }
-})
+watch(
+  () => props.selectedManga,
+  (newManga) => {
+    if (newManga) {
+      volumeAnalysis.value = null;
+      migrationPlan.value = null;
+    }
+  },
+);
 
 // Lifecycle
 onMounted(() => {
-  loadTemplates()
-})
+  loadTemplates();
+});
 </script>
 
 <style scoped>
@@ -440,7 +478,7 @@ onMounted(() => {
   background: var(--bg-tertiary);
   padding: 4px 8px;
   border-radius: 4px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 13px;
 }
 
@@ -531,7 +569,7 @@ onMounted(() => {
   background: var(--bg-tertiary);
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   display: block;
   margin-top: 4px;
   word-break: break-all;
@@ -635,8 +673,12 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Migration Preview */
@@ -647,7 +689,8 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.warnings, .risks {
+.warnings,
+.risks {
   margin-bottom: 16px;
 }
 
@@ -659,12 +702,14 @@ onMounted(() => {
   color: #f44336;
 }
 
-.warnings ul, .risks ul {
+.warnings ul,
+.risks ul {
   margin: 8px 0 0 0;
   padding-left: 20px;
 }
 
-.warnings li, .risks li {
+.warnings li,
+.risks li {
   color: var(--text-secondary);
   font-size: 13px;
   margin-bottom: 4px;
@@ -723,7 +768,7 @@ onMounted(() => {
   background: var(--bg-tertiary);
   padding: 2px 4px;
   border-radius: 3px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   word-break: break-all;
 }
 

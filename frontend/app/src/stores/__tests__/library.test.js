@@ -298,7 +298,9 @@ describe("Library Store", () => {
     it("should save and load searches", async () => {
       const store = useLibraryStore();
 
-      const savedSearch = await store.saveSearch("test query", { genre: "action" });
+      const savedSearch = await store.saveSearch("test query", {
+        genre: "action",
+      });
 
       expect(savedSearch.name).toBe("test query");
       expect(savedSearch.query).toBe("test query");

@@ -46,8 +46,6 @@ process.env.NODE_ENV = "development";
 // Now import the performance module after mocks are set up
 import { perf, memory, imageOptimizer } from "../performance";
 
-
-
 describe("Performance Utilities", () => {
   beforeEach(() => {
     // Clear only performance API mocks, not PerformanceObserver
@@ -156,7 +154,9 @@ describe("Performance Utilities", () => {
       const intervalId = memory.monitor(callback, 100);
 
       expect(intervalId).toBeDefined();
-      expect(typeof intervalId === "number" || typeof intervalId === "object").toBe(true);
+      expect(
+        typeof intervalId === "number" || typeof intervalId === "object",
+      ).toBe(true);
 
       // Wait for callback to be called
       return new Promise((resolve) => {
@@ -235,7 +235,7 @@ describe("Performance Utilities", () => {
 
       // Simulate successful loading for all images
       setTimeout(() => {
-        mockImages.forEach(img => {
+        mockImages.forEach((img) => {
           if (img.onload) img.onload();
         });
       }, 10);
@@ -245,7 +245,9 @@ describe("Performance Utilities", () => {
       expect(results).toHaveLength(2);
       expect(global.Image).toHaveBeenCalledTimes(2);
       // All should be fulfilled
-      expect(results.every(result => result.status === 'fulfilled')).toBe(true);
+      expect(results.every((result) => result.status === "fulfilled")).toBe(
+        true,
+      );
     });
   });
 

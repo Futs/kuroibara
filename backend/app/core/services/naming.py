@@ -8,7 +8,7 @@ following the *arr suite conventions (Sonarr, Radarr, etc.).
 import logging
 import re
 import unicodedata
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,9 +32,11 @@ class VolumeDetectionResult:
         self.unique_volumes = set()
 
     def __str__(self):
-        return (f"VolumeDetectionResult(has_volumes={self.has_volumes}, "
-                f"confidence={self.confidence_score:.2f}, "
-                f"pattern={self.recommended_pattern})")
+        return (
+            f"VolumeDetectionResult(has_volumes={self.has_volumes}, "
+            f"confidence={self.confidence_score:.2f}, "
+            f"pattern={self.recommended_pattern})"
+        )
 
 
 class NamingFormatEngine:
@@ -109,7 +111,7 @@ class NamingFormatEngine:
 
         # Analyze volume information
         for chapter in chapters:
-            volume = getattr(chapter, 'volume', None)
+            volume = getattr(chapter, "volume", None)
             if volume and str(volume).strip() and str(volume) != "1":
                 result.chapters_with_volumes += 1
                 result.unique_volumes.add(str(volume))
@@ -130,7 +132,9 @@ class NamingFormatEngine:
             # - Volume numbers are not just "1"
             if volume_ratio > 0.7 and result.volume_count > 1:
                 result.has_volumes = True
-                result.confidence_score = min(0.9, 0.5 + volume_ratio * 0.4 + (result.volume_count / 10))
+                result.confidence_score = min(
+                    0.9, 0.5 + volume_ratio * 0.4 + (result.volume_count / 10)
+                )
                 result.recommended_pattern = "volume_based"
             # Medium confidence for chapter-based if:
             # - Less than 30% have volumes, or all volumes are "1"
@@ -142,7 +146,9 @@ class NamingFormatEngine:
                 # Mixed scenario - use heuristics
                 result.has_volumes = volume_ratio >= 0.5
                 result.confidence_score = 0.5
-                result.recommended_pattern = "volume_based" if result.has_volumes else "chapter_based"
+                result.recommended_pattern = (
+                    "volume_based" if result.has_volumes else "chapter_based"
+                )
 
         return result
 
@@ -225,9 +231,9 @@ class NamingFormatEngine:
         context = {}
 
         # Manga-level variables - use getattr to safely access SQLAlchemy attributes
-        manga_title = getattr(manga, 'title', None) or "Unknown Manga"
-        manga_year = getattr(manga, 'year', None)
-        manga_provider = getattr(manga, 'provider', None) or "Unknown"
+        manga_title = getattr(manga, "title", None) or "Unknown Manga"
+        manga_year = getattr(manga, "year", None)
+        manga_provider = getattr(manga, "provider", None) or "Unknown"
 
         context["Manga Title"] = self.sanitize_filename(str(manga_title))
         context["Year"] = str(manga_year) if manga_year else "Unknown"
@@ -235,10 +241,10 @@ class NamingFormatEngine:
 
         # Chapter-level variables (if chapter provided)
         if chapter:
-            chapter_number = getattr(chapter, 'number', None) or "0"
-            chapter_title = getattr(chapter, 'title', None) or "Untitled"
-            chapter_volume = getattr(chapter, 'volume', None) or "1"
-            chapter_language = getattr(chapter, 'language', None) or "en"
+            chapter_number = getattr(chapter, "number", None) or "0"
+            chapter_title = getattr(chapter, "title", None) or "Untitled"
+            chapter_volume = getattr(chapter, "volume", None) or "1"
+            chapter_language = getattr(chapter, "language", None) or "en"
 
             context["Chapter Number"] = self.sanitize_filename(str(chapter_number))
             context["Chapter Name"] = self.sanitize_filename(str(chapter_title))
@@ -340,7 +346,7 @@ class NamingFormatEngine:
         if not chapter:
             return self.DEFAULT_MANGA_FORMAT
 
-        volume = getattr(chapter, 'volume', None)
+        volume = getattr(chapter, "volume", None)
 
         # If no volume or volume is "1" (default), prefer chapter-based
         if not volume or str(volume).strip() in ("", "1"):

@@ -783,7 +783,10 @@ async def batch_recover_manga_from_storage(
 
 # New migration endpoints for folder structure changes
 
-@router.post("/migration/analyze-volume-usage/{manga_id}", response_model=Dict[str, Any])
+
+@router.post(
+    "/migration/analyze-volume-usage/{manga_id}", response_model=Dict[str, Any]
+)
 async def analyze_manga_volume_usage(
     manga_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -809,7 +812,7 @@ async def analyze_manga_volume_usage(
 
         return {
             "manga_id": manga_id,
-            "manga_title": getattr(manga, 'title', 'Unknown'),
+            "manga_title": getattr(manga, "title", "Unknown"),
             "analysis": {
                 "has_volumes": analysis.has_volumes,
                 "volume_count": analysis.volume_count,
@@ -818,7 +821,7 @@ async def analyze_manga_volume_usage(
                 "chapters_without_volumes": analysis.chapters_without_volumes,
                 "confidence_score": analysis.confidence_score,
                 "recommended_pattern": analysis.recommended_pattern,
-                "unique_volumes": list(analysis.unique_volumes)
+                "unique_volumes": list(analysis.unique_volumes),
             },
             "recommended_template": recommended_template,
             "current_template": current_user.naming_format_manga,
@@ -826,7 +829,7 @@ async def analyze_manga_volume_usage(
             "template_descriptions": {
                 name: naming_engine.get_preset_description(name)
                 for name in template_presets.keys()
-            }
+            },
         }
 
     except Exception as e:
@@ -861,7 +864,7 @@ async def create_structure_migration_plan(
         if not is_valid:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid template: {error_msg}"
+                detail=f"Invalid template: {error_msg}",
             )
 
         # Create migration plan
@@ -870,7 +873,7 @@ async def create_structure_migration_plan(
             user=current_user,
             new_template=new_template,
             db=db,
-            preserve_original=preserve_original
+            preserve_original=preserve_original,
         )
 
         return {
@@ -881,8 +884,8 @@ async def create_structure_migration_plan(
                 "sample_operations": plan.operations[:5],  # Show first 5 operations
                 "total_operations": len(plan.operations),
                 "estimated_duration": f"{plan.estimated_time // 60} minutes",
-                "space_required": f"{plan.estimated_size / (1024*1024):.1f} MB"
-            }
+                "space_required": f"{plan.estimated_size / (1024 * 1024):.1f} MB",
+            },
         }
 
     except Exception as e:
@@ -897,8 +900,8 @@ async def create_structure_migration_plan(
 async def execute_structure_migration(
     manga_id: UUID,
     new_template: str,
-    preserve_original: bool = True,
     background_tasks: BackgroundTasks,
+    preserve_original: bool = True,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Any:
@@ -918,7 +921,7 @@ async def execute_structure_migration(
         if not is_valid:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid template: {error_msg}"
+                detail=f"Invalid template: {error_msg}",
             )
 
         # Create migration plan
@@ -927,7 +930,7 @@ async def execute_structure_migration(
             user=current_user,
             new_template=new_template,
             db=db,
-            preserve_original=preserve_original
+            preserve_original=preserve_original,
         )
 
         if not plan.operations:
@@ -935,7 +938,7 @@ async def execute_structure_migration(
                 "success": True,
                 "message": "No migration needed - manga already uses the target structure",
                 "operations_completed": 0,
-                "operations_failed": 0
+                "operations_failed": 0,
             }
 
         # Execute migration in background
@@ -944,7 +947,7 @@ async def execute_structure_migration(
             plan=plan,
             manga_id=manga_id,
             new_template=new_template,
-            user_id=current_user.id
+            user_id=current_user.id,
         )
 
         return {
@@ -953,7 +956,7 @@ async def execute_structure_migration(
             "manga_id": manga_id,
             "total_operations": len(plan.operations),
             "estimated_duration": f"{plan.estimated_time // 60} minutes",
-            "preserve_original": preserve_original
+            "preserve_original": preserve_original,
         }
 
     except Exception as e:
@@ -965,10 +968,7 @@ async def execute_structure_migration(
 
 
 async def execute_migration_background(
-    plan: MigrationPlan,
-    manga_id: UUID,
-    new_template: str,
-    user_id: UUID
+    plan: MigrationPlan, manga_id: UUID, new_template: str, user_id: UUID
 ) -> None:
     """
     Background task for executing migration plan.
@@ -1005,8 +1005,7 @@ async def get_naming_templates(
     try:
         presets = naming_engine.get_template_presets()
         descriptions = {
-            name: naming_engine.get_preset_description(name)
-            for name in presets.keys()
+            name: naming_engine.get_preset_description(name) for name in presets.keys()
         }
 
         return {
@@ -1015,21 +1014,29 @@ async def get_naming_templates(
             "available_presets": presets,
             "preset_descriptions": descriptions,
             "template_variables": [
-                "Manga Title", "Volume", "Chapter Number",
-                "Chapter Name", "Language", "Year", "Source"
+                "Manga Title",
+                "Volume",
+                "Chapter Number",
+                "Chapter Name",
+                "Language",
+                "Year",
+                "Source",
             ],
             "examples": {
-                name: naming_engine.apply_template(template, {
-                    "Manga Title": "Example Manga",
-                    "Volume": "1",
-                    "Chapter Number": "5",
-                    "Chapter Name": "The Adventure Begins",
-                    "Language": "en",
-                    "Year": "2023",
-                    "Source": "mangadex"
-                })
+                name: naming_engine.apply_template(
+                    template,
+                    {
+                        "Manga Title": "Example Manga",
+                        "Volume": "1",
+                        "Chapter Number": "5",
+                        "Chapter Name": "The Adventure Begins",
+                        "Language": "en",
+                        "Year": "2023",
+                        "Source": "mangadex",
+                    },
+                )
                 for name, template in presets.items()
-            }
+            },
         }
 
     except Exception as e:

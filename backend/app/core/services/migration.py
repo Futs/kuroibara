@@ -11,13 +11,13 @@ import logging
 import os
 import shutil
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.services.naming import naming_engine, VolumeDetectionResult
+from app.core.services.naming import naming_engine
 from app.core.utils import get_manga_storage_path, is_image_file
 from app.models.manga import Chapter, Manga
 from app.models.organization import MangaMetadata
@@ -42,17 +42,25 @@ class MigrationPlan:
         self.can_rollback: bool = True
         self.backup_required: bool = True
 
-    def add_operation(self, operation_type: str, source: str, target: str,
-                     chapter_id: UUID, file_size: int = 0):
+    def add_operation(
+        self,
+        operation_type: str,
+        source: str,
+        target: str,
+        chapter_id: UUID,
+        file_size: int = 0,
+    ):
         """Add a file operation to the migration plan."""
-        self.operations.append({
-            "type": operation_type,  # "move", "copy", "create_dir"
-            "source": source,
-            "target": target,
-            "chapter_id": str(chapter_id),
-            "file_size": file_size,
-            "status": "pending"
-        })
+        self.operations.append(
+            {
+                "type": operation_type,  # "move", "copy", "create_dir"
+                "source": source,
+                "target": target,
+                "chapter_id": str(chapter_id),
+                "file_size": file_size,
+                "status": "pending",
+            }
+        )
         self.estimated_size += file_size
 
     def get_summary(self) -> Dict:
@@ -67,7 +75,7 @@ class MigrationPlan:
             "risks": self.risks,
             "warnings": self.warnings,
             "can_rollback": self.can_rollback,
-            "backup_required": self.backup_required
+            "backup_required": self.backup_required,
         }
 
 
@@ -475,7 +483,7 @@ class MigrationTool:
         user: User,
         new_template: str,
         db: AsyncSession,
-        preserve_original: bool = True
+        preserve_original: bool = True,
     ) -> MigrationPlan:
         """
         Create a migration plan for changing folder structure.
@@ -492,7 +500,7 @@ class MigrationTool:
         """
         plan = MigrationPlan()
         plan.manga_id = manga.id
-        plan.manga_title = getattr(manga, 'title', 'Unknown')
+        plan.manga_title = getattr(manga, "title", "Unknown")
         plan.source_pattern = user.naming_format_manga
         plan.target_pattern = new_template
         plan.backup_required = not preserve_original
@@ -510,7 +518,9 @@ class MigrationTool:
         volume_analysis = await self.naming_engine.analyze_manga_volume_usage(manga, db)
 
         # Check if new template is appropriate
-        recommended_template = self.naming_engine.get_recommended_template(volume_analysis)
+        recommended_template = self.naming_engine.get_recommended_template(
+            volume_analysis
+        )
         if new_template != recommended_template:
             confidence = volume_analysis.confidence_score
             if confidence > 0.7:
@@ -531,7 +541,9 @@ class MigrationTool:
             current_filename = self.naming_engine.generate_chapter_filename(
                 manga, chapter, user.naming_format_chapter, include_extension=True
             )
-            current_path = os.path.join(organized_base, current_relative, current_filename)
+            current_path = os.path.join(
+                organized_base, current_relative, current_filename
+            )
 
             # New path
             new_relative = self.naming_engine.generate_manga_path(
@@ -560,13 +572,17 @@ class MigrationTool:
 
             # Add directory creation operation if needed
             new_dir = os.path.dirname(new_path)
-            if not any(op["target"] == new_dir and op["type"] == "create_dir"
-                      for op in plan.operations):
+            if not any(
+                op["target"] == new_dir and op["type"] == "create_dir"
+                for op in plan.operations
+            ):
                 plan.add_operation("create_dir", "", new_dir, chapter.id, 0)
 
             # Add file operation
             operation_type = "copy" if preserve_original else "move"
-            plan.add_operation(operation_type, current_path, new_path, chapter.id, file_size)
+            plan.add_operation(
+                operation_type, current_path, new_path, chapter.id, file_size
+            )
 
         # Calculate estimated time (rough estimate: 1MB per second)
         plan.estimated_time = max(30, plan.estimated_size // (1024 * 1024))
@@ -577,7 +593,9 @@ class MigrationTool:
             plan.can_rollback = False
 
         if plan.estimated_size > 10 * 1024 * 1024 * 1024:  # 10GB
-            plan.warnings.append("Large migration (>10GB) - consider running during off-peak hours")
+            plan.warnings.append(
+                "Large migration (>10GB) - consider running during off-peak hours"
+            )
 
         return plan
 
@@ -585,7 +603,7 @@ class MigrationTool:
         self,
         plan: MigrationPlan,
         db: AsyncSession,
-        progress_callback: Optional[Callable] = None
+        progress_callback: Optional[Callable] = None,
     ) -> Dict:
         """
         Execute a migration plan.
@@ -604,7 +622,7 @@ class MigrationTool:
             "failed_operations": 0,
             "errors": [],
             "warnings": [],
-            "rollback_info": []
+            "rollback_info": [],
         }
 
         if not plan.operations:
@@ -618,7 +636,7 @@ class MigrationTool:
             if plan.backup_required and plan.manga_id:
                 backup_dir = os.path.join(
                     get_manga_storage_path(plan.manga_id),
-                    f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
                 )
                 os.makedirs(backup_dir, exist_ok=True)
                 result["rollback_info"].append(f"Backup directory: {backup_dir}")
@@ -638,7 +656,9 @@ class MigrationTool:
                     elif operation["type"] == "move":
                         # Create backup if needed
                         if plan.backup_required:
-                            backup_path = os.path.join(backup_dir, os.path.basename(operation["source"]))
+                            backup_path = os.path.join(
+                                backup_dir, os.path.basename(operation["source"])
+                            )
                             shutil.copy2(operation["source"], backup_path)
                             result["rollback_info"].append(f"Backed up: {backup_path}")
 
@@ -662,7 +682,9 @@ class MigrationTool:
                     # Progress callback
                     if progress_callback:
                         progress = (i + 1) / total_operations
-                        progress_callback(progress, f"Completed operation {i + 1}/{total_operations}")
+                        progress_callback(
+                            progress, f"Completed operation {i + 1}/{total_operations}"
+                        )
 
                 except Exception as e:
                     operation["status"] = "failed"
@@ -672,9 +694,13 @@ class MigrationTool:
                     logger.error(f"Migration operation failed: {e}")
 
                     # Decide whether to continue or abort
-                    if result["failed_operations"] > total_operations * 0.1:  # More than 10% failed
+                    if (
+                        result["failed_operations"] > total_operations * 0.1
+                    ):  # More than 10% failed
                         result["success"] = False
-                        result["errors"].append("Too many operations failed, aborting migration")
+                        result["errors"].append(
+                            "Too many operations failed, aborting migration"
+                        )
                         break
 
         except Exception as e:
@@ -685,10 +711,7 @@ class MigrationTool:
         return result
 
     async def rollback_migration(
-        self,
-        plan: MigrationPlan,
-        rollback_info: List[str],
-        db: AsyncSession
+        self, plan: MigrationPlan, rollback_info: List[str], db: AsyncSession
     ) -> Dict:
         """
         Rollback a migration using backup information.
@@ -701,11 +724,7 @@ class MigrationTool:
         Returns:
             Rollback result dictionary
         """
-        result = {
-            "success": True,
-            "restored_files": 0,
-            "errors": []
-        }
+        result = {"success": True, "restored_files": 0, "errors": []}
 
         if not plan.can_rollback:
             result["success"] = False
@@ -727,12 +746,19 @@ class MigrationTool:
 
             # Restore files from backup
             for operation in plan.operations:
-                if operation["status"] == "completed" and operation["type"] in ["move", "copy"]:
+                if operation["status"] == "completed" and operation["type"] in [
+                    "move",
+                    "copy",
+                ]:
                     try:
-                        backup_file = os.path.join(backup_dir, os.path.basename(operation["source"]))
+                        backup_file = os.path.join(
+                            backup_dir, os.path.basename(operation["source"])
+                        )
                         if os.path.exists(backup_file):
                             # Restore original file
-                            os.makedirs(os.path.dirname(operation["source"]), exist_ok=True)
+                            os.makedirs(
+                                os.path.dirname(operation["source"]), exist_ok=True
+                            )
                             shutil.copy2(backup_file, operation["source"])
 
                             # Remove new file if it exists
@@ -741,7 +767,9 @@ class MigrationTool:
 
                             # Update database
                             chapter_id = UUID(operation["chapter_id"])
-                            chapter_query = select(Chapter).where(Chapter.id == chapter_id)
+                            chapter_query = select(Chapter).where(
+                                Chapter.id == chapter_id
+                            )
                             chapter_result = await db.execute(chapter_query)
                             chapter = chapter_result.scalar_one_or_none()
 
@@ -751,7 +779,9 @@ class MigrationTool:
                             result["restored_files"] += 1
 
                     except Exception as e:
-                        result["errors"].append(f"Failed to restore {operation['source']}: {str(e)}")
+                        result["errors"].append(
+                            f"Failed to restore {operation['source']}: {str(e)}"
+                        )
 
             await db.commit()
 
@@ -759,7 +789,9 @@ class MigrationTool:
             try:
                 shutil.rmtree(backup_dir)
             except Exception as e:
-                result["errors"].append(f"Failed to clean up backup directory: {str(e)}")
+                result["errors"].append(
+                    f"Failed to clean up backup directory: {str(e)}"
+                )
 
         except Exception as e:
             result["success"] = False

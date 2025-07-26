@@ -11,8 +11,10 @@ vi.mock("../../services/api", () => ({
       data: {
         id: "1",
         title: "Test Manga",
-        chapters: [{ id: "1", title: "Chapter 1", pages: ["page1.jpg", "page2.jpg"] }]
-      }
+        chapters: [
+          { id: "1", title: "Chapter 1", pages: ["page1.jpg", "page2.jpg"] },
+        ],
+      },
     }),
     post: vi.fn(),
   },
@@ -48,17 +50,20 @@ describe("MangaReader Component", () => {
     store.manga = { id: "1", title: "Test Manga" };
     store.chapter = { id: "1", title: "Chapter 1" };
     store.chapters = [{ id: "1", title: "Chapter 1" }];
-    store.pages = ["https://example.com/page1.jpg", "https://example.com/page2.jpg"];
+    store.pages = [
+      "https://example.com/page1.jpg",
+      "https://example.com/page2.jpg",
+    ];
     store.currentPage = 1;
     store.loading = false;
     store.error = null;
 
     // Set default settings for proper rendering
     store.settings = {
-      pageLayout: 'single',
-      fitMode: 'width',
-      imageQuality: 'medium',
-      ...store.settings
+      pageLayout: "single",
+      fitMode: "width",
+      imageQuality: "medium",
+      ...store.settings,
     };
 
     wrapper = mount(MangaReader, {

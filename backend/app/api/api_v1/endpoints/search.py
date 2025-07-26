@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-async def check_library_status(search_results: List[Any], user_id: str, db: AsyncSession) -> List[Any]:
+async def check_library_status(
+    search_results: List[Any], user_id: str, db: AsyncSession
+) -> List[Any]:
     """
     Check if search results are already in the user's library and add in_library field.
 
@@ -64,7 +66,7 @@ async def check_library_status(search_results: List[Any], user_id: str, db: Asyn
             manga_ids = [manga.id for manga in existing_manga]
             library_query = select(MangaUserLibrary.manga_id).where(
                 MangaUserLibrary.user_id == user_id,
-                MangaUserLibrary.manga_id.in_(manga_ids)
+                MangaUserLibrary.manga_id.in_(manga_ids),
             )
             library_result = await db.execute(library_query)
             library_manga_ids = set(library_result.scalars().all())

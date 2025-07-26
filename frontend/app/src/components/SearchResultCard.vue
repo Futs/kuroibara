@@ -71,7 +71,7 @@
               inLibrary
                 ? 'bg-green-500 text-white cursor-default'
                 : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400',
-              (adding) && 'opacity-50 cursor-not-allowed'
+              adding && 'opacity-50 cursor-not-allowed',
             ]"
             :title="inLibrary ? 'Already in Library' : 'Add to Library'"
           >

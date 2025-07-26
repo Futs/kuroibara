@@ -398,22 +398,25 @@ describe("Integration Tests", () => {
     proxyManager.addProxy(providerId, { host: "127.0.0.1", port: 8080 });
 
     // Make requests with longer delay to ensure they stay active during status check
-    const mockRequestFn = vi.fn().mockImplementation(() =>
-      new Promise(resolve => setTimeout(() => resolve("success"), 500))
-    );
+    const mockRequestFn = vi
+      .fn()
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => setTimeout(() => resolve("success"), 500)),
+      );
 
     // Make first two requests - these should be allowed immediately
     const promise1 = rateLimiter.makeRequest(providerId, mockRequestFn);
     const promise2 = rateLimiter.makeRequest(providerId, mockRequestFn);
 
     // Wait a tiny bit for the first two to be recorded
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     // Now make the third request - this should be queued
     const promise3 = rateLimiter.makeRequest(providerId, mockRequestFn);
 
     // Check status immediately after third request
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     const status = rateLimiter.getStatus(providerId);
 
     // Should have 2 requests in the time window (first two were allowed)

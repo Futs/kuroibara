@@ -124,12 +124,12 @@ def downgrade():
     # Drop tables in reverse order
     op.drop_index(op.f('ix_organization_jobs_id'), table_name='organization_jobs')
     op.drop_table('organization_jobs')
-    
+
     op.drop_index(op.f('ix_organization_history_id'), table_name='organization_history')
     op.drop_table('organization_history')
-    
+
     op.drop_index(op.f('ix_chapter_metadata_id'), table_name='chapter_metadata')
     op.drop_table('chapter_metadata')
-    
+
     op.drop_index(op.f('ix_manga_metadata_id'), table_name='manga_metadata')
     op.drop_table('manga_metadata')

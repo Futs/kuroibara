@@ -1,7 +1,7 @@
 """Create base tables
 
 Revision ID: 000
-Revises: 
+Revises:
 Create Date: 2025-07-10 19:00:00.000000
 
 """
@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade() -> None:
     """Create all base tables."""
-    
+
     # Create users table
     op.create_table('users',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -40,6 +40,7 @@ def upgrade() -> None:
         sa.Column('download_path', sa.String(length=255), nullable=False),
         sa.Column('naming_format_manga', sa.String(length=500), nullable=False),
         sa.Column('naming_format_chapter', sa.String(length=500), nullable=False),
+        sa.Column('preferred_structure_pattern', sa.String(length=50), nullable=False),
         sa.Column('auto_organize_imports', sa.Boolean(), nullable=False),
         sa.Column('create_cbz_files', sa.Boolean(), nullable=False),
         sa.Column('preserve_original_files', sa.Boolean(), nullable=False),

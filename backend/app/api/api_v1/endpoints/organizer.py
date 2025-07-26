@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
 from app.core.services.batch_organizer import batch_organizer
-from app.core.services.migration import migration_tool, MigrationPlan
+from app.core.services.migration import MigrationPlan, migration_tool
 from app.core.services.naming import naming_engine
 from app.core.services.organizer import manga_organizer
 from app.core.services.storage_recovery import storage_recovery_service

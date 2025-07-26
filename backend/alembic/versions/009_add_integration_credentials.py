@@ -17,21 +17,21 @@ depends_on = None
 
 def upgrade() -> None:
     """Add client_id and client_secret columns to external_integrations table."""
-    
+
     # Add client_id column
-    op.add_column('external_integrations', 
+    op.add_column('external_integrations',
                   sa.Column('client_id', sa.Text(), nullable=True))
-    
+
     # Add client_secret column
-    op.add_column('external_integrations', 
+    op.add_column('external_integrations',
                   sa.Column('client_secret', sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
     """Remove client credentials columns."""
-    
+
     # Remove client_secret column
     op.drop_column('external_integrations', 'client_secret')
-    
+
     # Remove client_id column
     op.drop_column('external_integrations', 'client_id')

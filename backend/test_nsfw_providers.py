@@ -6,15 +6,16 @@ This script tests that MangaFX18 and MangaDNA providers properly
 mark their content as NSFW.
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.core.providers.registry import provider_registry
-from app.core.providers.generic import GenericProvider
-from app.core.providers.enhanced_generic import EnhancedGenericProvider
 import asyncio
+
+from app.core.providers.enhanced_generic import EnhancedGenericProvider
+from app.core.providers.generic import GenericProvider
+from app.core.providers.registry import provider_registry
 
 
 def test_provider_nsfw_configuration():
@@ -49,13 +50,13 @@ def test_provider_nsfw_configuration():
                     f"  ❌ ERROR: {provider_info['name']} should support NSFW but is configured as supports_nsfw=false"
                 )
                 print(
-                    f"      This provider MUST be configured with supports_nsfw=true to properly tag NSFW content!"
+                    "      This provider MUST be configured with supports_nsfw=true to properly tag NSFW content!"
                 )
                 print(
-                    f"      CRITICAL: This means NSFW content will NOT be properly tagged or filtered!"
+                    "      CRITICAL: This means NSFW content will NOT be properly tagged or filtered!"
                 )
             else:
-                print(f"  ✓ Correctly configured as NSFW provider")
+                print("  ✓ Correctly configured as NSFW provider")
         else:
             print(f"❌ Provider {provider_id} not found in registry")
             print(f"   Available providers: {[p['id'] for p in providers_info]}")
@@ -107,9 +108,9 @@ def test_provider_instances():
         print(f"  - Supports NSFW: {provider.supports_nsfw}")
 
         if provider.supports_nsfw:
-            print(f"  ✓ Provider correctly configured to support NSFW")
+            print("  ✓ Provider correctly configured to support NSFW")
         else:
-            print(f"  ❌ ERROR: Provider should support NSFW")
+            print("  ❌ ERROR: Provider should support NSFW")
 
         print()
 
@@ -152,14 +153,14 @@ def test_search_result_nsfw_tagging():
 
     # Verify the logic
     if nsfw_provider.supports_nsfw:
-        print(f"  ✓ NSFW provider will correctly tag results as NSFW")
+        print("  ✓ NSFW provider will correctly tag results as NSFW")
     else:
-        print(f"  ❌ ERROR: NSFW provider not tagging results as NSFW")
+        print("  ❌ ERROR: NSFW provider not tagging results as NSFW")
 
     if not safe_provider.supports_nsfw:
-        print(f"  ✓ Safe provider will correctly tag results as safe")
+        print("  ✓ Safe provider will correctly tag results as safe")
     else:
-        print(f"  ❌ ERROR: Safe provider incorrectly tagging results as NSFW")
+        print("  ❌ ERROR: Safe provider incorrectly tagging results as NSFW")
 
 
 def test_enhanced_provider_nsfw():
@@ -181,9 +182,9 @@ def test_enhanced_provider_nsfw():
     print(f"  - Search results would have is_nsfw: {enhanced_nsfw.supports_nsfw}")
 
     if enhanced_nsfw.supports_nsfw:
-        print(f"  ✓ Enhanced NSFW provider correctly configured")
+        print("  ✓ Enhanced NSFW provider correctly configured")
     else:
-        print(f"  ❌ ERROR: Enhanced NSFW provider not configured correctly")
+        print("  ❌ ERROR: Enhanced NSFW provider not configured correctly")
 
 
 def main():

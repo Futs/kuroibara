@@ -13,10 +13,10 @@ from app.core.providers.user_preferences import (
     get_user_provider_preferences,
     prioritize_providers_by_user_preferences,
 )
+from app.models.library import MangaUserLibrary
+from app.models.manga import Manga
 from app.models.provider import ProviderStatus
 from app.models.user import User
-from app.models.manga import Manga
-from app.models.library import MangaUserLibrary
 from app.schemas.search import (
     ProviderInfo,
     SearchFilter,

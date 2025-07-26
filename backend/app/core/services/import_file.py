@@ -571,7 +571,9 @@ async def _fetch_and_create_chapters(
         # Get the provider
         provider = provider_registry.get_provider(provider_name)
         if not provider:
-            logger.warning(f"Provider '{provider_name}' not found, skipping chapter fetch")
+            logger.warning(
+                f"Provider '{provider_name}' not found, skipping chapter fetch"
+            )
             return
 
         # Fetch all chapters (handle pagination)
@@ -580,7 +582,9 @@ async def _fetch_and_create_chapters(
         limit = 100
 
         while True:
-            chapters, total, has_next = await provider.get_chapters(external_id, page=page, limit=limit)
+            chapters, total, has_next = await provider.get_chapters(
+                external_id, page=page, limit=limit
+            )
             if not chapters:
                 break
 
@@ -593,7 +597,9 @@ async def _fetch_and_create_chapters(
 
             # Safety check to prevent infinite loops
             if page > 50:  # Max 5000 chapters
-                logger.warning(f"Reached maximum page limit (50) for manga {external_id}")
+                logger.warning(
+                    f"Reached maximum page limit (50) for manga {external_id}"
+                )
                 break
 
         logger.info(f"Fetched {len(all_chapters)} chapters for manga {external_id}")
@@ -615,7 +621,9 @@ async def _fetch_and_create_chapters(
                 # Create new chapter
                 chapter = Chapter(
                     manga_id=manga_id,
-                    title=chapter_data.get("title", f"Chapter {chapter_data.get('number', '0')}"),
+                    title=chapter_data.get(
+                        "title", f"Chapter {chapter_data.get('number', '0')}"
+                    ),
                     number=chapter_data.get("number", "0"),
                     volume=chapter_data.get("volume"),
                     language=chapter_data.get("language", "en"),
@@ -629,7 +637,8 @@ async def _fetch_and_create_chapters(
                 db.add(chapter)
 
             except Exception as e:
-                logger.error(f"Error creating chapter {chapter_data.get('number', 'unknown')}: {e}")
+                chapter_num = chapter_data.get('number', 'unknown')
+                logger.error(f"Error creating chapter {chapter_num}: {e}")
                 continue
 
         # Commit all chapters
@@ -639,4 +648,5 @@ async def _fetch_and_create_chapters(
     except Exception as e:
         logger.error(f"Error fetching chapters for manga {external_id}: {e}")
         await db.rollback()
-        # Don't raise the exception - manga creation should still succeed even if chapter fetch fails
+        # Don't raise the exception - manga creation should still succeed
+        # even if chapter fetch fails

@@ -900,8 +900,8 @@ async def create_structure_migration_plan(
 async def execute_structure_migration(
     manga_id: UUID,
     new_template: str,
+    preserve_original: bool,
     background_tasks: BackgroundTasks,
-    preserve_original: bool = True,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Any:

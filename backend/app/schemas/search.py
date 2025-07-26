@@ -59,6 +59,7 @@ class SearchResult(BaseModel):
     authors: List[str] = []
     provider: str
     url: str
+    in_library: bool = False
     extra: Optional[Dict[str, Any]] = None
 
 

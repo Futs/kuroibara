@@ -50,6 +50,9 @@ class User(BaseModel):
     naming_format_chapter = Column(
         String(500), default="{Chapter Number} - {Chapter Name}", nullable=False
     )  # Template for chapter file naming
+    preferred_structure_pattern = Column(
+        String(50), default="auto_detect", nullable=False
+    )  # Preferred structure: "volume_based", "chapter_based", "auto_detect"
     auto_organize_imports = Column(
         Boolean, default=True, nullable=False
     )  # Auto-organize on import

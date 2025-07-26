@@ -11,7 +11,7 @@
     "id": "mangaplus",
     "name": "MangaPlus",
     "class_name": "MangaPlusProvider",
-    "url": "https://jumpg-webapi.tokyo-cdn.com/api",
+    "url": "https://jumpg-api.tokyo-cdn.com/api",
     "supports_nsfw": false,
     "params": {}
   },

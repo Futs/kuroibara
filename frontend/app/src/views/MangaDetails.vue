@@ -301,6 +301,29 @@
                 </svg>
                 Import Files
               </button>
+
+              <!-- Folder Structure Management (only for library items) -->
+              <button
+                v-if="!isExternal && inLibrary"
+                @click="goToMediaManagement"
+                class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-purple-600 dark:text-purple-400 bg-white dark:bg-dark-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              >
+                <svg
+                  class="-ml-1 mr-2 h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                  />
+                </svg>
+                Manage Structure
+              </button>
             </div>
           </div>
 
@@ -915,6 +938,8 @@
       </div>
     </div>
   </div>
+
+
 </template>
 
 <script setup>
@@ -927,6 +952,7 @@ import ChapterFilters from "../components/ChapterFilters.vue";
 import ChapterManagement from "../components/ChapterManagement.vue";
 import VolumeDownloadCard from "../components/VolumeDownloadCard.vue";
 import ImportDialog from "../components/ImportDialog.vue";
+
 import api from "../services/api";
 import imageProxy from "../utils/imageProxy";
 
@@ -954,6 +980,7 @@ const chapterFilters = ref({
 });
 const viewMode = ref("chapters"); // "chapters" or "volumes"
 const showImportDialog = ref(false);
+
 const currentPage = ref(1);
 const chaptersPerPage = 10;
 
@@ -1675,6 +1702,8 @@ const onMangaImported = () => {
   }
 };
 
+
+
 const redownloadChapter = async (chapter) => {
   try {
     await api.post(`/v1/chapters/${chapter.id}/redownload`);
@@ -1788,6 +1817,11 @@ const handleVisibilityChange = () => {
     // Restart auto-refresh
     startAutoRefresh();
   }
+};
+
+// Navigate to Settings > Media Management
+const goToMediaManagement = () => {
+  router.push('/settings?tab=media');
 };
 
 onMounted(() => {

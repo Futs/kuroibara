@@ -771,13 +771,13 @@
     "id": "manhuaga",
     "name": "Manhuaga",
     "class_name": "GenericProvider",
-    "url": "https://manhuaga.com",
+    "url": "https://manhua-ga.org",
     "supports_nsfw": false,
     "params": {
-      "base_url": "https://manhuaga.com",
-      "search_url": "https://manhuaga.com/search",
-      "manga_url_pattern": "https://manhuaga.com/manga/{manga_id}",
-      "chapter_url_pattern": "https://manhuaga.com/manga/{manga_id}/{chapter_id}",
+      "base_url": "https://manhua-ga.org",
+      "search_url": "https://manhua-ga.org/search",
+      "manga_url_pattern": "https://manhua-ga.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhua-ga.org/manga/{manga_id}/{chapter_id}",
       "name": "Manhuaga"
     }
   },
@@ -786,7 +786,7 @@
     "name": "MangaDNA",
     "class_name": "GenericProvider",
     "url": "https://mangadna.com",
-    "supports_nsfw": false,
+    "supports_nsfw": true,
     "params": {
       "base_url": "https://mangadna.com",
       "search_url": "https://mangadna.com/search",
@@ -877,7 +877,7 @@
     "id": "mangaplus",
     "name": "MangaPlus",
     "class_name": "MangaPlusProvider",
-    "url": "https://jumpg-webapi.tokyo-cdn.com/api",
+    "url": "https://jumpg-api.tokyo-cdn.com/api",
     "supports_nsfw": false,
     "params": {}
   },

@@ -1,5 +1,10 @@
 <template>
-  <div class="manga-reader" :class="{ dark: true }" @keydown="handleKeydown" tabindex="0">
+  <div
+    class="manga-reader"
+    :class="{ dark: true }"
+    @keydown="handleKeydown"
+    tabindex="0"
+  >
     <!-- Reader Controls -->
     <div
       class="reader-toolbar fixed z-10 shadow-md transition-all duration-300"
@@ -1312,24 +1317,31 @@ const loading = computed(() => readerStore.loading);
 const error = computed(() => readerStore.error);
 
 // Theme and UI
-const currentTheme = computed(() => readerStore.getCurrentTheme || {
-  ui: {
-    toolbarBg: '#1f2937',
-    shadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    background: '#111827',
-    text: '#f9fafb'
-  }
-});
-const displayOptions = computed(() => readerStore.getDisplayOptions || {
-  uiOpacity: 0.9
-});
+const currentTheme = computed(
+  () =>
+    readerStore.getCurrentTheme || {
+      ui: {
+        toolbarBg: "#1f2937",
+        shadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        background: "#111827",
+        text: "#f9fafb",
+      },
+    },
+);
+const displayOptions = computed(
+  () =>
+    readerStore.getDisplayOptions || {
+      uiOpacity: 0.9,
+    },
+);
 
 // Missing computed properties that the template expects
 const hasBookmarkOnCurrentPage = computed(() => {
-  return readerStore.bookmarks.some(bookmark =>
-    bookmark.mangaId === manga.value?.id &&
-    bookmark.chapterId === chapter.value?.id &&
-    bookmark.page === currentPage.value
+  return readerStore.bookmarks.some(
+    (bookmark) =>
+      bookmark.mangaId === manga.value?.id &&
+      bookmark.chapterId === chapter.value?.id &&
+      bookmark.page === currentPage.value,
   );
 });
 
@@ -1348,28 +1360,28 @@ const uiLayoutDefinitions = computed(() => readerStore.uiLayouts || {});
 
 // Missing method for image quality URL generation
 const getQualityImageUrl = (page) => {
-  const baseUrl = page?.url || page || '';
-  if (!baseUrl) return '';
+  const baseUrl = page?.url || page || "";
+  if (!baseUrl) return "";
 
-  const quality = settings.value.imageQuality || 'medium';
+  const quality = settings.value.imageQuality || "medium";
 
   // High quality returns original URL unchanged
-  if (quality === 'high') {
+  if (quality === "high") {
     return baseUrl;
   }
 
   const qualityMap = {
     low: { quality: 60, width: 800 },
     medium: { quality: 75, width: 1200 },
-    original: { quality: 100, width: null }
+    original: { quality: 100, width: null },
   };
 
   const params = qualityMap[quality] || qualityMap.medium;
   const url = new URL(baseUrl, window.location.origin);
 
-  url.searchParams.set('quality', params.quality.toString());
+  url.searchParams.set("quality", params.quality.toString());
   if (params.width) {
-    url.searchParams.set('width', params.width.toString());
+    url.searchParams.set("width", params.width.toString());
   }
 
   return url.toString();
@@ -1378,42 +1390,42 @@ const getQualityImageUrl = (page) => {
 // Keyboard event handlers
 const handleKeydown = (event) => {
   switch (event.key.toLowerCase()) {
-    case 's':
+    case "s":
       showSettings.value = true;
       break;
-    case 'h':
+    case "h":
       showKeyboardHelp.value = true;
       break;
-    case 'escape':
+    case "escape":
       showSettings.value = false;
       showKeyboardHelp.value = false;
       break;
-    case '1':
-      readerStore.updateSettings({ pageLayout: 'single' });
+    case "1":
+      readerStore.updateSettings({ pageLayout: "single" });
       break;
-    case '2':
-      readerStore.updateSettings({ pageLayout: 'double' });
+    case "2":
+      readerStore.updateSettings({ pageLayout: "double" });
       break;
-    case '3':
-      readerStore.updateSettings({ pageLayout: 'list' });
+    case "3":
+      readerStore.updateSettings({ pageLayout: "list" });
       break;
-    case '4':
-      readerStore.updateSettings({ pageLayout: 'adaptive' });
+    case "4":
+      readerStore.updateSettings({ pageLayout: "adaptive" });
       break;
-    case '5':
-      readerStore.updateSettings({ pageLayout: 'webtoon' });
+    case "5":
+      readerStore.updateSettings({ pageLayout: "webtoon" });
       break;
-    case 'q':
-      readerStore.updateSettings({ fitMode: 'width' });
+    case "q":
+      readerStore.updateSettings({ fitMode: "width" });
       break;
-    case 'w':
-      readerStore.updateSettings({ fitMode: 'height' });
+    case "w":
+      readerStore.updateSettings({ fitMode: "height" });
       break;
-    case 'e':
-      readerStore.updateSettings({ fitMode: 'both' });
+    case "e":
+      readerStore.updateSettings({ fitMode: "both" });
       break;
-    case 'r':
-      readerStore.updateSettings({ fitMode: 'original' });
+    case "r":
+      readerStore.updateSettings({ fitMode: "original" });
       break;
   }
 };
@@ -1429,7 +1441,7 @@ const hasPrevChapter = computed(() => readerStore.hasPrevChapter);
 const getToolbarClasses = () => {
   const layout = currentUILayout.value;
   if (!layout || !layout.toolbar) {
-    return ['top-0', 'left-0', 'right-0', 'justify-center']; // Default classes
+    return ["top-0", "left-0", "right-0", "justify-center"]; // Default classes
   }
 
   const baseClasses = [];
@@ -1474,9 +1486,9 @@ const currentUILayout = computed(() => {
   if (!layout) {
     return {
       toolbar: {
-        position: 'top',
-        alignment: 'center'
-      }
+        position: "top",
+        alignment: "center",
+      },
     };
   }
   return layout;

@@ -12,7 +12,7 @@
     "id": "mangaplus",
     "name": "MangaPlus",
     "class_name": "MangaPlusProvider",
-    "url": "https://jumpg-webapi.tokyo-cdn.com/api",
+    "url": "https://jumpg-api.tokyo-cdn.com/api",
     "supports_nsfw": false,
     "priority": 2,
     "params": {}
@@ -66,11 +66,13 @@
       "name": "Toonily",
       "selectors": {
         "search_items": [".page-item-detail", ".manga", ".item", "[class*='manga']"],
-        "title": [".wp-manga-title", ".post-title", ".manga-title", ".series-title", "h1", "h2", ".post-title h3 a", ".post-title a"],
-        "cover": ["img[data-src*='uploads']", "img[data-src*='.jpg']", ".lazyload[data-src]", "img[data-src]", ".item-thumb img", "img"],
+        "title": [".wp-manga-title", ".post-title h1", ".manga-title", ".series-title", "h1", "h2", ".post-title h3 a", ".post-title a"],
+        "cover": [".summary_image img", ".wp-post-image", "img[data-src*='uploads']", "img[data-src*='.jpg']", ".lazyload[data-src]", "img[data-src]", ".item-thumb img", "img"],
         "link": [".post-title a", "a[href*='serie']", "a"],
-        "description": [".summary__content", ".description-summary", ".synopsis", ".overview"],
-        "status": [".post-status", ".summary-content", ".post-content_item", ".manga-status", ".status"]
+        "description": [".summary__content p", ".description-summary p", ".summary__content", ".description-summary", ".synopsis", ".overview"],
+        "status": [".post-status", ".summary-content", ".post-content_item", ".manga-status", ".status"],
+        "genres": [".wp-manga-tags-list a", ".genres a", ".genre a", ".tags a", ".tag a", ".post-content_item .summary-content a"],
+        "authors": [".author a", ".authors a", ".manga-author a", ".artist a", ".writer a"]
       }
     }
   },
@@ -114,12 +116,14 @@
       "chapter_url_pattern": "https://mangadna.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaDNA",
       "selectors": {
-        "search_items": ["div.home-item", ".home-item", "div.hinner", ".hinner"],
-        "title": ["h3.htitle a", ".hcontent h3 a", "h3 a", "a[href*='/manga/']", "a"],
-        "cover": [".thumb img", "img[src*='thumbnails']", "img[src*='.jpg']", "img[src*='.png']", "img"],
+        "search_items": ["div.hinner", ".hinner", "div.home-item", ".home-item"],
+        "title": ["h3.htitle a", ".hcontent h3 a", "h3 a", ".post-title h1", "a[href*='/manga/']", "a"],
+        "cover": [".hthumb img", ".thumb img", "img[src*='thumbnails']", ".summary_image img", "img[alt*='cover']", "img[data-src*='uploads']", "img[src*='.jpg']", "img[src*='.png']", "img"],
         "link": ["h3.htitle a", ".hcontent h3 a", "h3 a", "a[href*='/manga/']", "a"],
-        "description": [".description", ".summary", ".excerpt", "p"],
-        "status": [".status", ".manga-status", ".hitem-rate", ".mmrate"]
+        "description": [".tab-summary p", ".summary__content p", ".description-summary p", ".post-content p", ".summary__content", ".description-summary", ".description", ".summary", ".excerpt", "p"],
+        "status": [".post-status", ".summary-content", ".status", ".manga-status", ".hitem-rate", ".mmrate"],
+        "genres": [".wp-manga-tags-list a", ".genres a", ".genre a", ".tags a", ".tag a", ".post-content_item .summary-content a"],
+        "authors": [".author a", ".authors a", ".manga-author a", ".artist a", ".writer a"]
       }
     }
   },
@@ -134,17 +138,19 @@
     "notes": "FIXED: NSFW/Adult content site (18+ in name). Using correct selectors - div.bigor-manga containers with h3.tt titles",
     "params": {
       "base_url": "https://manga18fx.com",
-      "search_url": "https://manga18fx.com/manga-genre/manhwa",
+      "search_url": "https://manga18fx.com/?s={query}",
       "manga_url_pattern": "https://manga18fx.com/manga/{manga_id}",
       "chapter_url_pattern": "https://manga18fx.com/manga/{manga_id}/{chapter_id}",
       "name": "Manga18FX",
       "selectors": {
         "search_items": ["div.page-item", ".page-item", "div.bsx-item", ".bsx-item"],
-        "title": ["h3.tt a", ".bigor-manga h3 a", "h3 a", "a[href*='/manga/']", "a"],
-        "cover": [".thumb img", "img[src*='webtoon']", "img[src*='.jpg']", "img[src*='.png']", "img"],
+        "title": [".post-title h1", "h3.tt a", ".bigor-manga h3 a", "h3 a", "a[href*='/manga/']", "a"],
+        "cover": [".summary_image img", ".wp-post-image", ".thumb img", "img[data-src*='uploads']", "img[src*='webtoon']", "img[src*='.jpg']", "img[src*='.png']", "img"],
         "link": ["h3.tt a", ".bigor-manga h3 a", "h3 a", "a[href*='/manga/']", "a"],
-        "description": [".description", ".summary", ".excerpt", "p"],
-        "status": [".status", ".manga-status", ".item-rate", ".mmrate"]
+        "description": [".summary__content p", ".description-summary p", ".summary__content", ".description-summary", ".description", ".summary", ".excerpt", "p"],
+        "status": [".post-status", ".summary-content", ".status", ".manga-status", ".item-rate", ".mmrate"],
+        "genres": [".wp-manga-tags-list a", ".genres a", ".genre a", ".tags a", ".tag a", ".post-content_item .summary-content a"],
+        "authors": [".author a", ".authors a", ".manga-author a", ".artist a", ".writer a"]
       }
     }
   },

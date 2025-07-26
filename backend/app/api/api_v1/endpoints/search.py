@@ -15,6 +15,8 @@ from app.core.providers.user_preferences import (
 )
 from app.models.provider import ProviderStatus
 from app.models.user import User
+from app.models.manga import Manga
+from app.models.library import MangaUserLibrary
 from app.schemas.search import (
     ProviderInfo,
     SearchFilter,
@@ -25,6 +27,140 @@ from app.schemas.search import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+async def check_library_status(
+    search_results: List[Any], user_id: str, db: AsyncSession
+) -> List[Any]:
+    """
+    Check if search results are already in the user's library and add in_library field.
+
+    Args:
+        search_results: List of search result objects
+        user_id: Current user ID
+        db: Database session
+
+    Returns:
+        List of search results with in_library field added
+    """
+    if not search_results:
+        return search_results
+
+    try:
+        # Get all manga titles and providers from search results
+        manga_lookup = {}
+        for result in search_results:
+            # Create a lookup key based on title and provider
+            key = (result.title.lower().strip(), result.provider)
+            manga_lookup[key] = result
+
+        # Query database for existing manga with matching external_id and provider
+        # This is more reliable than title matching for external manga
+        external_lookups = []
+        title_lookups = []
+
+        for result in search_results:
+            # For external manga, check by provider + external_id (most reliable)
+            if (
+                hasattr(result, "id")
+                and hasattr(result, "provider")
+                and result.provider
+                and result.id
+            ):
+                external_lookups.append((result.provider, result.id))
+            # Also check by title as fallback
+            title_lookups.append(result.title)
+
+        existing_manga = []
+
+        # First, try to find by external_id and provider (most reliable)
+        if external_lookups:
+            from sqlalchemy import or_
+
+            external_conditions = []
+            for provider, external_id in external_lookups:
+                external_conditions.append(
+                    (Manga.provider == provider) & (Manga.external_id == external_id)
+                )
+
+            if external_conditions:
+                external_query = select(Manga).where(or_(*external_conditions))
+                external_result = await db.execute(external_query)
+                existing_manga.extend(external_result.scalars().all())
+
+        # Also check by title for any manga not found by external_id
+        if title_lookups:
+            title_query = select(Manga).where(Manga.title.in_(title_lookups))
+            title_result = await db.execute(title_query)
+            title_manga = title_result.scalars().all()
+
+            # Add title-matched manga that weren't already found by external_id
+            existing_external_ids = {
+                (m.provider, m.external_id)
+                for m in existing_manga
+                if m.provider and m.external_id
+            }
+            for manga in title_manga:
+                if (manga.provider, manga.external_id) not in existing_external_ids:
+                    existing_manga.append(manga)
+
+        # Get manga IDs that are in the user's library
+        if existing_manga:
+            manga_ids = [manga.id for manga in existing_manga]
+            library_query = select(MangaUserLibrary.manga_id).where(
+                MangaUserLibrary.user_id == user_id,
+                MangaUserLibrary.manga_id.in_(manga_ids),
+            )
+            library_result = await db.execute(library_query)
+            library_manga_ids = set(library_result.scalars().all())
+
+            # Create mappings for library checking
+            external_to_manga_id = {}
+            title_to_manga_id = {}
+
+            for manga in existing_manga:
+                # Map by external_id + provider (most reliable)
+                if manga.provider and manga.external_id:
+                    external_key = (manga.provider, manga.external_id)
+                    external_to_manga_id[external_key] = manga.id
+
+                # Map by title + provider (fallback)
+                title_key = (manga.title.lower().strip(), manga.provider)
+                title_to_manga_id[title_key] = manga.id
+        else:
+            library_manga_ids = set()
+            external_to_manga_id = {}
+            title_to_manga_id = {}
+
+        # Add in_library field to each search result
+        for result in search_results:
+            manga_id = None
+
+            # First try external_id + provider lookup (most reliable)
+            if (
+                hasattr(result, "id")
+                and hasattr(result, "provider")
+                and result.provider
+                and result.id
+            ):
+                external_key = (result.provider, result.id)
+                manga_id = external_to_manga_id.get(external_key)
+
+            # Fallback to title + provider lookup
+            if manga_id is None:
+                title_key = (result.title.lower().strip(), result.provider)
+                manga_id = title_to_manga_id.get(title_key)
+
+            result.in_library = manga_id is not None and manga_id in library_manga_ids
+
+        return search_results
+
+    except Exception as e:
+        logger.error(f"Error checking library status: {e}")
+        # If there's an error, just return results without library status
+        for result in search_results:
+            result.in_library = False
+        return search_results
 
 
 async def get_enabled_providers(db: AsyncSession):
@@ -163,8 +299,13 @@ async def search_manga(
                 limit=query.limit,
             )
 
+            # Check library status for single provider results
+            results_with_library_status = await check_library_status(
+                results, current_user.id, db
+            )
+
             return {
-                "results": results,
+                "results": results_with_library_status,
                 "total": total,
                 "page": query.page,
                 "limit": query.limit,
@@ -398,8 +539,13 @@ async def search_manga(
         f"Pagination: total={total_results}, offset={offset}, page_size={len(paginated_results)}, has_next={has_next}"
     )
 
+    # Check library status for paginated results
+    paginated_results_with_library_status = await check_library_status(
+        paginated_results, current_user.id, db
+    )
+
     return {
-        "results": paginated_results,
+        "results": paginated_results_with_library_status,
         "total": total_results,
         "page": query.page,
         "limit": query.limit,

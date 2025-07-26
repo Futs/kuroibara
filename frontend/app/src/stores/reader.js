@@ -61,13 +61,15 @@ export const useReaderStore = defineStore("reader", {
       typography: (() => {
         try {
           const stored = localStorage.getItem("typography");
-          return stored ? JSON.parse(stored) : {
-            fontFamily: "system-ui",
-            fontSize: "16px",
-            lineHeight: "1.6",
-            letterSpacing: "0px",
-            textColor: "#ffffff",
-          };
+          return stored
+            ? JSON.parse(stored)
+            : {
+                fontFamily: "system-ui",
+                fontSize: "16px",
+                lineHeight: "1.6",
+                letterSpacing: "0px",
+                textColor: "#ffffff",
+              };
         } catch {
           return {
             fontFamily: "system-ui",
@@ -81,15 +83,17 @@ export const useReaderStore = defineStore("reader", {
       displayOptions: (() => {
         try {
           const stored = localStorage.getItem("displayOptions");
-          return stored ? JSON.parse(stored) : {
-            pageMargin: 20,
-            pagePadding: 10,
-            borderRadius: 8,
-            showShadows: true,
-            transitionDuration: 300,
-            backgroundColor: "#1a1a1a",
-            uiOpacity: 0.9,
-          };
+          return stored
+            ? JSON.parse(stored)
+            : {
+                pageMargin: 20,
+                pagePadding: 10,
+                borderRadius: 8,
+                showShadows: true,
+                transitionDuration: 300,
+                backgroundColor: "#1a1a1a",
+                uiOpacity: 0.9,
+              };
         } catch {
           return {
             pageMargin: 20,

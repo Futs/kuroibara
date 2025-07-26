@@ -204,7 +204,7 @@
     "name": "MangaDNA",
     "class_name": "GenericProvider",
     "url": "https://mangadna.com",
-    "supports_nsfw": false,
+    "supports_nsfw": true,
     "params": {
       "base_url": "https://mangadna.com",
       "search_url": "https://mangadna.com/search",

@@ -10,7 +10,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.core.providers.base import BaseProvider
-from app.models.manga import MangaStatus
+from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,10 @@ class EnhancedGenericProvider(BaseProvider):
 
         # Default headers
         self._headers = headers or {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
         }
 
         # Enhanced selectors with fallbacks
@@ -277,7 +280,8 @@ class EnhancedGenericProvider(BaseProvider):
                 items = soup.select(selector)
                 if items:
                     logger.info(
-                        f"Found {len(items)} items with selector '{selector}' for {self.name}"
+                        f"Found {len(items)} items with selector '{selector}' "
+                        f"for {self.name}"
                     )
                     break
 
@@ -320,7 +324,8 @@ class EnhancedGenericProvider(BaseProvider):
                     )
                     cover_url = None
                     if cover_element:
-                        # For lazy loading sites like Toonily, prioritize data-src over src
+                        # For lazy loading sites like Toonily, prioritize data-src
+                        # over src
                         data_src = cover_element.get("data-src")
                         src = cover_element.get("src")
 
@@ -350,7 +355,7 @@ class EnhancedGenericProvider(BaseProvider):
                         item, self._selectors.get("status", [])
                     )
                     status = MangaStatus.UNKNOWN
-                    if status_element:
+                    if status_element and hasattr(status_element, "get_text"):
                         status_text = status_element.get_text(strip=True).lower()
                         # Map status text to enum values
                         if (
@@ -374,14 +379,27 @@ class EnhancedGenericProvider(BaseProvider):
                         ):
                             status = MangaStatus.CANCELLED
 
+                    # If status not found in search results, fetch from detail page
+                    if status == MangaStatus.UNKNOWN and href and isinstance(href, str):
+                        detail_url = urljoin(self._base_url, href)
+                        status = await self._fetch_status_from_detail_page(detail_url)
+
                     result = SearchResult(
                         id=manga_id,
                         title=title,
-                        cover_image=cover_url,
-                        description=description,
+                        alternative_titles={},
+                        description=description or "",
+                        cover_image=str(cover_url) if cover_url else "",
+                        type=MangaType.UNKNOWN,
                         status=status,
+                        year=None,
+                        is_nsfw=self._supports_nsfw,
+                        genres=[],
+                        authors=[],
                         provider=self.name,
-                        url=href,
+                        url=str(href) if href else "",
+                        in_library=False,
+                        extra=None,
                     )
                     results.append(result)
 
@@ -411,7 +429,7 @@ class EnhancedGenericProvider(BaseProvider):
                 soup, self._selectors["title"]
             )
             title = "Unknown Title"
-            if title_element:
+            if title_element and hasattr(title_element, "get_text"):
                 raw_title = title_element.get_text(strip=True)
                 # Clean up title by removing common badges and indicators
                 title = self._clean_title(raw_title)
@@ -474,6 +492,12 @@ class EnhancedGenericProvider(BaseProvider):
                 if cover_url and cover_url.startswith("/"):
                     cover_url = urljoin(self._base_url, cover_url)
 
+            # Extract genres/tags
+            genres = self._extract_genres(soup)
+
+            # Extract authors
+            authors = self._extract_authors(soup)
+
             return {
                 "id": manga_id,
                 "title": title,
@@ -484,13 +508,132 @@ class EnhancedGenericProvider(BaseProvider):
                 "type": "manga",
                 "status": status,
                 "is_nsfw": self._supports_nsfw,
-                "genres": [],
-                "authors": [],
+                "genres": genres,
+                "authors": authors,
             }
 
         except Exception as e:
             logger.error(f"Error getting manga details for {manga_id}: {e}")
             return {}
+
+    def _extract_genres(self, soup: BeautifulSoup) -> List[str]:
+        """Extract genres/tags from the manga page."""
+        genres = []
+
+        # Try different selectors for genres/tags
+        genre_selectors = self._selectors.get("genres", []) + self._selectors.get(
+            "tags", []
+        )
+        if not genre_selectors:
+            # Default selectors for common genre/tag patterns
+            genre_selectors = [
+                ".genres a",
+                ".genre a",
+                ".tags a",
+                ".tag a",
+                ".wp-manga-tags-list a",
+                ".manga-tags a",
+                ".post-content_item .summary-content a",
+                ".summary-content a[rel='tag']",
+                ".genre-list a",
+                ".tag-list a",
+                "[class*='genre'] a",
+                "[class*='tag'] a",
+                ".categories a",
+                ".category a",
+            ]
+
+        for selector in genre_selectors:
+            try:
+                elements = soup.select(selector)
+                for element in elements:
+                    genre = element.get_text(strip=True)
+                    if genre and genre not in genres and len(genre) > 1:
+                        genres.append(genre)
+                if genres:  # If we found genres, stop trying other selectors
+                    break
+            except Exception:
+                continue
+
+        return genres[:10]  # Limit to 10 genres to avoid clutter
+
+    def _extract_authors(self, soup: BeautifulSoup) -> List[str]:
+        """Extract authors from the manga page."""
+        authors = []
+
+        # Try different selectors for authors
+        author_selectors = self._selectors.get("authors", [])
+        if not author_selectors:
+            # Default selectors for common author patterns
+            author_selectors = [
+                ".author a",
+                ".authors a",
+                ".manga-author a",
+                ".post-content_item .summary-content a",
+                ".summary-content .author a",
+                ".artist a",
+                ".writer a",
+                "[class*='author'] a",
+                "[class*='artist'] a",
+            ]
+
+        for selector in author_selectors:
+            try:
+                elements = soup.select(selector)
+                for element in elements:
+                    author = element.get_text(strip=True)
+                    if author and author not in authors and len(author) > 1:
+                        authors.append(author)
+                if authors:  # If we found authors, stop trying other selectors
+                    break
+            except Exception:
+                continue
+
+        return authors[:5]  # Limit to 5 authors
+
+    async def _fetch_status_from_detail_page(self, manga_url: str) -> MangaStatus:
+        """Fetch status from manga detail page when not available in search results."""
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(manga_url, headers=self._headers)
+                response.raise_for_status()
+
+                soup = BeautifulSoup(response.text, "html.parser")
+
+                # Try to find status on detail page
+                status_element = self._find_element_with_selectors(
+                    soup, self._selectors.get("status", [])
+                )
+
+                if status_element and hasattr(status_element, "get_text"):
+                    status_text = status_element.get_text(strip=True).lower()
+                    # Map status text to enum values
+                    if (
+                        "ongoing" in status_text
+                        or "publishing" in status_text
+                        or "serializing" in status_text
+                    ):
+                        return MangaStatus.ONGOING
+                    elif (
+                        "completed" in status_text
+                        or "finished" in status_text
+                        or "complete" in status_text
+                    ):
+                        return MangaStatus.COMPLETED
+                    elif "hiatus" in status_text or "on hold" in status_text:
+                        return MangaStatus.HIATUS
+                    elif (
+                        "cancelled" in status_text
+                        or "dropped" in status_text
+                        or "discontinued" in status_text
+                    ):
+                        return MangaStatus.CANCELLED
+
+                return MangaStatus.UNKNOWN
+
+        except Exception as e:
+            logger.warning(f"Failed to fetch status from detail page {manga_url}: {e}")
+            return MangaStatus.UNKNOWN
 
     async def get_chapters(
         self, manga_id: str, page: int = 1, limit: int = 100

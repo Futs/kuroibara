@@ -118,10 +118,17 @@
       </div>
 
       <div v-else class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Connect your Anilist account to sync your manga list, reading
-          progress, and ratings.
-        </p>
+        <!-- Setup Instructions -->
+        <div
+          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+        >
+          <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+            Connect your Anilist account
+          </h4>
+          <p class="text-xs text-blue-600 dark:text-blue-400 mb-3">
+            Sync your manga list, reading progress, and ratings with Anilist. You'll need to set up API credentials first.
+          </p>
+        </div>
 
         <!-- API Credentials Setup -->
         <div
@@ -320,10 +327,17 @@
       </div>
 
       <div v-else class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Connect your MyAnimeList account to sync your manga list, reading
-          progress, and ratings.
-        </p>
+        <!-- Setup Instructions -->
+        <div
+          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+        >
+          <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+            Connect your MyAnimeList account
+          </h4>
+          <p class="text-xs text-blue-600 dark:text-blue-400 mb-3">
+            Sync your manga list, reading progress, and ratings with MyAnimeList. You'll need to set up API credentials first.
+          </p>
+        </div>
 
         <!-- API Credentials Setup -->
         <div

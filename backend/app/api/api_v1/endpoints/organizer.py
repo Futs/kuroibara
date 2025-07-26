@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
 from app.core.services.batch_organizer import batch_organizer
-from app.core.services.migration import migration_tool
+from app.core.services.migration import migration_tool, MigrationPlan
 from app.core.services.naming import naming_engine
 from app.core.services.organizer import manga_organizer
 from app.core.services.storage_recovery import storage_recovery_service
@@ -779,3 +779,269 @@ async def batch_recover_manga_from_storage(
         recovered_manga=recovered_manga,
         errors=overall_errors,
     )
+
+
+# New migration endpoints for folder structure changes
+
+
+@router.post(
+    "/migration/analyze-volume-usage/{manga_id}", response_model=Dict[str, Any]
+)
+async def analyze_manga_volume_usage(
+    manga_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Analyze a manga's volume usage patterns to recommend folder structure.
+    """
+    try:
+        # Get manga
+        manga = await db.get(Manga, manga_id)
+        if not manga:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Manga not found"
+            )
+
+        # Analyze volume usage
+        analysis = await naming_engine.analyze_manga_volume_usage(manga, db)
+
+        # Get template recommendations
+        recommended_template = naming_engine.get_recommended_template(analysis)
+        template_presets = naming_engine.get_template_presets()
+
+        return {
+            "manga_id": manga_id,
+            "manga_title": getattr(manga, "title", "Unknown"),
+            "analysis": {
+                "has_volumes": analysis.has_volumes,
+                "volume_count": analysis.volume_count,
+                "chapter_count": analysis.chapter_count,
+                "chapters_with_volumes": analysis.chapters_with_volumes,
+                "chapters_without_volumes": analysis.chapters_without_volumes,
+                "confidence_score": analysis.confidence_score,
+                "recommended_pattern": analysis.recommended_pattern,
+                "unique_volumes": list(analysis.unique_volumes),
+            },
+            "recommended_template": recommended_template,
+            "current_template": current_user.naming_format_manga,
+            "available_templates": template_presets,
+            "template_descriptions": {
+                name: naming_engine.get_preset_description(name)
+                for name in template_presets.keys()
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error analyzing volume usage for manga {manga_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to analyze volume usage: {str(e)}",
+        )
+
+
+@router.post("/migration/create-plan/{manga_id}", response_model=Dict[str, Any])
+async def create_structure_migration_plan(
+    manga_id: UUID,
+    new_template: str,
+    preserve_original: bool = True,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Create a migration plan for changing a manga's folder structure.
+    """
+    try:
+        # Get manga
+        manga = await db.get(Manga, manga_id)
+        if not manga:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Manga not found"
+            )
+
+        # Validate template
+        is_valid, error_msg = naming_engine.validate_template(new_template)
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid template: {error_msg}",
+            )
+
+        # Create migration plan
+        plan = await migration_tool.create_structure_migration_plan(
+            manga=manga,
+            user=current_user,
+            new_template=new_template,
+            db=db,
+            preserve_original=preserve_original,
+        )
+
+        return {
+            "plan_id": str(plan.manga_id),  # Use manga_id as plan identifier
+            "summary": plan.get_summary(),
+            "operations": plan.operations,
+            "preview": {
+                "sample_operations": plan.operations[:5],  # Show first 5 operations
+                "total_operations": len(plan.operations),
+                "estimated_duration": f"{plan.estimated_time // 60} minutes",
+                "space_required": f"{plan.estimated_size / (1024 * 1024):.1f} MB",
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error creating migration plan for manga {manga_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create migration plan: {str(e)}",
+        )
+
+
+@router.post("/migration/execute/{manga_id}", response_model=Dict[str, Any])
+async def execute_structure_migration(
+    manga_id: UUID,
+    new_template: str,
+    preserve_original: bool,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Execute a folder structure migration for a manga.
+    """
+    try:
+        # Get manga
+        manga = await db.get(Manga, manga_id)
+        if not manga:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Manga not found"
+            )
+
+        # Validate template
+        is_valid, error_msg = naming_engine.validate_template(new_template)
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid template: {error_msg}",
+            )
+
+        # Create migration plan
+        plan = await migration_tool.create_structure_migration_plan(
+            manga=manga,
+            user=current_user,
+            new_template=new_template,
+            db=db,
+            preserve_original=preserve_original,
+        )
+
+        if not plan.operations:
+            return {
+                "success": True,
+                "message": "No migration needed - manga already uses the target structure",
+                "operations_completed": 0,
+                "operations_failed": 0,
+            }
+
+        # Execute migration in background
+        background_tasks.add_task(
+            execute_migration_background,
+            plan=plan,
+            manga_id=manga_id,
+            new_template=new_template,
+            user_id=current_user.id,
+        )
+
+        return {
+            "success": True,
+            "message": "Migration started in background",
+            "manga_id": manga_id,
+            "total_operations": len(plan.operations),
+            "estimated_duration": f"{plan.estimated_time // 60} minutes",
+            "preserve_original": preserve_original,
+        }
+
+    except Exception as e:
+        logger.error(f"Error executing migration for manga {manga_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to execute migration: {str(e)}",
+        )
+
+
+async def execute_migration_background(
+    plan: MigrationPlan, manga_id: UUID, new_template: str, user_id: UUID
+) -> None:
+    """
+    Background task for executing migration plan.
+    """
+    try:
+        async with AsyncSessionLocal() as db:
+            # Execute the migration
+            result = await migration_tool.execute_migration_plan(plan, db)
+
+            # Update user's default template if migration was successful
+            if result["success"] and result["failed_operations"] == 0:
+                user = await db.get(User, user_id)
+                if user:
+                    user.naming_format_manga = new_template
+                    await db.commit()
+
+            logger.info(
+                f"Migration completed for manga {manga_id}: "
+                f"{result['completed_operations']} completed, "
+                f"{result['failed_operations']} failed"
+            )
+
+    except Exception as e:
+        logger.error(f"Background migration for manga {manga_id} failed: {e}")
+
+
+@router.get("/templates", response_model=Dict[str, Any])
+async def get_naming_templates(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get available naming templates and current user settings.
+    """
+    try:
+        presets = naming_engine.get_template_presets()
+        descriptions = {
+            name: naming_engine.get_preset_description(name) for name in presets.keys()
+        }
+
+        return {
+            "current_manga_template": current_user.naming_format_manga,
+            "current_chapter_template": current_user.naming_format_chapter,
+            "available_presets": presets,
+            "preset_descriptions": descriptions,
+            "template_variables": [
+                "Manga Title",
+                "Volume",
+                "Chapter Number",
+                "Chapter Name",
+                "Language",
+                "Year",
+                "Source",
+            ],
+            "examples": {
+                name: naming_engine.apply_template(
+                    template,
+                    {
+                        "Manga Title": "Example Manga",
+                        "Volume": "1",
+                        "Chapter Number": "5",
+                        "Chapter Name": "The Adventure Begins",
+                        "Language": "en",
+                        "Year": "2023",
+                        "Source": "mangadex",
+                    },
+                )
+                for name, template in presets.items()
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting naming templates: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get naming templates: {str(e)}",
+        )

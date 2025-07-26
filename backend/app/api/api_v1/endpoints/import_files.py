@@ -25,7 +25,6 @@ from app.core.services.import_file import (
 from app.models.library import MangaUserLibrary
 from app.models.manga import Manga, MangaStatus, MangaType
 from app.models.user import User
-from app.schemas.manga import Chapter as ChapterSchema
 from app.schemas.manga import ChapterSummary
 from app.schemas.manga import Manga as MangaSchema
 

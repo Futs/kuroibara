@@ -54,12 +54,55 @@ async def check_library_status(
             key = (result.title.lower().strip(), result.provider)
             manga_lookup[key] = result
 
-        # Query database for existing manga with matching titles and providers
-        manga_query = select(Manga).where(
-            Manga.title.in_([result.title for result in search_results])
-        )
-        manga_result = await db.execute(manga_query)
-        existing_manga = manga_result.scalars().all()
+        # Query database for existing manga with matching external_id and provider
+        # This is more reliable than title matching for external manga
+        external_lookups = []
+        title_lookups = []
+
+        for result in search_results:
+            # For external manga, check by provider + external_id (most reliable)
+            if (
+                hasattr(result, "id")
+                and hasattr(result, "provider")
+                and result.provider
+                and result.id
+            ):
+                external_lookups.append((result.provider, result.id))
+            # Also check by title as fallback
+            title_lookups.append(result.title)
+
+        existing_manga = []
+
+        # First, try to find by external_id and provider (most reliable)
+        if external_lookups:
+            from sqlalchemy import or_
+
+            external_conditions = []
+            for provider, external_id in external_lookups:
+                external_conditions.append(
+                    (Manga.provider == provider) & (Manga.external_id == external_id)
+                )
+
+            if external_conditions:
+                external_query = select(Manga).where(or_(*external_conditions))
+                external_result = await db.execute(external_query)
+                existing_manga.extend(external_result.scalars().all())
+
+        # Also check by title for any manga not found by external_id
+        if title_lookups:
+            title_query = select(Manga).where(Manga.title.in_(title_lookups))
+            title_result = await db.execute(title_query)
+            title_manga = title_result.scalars().all()
+
+            # Add title-matched manga that weren't already found by external_id
+            existing_external_ids = {
+                (m.provider, m.external_id)
+                for m in existing_manga
+                if m.provider and m.external_id
+            }
+            for manga in title_manga:
+                if (manga.provider, manga.external_id) not in existing_external_ids:
+                    existing_manga.append(manga)
 
         # Get manga IDs that are in the user's library
         if existing_manga:
@@ -71,19 +114,43 @@ async def check_library_status(
             library_result = await db.execute(library_query)
             library_manga_ids = set(library_result.scalars().all())
 
-            # Create a mapping of (title, provider) to manga_id for library checking
+            # Create mappings for library checking
+            external_to_manga_id = {}
             title_to_manga_id = {}
+
             for manga in existing_manga:
-                key = (manga.title.lower().strip(), manga.provider)
-                title_to_manga_id[key] = manga.id
+                # Map by external_id + provider (most reliable)
+                if manga.provider and manga.external_id:
+                    external_key = (manga.provider, manga.external_id)
+                    external_to_manga_id[external_key] = manga.id
+
+                # Map by title + provider (fallback)
+                title_key = (manga.title.lower().strip(), manga.provider)
+                title_to_manga_id[title_key] = manga.id
         else:
             library_manga_ids = set()
+            external_to_manga_id = {}
             title_to_manga_id = {}
 
         # Add in_library field to each search result
         for result in search_results:
-            key = (result.title.lower().strip(), result.provider)
-            manga_id = title_to_manga_id.get(key)
+            manga_id = None
+
+            # First try external_id + provider lookup (most reliable)
+            if (
+                hasattr(result, "id")
+                and hasattr(result, "provider")
+                and result.provider
+                and result.id
+            ):
+                external_key = (result.provider, result.id)
+                manga_id = external_to_manga_id.get(external_key)
+
+            # Fallback to title + provider lookup
+            if manga_id is None:
+                title_key = (result.title.lower().strip(), result.provider)
+                manga_id = title_to_manga_id.get(title_key)
+
             result.in_library = manga_id is not None and manga_id in library_manga_ids
 
         return search_results

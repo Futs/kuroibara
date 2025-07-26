@@ -305,7 +305,7 @@
               <!-- Folder Structure Management (only for library items) -->
               <button
                 v-if="!isExternal && inLibrary"
-                @click="showFolderStructureManager = true"
+                @click="goToMediaManagement"
                 class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-purple-600 dark:text-purple-400 bg-white dark:bg-dark-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
               >
                 <svg
@@ -939,34 +939,7 @@
     </div>
   </div>
 
-  <!-- Folder Structure Manager Modal -->
-  <div
-    v-if="showFolderStructureManager"
-    class="fixed inset-0 z-50 overflow-y-auto"
-  >
-    <div
-      class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-      @click.self="showFolderStructureManager = false"
-    >
-      <!-- Backdrop -->
-      <div
-        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-        @click="showFolderStructureManager = false"
-      ></div>
 
-      <!-- Modal Content -->
-      <div
-        class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full relative z-10"
-        @click.stop
-      >
-        <FolderStructureManager
-          :selected-manga="manga"
-          @close="showFolderStructureManager = false"
-          @migration-completed="onMigrationCompleted"
-        />
-      </div>
-    </div>
-  </div>
 </template>
 
 <script setup>
@@ -979,7 +952,7 @@ import ChapterFilters from "../components/ChapterFilters.vue";
 import ChapterManagement from "../components/ChapterManagement.vue";
 import VolumeDownloadCard from "../components/VolumeDownloadCard.vue";
 import ImportDialog from "../components/ImportDialog.vue";
-import FolderStructureManager from "../components/FolderStructureManager.vue";
+
 import api from "../services/api";
 import imageProxy from "../utils/imageProxy";
 
@@ -1007,7 +980,7 @@ const chapterFilters = ref({
 });
 const viewMode = ref("chapters"); // "chapters" or "volumes"
 const showImportDialog = ref(false);
-const showFolderStructureManager = ref(false);
+
 const currentPage = ref(1);
 const chaptersPerPage = 10;
 
@@ -1729,14 +1702,7 @@ const onMangaImported = () => {
   }
 };
 
-const onMigrationCompleted = (result) => {
-  showFolderStructureManager.value = false;
-  console.log("Migration completed:", result);
-  // Optionally refresh the manga details to reflect any changes
-  if (!isExternal.value) {
-    loadLibraryItemDetails();
-  }
-};
+
 
 const redownloadChapter = async (chapter) => {
   try {
@@ -1851,6 +1817,11 @@ const handleVisibilityChange = () => {
     // Restart auto-refresh
     startAutoRefresh();
   }
+};
+
+// Navigate to Settings > Media Management
+const goToMediaManagement = () => {
+  router.push('/settings?tab=media');
 };
 
 onMounted(() => {

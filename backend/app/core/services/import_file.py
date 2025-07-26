@@ -637,7 +637,7 @@ async def _fetch_and_create_chapters(
                 db.add(chapter)
 
             except Exception as e:
-                chapter_num = chapter_data.get('number', 'unknown')
+                chapter_num = chapter_data.get("number", "unknown")
                 logger.error(f"Error creating chapter {chapter_num}: {e}")
                 continue
 

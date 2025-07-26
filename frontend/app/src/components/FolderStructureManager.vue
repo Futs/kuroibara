@@ -242,7 +242,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useToast } from "@/composables/useToast";
-import { api } from "@/services/api";
+import api from "@/services/api";
 
 // Props
 const props = defineProps({

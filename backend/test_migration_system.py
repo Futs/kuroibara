@@ -88,7 +88,7 @@ def test_migration_plan_creation():
 
     # Test plan summary
     summary = plan.get_summary()
-    print(f"Migration Plan Summary:")
+    print("Migration Plan Summary:")
     print(f"  Manga: {summary['manga_title']}")
     print(f"  Source Pattern: {summary['source_pattern']}")
     print(f"  Target Pattern: {summary['target_pattern']}")
@@ -221,7 +221,7 @@ def test_file_operations_simulation():
                 print(f"Copied: {operation['source']} → {operation['target']}")
 
         # Verify target structure
-        print(f"\nTarget structure:")
+        print("\nTarget structure:")
         for root, dirs, files in os.walk(os.path.join(temp_dir, "target")):
             level = root.replace(temp_dir, "").count(os.sep)
             indent = " " * 2 * level

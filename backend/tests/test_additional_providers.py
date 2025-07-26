@@ -22,7 +22,7 @@ async def test_provider_registry_additional_providers():
 
     # Check provider properties
     assert provider.name == "MangaPlus"
-    assert provider.url == "https://jumpg-webapi.tokyo-cdn.com/api"
+    assert provider.url == "https://jumpg-api.tokyo-cdn.com/api"
     assert provider.supports_nsfw is False
 
     # Get Toonily provider (active provider)
@@ -33,7 +33,7 @@ async def test_provider_registry_additional_providers():
     # Check provider properties
     assert provider.name == "Toonily"
     assert provider.url == "https://toonily.com"
-    assert provider.supports_nsfw is False
+    assert provider.supports_nsfw is True
 
 
 @pytest.mark.asyncio

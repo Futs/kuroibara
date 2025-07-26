@@ -1,7 +1,7 @@
 """Create base tables
 
 Revision ID: 000
-Revises: 
+Revises:
 Create Date: 2025-07-10 19:00:00.000000
 
 """
@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade() -> None:
     """Create all base tables."""
-    
+
     # Create users table
     op.create_table('users',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),

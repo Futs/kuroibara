@@ -18,22 +18,22 @@ depends_on = None
 
 def upgrade() -> None:
     """Add external integrations tables."""
-    
+
     # Create enum types
     integration_type_enum = postgresql.ENUM(
-        'anilist', 'myanimelist', 
-        name='integrationtype', 
+        'anilist', 'myanimelist',
+        name='integrationtype',
         create_type=False
     )
     integration_type_enum.create(op.get_bind(), checkfirst=True)
-    
+
     sync_status_enum = postgresql.ENUM(
         'pending', 'in_progress', 'success', 'failed', 'disabled',
         name='syncstatus',
         create_type=False
     )
     sync_status_enum.create(op.get_bind(), checkfirst=True)
-    
+
     # Create external_integrations table
     op.create_table(
         'external_integrations',
@@ -61,12 +61,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('user_id', 'integration_type', name='uq_user_integration_type')
     )
-    
+
     # Create indexes
     op.create_index('ix_external_integrations_user_id', 'external_integrations', ['user_id'])
     op.create_index('ix_external_integrations_integration_type', 'external_integrations', ['integration_type'])
     op.create_index('ix_external_integrations_last_sync_status', 'external_integrations', ['last_sync_status'])
-    
+
     # Create external_manga_mappings table
     op.create_table(
         'external_manga_mappings',
@@ -88,7 +88,7 @@ def upgrade() -> None:
         sa.UniqueConstraint('integration_id', 'manga_id', name='uq_integration_manga'),
         sa.UniqueConstraint('integration_id', 'external_manga_id', name='uq_integration_external_manga')
     )
-    
+
     # Create indexes
     op.create_index('ix_external_manga_mappings_integration_id', 'external_manga_mappings', ['integration_id'])
     op.create_index('ix_external_manga_mappings_manga_id', 'external_manga_mappings', ['manga_id'])
@@ -98,14 +98,14 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Remove external integrations tables."""
-    
+
     # Drop tables
     op.drop_table('external_manga_mappings')
     op.drop_table('external_integrations')
-    
+
     # Drop enum types
     sync_status_enum = postgresql.ENUM(name='syncstatus')
     sync_status_enum.drop(op.get_bind(), checkfirst=True)
-    
+
     integration_type_enum = postgresql.ENUM(name='integrationtype')
     integration_type_enum.drop(op.get_bind(), checkfirst=True)

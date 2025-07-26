@@ -66,6 +66,10 @@ class ProviderFactory:
                 # Merge top-level config with params
                 provider_kwargs = config.get("params", {}).copy()
 
+                # Add required parameters
+                provider_kwargs["name"] = config["name"]
+                provider_kwargs["url"] = config["url"]
+
                 # Add important top-level config values
                 if "supports_nsfw" in config:
                     provider_kwargs["supports_nsfw"] = config["supports_nsfw"]

@@ -68,9 +68,15 @@ class ProviderFactory:
 
                 # Add required parameters
                 provider_kwargs["name"] = config["name"]
-                # EnhancedGenericProvider expects 'base_url', not 'url'
-                if "base_url" not in provider_kwargs:
-                    provider_kwargs["base_url"] = config["url"]
+
+                # Handle different provider types
+                if class_name == "EnhancedGenericProvider":
+                    # EnhancedGenericProvider expects 'base_url', not 'url'
+                    if "base_url" not in provider_kwargs:
+                        provider_kwargs["base_url"] = config["url"]
+                else:
+                    # Other providers expect 'url'
+                    provider_kwargs["url"] = config["url"]
 
                 # Add important top-level config values
                 if "supports_nsfw" in config:

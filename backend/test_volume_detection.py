@@ -6,15 +6,16 @@ This script tests the new volume detection and folder structure migration
 features without requiring a database connection.
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.core.services.naming import naming_engine, VolumeDetectionResult
-from app.models.manga import Manga, Chapter
-from unittest.mock import Mock
 import asyncio
+from unittest.mock import Mock
+
+from app.core.services.naming import VolumeDetectionResult, naming_engine
+from app.models.manga import Chapter, Manga
 
 
 def create_mock_manga(title="Test Manga", year=2023, provider="test_provider"):

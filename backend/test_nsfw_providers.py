@@ -6,15 +6,16 @@ This script tests that MangaFX18 and MangaDNA providers properly
 mark their content as NSFW.
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.core.providers.registry import provider_registry
-from app.core.providers.generic import GenericProvider
-from app.core.providers.enhanced_generic import EnhancedGenericProvider
 import asyncio
+
+from app.core.providers.enhanced_generic import EnhancedGenericProvider
+from app.core.providers.generic import GenericProvider
+from app.core.providers.registry import provider_registry
 
 
 def test_provider_nsfw_configuration():

@@ -560,10 +560,11 @@ async def _fetch_and_create_chapters(
         manga_id: Local manga ID
         db: Database session
     """
+    import logging
+    from datetime import datetime
+
     from app.core.providers.registry import provider_registry
     from app.models.manga import Chapter
-    from datetime import datetime
-    import logging
 
     logger = logging.getLogger(__name__)
 

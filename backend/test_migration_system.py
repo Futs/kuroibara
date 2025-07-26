@@ -6,19 +6,20 @@ This script tests the migration planning and execution features
 without requiring a database connection.
 """
 
-import sys
 import os
-import tempfile
 import shutil
+import sys
+import tempfile
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+import uuid
+from unittest.mock import Mock
+
 from app.core.services.migration import MigrationPlan
 from app.core.services.naming import naming_engine
-from app.models.manga import Manga, Chapter
+from app.models.manga import Chapter, Manga
 from app.models.user import User
-from unittest.mock import Mock
-import uuid
 
 
 def create_mock_user():

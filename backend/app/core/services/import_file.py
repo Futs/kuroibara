@@ -468,8 +468,11 @@ async def create_manga_from_external_source(
                         )
                     )
 
-        # Commit all changes
+        # Commit manga and relationships first
         await db.commit()
+
+        # Now fetch and create chapters from the provider
+        await _fetch_and_create_chapters(provider_name, external_id, manga.id, db)
 
         # Refresh and load relationships explicitly to avoid greenlet issues
         await db.refresh(manga)
@@ -540,3 +543,100 @@ async def check_chapter_exists(
         )
     )
     return result.scalars().first()
+
+
+async def _fetch_and_create_chapters(
+    provider_name: str,
+    external_id: str,
+    manga_id: UUID,
+    db: AsyncSession,
+) -> None:
+    """
+    Fetch chapters from provider and create chapter records.
+
+    Args:
+        provider_name: Name of the provider
+        external_id: External ID of the manga
+        manga_id: Local manga ID
+        db: Database session
+    """
+    from app.core.providers.registry import provider_registry
+    from app.models.manga import Chapter
+    from datetime import datetime
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Get the provider
+        provider = provider_registry.get_provider(provider_name)
+        if not provider:
+            logger.warning(f"Provider '{provider_name}' not found, skipping chapter fetch")
+            return
+
+        # Fetch all chapters (handle pagination)
+        all_chapters = []
+        page = 1
+        limit = 100
+
+        while True:
+            chapters, total, has_next = await provider.get_chapters(external_id, page=page, limit=limit)
+            if not chapters:
+                break
+
+            all_chapters.extend(chapters)
+
+            if not has_next:
+                break
+
+            page += 1
+
+            # Safety check to prevent infinite loops
+            if page > 50:  # Max 5000 chapters
+                logger.warning(f"Reached maximum page limit (50) for manga {external_id}")
+                break
+
+        logger.info(f"Fetched {len(all_chapters)} chapters for manga {external_id}")
+
+        # Create chapter records
+        for chapter_data in all_chapters:
+            try:
+                # Check if chapter already exists
+                existing_chapter = await check_chapter_exists(
+                    manga_id=manga_id,
+                    chapter_number=chapter_data.get("number", "0"),
+                    language=chapter_data.get("language", "en"),
+                    db=db,
+                )
+
+                if existing_chapter:
+                    continue  # Skip if chapter already exists
+
+                # Create new chapter
+                chapter = Chapter(
+                    manga_id=manga_id,
+                    title=chapter_data.get("title", f"Chapter {chapter_data.get('number', '0')}"),
+                    number=chapter_data.get("number", "0"),
+                    volume=chapter_data.get("volume"),
+                    language=chapter_data.get("language", "en"),
+                    pages_count=chapter_data.get("pages_count", 0),
+                    external_id=chapter_data.get("id"),
+                    external_url=chapter_data.get("url", ""),
+                    publish_at=chapter_data.get("publish_at") or datetime.utcnow(),
+                    readable_at=chapter_data.get("readable_at") or datetime.utcnow(),
+                )
+
+                db.add(chapter)
+
+            except Exception as e:
+                logger.error(f"Error creating chapter {chapter_data.get('number', 'unknown')}: {e}")
+                continue
+
+        # Commit all chapters
+        await db.commit()
+        logger.info(f"Successfully created chapters for manga {manga_id}")
+
+    except Exception as e:
+        logger.error(f"Error fetching chapters for manga {external_id}: {e}")
+        await db.rollback()
+        # Don't raise the exception - manga creation should still succeed even if chapter fetch fails

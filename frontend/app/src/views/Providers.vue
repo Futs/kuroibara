@@ -455,32 +455,32 @@ const handleClearFilters = async () => {
 
 const addToLibrary = async (manga) => {
   try {
-    // For provider manga, we need to create the manga first, then add to library
-    const response = await api.post("/v1/manga/", {
-      title: manga.title,
-      description: manga.description,
-      cover_image: manga.cover_image || manga.cover_url,
-      type: manga.type || "manga",
-      status: manga.status || "unknown",
-      year: manga.year,
-      is_nsfw: manga.is_nsfw || manga.is_explicit || false,
-      provider: providersStore.getSelectedProvider.id,
-      external_id: manga.id,
-      external_url: manga.url,
-      genres: manga.genres || [],
-      authors: manga.authors || (manga.author ? [manga.author] : []),
-    });
+    console.log("Adding manga to library:", manga.title);
+
+    // Use the from-external endpoint to create manga from provider data
+    const response = await api.post(
+      "/v1/manga/from-external",
+      {},
+      {
+        params: {
+          provider: providersStore.getSelectedProvider.id,
+          external_id: manga.id,
+        },
+      }
+    );
 
     const createdManga = response.data;
+    console.log("Created manga record:", createdManga.id);
 
     // Add to library
-    await libraryStore.addToLibrary({
-      manga_id: createdManga.id,
-    });
+    await libraryStore.addToLibrary(createdManga.id);
 
     console.log("Successfully added manga to library");
+    alert(`Successfully added "${manga.title}" to your library!`);
   } catch (error) {
     console.error("Error adding manga to library:", error);
+    const errorMessage = error.response?.data?.detail || error.message || "Unknown error";
+    alert(`Failed to add "${manga.title}" to library: ${errorMessage}`);
   }
 };
 

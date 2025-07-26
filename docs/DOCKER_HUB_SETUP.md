@@ -10,11 +10,20 @@ The Docker Hub workflow (`docker-hub.yml`) automatically builds and pushes Docke
 2. **Releases**: A new release is created or tagged
 3. **Tags**: Version tags are pushed (e.g., `v1.0.0`)
 
-## Required Secrets
+## Required Setup
 
-You need to configure the following secret in your GitHub repository:
+### 1. GitHub Environments
 
-### DOCKER_PASSWORD
+The workflow uses GitHub environments for deployment control:
+
+- **staging**: Used for main branch builds
+- **production**: Used for release builds
+
+### 2. Environment Secrets
+
+You need to configure the Docker Hub password in both environments:
+
+#### DOCKER_PASSWORD
 Your Docker Hub password or access token (recommended) for the `futs` organization.
 
 **Note**: The Docker Hub username is hardcoded to `futs` in the workflow.
@@ -31,17 +40,26 @@ Your Docker Hub password or access token (recommended) for the `futs` organizati
 6. Select appropriate permissions (Read, Write, Delete)
 7. Copy the generated token
 
-### Step 2: Add Secrets to GitHub Repository
+### Step 2: Set Up GitHub Environments
 
 1. Go to your GitHub repository
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Add the following secret:
+2. Navigate to **Settings** → **Environments**
+3. Create two environments:
 
-   **DOCKER_PASSWORD**
-   ```
-   your-dockerhub-access-token-or-password
-   ```
+#### Create Staging Environment
+1. Click **New environment**
+2. Name: `staging`
+3. Add environment secret:
+   - **Name**: `DOCKER_PASSWORD`
+   - **Value**: Your Docker Hub access token
+
+#### Create Production Environment
+1. Click **New environment**
+2. Name: `production`
+3. **Optional**: Add protection rules (require reviews, restrict to main branch)
+4. Add environment secret:
+   - **Name**: `DOCKER_PASSWORD`
+   - **Value**: Your Docker Hub access token
 
 ## Docker Images
 
@@ -61,26 +79,30 @@ The workflow will create the following Docker images:
   - Version number (e.g., `0.6.0`)
   - Git tag (e.g., `v0.6.0`)
 
-## Workflow Triggers
+## Workflow Triggers & Environments
 
-### Main Branch Push
+### Main Branch Push (Staging Environment)
 ```bash
 git push origin main
 ```
 - Waits for CI tests to pass
+- Uses **staging** environment
 - Builds and pushes images with `latest` tag
 - Uses current version from `version.sh`
 
-### Release Creation
+### Release Creation (Production Environment)
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
+- Uses **production** environment
+- May require manual approval (if configured)
 - Builds and pushes images immediately
 - Tags with version number and `latest`
 
-### GitHub Release
+### GitHub Release (Production Environment)
 - Triggered when a release is published through GitHub UI
+- Uses **production** environment
 - Uses release tag for versioning
 
 ## Usage Examples
@@ -149,3 +171,21 @@ This workflow complements the existing `deploy.yml` workflow:
 - `docker-hub.yml`: Uses Docker Hub (docker.io)
 
 Both can run simultaneously, providing multiple distribution channels for your images.
+
+## Environment Protection Rules (Optional)
+
+For additional security, you can configure protection rules for the production environment:
+
+### Recommended Production Environment Rules
+1. **Required reviewers**: Require manual approval before deployment
+2. **Deployment branches**: Restrict to `main` branch and release tags
+3. **Wait timer**: Add a delay before deployment
+4. **Environment secrets**: Store sensitive credentials securely
+
+### Setting Up Protection Rules
+1. Go to **Settings** → **Environments** → **production**
+2. Enable **Required reviewers** and add team members
+3. Enable **Deployment branches** and select "Selected branches"
+4. Add branch rules for `main` and `refs/tags/v*`
+
+This ensures that production Docker images are only built after proper review and approval.

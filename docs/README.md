@@ -15,7 +15,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 
 ### 🎨 Feature Documentation
 - **[Advanced Reading Features](ADVANCED_READING_FEATURES.md)** - Reading modes, image handling, and reader customization
-- **[Library Management Features](LIBRARY_MANAGEMENT_FEATURES.md)** - Enhanced library features and management tools
+- **[Enhanced Library Features](ENHANCED_LIBRARY_FEATURES.md)** - Enhanced library features and management tools
 - **[Performance Optimizations](PERFORMANCE_OPTIMIZATIONS.md)** - Performance features and optimization techniques
 - **[Advanced Provider Features](ADVANCED_PROVIDER_FEATURES.md)** - Provider management, health monitoring, and analytics
 - **[Security & Privacy Features](SECURITY_PRIVACY_FEATURES.md)** - Security controls, RBAC, and privacy management

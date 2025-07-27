@@ -10,7 +10,7 @@
 
 A modern manga management platform for discovering, organizing, and reading manga from 80+ online sources.
 
-> **🚀 Latest Release**: v0.5.0 with Storage Settings Migration and Enhanced Chapter Management
+> **🚀 Latest Release**: v0.6.0 with Enhanced Testing
 
 ## ✨ Features
 
@@ -27,13 +27,13 @@ A modern manga management platform for discovering, organizing, and reading mang
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/node.js-22-green.svg)](https://nodejs.org/)
-[![Vue.js](https://img.shields.io/badge/vue.js-3.5.13-4FC08D.svg)](https://vuejs.org/)
+[![Vue.js](https://img.shields.io/badge/vue.js-3.5.17-4FC08D.svg)](https://vuejs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/tailwind-4.0.0-38B2AC.svg)](https://tailwindcss.com/)
 [![FastAPI](https://img.shields.io/badge/fastapi-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
 
-- **Backend**: Python 3.13, FastAPI, PostgreSQL, Redis
-- **Frontend**: Vue.js 3, Tailwind CSS 4, Vite
+- **Backend**: Python 3.13, FastAPI, PostgreSQL, Valkey (Redis fork)
+- **Frontend**: Vue.js 3.5.17, Tailwind CSS 4, Vite 6
 - **Infrastructure**: Docker, Nginx
 
 ## 🚀 Quick Start

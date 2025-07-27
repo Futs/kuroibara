@@ -466,7 +466,7 @@ const addToLibrary = async (manga) => {
           provider: providersStore.getSelectedProvider.id,
           external_id: manga.id,
         },
-      }
+      },
     );
 
     const createdManga = response.data;
@@ -479,7 +479,8 @@ const addToLibrary = async (manga) => {
     alert(`Successfully added "${manga.title}" to your library!`);
   } catch (error) {
     console.error("Error adding manga to library:", error);
-    const errorMessage = error.response?.data?.detail || error.message || "Unknown error";
+    const errorMessage =
+      error.response?.data?.detail || error.message || "Unknown error";
     alert(`Failed to add "${manga.title}" to library: ${errorMessage}`);
   }
 };

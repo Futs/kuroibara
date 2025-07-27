@@ -938,8 +938,6 @@
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script setup>
@@ -1702,8 +1700,6 @@ const onMangaImported = () => {
   }
 };
 
-
-
 const redownloadChapter = async (chapter) => {
   try {
     await api.post(`/v1/chapters/${chapter.id}/redownload`);
@@ -1821,7 +1817,7 @@ const handleVisibilityChange = () => {
 
 // Navigate to Settings > Media Management
 const goToMediaManagement = () => {
-  router.push('/settings?tab=media');
+  router.push("/settings?tab=media");
 };
 
 onMounted(() => {

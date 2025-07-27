@@ -199,38 +199,60 @@
                 Media Reorganization
               </h3>
               <p class="text-gray-600 dark:text-gray-400">
-                Apply current naming and organization settings to all existing media in your library
+                Apply current naming and organization settings to all existing
+                media in your library
               </p>
             </div>
 
-            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4 mb-6">
+            <div
+              class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4 mb-6"
+            >
               <div class="flex">
                 <div class="flex-shrink-0">
-                  <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  <svg
+                    class="h-5 w-5 text-yellow-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div class="ml-3">
-                  <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  <h3
+                    class="text-sm font-medium text-yellow-800 dark:text-yellow-200"
+                  >
                     Important Notice
                   </h3>
-                  <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <div
+                    class="mt-2 text-sm text-yellow-700 dark:text-yellow-300"
+                  >
                     <p>
-                      This operation will reorganize all manga and chapters in your library according to the current naming format settings.
-                      This process may take some time depending on your library size and cannot be undone.
+                      This operation will reorganize all manga and chapters in
+                      your library according to the current naming format
+                      settings. This process may take some time depending on
+                      your library size and cannot be undone.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-700 rounded-lg">
+            <div
+              class="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-700 rounded-lg"
+            >
               <div>
                 <h4 class="text-sm font-medium text-gray-900 dark:text-white">
                   Reorganize All Media
                 </h4>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Apply current settings to {{ libraryStats.totalManga || 0 }} manga and {{ libraryStats.totalChapters || 0 }} chapters
+                  Apply current settings to
+                  {{ libraryStats.totalManga || 0 }} manga and
+                  {{ libraryStats.totalChapters || 0 }} chapters
                 </p>
               </div>
               <button
@@ -274,7 +296,7 @@
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
-                {{ isReorganizing ? 'Reorganizing...' : 'Reorganize All' }}
+                {{ isReorganizing ? "Reorganizing..." : "Reorganize All" }}
               </button>
             </div>
           </div>
@@ -869,7 +891,7 @@ const saveSettings = async () => {
 // Load library statistics
 const loadLibraryStats = async () => {
   try {
-    const response = await fetch('/api/v1/library/stats');
+    const response = await fetch("/api/v1/library/stats");
     if (response.ok) {
       const stats = await response.json();
       libraryStats.value = {
@@ -878,7 +900,7 @@ const loadLibraryStats = async () => {
       };
     }
   } catch (error) {
-    console.error('Failed to load library stats:', error);
+    console.error("Failed to load library stats:", error);
   }
 };
 
@@ -889,10 +911,10 @@ const reorganizeAllMedia = async () => {
   // Confirm with user
   const confirmed = confirm(
     `This will reorganize all ${libraryStats.value.totalManga} manga and ${libraryStats.value.totalChapters} chapters according to your current naming settings.\n\n` +
-    `Current settings:\n` +
-    `• Manga Format: ${namingFormatManga.value}\n` +
-    `• Chapter Format: ${namingFormatChapter.value}\n\n` +
-    `This operation cannot be undone. Continue?`
+      `Current settings:\n` +
+      `• Manga Format: ${namingFormatManga.value}\n` +
+      `• Chapter Format: ${namingFormatChapter.value}\n\n` +
+      `This operation cannot be undone. Continue?`,
   );
 
   if (!confirmed) return;
@@ -904,10 +926,10 @@ const reorganizeAllMedia = async () => {
     await saveSettings();
 
     // Start reorganization
-    const response = await fetch('/api/v1/organizer/reorganize-all', {
-      method: 'POST',
+    const response = await fetch("/api/v1/organizer/reorganize-all", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         manga_naming_format: namingFormatManga.value,
@@ -925,16 +947,15 @@ const reorganizeAllMedia = async () => {
 
     alert(
       `Reorganization completed successfully!\n\n` +
-      `• Processed: ${result.processed_manga || 0} manga\n` +
-      `• Moved: ${result.moved_files || 0} files\n` +
-      `• Errors: ${result.errors || 0}`
+        `• Processed: ${result.processed_manga || 0} manga\n` +
+        `• Moved: ${result.moved_files || 0} files\n` +
+        `• Errors: ${result.errors || 0}`,
     );
-
   } catch (error) {
-    console.error('Failed to reorganize media:', error);
+    console.error("Failed to reorganize media:", error);
     alert(
       `Failed to reorganize media: ${error.message}\n\n` +
-      `Please check the logs for more details.`
+        `Please check the logs for more details.`,
     );
   } finally {
     isReorganizing.value = false;

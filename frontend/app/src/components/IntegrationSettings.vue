@@ -126,7 +126,8 @@
             Connect your Anilist account
           </h4>
           <p class="text-xs text-blue-600 dark:text-blue-400 mb-3">
-            Sync your manga list, reading progress, and ratings with Anilist. You'll need to set up API credentials first.
+            Sync your manga list, reading progress, and ratings with Anilist.
+            You'll need to set up API credentials first.
           </p>
         </div>
 
@@ -335,7 +336,8 @@
             Connect your MyAnimeList account
           </h4>
           <p class="text-xs text-blue-600 dark:text-blue-400 mb-3">
-            Sync your manga list, reading progress, and ratings with MyAnimeList. You'll need to set up API credentials first.
+            Sync your manga list, reading progress, and ratings with
+            MyAnimeList. You'll need to set up API credentials first.
           </p>
         </div>
 

@@ -34,13 +34,21 @@ jobs:
       - name: Update Python dependencies
         run: |
           cd backend
-          pip install --upgrade pip pip-tools
-          # Check if requirements.in exists, otherwise skip Python updates
-          if [ -f "requirements.in" ]; then
-            pip-compile --upgrade requirements.in
+          pip install --upgrade pip pip-tools pur
+          # Use pur to update version ranges in requirements.txt
+          if [ -f "requirements.txt" ]; then
+            # Update version ranges to latest available versions
+            pur -r requirements.txt --dry-run > pur_output.txt || true
+            if [ -s pur_output.txt ]; then
+              pur -r requirements.txt
+              echo "Updated Python dependencies in requirements.txt"
+              cat pur_output.txt
+            else
+              echo "No Python dependency updates available"
+            fi
+            rm -f pur_output.txt
           else
-            echo "No requirements.in found, skipping Python dependency updates"
-            echo "Project uses requirements.txt directly - manual updates required"
+            echo "No requirements.txt found, skipping Python dependency updates"
           fi
 
       - name: Update Node.js dependencies

@@ -40,7 +40,7 @@
             <button
               @click="refreshBackups"
               :disabled="loading"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-dark-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-dark-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-white dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
                 class="h-4 w-4 mr-2"
@@ -60,7 +60,7 @@
             </button>
 
             <label
-              class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-dark-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-dark-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-700 hover:bg-white dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
             >
               <svg
                 class="h-4 w-4 mr-2"
@@ -144,7 +144,7 @@
         <!-- Backup Statistics -->
         <div
           v-if="backupList"
-          class="px-4 py-3 bg-gray-50 dark:bg-dark-700 border-b border-gray-200 dark:border-dark-600"
+          class="px-4 py-3 bg-white dark:bg-dark-700 border-b border-gray-200 dark:border-dark-600"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
@@ -283,7 +283,7 @@
           <div
             v-for="backup in backupList.backups"
             :key="backup.filename"
-            class="px-4 py-4 hover:bg-gray-50 dark:hover:bg-dark-700"
+            class="px-4 py-4 hover:bg-white dark:hover:bg-dark-700"
           >
             <div class="flex items-center justify-between">
               <div class="flex-1 min-w-0">
@@ -301,7 +301,7 @@
                   </span>
                   <span
                     v-else
-                    class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                    class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                   >
                     Database Only
                   </span>
@@ -463,7 +463,7 @@
           <div class="mt-6 flex justify-end space-x-3">
             <button
               @click="showCreateModal = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-dark-600 hover:bg-gray-200 dark:hover:bg-dark-500 rounded-md"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-600 hover:bg-gray-50 dark:hover:bg-white0 rounded-md"
             >
               Cancel
             </button>

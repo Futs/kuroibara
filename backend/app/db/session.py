@@ -28,10 +28,15 @@ engine = create_async_engine(
     pool_recycle=300,
     pool_size=20,
     max_overflow=0,
+    # Add connection timeout and retry settings
     connect_args={
+        "command_timeout": 60,
         "server_settings": {
             "application_name": "kuroibara",
-        }
+            "tcp_keepalives_idle": "600",
+            "tcp_keepalives_interval": "30",
+            "tcp_keepalives_count": "3",
+        },
     },
 )
 

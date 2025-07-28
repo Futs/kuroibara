@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import { useSettingsStore } from "./stores/settings";
 import { useAuthStore } from "./stores/auth";
 import { useDownloadsStore } from "./stores/downloads";
+import BulkDownloadProgress from "./components/BulkDownloadProgress.vue";
 
 const route = useRoute();
 const settingsStore = useSettingsStore();
@@ -39,6 +40,7 @@ onMounted(async () => {
 
 <template>
   <router-view />
+  <BulkDownloadProgress />
 </template>
 
 <style>

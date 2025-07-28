@@ -1244,6 +1244,38 @@
           Analyzing content...
         </div>
       </div>
+
+      <!-- Fallback: No content available -->
+      <div v-else class="text-center p-8">
+        <div class="inline-block p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <svg
+            class="h-12 w-12 text-gray-400 mx-auto mb-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            No content available
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            This chapter may not be downloaded or the pages are not available.
+          </p>
+          <button
+            @click="loadContent"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Retry Loading
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Navigation Buttons -->
@@ -1346,8 +1378,7 @@ const hasBookmarkOnCurrentPage = computed(() => {
 });
 
 const currentPageUrl = computed(() => {
-  const page = pages.value[currentPage.value - 1];
-  return page || null;
+  return readerStore.getCurrentPageUrl;
 });
 
 const currentPagePair = computed(() => {
@@ -1511,6 +1542,7 @@ const loadContent = async () => {
     await readerStore.fetchManga(mangaId.value);
     if (chapterId.value) {
       await readerStore.fetchChapter(mangaId.value, chapterId.value);
+      await readerStore.fetchPages(mangaId.value, chapterId.value);
       if (pageParam.value) {
         readerStore.setCurrentPage(pageParam.value);
       }
@@ -1522,5 +1554,12 @@ const loadContent = async () => {
 
 onMounted(() => {
   loadContent();
+});
+
+onBeforeUnmount(() => {
+  // Clean up any global state or event listeners
+  // Reset reader store state to prevent interference with other pages
+  readerStore.error = null;
+  readerStore.loading = false;
 });
 </script>

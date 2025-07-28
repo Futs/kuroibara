@@ -568,30 +568,7 @@
                   />
                 </div>
 
-                <!-- Chapter View (for library items with downloaded chapters) -->
-                <ul
-                  v-else-if="
-                    !isExternal &&
-                    libraryItemDetails &&
-                    viewMode === 'chapters' &&
-                    sortedEnhancedChapters &&
-                    sortedEnhancedChapters.length > 0
-                  "
-                  role="list"
-                  class="divide-y divide-gray-200 dark:divide-dark-600"
-                >
-                  <EnhancedChapterCard
-                    v-for="chapter in sortedEnhancedChapters"
-                    :key="chapter.id"
-                    :chapter="chapter"
-                    @read-chapter="readChapter"
-                    @download-chapter="downloadChapter"
-                    @redownload-chapter="redownloadChapter"
-                    @delete-chapter="deleteChapter"
-                  />
-                </ul>
-
-                <!-- Provider chapters for library manga (when no downloaded chapters) -->
+                <!-- All chapters for library manga (show all chapters with download status) -->
                 <div
                   v-else-if="
                     !isExternal &&
@@ -601,6 +578,21 @@
                     providerChapters.length
                   "
                 >
+                  <!-- Enhanced Chapter Cards for better UX -->
+                  <ul
+                    role="list"
+                    class="divide-y divide-gray-200 dark:divide-dark-600 mb-6"
+                  >
+                    <EnhancedChapterCard
+                      v-for="chapter in paginatedAllProviderChapters"
+                      :key="chapter.id"
+                      :chapter="chapter"
+                      @read-chapter="readChapter"
+                      @download-chapter="downloadProviderChapter"
+                      @redownload-chapter="redownloadChapter"
+                      @delete-chapter="deleteChapter"
+                    />
+                  </ul>
                   <!-- Pagination Info -->
                   <div class="flex justify-between items-center mb-4">
                     <p class="text-sm text-gray-700 dark:text-gray-300">
@@ -636,7 +628,7 @@
                     class="divide-y divide-gray-200 dark:divide-dark-600"
                   >
                     <li
-                      v-for="chapter in paginatedProviderChapters"
+                      v-for="chapter in paginatedAllProviderChapters"
                       :key="chapter.id"
                       class="py-4 flex items-center justify-between"
                     >
@@ -1209,6 +1201,15 @@ const sortedEnhancedChapters = computed(() => {
   });
 });
 
+const paginatedAllProviderChapters = computed(() => {
+  if (!providerChapters.value) return [];
+
+  const startIndex = (currentPage.value - 1) * chaptersPerPage.value;
+  const endIndex = startIndex + chaptersPerPage.value;
+
+  return providerChapters.value.slice(startIndex, endIndex);
+});
+
 const groupedVolumes = computed(() => {
   if (!libraryItemDetails.value?.chapters) return [];
 
@@ -1275,10 +1276,13 @@ const fetchMangaDetails = async () => {
 
     // Check if manga is in library and load enhanced details
     if (isExternal.value) {
-      // For external manga, we might need to implement a different library check
-      // For now, set to false
-      inLibrary.value = false;
-      libraryItemDetails.value = null;
+      // For external manga, check if it exists in library by provider and external_id
+      await checkExternalLibraryStatus();
+      if (inLibrary.value) {
+        await loadLibraryItemDetails();
+        // Load chapters from provider to show all available chapters
+        await loadProviderChapters();
+      }
     } else {
       // For library items, load enhanced details
       await checkLibraryStatus();
@@ -1302,6 +1306,30 @@ const checkLibraryStatus = async () => {
     inLibrary.value = response.data.in_library;
   } catch (err) {
     console.error("Error checking library status:", err);
+  }
+};
+
+const checkExternalLibraryStatus = async () => {
+  try {
+    const response = await api.get("/v1/library/check-external", {
+      params: {
+        provider: provider.value,
+        external_id: mangaId.value,
+      },
+    });
+    inLibrary.value = response.data.in_library;
+    // If it's in library, update mangaId to the local manga ID for subsequent operations
+    if (response.data.in_library && response.data.manga_id) {
+      // Store the original external ID for provider operations
+      const originalExternalId = mangaId.value;
+      // Update mangaId to the local manga ID for library operations
+      mangaId.value = response.data.manga_id;
+      // Store external ID for provider operations
+      manga.value = { ...manga.value, external_id: originalExternalId };
+    }
+  } catch (err) {
+    console.error("Error checking external library status:", err);
+    inLibrary.value = false;
   }
 };
 
@@ -1427,6 +1455,10 @@ const updateChapterFilters = (newFilters) => {
 
 const downloadVolume = async (volumeData) => {
   try {
+    // Import downloads store
+    const { useDownloadsStore } = await import("../stores/downloads");
+    const downloadsStore = useDownloadsStore();
+
     const libraryResponse = await api.get("/v1/library", {
       params: { manga_id: mangaId.value },
     });
@@ -1437,16 +1469,45 @@ const downloadVolume = async (volumeData) => {
 
     const libraryItemId = libraryResponse.data[0].id;
 
+    // Create bulk download tracking
+    const bulkId = `volume_${volumeData.number}_${Date.now()}`;
+    const chaptersToDownload = volumeData.chapters.filter(
+      (chapter) => chapter.download_status !== "downloaded",
+    );
+
+    if (chaptersToDownload.length === 0) {
+      alert("All chapters in this volume are already downloaded");
+      return;
+    }
+
+    downloadsStore.startBulkDownload(
+      bulkId,
+      mangaId.value,
+      chaptersToDownload.length,
+    );
+
     // Download all chapters in the volume
-    for (const chapter of volumeData.chapters) {
-      if (chapter.download_status !== "downloaded") {
-        await libraryStore.downloadChapter(
+    for (const chapter of chaptersToDownload) {
+      try {
+        const result = await libraryStore.downloadChapter(
           libraryItemId,
-          chapter.id,
+          chapter.library_chapter_id || null,
           manga.value.provider || "mangadx",
           manga.value.external_id || mangaId.value,
-          chapter.id,
+          chapter.id, // Provider chapter ID
         );
+
+        // Track chapter download in bulk download
+        if (result.task_id) {
+          downloadsStore.updateBulkDownloadProgress(
+            bulkId,
+            result.task_id,
+            "started",
+          );
+        }
+      } catch (chapterError) {
+        console.error(`Error downloading chapter ${chapter.id}:`, chapterError);
+        downloadsStore.updateBulkDownloadProgress(bulkId, null, "failed");
       }
     }
 
@@ -1480,10 +1541,10 @@ const retryFailedChapters = async (volumeData) => {
       if (chapter.download_status === "error") {
         await libraryStore.downloadChapter(
           libraryItemId,
-          chapter.id,
+          chapter.library_chapter_id || null,
           manga.value.provider || "mangadx",
           manga.value.external_id || mangaId.value,
-          chapter.id,
+          chapter.id, // Provider chapter ID
         );
       }
     }
@@ -1541,6 +1602,7 @@ const downloadManga = async () => {
 };
 
 const downloadChapter = async (chapter) => {
+  console.log("downloadChapter called with:", chapter);
   try {
     if (!libraryItemDetails.value) {
       throw new Error("Library item details not available");
@@ -1556,15 +1618,26 @@ const downloadChapter = async (chapter) => {
     }
 
     const libraryItemId = libraryResponse.data[0].id;
+    console.log("Library item ID:", libraryItemId);
+    console.log("Chapter data:", {
+      library_chapter_id: chapter.library_chapter_id,
+      chapter_id: chapter.id,
+      provider: manga.value.provider,
+      external_id: manga.value.external_id,
+    });
 
     // Download the specific chapter
-    await libraryStore.downloadChapter(
+    // For library chapters, use library_chapter_id if available, otherwise null
+    // Use chapter.id as the external_chapter_id (provider chapter ID)
+    const downloadResult = await libraryStore.downloadChapter(
       libraryItemId,
-      chapter.id,
-      manga.value.provider || "mangadex",
+      chapter.library_chapter_id || null,
+      manga.value.provider || "mangadx",
       manga.value.external_id || mangaId.value,
-      chapter.id,
+      chapter.id, // This is the provider chapter ID
     );
+
+    console.log("Download result:", downloadResult);
 
     // Reload library item details to update download status
     await loadLibraryItemDetails();
@@ -1718,7 +1791,11 @@ const deleteChapter = async (chapter) => {
   try {
     await api.delete(`/v1/chapters/${chapter.id}`);
     alert("Chapter deleted successfully!");
+    // Refresh both manga details and library item details to update UI
     await refreshMangaDetails();
+    if (!isExternal.value && inLibrary.value) {
+      await loadLibraryItemDetails();
+    }
   } catch (error) {
     console.error("Error deleting chapter:", error);
     alert(

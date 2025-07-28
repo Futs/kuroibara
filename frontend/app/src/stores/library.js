@@ -1,5 +1,11 @@
 import { defineStore } from "pinia";
 import api from "../services/api";
+import { rateLimiter } from "../utils/rateLimiter";
+import {
+  initializeProviderRateLimits,
+  makeRateLimitedRequest,
+  getProviderDownloadSettings,
+} from "../config/providerRateLimits";
 
 export const useLibraryStore = defineStore("library", {
   state: () => ({
@@ -7,6 +13,7 @@ export const useLibraryStore = defineStore("library", {
     currentManga: null,
     loading: false,
     error: null,
+    rateLimitsInitialized: false,
 
     // Enhanced filtering system
     filters: {
@@ -208,7 +215,18 @@ export const useLibraryStore = defineStore("library", {
   },
 
   actions: {
+    // Initialize rate limiting for providers
+    initializeRateLimits() {
+      if (!this.rateLimitsInitialized) {
+        initializeProviderRateLimits(rateLimiter);
+        this.rateLimitsInitialized = true;
+        console.log("Provider rate limits initialized");
+      }
+    },
+
     async fetchLibrary() {
+      // Ensure rate limits are initialized
+      this.initializeRateLimits();
       this.loading = true;
       this.error = null;
 
@@ -407,15 +425,42 @@ export const useLibraryStore = defineStore("library", {
       externalChapterId,
     ) {
       try {
-        const response = await api.post(
-          `/v1/library/${libraryItemId}/download-chapter`,
-          {
-            chapter_id: chapterId,
-            provider,
-            external_manga_id: externalMangaId,
-            external_chapter_id: externalChapterId,
+        // Apply rate limiting for the provider
+        const response = await makeRateLimitedRequest(
+          rateLimiter,
+          provider,
+          async () => {
+            return await api.post(
+              `/v1/library/${libraryItemId}/download-chapter`,
+              {
+                chapter_id: chapterId,
+                provider,
+                external_manga_id: externalMangaId,
+                external_chapter_id: externalChapterId,
+              },
+            );
           },
+          { priority: 1 }, // Normal priority for individual downloads
         );
+
+        // Add download to downloads store for immediate UI feedback
+        const { useDownloadsStore } = await import("./downloads");
+        const downloadsStore = useDownloadsStore();
+
+        if (response.data.task_id) {
+          downloadsStore.addDownload({
+            task_id: response.data.task_id,
+            manga_id: response.data.manga_id,
+            chapter_id: response.data.chapter_id,
+            status: "downloading",
+            progress: 0,
+            total_pages: 0,
+            downloaded_pages: 0,
+            started_at: new Date().toISOString(),
+            error: null,
+          });
+        }
+
         return response.data;
       } catch (error) {
         console.error("Error downloading chapter:", error);

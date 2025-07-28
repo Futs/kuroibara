@@ -118,17 +118,47 @@
       </div>
 
       <div v-else class="space-y-4">
-        <!-- Setup Instructions -->
+        <!-- Information Box -->
         <div
-          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+          class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
         >
-          <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
-            Connect your Anilist account
-          </h4>
-          <p class="text-xs text-blue-600 dark:text-blue-400 mb-3">
-            Sync your manga list, reading progress, and ratings with Anilist.
-            You'll need to set up API credentials first.
-          </p>
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg
+                class="h-5 w-5 text-blue-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Connect your Anilist account
+              </h4>
+              <p class="mt-1 text-sm text-blue-700 dark:text-blue-300 mb-3">
+                Sync your manga list, reading progress, and ratings with
+                Anilist. You'll need to set up API credentials first.
+              </p>
+              <h5 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                API Credentials Required
+              </h5>
+              <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                Get your credentials from
+                <a
+                  href="https://anilist.co/settings/developer"
+                  target="_blank"
+                  class="font-medium underline hover:no-underline"
+                >
+                  Anilist Developer Settings
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
 
         <!-- API Credentials Setup -->
@@ -136,19 +166,6 @@
           v-if="!anilistStatus?.client_id"
           class="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
         >
-          <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-            API Credentials Required
-          </h4>
-          <p class="text-xs text-gray-600 dark:text-gray-400">
-            Get your credentials from
-            <a
-              href="https://anilist.co/settings/developer"
-              target="_blank"
-              class="text-blue-600 hover:text-blue-800"
-              >Anilist Developer Settings</a
-            >
-          </p>
-
           <div class="space-y-2">
             <label
               class="block text-xs font-medium text-gray-700 dark:text-gray-300"
@@ -328,17 +345,47 @@
       </div>
 
       <div v-else class="space-y-4">
-        <!-- Setup Instructions -->
+        <!-- Information Box -->
         <div
-          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+          class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
         >
-          <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
-            Connect your MyAnimeList account
-          </h4>
-          <p class="text-xs text-blue-600 dark:text-blue-400 mb-3">
-            Sync your manga list, reading progress, and ratings with
-            MyAnimeList. You'll need to set up API credentials first.
-          </p>
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg
+                class="h-5 w-5 text-blue-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Connect your MyAnimeList account
+              </h4>
+              <p class="mt-1 text-sm text-blue-700 dark:text-blue-300 mb-3">
+                Sync your manga list, reading progress, and ratings with
+                MyAnimeList. You'll need to set up API credentials first.
+              </p>
+              <h5 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                API Credentials Required
+              </h5>
+              <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                Get your credentials from
+                <a
+                  href="https://myanimelist.net/apiconfig"
+                  target="_blank"
+                  class="font-medium underline hover:no-underline"
+                >
+                  MyAnimeList API Config
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
 
         <!-- API Credentials Setup -->
@@ -346,19 +393,6 @@
           v-if="!malStatus?.client_id"
           class="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
         >
-          <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-            API Credentials Required
-          </h4>
-          <p class="text-xs text-gray-600 dark:text-gray-400">
-            Get your credentials from
-            <a
-              href="https://myanimelist.net/apiconfig"
-              target="_blank"
-              class="text-blue-600 hover:text-blue-800"
-              >MyAnimeList API Config</a
-            >
-          </p>
-
           <div class="space-y-2">
             <label
               class="block text-xs font-medium text-gray-700 dark:text-gray-300"

@@ -692,7 +692,7 @@ async def recover_manga_from_storage(
         return RecoverMangaResponse(
             success=True,
             manga_id=manga.id,
-            message=f"Successfully recovered manga '{manga.title}' with {len(chapters)} chapters",
+            message=f"Recovered '{manga.title}' with {len(chapters)} chapters",
             chapters_recovered=len(chapters),
             errors=[],
         )
@@ -743,7 +743,7 @@ async def batch_recover_manga_from_storage(
                 RecoverMangaResponse(
                     success=True,
                     manga_id=manga.id,
-                    message=f"Successfully recovered '{manga.title}' with {len(chapters)} chapters",
+                    message=f"Recovered '{manga.title}' with {len(chapters)} chapters",
                     chapters_recovered=len(chapters),
                     errors=[],
                 )
@@ -936,7 +936,7 @@ async def execute_structure_migration(
         if not plan.operations:
             return {
                 "success": True,
-                "message": "No migration needed - manga already uses the target structure",
+                "message": "No migration needed - already uses target structure",
                 "operations_completed": 0,
                 "operations_failed": 0,
             }

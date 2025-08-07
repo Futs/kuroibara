@@ -312,6 +312,21 @@ class RecoverMangaResponse(BaseModel):
     )
 
 
+class ReorganizeAllRequest(BaseModel):
+    """Request schema for reorganizing all media."""
+
+    manga_naming_format: Optional[str] = Field(
+        None, description="Naming format for manga"
+    )
+    chapter_naming_format: Optional[str] = Field(
+        None, description="Naming format for chapters"
+    )
+    preserve_original_files: bool = Field(
+        False, description="Whether to preserve original files"
+    )
+    create_cbz_files: bool = Field(True, description="Whether to create CBZ files")
+
+
 class BatchRecoveryRequest(BaseModel):
     """Request schema for batch manga recovery."""
 

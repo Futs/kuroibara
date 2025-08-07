@@ -51,8 +51,8 @@ describe("MangaReader Component", () => {
     store.chapter = { id: "1", title: "Chapter 1" };
     store.chapters = [{ id: "1", title: "Chapter 1" }];
     store.pages = [
-      "https://example.com/page1.jpg",
-      "https://example.com/page2.jpg",
+      { url: "https://example.com/page1.jpg" },
+      { url: "https://example.com/page2.jpg" },
     ];
     store.currentPage = 1;
     store.loading = false;

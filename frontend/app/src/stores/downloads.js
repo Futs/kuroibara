@@ -9,6 +9,7 @@ export const useDownloadsStore = defineStore("downloads", {
     isConnected: false,
     reconnectAttempts: 0,
     maxReconnectAttempts: 5,
+    bulkDownloads: new Map(), // Map of bulk download IDs to bulk download info
   }),
 
   getters: {
@@ -31,6 +32,12 @@ export const useDownloadsStore = defineStore("downloads", {
           download.chapter_id === chapterId &&
           download.status === "downloading",
       );
+    },
+    getBulkDownloads: (state) => Array.from(state.bulkDownloads.values()),
+    getBulkDownloadById: (state) => (bulkId) => state.bulkDownloads.get(bulkId),
+    isBulkDownloading: (state) => (bulkId) => {
+      const bulk = state.bulkDownloads.get(bulkId);
+      return bulk && bulk.status === "downloading";
     },
   },
 
@@ -66,6 +73,70 @@ export const useDownloadsStore = defineStore("downloads", {
         console.error("Error canceling download:", error);
         throw error;
       }
+    },
+
+    // Bulk download management
+    startBulkDownload(bulkId, mangaId, totalChapters) {
+      this.bulkDownloads.set(bulkId, {
+        id: bulkId,
+        manga_id: mangaId,
+        status: "downloading",
+        total_chapters: totalChapters,
+        completed_chapters: 0,
+        failed_chapters: 0,
+        started_at: new Date().toISOString(),
+        chapter_downloads: new Set(), // Track individual chapter download IDs
+      });
+    },
+
+    async cancelBulkDownload(bulkId) {
+      const bulkDownload = this.bulkDownloads.get(bulkId);
+      if (!bulkDownload) return;
+
+      try {
+        // Cancel all individual chapter downloads
+        const cancelPromises = Array.from(bulkDownload.chapter_downloads).map(
+          (taskId) => this.cancelDownload(taskId),
+        );
+
+        await Promise.allSettled(cancelPromises);
+
+        // Update bulk download status
+        bulkDownload.status = "cancelled";
+        bulkDownload.cancelled_at = new Date().toISOString();
+
+        console.log(`Bulk download ${bulkId} cancelled`);
+      } catch (error) {
+        console.error("Error canceling bulk download:", error);
+        throw error;
+      }
+    },
+
+    updateBulkDownloadProgress(bulkId, chapterTaskId, status) {
+      const bulkDownload = this.bulkDownloads.get(bulkId);
+      if (!bulkDownload) return;
+
+      // Add chapter download to tracking
+      bulkDownload.chapter_downloads.add(chapterTaskId);
+
+      // Update counters based on status
+      if (status === "completed") {
+        bulkDownload.completed_chapters++;
+      } else if (status === "failed") {
+        bulkDownload.failed_chapters++;
+      }
+
+      // Check if bulk download is complete
+      const totalProcessed =
+        bulkDownload.completed_chapters + bulkDownload.failed_chapters;
+      if (totalProcessed >= bulkDownload.total_chapters) {
+        bulkDownload.status = "completed";
+        bulkDownload.completed_at = new Date().toISOString();
+      }
+    },
+
+    removeBulkDownload(bulkId) {
+      this.bulkDownloads.delete(bulkId);
     },
 
     connectWebSocket() {

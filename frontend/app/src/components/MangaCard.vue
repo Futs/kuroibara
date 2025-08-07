@@ -2,7 +2,7 @@
   <div class="manga-card">
     <div class="relative group cursor-pointer" @click="viewDetails">
       <div
-        class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
+        class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
       >
         <LazyImage
           v-if="getMangaCover"
@@ -172,6 +172,7 @@ import { useRouter } from "vue-router";
 import { useSettingsStore } from "../stores/settings";
 import LazyImage from "./LazyImage.vue";
 import { perf } from "../utils/performance";
+import { getCoverUrl } from "../utils/imageProxy";
 
 const props = defineProps({
   manga: {
@@ -226,12 +227,14 @@ const getMangaCover = computed(() => {
   if (props.manga.custom_cover) {
     return props.manga.custom_cover;
   }
-  // Check nested manga object
-  if (props.manga.manga && props.manga.manga.cover_image) {
-    return props.manga.manga.cover_image;
+
+  // For library items with nested manga object
+  if (props.manga.manga) {
+    return getCoverUrl(props.manga.manga, props.manga.manga.id);
   }
-  // Direct manga object
-  return props.manga.cover_image || props.manga.cover_url;
+
+  // For direct manga objects
+  return getCoverUrl(props.manga, props.manga.id);
 });
 
 const getMangaAuthor = computed(() => {

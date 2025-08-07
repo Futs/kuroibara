@@ -2,11 +2,11 @@
   <div class="search-result-card">
     <div class="relative group cursor-pointer" @click="viewDetails">
       <div
-        class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
+        class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
       >
         <img
-          v-if="manga.cover_image || manga.cover_url"
-          :src="manga.cover_image || manga.cover_url"
+          v-if="coverUrl"
+          :src="coverUrl"
           :alt="manga.title"
           class="w-full h-full object-center object-cover"
           :class="{ 'blur-md': isNsfw && blurNsfw }"
@@ -183,6 +183,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useSettingsStore } from "../stores/settings";
+import { getCoverUrl } from "../utils/imageProxy";
 import api from "@/services/api.js";
 
 const props = defineProps({
@@ -208,6 +209,10 @@ const isNsfw = computed(() => {
   );
 });
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
+
+const coverUrl = computed(() => {
+  return getCoverUrl(props.manga, props.manga.id);
+});
 
 const viewDetails = (event) => {
   // Prevent navigation if clicking on action buttons

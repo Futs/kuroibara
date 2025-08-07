@@ -34,8 +34,22 @@ jobs:
       - name: Update Python dependencies
         run: |
           cd backend
-          pip install --upgrade pip pip-tools
-          pip-compile --upgrade requirements.in || echo "No requirements.in found, skipping Python updates"
+          pip install --upgrade pip pip-tools pur
+          # Use pur to update version ranges in requirements.txt
+          if [ -f "requirements.txt" ]; then
+            # Update version ranges to latest available versions
+            pur -r requirements.txt --dry-run > pur_output.txt || true
+            if [ -s pur_output.txt ]; then
+              pur -r requirements.txt
+              echo "Updated Python dependencies in requirements.txt"
+              cat pur_output.txt
+            else
+              echo "No Python dependency updates available"
+            fi
+            rm -f pur_output.txt
+          else
+            echo "No requirements.txt found, skipping Python dependency updates"
+          fi
 
       - name: Update Node.js dependencies
         run: |
@@ -43,7 +57,24 @@ jobs:
           npm update
           npm audit fix || true
 
+      - name: Delete existing dependency update branch
+        run: |
+          git push origin --delete chore/dependency-updates || echo "Branch doesn't exist or already deleted"
+        continue-on-error: true
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes detected"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,3 +94,9 @@ jobs:
             dependencies
             automated
             chore
+
+      - name: No changes detected
+        if: steps.changes.outputs.has_changes == 'false'
+        run: |
+          echo "No dependency updates available at this time."
+          echo "All dependencies are up to date."

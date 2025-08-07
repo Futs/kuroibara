@@ -533,7 +533,7 @@
               @click="goToPage(page)"
               :class="[
                 page === currentPage
-                  ? 'z-10 bg-primary-50 dark:bg-primary-900 border-primary-500 text-primary-600 dark:text-primary-400'
+                  ? 'z-10 bg-white dark:bg-primary-900 border-primary-500 text-primary-600 dark:text-primary-400'
                   : 'bg-white dark:bg-dark-800 border-gray-300 dark:border-dark-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark-700',
                 'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
               ]"
@@ -632,6 +632,7 @@ import MetadataEditor from "../components/MetadataEditor.vue";
 import ImportDialog from "../components/ImportDialog.vue";
 import VirtualScroller from "../components/VirtualScroller.vue";
 import { perf } from "../utils/performance";
+import { getCoverUrl } from "../utils/imageProxy";
 
 // Store
 const libraryStore = useLibraryStore();
@@ -794,12 +795,14 @@ const getMangaCover = (item) => {
   if (item.custom_cover) {
     return item.custom_cover;
   }
-  // Check nested manga object
-  if (item.manga && item.manga.cover_image) {
-    return item.manga.cover_image;
+
+  // For library items with nested manga object
+  if (item.manga) {
+    return getCoverUrl(item.manga, item.manga.id);
   }
-  // Direct manga object
-  return item.cover_image || item.cover_url || "/placeholder-cover.jpg";
+
+  // For direct manga objects
+  return getCoverUrl(item, item.id);
 };
 
 const getMangaTitle = (item) => {

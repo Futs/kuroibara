@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.base import BaseSchema
 from app.schemas.manga import Manga, MangaSummary
@@ -76,7 +76,7 @@ class MangaUserLibraryUpdate(MangaUserLibraryBase):
 
 
 class MangaUserLibrarySummary(MangaUserLibraryBase, BaseSchema):
-    """Manga user library schema for responses without chapter pages (for library listings)."""
+    """Manga user library schema for responses without chapter pages."""
 
     user_id: UUID
     manga_id: UUID
@@ -190,3 +190,12 @@ class Bookmark(BookmarkBase, BaseSchema):
     user_id: UUID
     manga_id: UUID
     chapter_id: UUID
+
+
+class DownloadChapterRequest(BaseModel):
+    """Schema for downloading a chapter."""
+
+    chapter_id: Optional[str] = Field(None, description="Local chapter ID (if exists)")
+    provider: str = Field(..., description="Provider name")
+    external_manga_id: str = Field(..., description="External manga ID")
+    external_chapter_id: str = Field(..., description="External chapter ID")

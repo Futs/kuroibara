@@ -1,5 +1,9 @@
+import asyncio
 import logging
+import time
+from typing import Optional
 
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import AsyncSessionLocal, Base, engine
@@ -12,9 +16,54 @@ from app.models.library import (
 logger = logging.getLogger(__name__)
 
 
+async def wait_for_database(max_retries: int = 30, retry_delay: float = 2.0) -> bool:
+    """
+    Wait for the database to become available.
+
+    Args:
+        max_retries: Maximum number of connection attempts
+        retry_delay: Delay between retry attempts in seconds
+
+    Returns:
+        True if database is available, False otherwise
+    """
+    from sqlalchemy import text
+
+    for attempt in range(max_retries):
+        try:
+            # Try to establish a connection
+            async with engine.begin() as conn:
+                # Simple query to test connection
+                await conn.execute(text("SELECT 1"))
+            logger.info("Database connection established successfully")
+            return True
+        except (OperationalError, ConnectionRefusedError, OSError) as e:
+            if attempt < max_retries - 1:
+                logger.warning(
+                    f"Database connection attempt {attempt + 1}/{max_retries} failed: {e}. "
+                    f"Retrying in {retry_delay} seconds..."
+                )
+                await asyncio.sleep(retry_delay)
+            else:
+                logger.error(
+                    f"Failed to connect to database after {max_retries} attempts: {e}"
+                )
+                return False
+        except Exception as e:
+            logger.error(f"Unexpected error while connecting to database: {e}")
+            return False
+
+    return False
+
+
 async def init_db() -> None:
     """Initialize the database with required tables and initial data."""
     try:
+        # Wait for database to be available
+        logger.info("Waiting for database to become available...")
+        if not await wait_for_database():
+            raise RuntimeError("Database is not available after maximum retry attempts")
+
         logger.info("Creating database tables...")
 
         # Create tables
@@ -24,8 +73,6 @@ async def init_db() -> None:
         logger.info("Tables created successfully")
 
         # Wait a moment to ensure transaction is fully committed
-        import asyncio
-
         await asyncio.sleep(0.1)
 
         # Create initial data if needed

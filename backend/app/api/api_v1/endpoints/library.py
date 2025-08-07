@@ -1,4 +1,5 @@
 import logging
+import math
 import uuid
 from typing import Any, Dict, List, Optional
 
@@ -10,7 +11,7 @@ from fastapi import (
     Query,
     status,
 )
-from sqlalchemy import insert, select
+from sqlalchemy import func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -25,9 +26,11 @@ from app.models.library import (
 )
 from app.models.manga import Chapter, Manga
 from app.models.user import User
+from app.schemas.base import PaginatedResponse, PaginationInfo
 from app.schemas.library import Bookmark as BookmarkSchema
 from app.schemas.library import (
     BookmarkCreate,
+    DownloadChapterRequest,
 )
 from app.schemas.library import MangaUserLibrary as MangaUserLibrarySchema
 from app.schemas.library import (
@@ -45,7 +48,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("", response_model=List[MangaUserLibrarySummary])
+@router.get("", response_model=PaginatedResponse[MangaUserLibrarySummary])
 async def read_library(
     skip: int = 0,
     limit: int = 100,
@@ -83,13 +86,25 @@ async def read_library(
     if manga_id:
         query = query.where(MangaUserLibrary.manga_id == uuid.UUID(manga_id))
 
-    # Apply pagination
-    query = query.offset(skip).limit(limit)
+    # Get total count
+    count_query = select(func.count()).select_from(query.subquery())
+    count_result = await db.execute(count_query)
+    total = count_result.scalar()
 
-    result = await db.execute(query)
+    # Apply pagination
+    paginated_query = query.offset(skip).limit(limit)
+
+    result = await db.execute(paginated_query)
     library_items = result.scalars().all()
 
-    return library_items
+    # Calculate pagination info
+    page = (skip // limit) + 1 if limit > 0 else 1
+    pages = math.ceil(total / limit) if limit > 0 else 1
+
+    return PaginatedResponse(
+        items=library_items,
+        pagination=PaginationInfo(total=total, page=page, size=limit, pages=pages),
+    )
 
 
 @router.get("/check/{manga_id}", response_model=Dict[str, Any])
@@ -121,6 +136,61 @@ async def check_library_status(
         return {
             "manga_id": manga_id,
             "in_library": False,
+            "library_item_id": None,
+        }
+
+
+@router.get("/check-external", response_model=Dict[str, Any])
+async def check_external_library_status(
+    provider: str = Query(...),
+    external_id: str = Query(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Check if an external manga is in the user's library by provider and external_id.
+    """
+    try:
+        # Find manga by provider and external_id
+        result = await db.execute(
+            select(Manga).where(
+                (Manga.provider == provider) & (Manga.external_id == external_id)
+            )
+        )
+        manga = result.scalars().first()
+
+        if not manga:
+            return {
+                "provider": provider,
+                "external_id": external_id,
+                "in_library": False,
+                "manga_id": None,
+                "library_item_id": None,
+            }
+
+        # Check if this manga is in user's library
+        library_result = await db.execute(
+            select(MangaUserLibrary).where(
+                (MangaUserLibrary.user_id == current_user.id)
+                & (MangaUserLibrary.manga_id == manga.id)
+            )
+        )
+        library_item = library_result.scalars().first()
+
+        return {
+            "provider": provider,
+            "external_id": external_id,
+            "in_library": library_item is not None,
+            "manga_id": str(manga.id),
+            "library_item_id": str(library_item.id) if library_item else None,
+        }
+    except Exception as e:
+        logger.error(f"Error checking external library status: {e}")
+        return {
+            "provider": provider,
+            "external_id": external_id,
+            "in_library": False,
+            "manga_id": None,
             "library_item_id": None,
         }
 
@@ -183,7 +253,7 @@ async def add_to_library(
         await db.commit()
         await db.refresh(library_item_obj)
 
-        # Load relationships explicitly to avoid greenlet issues during response serialization
+        # Load relationships explicitly to avoid greenlet issues
         from sqlalchemy.orm import selectinload
 
         result = await db.execute(
@@ -812,10 +882,7 @@ async def cancel_download_task(
 @router.post("/{library_item_id}/download-chapter", response_model=Dict[str, Any])
 async def download_chapter_endpoint(
     library_item_id: str,
-    chapter_id: str,
-    provider: str,
-    external_manga_id: str,
-    external_chapter_id: str,
+    request: DownloadChapterRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -831,22 +898,31 @@ async def download_chapter_endpoint(
             detail="Library item not found",
         )
 
-    # Get chapter
-    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
-    if not chapter or chapter.manga_id != library_item.manga_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Chapter not found",
-        )
+    # Get chapter if chapter_id is provided
+    chapter = None
+    if request.chapter_id:
+        try:
+            chapter = await db.get(Chapter, uuid.UUID(request.chapter_id))
+            if chapter and chapter.manga_id != library_item.manga_id:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Chapter not found",
+                )
+        except ValueError:
+            # Invalid UUID format
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid chapter ID format",
+            )
 
     # Check if provider exists
     from app.core.providers.registry import provider_registry
 
-    provider_instance = provider_registry.get_provider(provider)
+    provider_instance = provider_registry.get_provider(request.provider)
     if not provider_instance:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Provider '{provider}' not found",
+            detail=f"Provider '{request.provider}' not found",
         )
 
     try:
@@ -854,16 +930,27 @@ async def download_chapter_endpoint(
         from app.core.services.download import download_chapter
 
         # Create task ID
-        task_id = f"{current_user.id}_{library_item.manga_id}_{chapter_id}"
+        chapter_id_for_task = chapter.id if chapter else "new"
+        task_id = f"{current_user.id}_{library_item.manga_id}_{chapter_id_for_task}"
+
+        # If no existing chapter, handle it in the download service
+        if not chapter:
+            # For new chapters from provider, let download service handle creation
+            # Create a placeholder chapter ID for the task
+            from uuid import uuid4
+
+            chapter_id_for_download = uuid4()
+        else:
+            chapter_id_for_download = chapter.id
 
         # Add download task to background tasks
         background_tasks.add_task(
             download_chapter,
             manga_id=library_item.manga_id,
-            chapter_id=chapter.id,
-            provider_name=provider,
-            external_manga_id=external_manga_id,
-            external_chapter_id=external_chapter_id,
+            chapter_id=chapter_id_for_download,
+            provider_name=request.provider,
+            external_manga_id=request.external_manga_id,
+            external_chapter_id=request.external_chapter_id,
             db=db,
         )
 
@@ -871,9 +958,9 @@ async def download_chapter_endpoint(
         return {
             "task_id": task_id,
             "manga_id": str(library_item.manga_id),
-            "chapter_id": str(chapter.id),
+            "chapter_id": str(chapter_id_for_download),
             "user_id": str(current_user.id),
-            "provider": provider,
+            "provider": request.provider,
             "status": "queued",
             "message": "Chapter download task has been queued",
         }
@@ -882,7 +969,45 @@ async def download_chapter_endpoint(
         logger.error(f"Error starting chapter download: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to start chapter download",
+            detail=f"Failed to start chapter download: {str(e)}",
+        )
+
+
+@router.get("/stats", response_model=Dict[str, Any])
+async def get_library_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Get library statistics for the current user.
+    """
+    try:
+        # Count total manga in user's library
+        manga_result = await db.execute(
+            select(func.count(MangaUserLibrary.manga_id)).where(
+                MangaUserLibrary.user_id == current_user.id
+            )
+        )
+        total_manga = manga_result.scalar() or 0
+
+        # Count total chapters for manga in user's library
+        chapters_result = await db.execute(
+            select(func.count(Chapter.id))
+            .join(Manga, Chapter.manga_id == Manga.id)
+            .join(MangaUserLibrary, Manga.id == MangaUserLibrary.manga_id)
+            .where(MangaUserLibrary.user_id == current_user.id)
+        )
+        total_chapters = chapters_result.scalar() or 0
+
+        return {
+            "total_manga": total_manga,
+            "total_chapters": total_chapters,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching library stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch library statistics",
         )
 
 

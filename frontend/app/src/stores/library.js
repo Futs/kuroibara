@@ -257,8 +257,17 @@ export const useLibraryStore = defineStore("library", {
 
         const response = await api.get("/v1/library", { params });
 
-        this.manga = response.data || [];
-        this.pagination.total = response.data.length || 0;
+        // Handle paginated response
+        if (response.data.items) {
+          this.manga = response.data.items || [];
+          this.pagination.total = response.data.pagination?.total || 0;
+          this.pagination.pages = response.data.pagination?.pages || 1;
+          this.pagination.page = response.data.pagination?.page || 1;
+        } else {
+          // Fallback for non-paginated response
+          this.manga = response.data || [];
+          this.pagination.total = response.data.length || 0;
+        }
       } catch (error) {
         this.error = error.response?.data?.detail || "Failed to fetch library";
         console.error("Library fetch error:", error);

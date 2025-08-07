@@ -3,8 +3,8 @@ import logging
 import time
 from typing import Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import AsyncSessionLocal, Base, engine
 from app.models.library import (
@@ -45,7 +45,9 @@ async def wait_for_database(max_retries: int = 30, retry_delay: float = 2.0) -> 
                 )
                 await asyncio.sleep(retry_delay)
             else:
-                logger.error(f"Failed to connect to database after {max_retries} attempts: {e}")
+                logger.error(
+                    f"Failed to connect to database after {max_retries} attempts: {e}"
+                )
                 return False
         except Exception as e:
             logger.error(f"Unexpected error while connecting to database: {e}")

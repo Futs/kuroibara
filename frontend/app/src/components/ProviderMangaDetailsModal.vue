@@ -426,18 +426,5 @@ const getMangaData = () => {
 </script>
 
 <style scoped>
-.aspect-w-2 {
-  position: relative;
-  padding-bottom: 150%; /* 2:3 aspect ratio */
-}
-
-.aspect-w-2 > * {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
+/* Component styles can be added here if needed */
 </style>

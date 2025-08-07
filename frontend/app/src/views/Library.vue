@@ -632,6 +632,7 @@ import MetadataEditor from "../components/MetadataEditor.vue";
 import ImportDialog from "../components/ImportDialog.vue";
 import VirtualScroller from "../components/VirtualScroller.vue";
 import { perf } from "../utils/performance";
+import { getCoverUrl } from "../utils/imageProxy";
 
 // Store
 const libraryStore = useLibraryStore();
@@ -794,12 +795,14 @@ const getMangaCover = (item) => {
   if (item.custom_cover) {
     return item.custom_cover;
   }
-  // Check nested manga object
-  if (item.manga && item.manga.cover_image) {
-    return item.manga.cover_image;
+
+  // For library items with nested manga object
+  if (item.manga) {
+    return getCoverUrl(item.manga, item.manga.id);
   }
-  // Direct manga object
-  return item.cover_image || item.cover_url || "/placeholder-cover.jpg";
+
+  // For direct manga objects
+  return getCoverUrl(item, item.id);
 };
 
 const getMangaTitle = (item) => {

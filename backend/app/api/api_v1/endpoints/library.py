@@ -1,4 +1,5 @@
 import logging
+import math
 import uuid
 from typing import Any, Dict, List, Optional
 
@@ -25,6 +26,7 @@ from app.models.library import (
 )
 from app.models.manga import Chapter, Manga
 from app.models.user import User
+from app.schemas.base import PaginatedResponse, PaginationInfo
 from app.schemas.library import Bookmark as BookmarkSchema
 from app.schemas.library import (
     BookmarkCreate,
@@ -46,7 +48,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("", response_model=List[MangaUserLibrarySummary])
+@router.get("", response_model=PaginatedResponse[MangaUserLibrarySummary])
 async def read_library(
     skip: int = 0,
     limit: int = 100,
@@ -84,13 +86,25 @@ async def read_library(
     if manga_id:
         query = query.where(MangaUserLibrary.manga_id == uuid.UUID(manga_id))
 
-    # Apply pagination
-    query = query.offset(skip).limit(limit)
+    # Get total count
+    count_query = select(func.count()).select_from(query.subquery())
+    count_result = await db.execute(count_query)
+    total = count_result.scalar()
 
-    result = await db.execute(query)
+    # Apply pagination
+    paginated_query = query.offset(skip).limit(limit)
+
+    result = await db.execute(paginated_query)
     library_items = result.scalars().all()
 
-    return library_items
+    # Calculate pagination info
+    page = (skip // limit) + 1 if limit > 0 else 1
+    pages = math.ceil(total / limit) if limit > 0 else 1
+
+    return PaginatedResponse(
+        items=library_items,
+        pagination=PaginationInfo(total=total, page=page, size=limit, pages=pages),
+    )
 
 
 @router.get("/check/{manga_id}", response_model=Dict[str, Any])

@@ -262,6 +262,15 @@ const applyRenames = async () => {
 
 <style scoped>
 .chapter-management {
-  @apply bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg p-4 mb-6;
+  background-color: rgb(255 255 255);
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dark .chapter-management {
+  background-color: rgb(30 41 59);
+  border-color: rgb(71 85 105);
 }
 </style>

@@ -137,7 +137,7 @@
           <!-- Left Column - Cover and Actions -->
           <div class="w-full md:w-1/3 lg:w-1/4">
             <div
-              class="aspect-w-2 aspect-h-3 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
+              class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-700"
             >
               <img
                 v-if="manga.cover_image"
@@ -574,8 +574,8 @@
                     !isExternal &&
                     libraryItemDetails &&
                     viewMode === 'chapters' &&
-                    providerChapters &&
-                    providerChapters.length
+                    libraryItemDetails.chapters &&
+                    libraryItemDetails.chapters.length
                   "
                 >
                   <!-- Enhanced Chapter Cards for better UX -->
@@ -584,11 +584,11 @@
                     class="divide-y divide-gray-200 dark:divide-dark-600 mb-6"
                   >
                     <EnhancedChapterCard
-                      v-for="chapter in paginatedAllProviderChapters"
+                      v-for="chapter in paginatedLibraryChapters"
                       :key="chapter.id"
                       :chapter="chapter"
                       @read-chapter="readChapter"
-                      @download-chapter="downloadProviderChapter"
+                      @download-chapter="downloadChapter"
                       @redownload-chapter="redownloadChapter"
                       @delete-chapter="deleteChapter"
                     />
@@ -628,7 +628,7 @@
                     class="divide-y divide-gray-200 dark:divide-dark-600"
                   >
                     <li
-                      v-for="chapter in paginatedAllProviderChapters"
+                      v-for="chapter in paginatedLibraryChapters"
                       :key="chapter.id"
                       class="py-4 flex items-center justify-between"
                     >
@@ -724,7 +724,7 @@
                         <!-- Download Button -->
                         <button
                           v-if="chapter.download_status !== 'downloaded'"
-                          @click="downloadProviderChapter(chapter)"
+                          @click="downloadChapter(chapter)"
                           class="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-dark-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                         >
                           <svg
@@ -746,7 +746,7 @@
                         <!-- Re-download Button -->
                         <button
                           v-if="chapter.download_status === 'error'"
-                          @click="downloadProviderChapter(chapter)"
+                          @click="downloadChapter(chapter)"
                           class="inline-flex items-center px-3 py-1 border border-orange-300 text-sm leading-4 font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                         >
                           Retry
@@ -1077,16 +1077,22 @@ const paginatedProviderChapters = computed(() => {
 });
 
 const totalPages = computed(() => {
-  return Math.ceil(sortedProviderChapters.value.length / chaptersPerPage);
+  // Use library chapters for internal manga, provider chapters for external manga
+  const chaptersLength = isExternal.value
+    ? sortedProviderChapters.value.length
+    : sortedEnhancedChapters.value.length;
+  return Math.ceil(chaptersLength / chaptersPerPage);
 });
 
 const paginationInfo = computed(() => {
+  // Use library chapters for internal manga, provider chapters for external manga
+  const chaptersLength = isExternal.value
+    ? sortedProviderChapters.value.length
+    : sortedEnhancedChapters.value.length;
+
   const start = (currentPage.value - 1) * chaptersPerPage + 1;
-  const end = Math.min(
-    currentPage.value * chaptersPerPage,
-    sortedProviderChapters.value.length,
-  );
-  const total = sortedProviderChapters.value.length;
+  const end = Math.min(currentPage.value * chaptersPerPage, chaptersLength);
+  const total = chaptersLength;
   return { start, end, total };
 });
 
@@ -1208,6 +1214,15 @@ const paginatedAllProviderChapters = computed(() => {
   const endIndex = startIndex + chaptersPerPage.value;
 
   return providerChapters.value.slice(startIndex, endIndex);
+});
+
+const paginatedLibraryChapters = computed(() => {
+  if (!sortedEnhancedChapters.value) return [];
+
+  const startIndex = (currentPage.value - 1) * chaptersPerPage.value;
+  const endIndex = startIndex + chaptersPerPage.value;
+
+  return sortedEnhancedChapters.value.slice(startIndex, endIndex);
 });
 
 const groupedVolumes = computed(() => {
@@ -1340,8 +1355,8 @@ const loadLibraryItemDetails = async () => {
       params: { manga_id: mangaId.value },
     });
 
-    if (libraryResponse.data.length > 0) {
-      const libraryItemId = libraryResponse.data[0].id;
+    if (libraryResponse.data.items && libraryResponse.data.items.length > 0) {
+      const libraryItemId = libraryResponse.data.items[0].id;
       libraryItemDetails.value =
         await libraryStore.fetchLibraryItemDetailed(libraryItemId);
     }
@@ -1463,11 +1478,11 @@ const downloadVolume = async (volumeData) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (libraryResponse.data.length === 0) {
+    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
       throw new Error("Manga not found in library");
     }
 
-    const libraryItemId = libraryResponse.data[0].id;
+    const libraryItemId = libraryResponse.data.items[0].id;
 
     // Create bulk download tracking
     const bulkId = `volume_${volumeData.number}_${Date.now()}`;
@@ -1530,11 +1545,11 @@ const retryFailedChapters = async (volumeData) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (libraryResponse.data.length === 0) {
+    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
       throw new Error("Manga not found in library");
     }
 
-    const libraryItemId = libraryResponse.data[0].id;
+    const libraryItemId = libraryResponse.data.items[0].id;
 
     // Retry failed chapters in the volume
     for (const chapter of volumeData.chapters) {
@@ -1571,7 +1586,7 @@ const downloadManga = async () => {
 
     // Get the library item ID
     const libraryResponse = await api.get("/v1/library");
-    const libraryItem = libraryResponse.data.find(
+    const libraryItem = libraryResponse.data.items?.find(
       (item) => item.manga_id === mangaId.value,
     );
 
@@ -1613,11 +1628,11 @@ const downloadChapter = async (chapter) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (libraryResponse.data.length === 0) {
+    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
       throw new Error("Manga not found in library");
     }
 
-    const libraryItemId = libraryResponse.data[0].id;
+    const libraryItemId = libraryResponse.data.items[0].id;
     console.log("Library item ID:", libraryItemId);
     console.log("Chapter data:", {
       library_chapter_id: chapter.library_chapter_id,
@@ -1659,11 +1674,11 @@ const downloadProviderChapter = async (chapter) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (libraryResponse.data.length === 0) {
+    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
       throw new Error("Manga not found in library");
     }
 
-    const libraryItemId = libraryResponse.data[0].id;
+    const libraryItemId = libraryResponse.data.items[0].id;
 
     // Download the specific chapter from provider
     await libraryStore.downloadChapter(

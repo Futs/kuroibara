@@ -318,6 +318,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
+import { getCoverUrl } from "../utils/imageProxy";
 
 const router = useRouter();
 
@@ -355,14 +356,14 @@ const getMangaCover = computed(() => {
   if (props.manga.custom_cover) {
     return props.manga.custom_cover;
   }
-  // Check nested manga object
-  if (props.manga.manga && props.manga.manga.cover_image) {
-    return props.manga.manga.cover_image;
+
+  // For library items with nested manga object
+  if (props.manga.manga) {
+    return getCoverUrl(props.manga.manga, props.manga.manga.id);
   }
-  // Direct manga object
-  return (
-    props.manga.cover_image || props.manga.cover_url || "/placeholder-cover.jpg"
-  );
+
+  // For direct manga objects
+  return getCoverUrl(props.manga, props.manga.id);
 });
 
 const getMangaDescription = computed(() => {

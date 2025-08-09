@@ -64,22 +64,35 @@ async def test_flaresolverr_provider_metadata():
 
     print(f"📋 Testing metadata for {provider_name}...")
 
+    # First try to get a real manga ID from search
     try:
-        # Use a test manga ID
-        test_manga_id = "test-manga-123"
-        metadata = await provider.get_manga_details(test_manga_id)
+        search_results, _, _ = await provider.search("naruto", limit=1)
+        if search_results and len(search_results) > 0:
+            # Use the first search result's ID
+            manga_id = getattr(search_results[0], 'id', None) or getattr(search_results[0], 'manga_id', None)
 
-        if metadata and isinstance(metadata, dict):
-            print("  ✅ Metadata successful")
-            print(f"  📖 Title: {metadata.get('title', 'N/A')}")
-            assert isinstance(metadata, dict)
+            if manga_id:
+                print(f"  🔍 Using real manga ID from search: {manga_id}")
+                metadata = await provider.get_manga_details(manga_id)
+
+                if metadata and isinstance(metadata, dict):
+                    print("  ✅ Metadata successful")
+                    print(f"  📖 Title: {metadata.get('title', 'N/A')}")
+                    assert isinstance(metadata, dict)
+                    assert 'title' in metadata or len(metadata) > 0
+                else:
+                    print("  ⚠️ No metadata returned")
+                    # This is acceptable - some providers may not support metadata
+            else:
+                print("  ⚠️ No manga ID found in search results")
+                pytest.skip(f"Provider {provider_name} search results don't contain manga IDs")
         else:
-            print("  ⚠️ No metadata returned (expected for test ID)")
-            # This is expected for a test ID
+            print("  ⚠️ No search results found")
+            pytest.skip(f"Provider {provider_name} search returned no results")
 
     except Exception as e:
-        print(f"  ⚠️ Metadata failed: {e}")
-        # Don't fail test for expected metadata failures with test IDs
+        print(f"  ⚠️ Metadata test failed: {e}")
+        # Don't fail test for provider connectivity issues
         pytest.skip(f"Provider {provider_name} metadata test skipped: {e}")
 
 

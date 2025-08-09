@@ -21,7 +21,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 from app.core.providers.factory import ProviderFactory
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
-from app.core.providers.mangaplus import MangaPlusProvider
 
 # Configure logging
 logging.basicConfig(
@@ -44,7 +43,7 @@ class ProviderTester:
 
         # Register provider classes
         self.factory.register_provider_class(MangaDexProvider)
-        self.factory.register_provider_class(MangaPlusProvider)
+        # MangaPlusProvider removed
         self.factory.register_provider_class(GenericProvider)
 
     async def test_url_accessibility(

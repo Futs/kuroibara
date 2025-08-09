@@ -1478,7 +1478,10 @@ const downloadVolume = async (volumeData) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 
@@ -1545,7 +1548,10 @@ const retryFailedChapters = async (volumeData) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 
@@ -1628,7 +1634,10 @@ const downloadChapter = async (chapter) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 
@@ -1674,7 +1683,10 @@ const downloadProviderChapter = async (chapter) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 

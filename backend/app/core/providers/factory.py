@@ -58,9 +58,7 @@ class ProviderFactory:
             if provider_id == "mangadex":
                 # MangaDexProvider takes no arguments
                 return provider_class()
-            elif provider_id == "mangaplus":
-                # MangaPlusProvider takes no arguments
-                return provider_class()
+
             else:
                 # Standard provider initialization
                 # Merge top-level config with params
@@ -72,11 +70,12 @@ class ProviderFactory:
                 # Handle different provider types
                 if class_name == "EnhancedGenericProvider":
                     # EnhancedGenericProvider expects 'base_url', not 'url'
-                    if "base_url" not in provider_kwargs:
+                    if "base_url" not in provider_kwargs and "url" in config:
                         provider_kwargs["base_url"] = config["url"]
                 else:
-                    # Other providers expect 'url'
-                    provider_kwargs["url"] = config["url"]
+                    # Other providers expect 'url' - only add if it exists in config
+                    if "url" in config:
+                        provider_kwargs["url"] = config["url"]
 
                 # Add important top-level config values
                 if "supports_nsfw" in config:

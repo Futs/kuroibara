@@ -1,7 +1,5 @@
 import asyncio
 import logging
-import time
-from typing import Optional
 
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession

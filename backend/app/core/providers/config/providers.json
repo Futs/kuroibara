@@ -368,20 +368,7 @@
       "name": "MangaLife"
     }
   },
-  {
-    "id": "mangareaderto",
-    "name": "MangaReaderTo",
-    "class_name": "GenericProvider",
-    "url": "https://mangareader.to",
-    "supports_nsfw": false,
-    "params": {
-      "base_url": "https://mangareader.to",
-      "search_url": "https://mangareader.to/search",
-      "manga_url_pattern": "https://mangareader.to/manga/{manga_id}",
-      "chapter_url_pattern": "https://mangareader.to/read/{manga_id}/{chapter_id}",
-      "name": "MangaReaderTo"
-    }
-  },
+
   {
     "id": "mangabat",
     "name": "MangaBat",

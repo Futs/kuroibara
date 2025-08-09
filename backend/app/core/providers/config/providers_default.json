@@ -3,25 +3,18 @@
     "id": "mangadex",
     "name": "MangaDex",
     "class_name": "MangaDexProvider",
-    "url": "https://api.mangadex.org",
     "supports_nsfw": true,
     "priority": 1,
-    "params": {}
+    "params": {
+      "base_url": "https://api.mangadex.org",
+      "supports_nsfw": true
+    }
   },
-  {
-    "id": "mangaplus",
-    "name": "MangaPlus",
-    "class_name": "MangaPlusProvider",
-    "url": "https://jumpg-api.tokyo-cdn.com/api",
-    "supports_nsfw": false,
-    "priority": 2,
-    "params": {}
-  },
+
   {
     "id": "weebcentral",
     "name": "WeebCentral",
     "class_name": "GenericProvider",
-    "url": "https://weebcentral.com",
     "supports_nsfw": false,
     "enabled": false,
     "priority": 3,
@@ -42,20 +35,35 @@
       "search_title_selector": ".manga-title",
       "search_cover_selector": ".manga-cover img",
       "fallback_selectors": {
-        "search_items": [".manga-card", ".card", ".item", "[class*='manga']"],
-        "title": [".manga-title", ".title", "h1", "h2", "h3"],
-        "cover": [".manga-cover img", ".cover img", "img"]
+        "search_items": [
+          ".manga-card",
+          ".card",
+          ".item",
+          "[class*='manga']"
+        ],
+        "title": [
+          ".manga-title",
+          ".title",
+          "h1",
+          "h2",
+          "h3"
+        ],
+        "cover": [
+          ".manga-cover img",
+          ".cover img",
+          "img"
+        ]
       },
       "headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-      }
+      },
+      "supports_nsfw": false
     }
   },
   {
     "id": "toonily",
     "name": "Toonily",
     "class_name": "EnhancedGenericProvider",
-    "url": "https://toonily.com",
     "supports_nsfw": true,
     "priority": 4,
     "params": {
@@ -65,22 +73,75 @@
       "chapter_url_pattern": "https://toonily.com/serie/{manga_id}/{chapter_id}",
       "name": "Toonily",
       "selectors": {
-        "search_items": [".page-item-detail", ".manga", ".item", "[class*='manga']"],
-        "title": [".wp-manga-title", ".post-title h1", ".manga-title", ".series-title", "h1", "h2", ".post-title h3 a", ".post-title a"],
-        "cover": [".summary_image img", ".wp-post-image", "img[data-src*='uploads']", "img[data-src*='.jpg']", ".lazyload[data-src]", "img[data-src]", ".item-thumb img", "img"],
-        "link": [".post-title a", "a[href*='serie']", "a"],
-        "description": [".summary__content p", ".description-summary p", ".summary__content", ".description-summary", ".synopsis", ".overview"],
-        "status": [".post-status", ".summary-content", ".post-content_item", ".manga-status", ".status"],
-        "genres": [".wp-manga-tags-list a", ".genres a", ".genre a", ".tags a", ".tag a", ".post-content_item .summary-content a"],
-        "authors": [".author a", ".authors a", ".manga-author a", ".artist a", ".writer a"]
-      }
+        "search_items": [
+          ".page-item-detail",
+          ".manga",
+          ".item",
+          "[class*='manga']"
+        ],
+        "title": [
+          ".wp-manga-title",
+          ".post-title h1",
+          ".manga-title",
+          ".series-title",
+          "h1",
+          "h2",
+          ".post-title h3 a",
+          ".post-title a"
+        ],
+        "cover": [
+          ".summary_image img",
+          ".wp-post-image",
+          "img[data-src*='uploads']",
+          "img[data-src*='.jpg']",
+          ".lazyload[data-src]",
+          "img[data-src]",
+          ".item-thumb img",
+          "img"
+        ],
+        "link": [
+          ".post-title a",
+          "a[href*='serie']",
+          "a"
+        ],
+        "description": [
+          ".summary__content p",
+          ".description-summary p",
+          ".summary__content",
+          ".description-summary",
+          ".synopsis",
+          ".overview"
+        ],
+        "status": [
+          ".post-status",
+          ".summary-content",
+          ".post-content_item",
+          ".manga-status",
+          ".status"
+        ],
+        "genres": [
+          ".wp-manga-tags-list a",
+          ".genres a",
+          ".genre a",
+          ".tags a",
+          ".tag a",
+          ".post-content_item .summary-content a"
+        ],
+        "authors": [
+          ".author a",
+          ".authors a",
+          ".manga-author a",
+          ".artist a",
+          ".writer a"
+        ]
+      },
+      "supports_nsfw": true
     }
   },
   {
     "id": "mangabuddy",
     "name": "MangaBuddy",
     "class_name": "EnhancedGenericProvider",
-    "url": "https://mangabuddy.com",
     "supports_nsfw": false,
     "enabled": false,
     "priority": 5,
@@ -92,19 +153,43 @@
       "chapter_url_pattern": "https://mangabuddy.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaBuddy",
       "selectors": {
-        "search_items": [".book-item", ".manga-item", "[class*='manga']", ".search-item", ".item"],
-        "title": [".book-name a", ".title", "h3 a", "h4 a", "a"],
-        "cover": [".book-cover img", "img"],
-        "link": [".book-name a", "a[href*='manga']", "a"],
-        "description": [".book-description", ".description", ".summary", "p"]
-      }
+        "search_items": [
+          ".book-item",
+          ".manga-item",
+          "[class*='manga']",
+          ".search-item",
+          ".item"
+        ],
+        "title": [
+          ".book-name a",
+          ".title",
+          "h3 a",
+          "h4 a",
+          "a"
+        ],
+        "cover": [
+          ".book-cover img",
+          "img"
+        ],
+        "link": [
+          ".book-name a",
+          "a[href*='manga']",
+          "a"
+        ],
+        "description": [
+          ".book-description",
+          ".description",
+          ".summary",
+          "p"
+        ]
+      },
+      "supports_nsfw": false
     }
   },
   {
     "id": "mangadna",
     "name": "MangaDNA",
     "class_name": "EnhancedGenericProvider",
-    "url": "https://mangadna.com",
     "supports_nsfw": true,
     "enabled": true,
     "priority": 6,
@@ -116,22 +201,81 @@
       "chapter_url_pattern": "https://mangadna.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaDNA",
       "selectors": {
-        "search_items": ["div.hinner", ".hinner", "div.home-item", ".home-item"],
-        "title": ["h3.htitle a", ".hcontent h3 a", "h3 a", ".post-title h1", "a[href*='/manga/']", "a"],
-        "cover": [".hthumb img", ".thumb img", "img[src*='thumbnails']", ".summary_image img", "img[alt*='cover']", "img[data-src*='uploads']", "img[src*='.jpg']", "img[src*='.png']", "img"],
-        "link": ["h3.htitle a", ".hcontent h3 a", "h3 a", "a[href*='/manga/']", "a"],
-        "description": [".tab-summary p", ".summary__content p", ".description-summary p", ".post-content p", ".summary__content", ".description-summary", ".description", ".summary", ".excerpt", "p"],
-        "status": [".post-status", ".summary-content", ".status", ".manga-status", ".hitem-rate", ".mmrate"],
-        "genres": [".wp-manga-tags-list a", ".genres a", ".genre a", ".tags a", ".tag a", ".post-content_item .summary-content a"],
-        "authors": [".author a", ".authors a", ".manga-author a", ".artist a", ".writer a"]
-      }
+        "search_items": [
+          "div.hinner",
+          ".hinner",
+          "div.home-item",
+          ".home-item"
+        ],
+        "title": [
+          "h3.htitle a",
+          ".hcontent h3 a",
+          "h3 a",
+          ".post-title h1",
+          "a[href*='/manga/']",
+          "a"
+        ],
+        "cover": [
+          ".hthumb img",
+          ".thumb img",
+          "img[src*='thumbnails']",
+          ".summary_image img",
+          "img[alt*='cover']",
+          "img[data-src*='uploads']",
+          "img[src*='.jpg']",
+          "img[src*='.png']",
+          "img"
+        ],
+        "link": [
+          "h3.htitle a",
+          ".hcontent h3 a",
+          "h3 a",
+          "a[href*='/manga/']",
+          "a"
+        ],
+        "description": [
+          ".tab-summary p",
+          ".summary__content p",
+          ".description-summary p",
+          ".post-content p",
+          ".summary__content",
+          ".description-summary",
+          ".description",
+          ".summary",
+          ".excerpt",
+          "p"
+        ],
+        "status": [
+          ".post-status",
+          ".summary-content",
+          ".status",
+          ".manga-status",
+          ".hitem-rate",
+          ".mmrate"
+        ],
+        "genres": [
+          ".wp-manga-tags-list a",
+          ".genres a",
+          ".genre a",
+          ".tags a",
+          ".tag a",
+          ".post-content_item .summary-content a"
+        ],
+        "authors": [
+          ".author a",
+          ".authors a",
+          ".manga-author a",
+          ".artist a",
+          ".writer a"
+        ]
+      },
+      "supports_nsfw": true
     }
   },
   {
     "id": "manga18fx",
     "name": "Manga18FX",
     "class_name": "EnhancedGenericProvider",
-    "url": "https://manga18fx.com",
     "supports_nsfw": true,
     "enabled": true,
     "priority": 7,
@@ -143,22 +287,78 @@
       "chapter_url_pattern": "https://manga18fx.com/manga/{manga_id}/{chapter_id}",
       "name": "Manga18FX",
       "selectors": {
-        "search_items": ["div.page-item", ".page-item", "div.bsx-item", ".bsx-item"],
-        "title": [".post-title h1", "h3.tt a", ".bigor-manga h3 a", "h3 a", "a[href*='/manga/']", "a"],
-        "cover": [".summary_image img", ".wp-post-image", ".thumb img", "img[data-src*='uploads']", "img[src*='webtoon']", "img[src*='.jpg']", "img[src*='.png']", "img"],
-        "link": ["h3.tt a", ".bigor-manga h3 a", "h3 a", "a[href*='/manga/']", "a"],
-        "description": [".summary__content p", ".description-summary p", ".summary__content", ".description-summary", ".description", ".summary", ".excerpt", "p"],
-        "status": [".post-status", ".summary-content", ".status", ".manga-status", ".item-rate", ".mmrate"],
-        "genres": [".wp-manga-tags-list a", ".genres a", ".genre a", ".tags a", ".tag a", ".post-content_item .summary-content a"],
-        "authors": [".author a", ".authors a", ".manga-author a", ".artist a", ".writer a"]
-      }
+        "search_items": [
+          "div.page-item",
+          ".page-item",
+          "div.bsx-item",
+          ".bsx-item"
+        ],
+        "title": [
+          ".post-title h1",
+          "h3.tt a",
+          ".bigor-manga h3 a",
+          "h3 a",
+          "a[href*='/manga/']",
+          "a"
+        ],
+        "cover": [
+          ".summary_image img",
+          ".wp-post-image",
+          ".thumb img",
+          "img[data-src*='uploads']",
+          "img[src*='webtoon']",
+          "img[src*='.jpg']",
+          "img[src*='.png']",
+          "img"
+        ],
+        "link": [
+          "h3.tt a",
+          ".bigor-manga h3 a",
+          "h3 a",
+          "a[href*='/manga/']",
+          "a"
+        ],
+        "description": [
+          ".summary__content p",
+          ".description-summary p",
+          ".summary__content",
+          ".description-summary",
+          ".description",
+          ".summary",
+          ".excerpt",
+          "p"
+        ],
+        "status": [
+          ".post-status",
+          ".summary-content",
+          ".status",
+          ".manga-status",
+          ".item-rate",
+          ".mmrate"
+        ],
+        "genres": [
+          ".wp-manga-tags-list a",
+          ".genres a",
+          ".genre a",
+          ".tags a",
+          ".tag a",
+          ".post-content_item .summary-content a"
+        ],
+        "authors": [
+          ".author a",
+          ".authors a",
+          ".manga-author a",
+          ".artist a",
+          ".writer a"
+        ]
+      },
+      "supports_nsfw": true
     }
   },
   {
     "id": "webcomicsapp",
     "name": "WebComicsApp",
     "class_name": "EnhancedGenericProvider",
-    "url": "https://www.webcomicsapp.com",
     "supports_nsfw": false,
     "enabled": false,
     "priority": 8,
@@ -170,19 +370,43 @@
       "chapter_url_pattern": "https://www.webcomicsapp.com/comic/{manga_id}/{chapter_id}",
       "name": "WebComicsApp",
       "selectors": {
-        "search_items": [".comic-item", ".book-item", "[class*='book']", ".item", ".result"],
-        "title": [".comic-title a", ".title", "h3", "h4", "a"],
-        "cover": [".comic-cover img", "img"],
-        "link": [".comic-title a", "a[href*='comic']", "a"],
-        "description": [".comic-description", ".description", ".summary", "p"]
-      }
+        "search_items": [
+          ".comic-item",
+          ".book-item",
+          "[class*='book']",
+          ".item",
+          ".result"
+        ],
+        "title": [
+          ".comic-title a",
+          ".title",
+          "h3",
+          "h4",
+          "a"
+        ],
+        "cover": [
+          ".comic-cover img",
+          "img"
+        ],
+        "link": [
+          ".comic-title a",
+          "a[href*='comic']",
+          "a"
+        ],
+        "description": [
+          ".comic-description",
+          ".description",
+          ".summary",
+          "p"
+        ]
+      },
+      "supports_nsfw": false
     }
   },
   {
     "id": "mangatown",
     "name": "MangaTown",
     "class_name": "GenericProvider",
-    "url": "https://www.mangatown.com",
     "supports_nsfw": false,
     "priority": 8,
     "notes": "Excellent performance (0.43s response time), established English manga site",
@@ -201,13 +425,386 @@
       "search_title_selector": "p.title a",
       "search_cover_selector": ".manga_pic img",
       "fallback_selectors": {
-        "search_items": ["[class*='manga']", ".manga-item", "[class*='item']"],
-        "title": ["p.title a", ".manga-title", "a"],
-        "cover": [".manga_pic img", ".manga-cover img", "img"]
+        "search_items": [
+          "[class*='manga']",
+          ".manga-item",
+          "[class*='item']"
+        ],
+        "title": [
+          "p.title a",
+          ".manga-title",
+          "a"
+        ],
+        "cover": [
+          ".manga_pic img",
+          ".manga-cover img",
+          "img"
+        ]
       },
       "headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-      }
+      },
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "allporncomic",
+    "name": "AllPornComic",
+    "class_name": "EnhancedGenericProvider",
+    "supports_nsfw": true,
+    "priority": 9,
+    "params": {
+      "base_url": "https://allporncomic.com",
+      "search_url": "https://allporncomic.com/search?q={query}",
+      "manga_url_pattern": "https://allporncomic.com/comic/{manga_id}",
+      "chapter_url_pattern": "https://allporncomic.com/comic/{manga_id}/{chapter_id}",
+      "name": "AllPornComic",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "mangafire",
+    "name": "MangaFire",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 10,
+    "params": {
+      "base_url": "https://mangafire.to",
+      "search_url": "https://mangafire.to/?s={query}",
+      "manga_url_pattern": "https://mangafire.to/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangafire.to/manga/{manga_id}/{chapter_id}",
+      "name": "MangaFire",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "freemanga",
+    "name": "FreeManga",
+    "class_name": "GenericProvider",
+    "supports_nsfw": false,
+    "priority": 10,
+    "params": {
+      "base_url": "https://freemanga.me",
+      "search_url": "https://freemanga.me/?s={query}",
+      "manga_url_pattern": "https://freemanga.me/manga/{manga_id}",
+      "chapter_url_pattern": "https://freemanga.me/manga/{manga_id}/{chapter_id}",
+      "name": "FreeManga",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "hentairead",
+    "name": "HentaiRead",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 10,
+    "params": {
+      "base_url": "https://hentairead.com",
+      "search_url": "https://hentairead.com/?s={query}",
+      "manga_url_pattern": "https://hentairead.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://hentairead.com/manga/{manga_id}/{chapter_id}",
+      "name": "HentaiRead",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "hentaiwebtoon",
+    "name": "HentaiWebtoon",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 10,
+    "params": {
+      "base_url": "https://hentaiwebtoon.com",
+      "search_url": "https://hentaiwebtoon.com/?s={query}",
+      "manga_url_pattern": "https://hentaiwebtoon.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://hentaiwebtoon.com/manga/{manga_id}/{chapter_id}",
+      "name": "HentaiWebtoon",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "hentainexus",
+    "name": "HentaiNexus",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 12,
+    "params": {
+      "base_url": "https://hentainexus.com",
+      "search_url": "https://hentainexus.com/?s={query}",
+      "manga_url_pattern": "https://hentainexus.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://hentainexus.com/manga/{manga_id}/{chapter_id}",
+      "name": "HentaiNexus",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "mangagg",
+    "name": "MangaGG",
+    "class_name": "EnhancedGenericProvider",
+    "supports_nsfw": true,
+    "priority": 12,
+    "params": {
+      "base_url": "https://mangagg.com",
+      "search_url": "https://mangagg.com/?s={query}",
+      "manga_url_pattern": "https://mangagg.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangagg.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaGG",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "mangafreak",
+    "name": "MangaFreak",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 13,
+    "params": {
+      "base_url": "https://mangafreak.me",
+      "search_url": "https://mangafreak.me/?s={query}",
+      "manga_url_pattern": "https://mangafreak.me/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangafreak.me/manga/{manga_id}/{chapter_id}",
+      "name": "MangaFreak",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "wuxiaworld",
+    "name": "WuxiaWorld",
+    "class_name": "GenericProvider",
+    "supports_nsfw": false,
+    "priority": 14,
+    "params": {
+      "base_url": "https://www.wuxiaworld.com",
+      "search_url": "https://www.wuxiaworld.com/search?q={query}",
+      "manga_url_pattern": "https://www.wuxiaworld.com/novel/{manga_id}",
+      "chapter_url_pattern": "https://www.wuxiaworld.com/novel/{manga_id}/{chapter_id}",
+      "name": "WuxiaWorld",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "readallcomics",
+    "name": "ReadAllComics",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 15,
+    "params": {
+      "base_url": "https://readallcomics.com",
+      "search_url": "https://readallcomics.com/search?q={query}",
+      "manga_url_pattern": "https://readallcomics.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://readallcomics.com/manga/{manga_id}/{chapter_id}",
+      "name": "ReadAllComics",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "manhuafast",
+    "name": "ManhuaFast",
+    "class_name": "GenericProvider",
+    "supports_nsfw": false,
+    "priority": 15,
+    "params": {
+      "base_url": "https://manhuafast.com",
+      "search_url": "https://manhuafast.com/?s={query}",
+      "manga_url_pattern": "https://manhuafast.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuafast.com/manga/{manga_id}/{chapter_id}",
+      "name": "ManhuaFast",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "mangasail",
+    "name": "MangaSail",
+    "class_name": "GenericProvider",
+    "supports_nsfw": false,
+    "priority": 15,
+    "params": {
+      "base_url": "https://sailmg.com",
+      "search_url": "https://sailmg.com/search?q={query}",
+      "manga_url_pattern": "https://sailmg.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://sailmg.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaSail",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "mangahere",
+    "name": "MangaHere",
+    "class_name": "EnhancedGenericProvider",
+    "supports_nsfw": false,
+    "priority": 17,
+    "params": {
+      "base_url": "https://www.mangahere.cc",
+      "search_url": "https://www.mangahere.cc/search?q={query}",
+      "manga_url_pattern": "https://www.mangahere.cc/manga/{manga_id}",
+      "chapter_url_pattern": "https://www.mangahere.cc/manga/{manga_id}/{chapter_id}",
+      "name": "MangaHere",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "novelcool",
+    "name": "NovelCool",
+    "class_name": "GenericProvider",
+    "supports_nsfw": false,
+    "priority": 18,
+    "params": {
+      "base_url": "https://novelcool.com",
+      "search_url": "https://novelcool.com/search?q={query}",
+      "manga_url_pattern": "https://novelcool.com/novel/{manga_id}",
+      "chapter_url_pattern": "https://novelcool.com/novel/{manga_id}/{chapter_id}",
+      "name": "NovelCool",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "tsumino",
+    "name": "Tsumino",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 20,
+    "params": {
+      "base_url": "https://tsumino.com",
+      "search_url": "https://tsumino.com/search?q={query}",
+      "manga_url_pattern": "https://tsumino.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://tsumino.com/manga/{manga_id}/{chapter_id}",
+      "name": "Tsumino",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "mangapill",
+    "name": "MangaPill",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 20,
+    "params": {
+      "base_url": "https://mangapill.com",
+      "search_url": "https://mangapill.com/search?q={query}",
+      "manga_url_pattern": "https://mangapill.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangapill.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaPill",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "omegascans",
+    "name": "OmegaScans",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 20,
+    "params": {
+      "base_url": "https://omegascans.org",
+      "search_url": "https://omegascans.org/?s={query}",
+      "manga_url_pattern": "https://omegascans.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://omegascans.org/manga/{manga_id}/{chapter_id}",
+      "name": "OmegaScans",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "dynastyscans",
+    "name": "DynastyScans",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 20,
+    "params": {
+      "base_url": "https://dynasty-scans.com",
+      "search_url": "https://dynasty-scans.com/search?q={query}",
+      "manga_url_pattern": "https://dynasty-scans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://dynasty-scans.com/manga/{manga_id}/{chapter_id}",
+      "name": "DynastyScans",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "arcanescans",
+    "name": "ArcaneScans",
+    "class_name": "GenericProvider",
+    "supports_nsfw": false,
+    "priority": 20,
+    "params": {
+      "base_url": "https://arcanescans.com",
+      "search_url": "https://arcanescans.com/?s={query}",
+      "manga_url_pattern": "https://arcanescans.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://arcanescans.com/manga/{manga_id}/{chapter_id}",
+      "name": "ArcaneScans",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "taadd",
+    "name": "TAADD",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 20,
+    "params": {
+      "base_url": "https://www.taadd.com",
+      "search_url": "https://www.taadd.com/search?q={query}",
+      "manga_url_pattern": "https://www.taadd.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://www.taadd.com/manga/{manga_id}/{chapter_id}",
+      "name": "TAADD",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "mangahub",
+    "name": "MangaHub",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 21,
+    "params": {
+      "base_url": "https://mangahub.io",
+      "search_url": "https://mangahub.io/search?q={query}",
+      "manga_url_pattern": "https://mangahub.io/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangahub.io/chapter/{manga_id}/{chapter_id}",
+      "name": "MangaHub",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "mangakakalotfun",
+    "name": "MangaKakalotFun",
+    "class_name": "GenericProvider",
+    "supports_nsfw": true,
+    "priority": 22,
+    "params": {
+      "base_url": "https://mangakakalot.fun",
+      "search_url": "https://mangakakalot.fun/search?q={query}",
+      "manga_url_pattern": "https://mangakakalot.fun/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangakakalot.fun/chapter/{manga_id}/{chapter_id}",
+      "name": "MangaKakalotFun",
+      "supports_nsfw": true
+    }
+  },
+  {
+    "id": "anshscans",
+    "name": "AnshScans",
+    "class_name": "GenericProvider",
+    "supports_nsfw": false,
+    "priority": 25,
+    "params": {
+      "base_url": "https://anshscans.org",
+      "search_url": "https://anshscans.org/search?q={query}",
+      "manga_url_pattern": "https://anshscans.org/manga/{manga_id}",
+      "chapter_url_pattern": "https://anshscans.org/manga/{manga_id}/{chapter_id}",
+      "name": "AnshScans",
+      "supports_nsfw": false
+    }
+  },
+  {
+    "id": "mangafoxfull",
+    "name": "MangaFoxFull",
+    "class_name": "EnhancedGenericProvider",
+    "supports_nsfw": true,
+    "priority": 25,
+    "params": {
+      "base_url": "https://mangafoxfull.com",
+      "search_url": "https://mangafoxfull.com/?s={query}",
+      "manga_url_pattern": "https://mangafoxfull.com/manga/{manga_id}",
+      "chapter_url_pattern": "https://mangafoxfull.com/manga/{manga_id}/{chapter_id}",
+      "name": "MangaFoxFull",
+      "supports_nsfw": true
     }
   }
 ]

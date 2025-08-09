@@ -640,7 +640,6 @@ class GenericProvider(BaseProvider):
                             # Try to parse the date (this is basic - could be enhanced)
                             try:
                                 import re
-                                from datetime import datetime
 
                                 # Look for common date patterns
                                 if re.search(r"\d{4}-\d{2}-\d{2}", date_text):

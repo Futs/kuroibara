@@ -109,45 +109,64 @@ def test_migration_scenarios():
 
     # Scenario 1: Volume-based to Chapter-based
     print("Scenario 1: Volume-based → Chapter-based")
-    test_scenario(
-        source_template="{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}",
-        target_template="{Manga Title}/ch.{Chapter Number}",
-        chapters=[
-            ("1", "Chapter 1", "1"),
-            ("2", "Chapter 2", "1"),
-            ("3", "Chapter 3", "2"),
-        ],
-    )
+    # Test scenario inline
+    manga = create_mock_manga("Test Manga")
+    source_template = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    target_template = "{Manga Title}/ch.{Chapter Number}"
+    chapters = [("1", "Chapter 1", "1"), ("2", "Chapter 2", "1"), ("3", "Chapter 3", "2")]
+
+    for number, title, volume in chapters:
+        chapter = create_mock_chapter(number, title, volume)
+        source_path = naming_engine.generate_manga_path(manga, chapter, source_template)
+        target_path = naming_engine.generate_manga_path(manga, chapter, target_template)
+        print(f"    {source_path} → {target_path}")
+        assert source_path != target_path
 
     # Scenario 2: Chapter-based to Volume-based
     print("\nScenario 2: Chapter-based → Volume-based")
-    test_scenario(
-        source_template="{Manga Title}/ch.{Chapter Number}",
-        target_template="{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}",
-        chapters=[
-            ("1", "Chapter 1", "1"),
-            ("2", "Chapter 2", "1"),
-            ("3", "Chapter 3", "2"),
-        ],
-    )
+    # Test scenario inline
+    source_template = "{Manga Title}/ch.{Chapter Number}"
+    target_template = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    chapters = [("1", "Chapter 1", "1"), ("2", "Chapter 2", "1"), ("3", "Chapter 3", "2")]
+
+    for number, title, volume in chapters:
+        chapter = create_mock_chapter(number, title, volume)
+        source_path = naming_engine.generate_manga_path(manga, chapter, source_template)
+        target_path = naming_engine.generate_manga_path(manga, chapter, target_template)
+        print(f"    {source_path} → {target_path}")
+        assert source_path != target_path
 
     # Scenario 3: Simple to Year-based
     print("\nScenario 3: Simple → Year-based")
-    test_scenario(
-        source_template="{Manga Title}/{Chapter Number} - {Chapter Name}",
-        target_template="{Manga Title} ({Year})/Volume {Volume}/{Chapter Number} - {Chapter Name}",
-        chapters=[
-            ("1", "Chapter 1", "1"),
-            ("2", "Chapter 2", "1"),
-        ],
-    )
+    # Test scenario inline
+    source_template = "{Manga Title}/{Chapter Number} - {Chapter Name}"
+    target_template = "{Manga Title} ({Year})/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    chapters = [("1", "Chapter 1", "1"), ("2", "Chapter 2", "1")]
+
+    for number, title, volume in chapters:
+        chapter = create_mock_chapter(number, title, volume)
+        source_path = naming_engine.generate_manga_path(manga, chapter, source_template)
+        target_path = naming_engine.generate_manga_path(manga, chapter, target_template)
+        print(f"    {source_path} → {target_path}")
+        assert source_path != target_path
 
     print("✓ Migration scenarios tests passed\n")
 
 
-def test_scenario(source_template, target_template, chapters):
-    """Test a specific migration scenario."""
+def test_migration_scenario_basic():
+    """Test a basic migration scenario."""
     manga = create_mock_manga("Test Manga")
+
+    # Define test templates
+    source_template = "{Manga Title}/Chapter {Chapter Number}"
+    target_template = "{Manga Title}/Vol {Volume}/Ch {Chapter Number} - {Chapter Name}"
+
+    # Define test chapters
+    chapters = [
+        (1, "First Chapter", 1),
+        (2, "Second Chapter", 1),
+        (3, "Third Chapter", 2)
+    ]
 
     print(f"  Source: {source_template}")
     print(f"  Target: {target_template}")

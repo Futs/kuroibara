@@ -42,7 +42,9 @@ def test_without_flaresolverr():
     for provider in cloudflare_providers:
         print(f"  - {provider['name']}")
 
-    return len(providers), len(cloudflare_providers)
+    # Assert instead of return
+    assert len(providers) > 0
+    assert len(cloudflare_providers) >= 0
 
 
 def test_with_flaresolverr():
@@ -73,7 +75,9 @@ def test_with_flaresolverr():
     for provider in cloudflare_providers:
         print(f"  - {provider['name']}")
 
-    return len(providers), len(cloudflare_providers)
+    # Assert instead of return
+    assert len(providers) > 0
+    assert len(cloudflare_providers) >= 0
 
 
 def main():

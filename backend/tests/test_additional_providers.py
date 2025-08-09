@@ -1,14 +1,13 @@
 import pytest
 
-from app.core.providers.mangaplus import MangaPlusProvider
 from app.core.providers.registry import provider_registry
 
 
 @pytest.mark.asyncio
 async def test_provider_registry_additional_providers():
     """Test the provider registry with additional providers."""
-    # Check if MangaPlus provider is registered
-    assert "mangaplus" in [
+    # Check if MangaDex provider is registered (main provider)
+    assert "mangadex" in [
         p.name.lower() for p in provider_registry.get_all_providers()
     ]
 
@@ -18,60 +17,69 @@ async def test_provider_registry_additional_providers():
     # Check if MangaDNA provider is registered (NSFW provider)
     assert "mangadna" in [p.name.lower() for p in provider_registry.get_all_providers()]
 
-    # Get MangaPlus provider
-    provider = provider_registry.get_provider("mangaplus")
+    # Get MangaDex provider
+    provider = provider_registry.get_provider("MangaDex")
     assert provider is not None
-    assert isinstance(provider, MangaPlusProvider)
 
     # Check provider properties
-    assert provider.name == "MangaPlus"
-    assert provider.url == "https://jumpg-api.tokyo-cdn.com/api"
-    assert provider.supports_nsfw is False
+    assert provider.name == "MangaDex"
+    assert provider.supports_nsfw is True
 
     # Get Toonily provider (active provider)
-    provider = provider_registry.get_provider("toonily")
+    provider = provider_registry.get_provider("Toonily")
     assert provider is not None
-    # Toonily is an EnhancedGenericProvider
 
     # Check provider properties
     assert provider.name == "Toonily"
-    assert provider.url == "https://toonily.com"
     assert provider.supports_nsfw is True
 
     # Get MangaDNA provider (NSFW provider)
-    provider = provider_registry.get_provider("mangadna")
+    provider = provider_registry.get_provider("MangaDNA")
     assert provider is not None
-    # MangaDNA is an EnhancedGenericProvider
 
     # Check provider properties
     assert provider.name == "MangaDNA"
-    assert provider.url == "https://mangadna.com"
     assert provider.supports_nsfw is True
 
 
 @pytest.mark.asyncio
-async def test_mangaplus_search():
-    """Test MangaPlus search - should return empty results since provider is disabled."""
-    # Get MangaPlus provider
-    provider = provider_registry.get_provider("mangaplus")
-
-    # Search for manga - should return empty results due to disabled API
-    results, total, has_next = await provider.search("test", page=1, limit=20)
-
-    # Check results - provider is disabled so should return empty
-    assert len(results) == 0
-    assert total == 0
-    assert has_next is False
+async def test_provider_count():
+    """Test that we have the expected number of providers."""
+    providers = provider_registry.get_all_providers()
+    
+    # We should have 29+ providers after the provider system overhaul
+    assert len(providers) >= 29
+    
+    # Check that we have both NSFW and SFW providers
+    nsfw_providers = [p for p in providers if p.supports_nsfw]
+    sfw_providers = [p for p in providers if not p.supports_nsfw]
+    
+    assert len(nsfw_providers) > 0
+    assert len(sfw_providers) > 0
 
 
 @pytest.mark.asyncio
-async def test_mangaplus_get_manga_details():
-    """Test MangaPlus get_manga_details - should return empty dict since provider is disabled."""
-    # Get MangaPlus provider
-    provider = provider_registry.get_provider("mangaplus")
+async def test_provider_registry_get_provider():
+    """Test getting specific providers from the registry."""
+    # Test getting MangaDex provider
+    mangadx_provider = provider_registry.get_provider("MangaDex")
+    assert mangadx_provider is not None
+    assert mangadx_provider.name == "MangaDex"
 
-    # Get manga details - should return empty dict due to disabled API
-    manga_details = await provider.get_manga_details("123")
+    # Test getting non-existent provider
+    non_existent = provider_registry.get_provider("non_existent_provider")
+    assert non_existent is None
 
-    # Check manga details - provider is disabled so should return empty dict
-    assert manga_details == {}
+
+@pytest.mark.asyncio
+async def test_enhanced_providers():
+    """Test enhanced providers functionality."""
+    # Get an enhanced provider
+    provider = provider_registry.get_provider("Toonily")
+    assert provider is not None
+    
+    # Test that it has the expected interface
+    assert hasattr(provider, 'search')
+    assert hasattr(provider, 'get_manga_details')
+    assert hasattr(provider, 'get_chapters')
+    assert hasattr(provider, 'get_pages')

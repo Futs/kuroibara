@@ -16,7 +16,7 @@ def test_provider_preferences_api(client: TestClient, token: str):
                 "priority_order": None,
             },
             {
-                "provider_id": "mangaplus",
+                "provider_id": "MangaDex",
                 "is_enabled": True,
                 "is_favorite": True,
                 "priority_order": 1,
@@ -54,7 +54,7 @@ def test_provider_preferences_api(client: TestClient, token: str):
                     "priority_order": 1,
                 },
                 {
-                    "provider_id": "mangaplus",
+                    "provider_id": "MangaDex",
                     "is_enabled": False,  # Disable this one
                     "is_favorite": False,
                     "priority_order": None,

@@ -136,7 +136,7 @@ async def redownload_chapter(
             shutil.rmtree(chapter_path)
 
         # Reset chapter status to trigger re-download
-        chapter.download_status = "pending"
+        chapter.download_status = "not_downloaded"
         chapter.download_error = None
 
         await db.commit()

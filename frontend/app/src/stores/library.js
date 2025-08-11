@@ -310,12 +310,12 @@ export const useLibraryStore = defineStore("library", {
       }
     },
 
-    async removeFromLibrary(mangaId) {
+    async removeFromLibrary(libraryItemId) {
       this.loading = true;
       this.error = null;
 
       try {
-        await api.delete(`/v1/library/${mangaId}`);
+        await api.delete(`/v1/library/${libraryItemId}`);
         await this.fetchLibrary();
       } catch (error) {
         this.error =
@@ -828,13 +828,13 @@ export const useLibraryStore = defineStore("library", {
       }
     },
 
-    async deleteManga(mangaId) {
+    async deleteManga(libraryItemId) {
       try {
-        await api.delete(`/v1/library/${mangaId}`);
+        await api.delete(`/v1/library/${libraryItemId}`);
 
         // Remove from local state
-        this.manga = this.manga.filter((item) => item.id !== mangaId);
-        this.selectedManga.delete(mangaId);
+        this.manga = this.manga.filter((item) => item.id !== libraryItemId);
+        this.selectedManga.delete(libraryItemId);
 
         // Update statistics
         this.calculateLocalStatistics();
@@ -844,10 +844,10 @@ export const useLibraryStore = defineStore("library", {
       }
     },
 
-    async downloadManga(mangaId) {
+    async downloadManga(libraryItemId) {
       try {
         this.loading = true;
-        await api.post(`/v1/library/${mangaId}/download`);
+        await api.post(`/v1/library/${libraryItemId}/download`);
 
         // Refresh library to get updated download status
         await this.fetchLibrary();

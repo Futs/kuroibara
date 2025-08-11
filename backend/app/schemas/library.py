@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -199,3 +199,55 @@ class DownloadChapterRequest(BaseModel):
     provider: str = Field(..., description="Provider name")
     external_manga_id: str = Field(..., description="External manga ID")
     external_chapter_id: str = Field(..., description="External chapter ID")
+
+
+# Bulk operation schemas
+class BulkOperationRequest(BaseModel):
+    """Base schema for bulk operations."""
+
+    manga_ids: List[UUID] = Field(..., description="List of library item IDs")
+
+
+class BulkMarkReadRequest(BulkOperationRequest):
+    """Schema for bulk mark as read operation."""
+
+    pass
+
+
+class BulkMarkUnreadRequest(BulkOperationRequest):
+    """Schema for bulk mark as unread operation."""
+
+    pass
+
+
+class BulkFavoritesRequest(BulkOperationRequest):
+    """Schema for bulk favorites operation."""
+
+    pass
+
+
+class BulkDeleteRequest(BulkOperationRequest):
+    """Schema for bulk delete operation."""
+
+    pass
+
+
+class BulkUpdateTagsRequest(BulkOperationRequest):
+    """Schema for bulk update tags operation."""
+
+    tags: List[str] = Field(..., description="List of tags to apply")
+
+
+class BulkUpdateMetadataRequest(BulkOperationRequest):
+    """Schema for bulk update metadata operation."""
+
+    metadata: Dict[str, Any] = Field(..., description="Metadata to update")
+
+
+class BulkOperationResponse(BaseModel):
+    """Schema for bulk operation responses."""
+
+    message: str
+    updated_count: int
+    total_requested: int
+    failed_items: List[str] = []

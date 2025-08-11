@@ -7,6 +7,7 @@ from sqlalchemy import (
     String,
     Table,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -70,6 +71,13 @@ class MangaUserLibrary(BaseModel):
         "LibraryCategory",
         secondary=manga_user_library_category,
         back_populates="manga_items",
+    )
+
+    # Constraints
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "manga_id", name="uq_manga_user_library_user_manga"
+        ),
     )
 
 

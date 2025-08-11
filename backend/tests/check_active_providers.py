@@ -172,9 +172,7 @@ def main():
     # Integration status breakdown
     print(f"\n=== INTEGRATION STATUS BREAKDOWN ===")
     fully_integrated = sum(
-        1
-        for p in active_providers.values()
-        if p["class_name"] in ["MangaDexProvider"]
+        1 for p in active_providers.values() if p["class_name"] in ["MangaDexProvider"]
     )
     enhanced_integrated = sum(
         1

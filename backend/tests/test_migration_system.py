@@ -113,7 +113,11 @@ def test_migration_scenarios():
     manga = create_mock_manga("Test Manga")
     source_template = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
     target_template = "{Manga Title}/ch.{Chapter Number}"
-    chapters = [("1", "Chapter 1", "1"), ("2", "Chapter 2", "1"), ("3", "Chapter 3", "2")]
+    chapters = [
+        ("1", "Chapter 1", "1"),
+        ("2", "Chapter 2", "1"),
+        ("3", "Chapter 3", "2"),
+    ]
 
     for number, title, volume in chapters:
         chapter = create_mock_chapter(number, title, volume)
@@ -127,7 +131,11 @@ def test_migration_scenarios():
     # Test scenario inline
     source_template = "{Manga Title}/ch.{Chapter Number}"
     target_template = "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
-    chapters = [("1", "Chapter 1", "1"), ("2", "Chapter 2", "1"), ("3", "Chapter 3", "2")]
+    chapters = [
+        ("1", "Chapter 1", "1"),
+        ("2", "Chapter 2", "1"),
+        ("3", "Chapter 3", "2"),
+    ]
 
     for number, title, volume in chapters:
         chapter = create_mock_chapter(number, title, volume)
@@ -140,7 +148,9 @@ def test_migration_scenarios():
     print("\nScenario 3: Simple → Year-based")
     # Test scenario inline
     source_template = "{Manga Title}/{Chapter Number} - {Chapter Name}"
-    target_template = "{Manga Title} ({Year})/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    target_template = (
+        "{Manga Title} ({Year})/Volume {Volume}/{Chapter Number} - {Chapter Name}"
+    )
     chapters = [("1", "Chapter 1", "1"), ("2", "Chapter 2", "1")]
 
     for number, title, volume in chapters:
@@ -165,7 +175,7 @@ def test_migration_scenario_basic():
     chapters = [
         (1, "First Chapter", 1),
         (2, "Second Chapter", 1),
-        (3, "Third Chapter", 2)
+        (3, "Third Chapter", 2),
     ]
 
     print(f"  Source: {source_template}")

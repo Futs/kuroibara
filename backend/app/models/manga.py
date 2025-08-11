@@ -147,6 +147,15 @@ class Chapter(BaseModel):
     publish_at = Column(DateTime, nullable=True)  # When the chapter was published
     readable_at = Column(DateTime, nullable=True)  # When the chapter became readable
 
+    # Download tracking fields
+    download_status = Column(
+        String(20), nullable=False, default="not_downloaded", index=True
+    )  # Download status: not_downloaded, downloading, downloaded, error
+    download_error = Column(Text, nullable=True)  # Error message if download failed
+    external_id = Column(
+        String(255), nullable=True, index=True
+    )  # External ID from the provider
+
     # Relationships
     manga = relationship("Manga", back_populates="chapters")
     pages = relationship("Page", back_populates="chapter", cascade="all, delete-orphan")

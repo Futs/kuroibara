@@ -7,9 +7,7 @@ from app.core.providers.registry import provider_registry
 async def test_provider_registry_additional_providers():
     """Test the provider registry with additional providers."""
     # Check if MangaDex provider is registered (main provider)
-    assert "mangadex" in [
-        p.name.lower() for p in provider_registry.get_all_providers()
-    ]
+    assert "mangadex" in [p.name.lower() for p in provider_registry.get_all_providers()]
 
     # Check if Toonily provider is registered (active provider)
     assert "toonily" in [p.name.lower() for p in provider_registry.get_all_providers()]
@@ -46,14 +44,14 @@ async def test_provider_registry_additional_providers():
 async def test_provider_count():
     """Test that we have the expected number of providers."""
     providers = provider_registry.get_all_providers()
-    
+
     # We should have 29+ providers after the provider system overhaul
     assert len(providers) >= 29
-    
+
     # Check that we have both NSFW and SFW providers
     nsfw_providers = [p for p in providers if p.supports_nsfw]
     sfw_providers = [p for p in providers if not p.supports_nsfw]
-    
+
     assert len(nsfw_providers) > 0
     assert len(sfw_providers) > 0
 
@@ -77,9 +75,9 @@ async def test_enhanced_providers():
     # Get an enhanced provider
     provider = provider_registry.get_provider("Toonily")
     assert provider is not None
-    
+
     # Test that it has the expected interface
-    assert hasattr(provider, 'search')
-    assert hasattr(provider, 'get_manga_details')
-    assert hasattr(provider, 'get_chapters')
-    assert hasattr(provider, 'get_pages')
+    assert hasattr(provider, "search")
+    assert hasattr(provider, "get_manga_details")
+    assert hasattr(provider, "get_chapters")
+    assert hasattr(provider, "get_pages")

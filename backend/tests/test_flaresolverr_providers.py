@@ -5,7 +5,9 @@ Test FlareSolverr-enabled providers end-to-end.
 
 import asyncio
 import os
+
 import pytest
+
 from app.core.providers.registry import ProviderRegistry
 
 
@@ -16,7 +18,9 @@ async def test_flaresolverr_provider_search():
     providers = registry.get_all_providers()
 
     # Find providers that might use FlareSolverr
-    flaresolverr_providers = [p for p in providers if hasattr(p, 'requires_flaresolverr')]
+    flaresolverr_providers = [
+        p for p in providers if hasattr(p, "requires_flaresolverr")
+    ]
 
     if not flaresolverr_providers:
         # Test with first available provider
@@ -41,8 +45,8 @@ async def test_flaresolverr_provider_search():
         if results:
             sample = results[0]
             print(f"  📖 Sample result: {sample.title}")
-            assert hasattr(sample, 'title')
-            assert hasattr(sample, 'url')
+            assert hasattr(sample, "title")
+            assert hasattr(sample, "url")
 
     except Exception as e:
         print(f"  ❌ Search failed: {e}")
@@ -69,7 +73,9 @@ async def test_flaresolverr_provider_metadata():
         search_results, _, _ = await provider.search("naruto", limit=1)
         if search_results and len(search_results) > 0:
             # Use the first search result's ID
-            manga_id = getattr(search_results[0], 'id', None) or getattr(search_results[0], 'manga_id', None)
+            manga_id = getattr(search_results[0], "id", None) or getattr(
+                search_results[0], "manga_id", None
+            )
 
             if manga_id:
                 print(f"  🔍 Using real manga ID from search: {manga_id}")
@@ -79,13 +85,15 @@ async def test_flaresolverr_provider_metadata():
                     print("  ✅ Metadata successful")
                     print(f"  📖 Title: {metadata.get('title', 'N/A')}")
                     assert isinstance(metadata, dict)
-                    assert 'title' in metadata or len(metadata) > 0
+                    assert "title" in metadata or len(metadata) > 0
                 else:
                     print("  ⚠️ No metadata returned")
                     # This is acceptable - some providers may not support metadata
             else:
                 print("  ⚠️ No manga ID found in search results")
-                pytest.skip(f"Provider {provider_name} search results don't contain manga IDs")
+                pytest.skip(
+                    f"Provider {provider_name} search results don't contain manga IDs"
+                )
         else:
             print("  ⚠️ No search results found")
             pytest.skip(f"Provider {provider_name} search returned no results")
@@ -131,9 +139,15 @@ async def test_cloudflare_providers():
 
         # Test search
         try:
-            search_results, total, has_more = await provider.search("naruto", page=1, limit=5)
+            search_results, total, has_more = await provider.search(
+                "naruto", page=1, limit=5
+            )
             search_success = True
-            manga_id = search_results[0].id if search_results and hasattr(search_results[0], 'id') else None
+            manga_id = (
+                search_results[0].id
+                if search_results and hasattr(search_results[0], "id")
+                else None
+            )
         except Exception as e:
             search_success = False
             manga_id = None

@@ -10,6 +10,7 @@
 A modern manga management platform for discovering, organizing, and reading manga from 80+ online sources.
 
 > **🚀 Latest Release**: v0.6.0 with Enhanced Testing
+>
 > [![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
 
 ## ✨ Features

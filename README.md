@@ -9,10 +9,10 @@
 
 A modern manga management platform for discovering, organizing, and reading manga from multiple online sources.
 
-> [![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)  
 
 > **🚀 Latest Release**: v0.6.0 with Enhanced Testing
-> 
+
 
 ## ✨ Features
 
@@ -48,10 +48,10 @@ docker compose up -d
 ```
 
 **Docker Images:**
-> **Backend**:
-> [![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)
-> **Frontend**:
-> [![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend)
+- **Backend**:  
+[![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)  
+- **Frontend**:  
+[![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend) 
 
 ### 📦 From Source
 

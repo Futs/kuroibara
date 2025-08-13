@@ -133,6 +133,18 @@
           ".manga-author a",
           ".artist a",
           ".writer a"
+        ],
+        "chapters": [
+          ".wp-manga-chapter a",
+          ".listing-chapters_wrap a",
+          ".version-chap a",
+          "li.wp-manga-chapter a"
+        ],
+        "pages": [
+          ".reading-content img",
+          ".page-break img",
+          ".wp-manga-chapter-img",
+          ".page img"
         ]
       },
       "supports_nsfw": true
@@ -267,6 +279,19 @@
           ".manga-author a",
           ".artist a",
           ".writer a"
+        ],
+        "chapters": [
+          "a[href*='chapter']",
+          ".wp-manga-chapter a",
+          ".chapter-list a",
+          ".chapters a"
+        ],
+        "pages": [
+          ".reading-content img",
+          ".chapter-content img",
+          ".page-break img",
+          "img[src*='chapter']",
+          "img"
         ]
       },
       "supports_nsfw": true
@@ -417,10 +442,10 @@
       "chapter_url_pattern": "http://www.mangatown.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaTown",
       "search_selector": "[class*='manga']",
-      "title_selector": "p.title a",
+      "title_selector": "h1",
       "cover_selector": ".manga_pic img",
-      "description_selector": ".manga_detail_top",
-      "chapter_selector": "ul.chapter_list li a",
+      "description_selector": "li:has(b:-soup-contains('Summary:'))",
+      "chapter_selector": "ul.chapter_list li",
       "page_selector": ".read_img img",
       "search_title_selector": "p.title a",
       "search_cover_selector": ".manga_pic img",
@@ -604,10 +629,10 @@
     "supports_nsfw": false,
     "priority": 15,
     "params": {
-      "base_url": "https://manhuafast.com",
-      "search_url": "https://manhuafast.com/?s={query}",
-      "manga_url_pattern": "https://manhuafast.com/manga/{manga_id}",
-      "chapter_url_pattern": "https://manhuafast.com/manga/{manga_id}/{chapter_id}",
+      "base_url": "https://manhuafast.net",
+      "search_url": "https://manhuafast.net/?s={query}",
+      "manga_url_pattern": "https://manhuafast.net/manga/{manga_id}",
+      "chapter_url_pattern": "https://manhuafast.net/manga/{manga_id}/{chapter_id}",
       "name": "ManhuaFast",
       "supports_nsfw": false
     }
@@ -619,12 +644,13 @@
     "supports_nsfw": false,
     "priority": 15,
     "params": {
-      "base_url": "https://sailmg.com",
-      "search_url": "https://sailmg.com/search?q={query}",
-      "manga_url_pattern": "https://sailmg.com/manga/{manga_id}",
-      "chapter_url_pattern": "https://sailmg.com/manga/{manga_id}/{chapter_id}",
+      "base_url": "https://www.sailmg.com",
+      "search_url": "https://www.sailmg.com/search?q={query}",
+      "manga_url_pattern": "https://www.sailmg.com/content/{manga_id}",
+      "chapter_url_pattern": "https://www.sailmg.com/content/{chapter_id}",
       "name": "MangaSail",
-      "supports_nsfw": false
+      "supports_nsfw": false,
+      "chapter_selector": "td.active"
     }
   },
   {
@@ -696,10 +722,12 @@
     "params": {
       "base_url": "https://omegascans.org",
       "search_url": "https://omegascans.org/?s={query}",
-      "manga_url_pattern": "https://omegascans.org/manga/{manga_id}",
-      "chapter_url_pattern": "https://omegascans.org/manga/{manga_id}/{chapter_id}",
+      "manga_url_pattern": "https://omegascans.org/series/{manga_id}",
+      "chapter_url_pattern": "https://omegascans.org/series/{manga_id}/{chapter_id}",
       "name": "OmegaScans",
-      "supports_nsfw": true
+      "supports_nsfw": true,
+      "chapter_selector": "a[href*='/chapter-']",
+      "page_selector": "img[src*='media.omegascans.org']"
     }
   },
   {
@@ -748,21 +776,6 @@
     }
   },
   {
-    "id": "mangahub",
-    "name": "MangaHub",
-    "class_name": "GenericProvider",
-    "supports_nsfw": true,
-    "priority": 21,
-    "params": {
-      "base_url": "https://mangahub.io",
-      "search_url": "https://mangahub.io/search?q={query}",
-      "manga_url_pattern": "https://mangahub.io/manga/{manga_id}",
-      "chapter_url_pattern": "https://mangahub.io/chapter/{manga_id}/{chapter_id}",
-      "name": "MangaHub",
-      "supports_nsfw": true
-    }
-  },
-  {
     "id": "mangakakalotfun",
     "name": "MangaKakalotFun",
     "class_name": "GenericProvider",
@@ -774,7 +787,9 @@
       "manga_url_pattern": "https://mangakakalot.fun/manga/{manga_id}",
       "chapter_url_pattern": "https://mangakakalot.fun/chapter/{manga_id}/{chapter_id}",
       "name": "MangaKakalotFun",
-      "supports_nsfw": true
+      "supports_nsfw": true,
+      "chapter_selector": "li.list-group-item",
+      "page_selector": "img[src*='mghcdn.com']"
     }
   },
   {

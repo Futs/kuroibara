@@ -563,124 +563,113 @@ class GenericProvider(BaseProvider):
     async def get_chapters(
         self, manga_id: str, page: int = 1, limit: int = 100
     ) -> Tuple[List[Dict[str, Any]], int, bool]:
-        """Get chapters for a manga."""
+        """Get chapters for a manga with pagination support."""
         try:
-            # Build manga URL
-            manga_url = self._manga_url_pattern.format(manga_id=manga_id)
+            # Check if this provider needs multi-page chapter extraction
+            all_chapters = await self._get_all_chapters_with_pagination(manga_id)
 
-            # Make request
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    manga_url,
-                    headers=self._headers,
-                    follow_redirects=True,
-                )
+            if not all_chapters:
+                return [], 0, False
 
-                # Check if request was successful
-                response.raise_for_status()
-                html = response.text
+            # Apply pagination to the complete chapter list
+            total = len(all_chapters)
+            start_idx = (page - 1) * limit
+            end_idx = start_idx + limit
+            paginated_chapters = all_chapters[start_idx:end_idx]
+            has_next = end_idx < total
 
-                # Parse HTML
-                soup = BeautifulSoup(html, "html.parser")
-
-                # Find chapter items
-                chapter_items = soup.select(self._chapter_selector)
-
-                # Parse chapters
-                chapters = []
-                for item in chapter_items:
-                    try:
-                        # Get chapter ID and URL
-                        chapter_link = item.select_one("a")
-                        if not chapter_link:
-                            continue
-
-                        chapter_url = chapter_link.get("href", "")
-                        if isinstance(chapter_url, list):
-                            chapter_url = chapter_url[0] if chapter_url else ""
-                        chapter_id = self._extract_chapter_id(chapter_url)
-
-                        if not chapter_id:
-                            continue
-
-                        # Get chapter number
-                        chapter_number = ""
-                        chapter_number_elem = item.select_one(".chapter-number")
-                        if chapter_number_elem:
-                            chapter_number = chapter_number_elem.text.strip()
-                        else:
-                            # Try to extract chapter number from title
-                            chapter_title_elem = item.select_one(".chapter-title")
-                            if chapter_title_elem:
-                                chapter_title = chapter_title_elem.text.strip()
-                                match = re.search(
-                                    r"chapter\s+(\d+(\.\d+)?)",
-                                    chapter_title,
-                                    re.IGNORECASE,
-                                )
-                                if match:
-                                    chapter_number = match.group(1)
-
-                        # Get chapter title
-                        chapter_title = ""
-                        chapter_title_elem = item.select_one(".chapter-title")
-                        if chapter_title_elem:
-                            chapter_title = chapter_title_elem.text.strip()
-
-                        # Try to extract date information from common patterns
-                        publish_at = None
-                        readable_at = None
-
-                        # Look for date elements with common class names
-                        date_elem = item.select_one(
-                            ".chapter-date, .date, .publish-date, .release-date, .updated, .time"
-                        )
-                        if date_elem:
-                            date_text = date_elem.text.strip()
-                            # Try to parse the date (this is basic - could be enhanced)
-                            try:
-                                import re
-
-                                # Look for common date patterns
-                                if re.search(r"\d{4}-\d{2}-\d{2}", date_text):
-                                    publish_at = date_text
-                                elif re.search(r"\d{1,2}/\d{1,2}/\d{4}", date_text):
-                                    publish_at = date_text
-                            except Exception:
-                                pass
-
-                        # Create chapter
-                        chapters.append(
-                            {
-                                "id": chapter_id,
-                                "title": chapter_title,
-                                "number": chapter_number or "0",
-                                "volume": None,
-                                "language": "en",
-                                "pages_count": 0,  # We don't know the page count yet
-                                "manga_id": manga_id,
-                                "publish_at": publish_at,
-                                "readable_at": readable_at,
-                                "source": self.name,
-                            }
-                        )
-                    except Exception as e:
-                        logger.error(f"Error parsing chapter item: {e}")
-
-                # Apply pagination
-                total = len(chapters)
-                start_idx = (page - 1) * limit
-                end_idx = start_idx + limit
-                paginated_chapters = chapters[start_idx:end_idx]
-                has_next = end_idx < total
-
-                return paginated_chapters, total, has_next
+            return paginated_chapters, total, has_next
         except Exception as e:
             logger.error(f"Error getting chapters: {e}")
             return [], 0, False
 
+    async def _get_all_chapters_with_pagination(
+        self, manga_id: str
+    ) -> List[Dict[str, Any]]:
+        """Get all chapters across multiple pages if needed."""
+        all_chapters = []
+        current_page = 1
+        max_pages = 10  # Safety limit to prevent infinite loops
+
+        # Build base manga URL
+        base_manga_url = self._manga_url_pattern.format(manga_id=manga_id)
+
+        while current_page <= max_pages:
+            try:
+                # Build URL for current page
+                if current_page == 1:
+                    # First page usually has no page parameter
+                    manga_url = base_manga_url
+                else:
+                    # Subsequent pages use ?page=N-1 (since page 2 is ?page=1)
+                    page_param = current_page - 1
+                    separator = "&" if "?" in base_manga_url else "?"
+                    manga_url = f"{base_manga_url}{separator}page={page_param}"
+
+                logger.info(f"Fetching chapters from page {current_page}: {manga_url}")
+
+                # Make request
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(
+                        manga_url,
+                        headers=self._headers,
+                        follow_redirects=True,
+                    )
+                    response.raise_for_status()
+                    html = response.text
+
+                # Parse HTML
+                soup = BeautifulSoup(html, "html.parser")
+
+                # Find chapter items on this page
+                chapter_items = soup.select(self._chapter_selector)
+
+                if not chapter_items:
+                    logger.info(
+                        f"No chapters found on page {current_page}, stopping pagination"
+                    )
+                    break
+
+                logger.info(
+                    f"Found {len(chapter_items)} chapters on page {current_page}"
+                )
+
+                # Parse chapters from this page
+                page_chapters = []
+                for item in chapter_items:
+                    chapter = await self._parse_chapter_item(item, manga_id)
+                    if chapter:
+                        page_chapters.append(chapter)
+
+                if not page_chapters:
+                    logger.info(
+                        f"No valid chapters parsed on page {current_page}, stopping"
+                    )
+                    break
+
+                all_chapters.extend(page_chapters)
+
+                # Check if there's a next page
+                has_next_page = self._has_next_page(soup, current_page)
+                if not has_next_page:
+                    logger.info(
+                        f"No next page found after page {current_page}, stopping pagination"
+                    )
+                    break
+
+                current_page += 1
+
+            except Exception as e:
+                logger.error(f"Error fetching page {current_page}: {e}")
+                break
+
+        logger.info(
+            f"Total chapters found across {current_page} pages: {len(all_chapters)}"
+        )
+        return all_chapters
+
     async def get_pages(self, manga_id: str, chapter_id: str) -> List[str]:
-        """Get pages for a chapter."""
+        """Get pages for a chapter with support for JavaScript-loaded content."""
         try:
             # Build chapter URL
             chapter_url = self._chapter_url_pattern.format(
@@ -699,7 +688,15 @@ class GenericProvider(BaseProvider):
                 response.raise_for_status()
                 html = response.text
 
-                # Parse HTML
+                # First try to extract pages from Drupal.settings (for MangaSail)
+                drupal_pages = self._extract_drupal_manga_pages(html)
+                if drupal_pages:
+                    logger.info(
+                        f"Found {len(drupal_pages)} pages via Drupal.settings for {self.name}"
+                    )
+                    return drupal_pages
+
+                # Fallback to standard HTML parsing
                 soup = BeautifulSoup(html, "html.parser")
 
                 # Find page images
@@ -720,6 +717,179 @@ class GenericProvider(BaseProvider):
         except Exception as e:
             logger.error(f"Error getting pages: {e}")
             return []
+
+    def _extract_drupal_manga_pages(self, html: str) -> List[str]:
+        """Extract manga pages from Drupal.settings JavaScript object."""
+        try:
+            import json
+
+            # Find the Drupal.settings JavaScript
+            pattern = r"jQuery\.extend\(Drupal\.settings,\s*({.*?})\);"
+            match = re.search(pattern, html, re.DOTALL)
+
+            if not match:
+                return []
+
+            settings_json = match.group(1)
+            settings = json.loads(settings_json)
+
+            # Extract showmanga data
+            if "showmanga" in settings and "paths" in settings["showmanga"]:
+                paths = settings["showmanga"]["paths"]
+
+                # Filter out non-image entries (like ads)
+                page_urls = []
+                for path in paths:
+                    if (
+                        isinstance(path, str)
+                        and path.startswith("http")
+                        and any(
+                            ext in path.lower()
+                            for ext in [".jpg", ".jpeg", ".png", ".webp"]
+                        )
+                    ):
+                        # Clean up URL encoding
+                        clean_url = path.replace("%3F", "?")
+                        page_urls.append(clean_url)
+
+                return page_urls
+
+            return []
+
+        except Exception as e:
+            logger.error(f"Error extracting Drupal manga pages: {e}")
+            return []
+
+    async def _parse_chapter_item(
+        self, item, manga_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """Parse a single chapter item."""
+        try:
+            # Handle case where the item IS the <a> tag (like OmegaScans)
+            if item.name == "a":
+                chapter_link = item
+            else:
+                # Standard case: find <a> tag inside the item
+                chapter_link = item.select_one("a")
+                if not chapter_link:
+                    return None
+
+            chapter_url = chapter_link.get("href", "")
+            if isinstance(chapter_url, list):
+                chapter_url = chapter_url[0] if chapter_url else ""
+            chapter_id = self._extract_chapter_id(chapter_url)
+
+            if not chapter_id:
+                return None
+
+            # Get chapter title - try multiple approaches
+            chapter_title = ""
+
+            # First try: direct text from the link
+            if chapter_link.text.strip():
+                chapter_title = chapter_link.text.strip()
+
+            # Second try: look for span with chapter text inside the link
+            if not chapter_title:
+                title_span = chapter_link.select_one("span")
+                if title_span:
+                    chapter_title = title_span.text.strip()
+
+            # Third try: extract from URL if no title found
+            if not chapter_title:
+                chapter_title = chapter_id.replace("-", " ").title()
+
+            # Get chapter number from title or URL
+            chapter_number = self._extract_chapter_number_from_text(
+                chapter_title, chapter_url
+            )
+
+            # Create chapter
+            return {
+                "id": chapter_id,
+                "title": chapter_title,
+                "number": str(chapter_number) if chapter_number else "0",
+                "volume": None,
+                "language": "en",
+                "pages_count": 0,
+                "manga_id": manga_id,
+                "publish_at": None,
+                "readable_at": None,
+                "source": self.name,
+            }
+        except Exception as e:
+            logger.error(f"Error parsing chapter item: {e}")
+            return None
+
+    def _has_next_page(self, soup: BeautifulSoup, current_page: int) -> bool:
+        """Check if there's a next page available."""
+        # Look for common pagination indicators
+        next_selectors = [
+            '.pagination a:contains("next")',
+            '.pagination a:contains("Next")',
+            '.pagination a:contains(">")',
+            'a[href*="page="]:contains("next")',
+            f'a[href*="page={current_page}"]',  # Look for next page number
+        ]
+
+        for selector in next_selectors:
+            try:
+                next_links = soup.select(selector)
+                if next_links:
+                    return True
+            except Exception:
+                continue
+
+        # Alternative: look for page numbers higher than current
+        try:
+            page_links = soup.select('a[href*="page="]')
+            for link in page_links:
+                href = link.get("href", "")
+                if f"page={current_page}" in href:
+                    return True
+        except Exception:
+            pass
+
+        return False
+
+    def _extract_chapter_number_from_text(
+        self, title: str, url: str
+    ) -> Optional[float]:
+        """Extract chapter number from title or URL."""
+
+        # Try to extract from title first
+        title_patterns = [
+            r"chapter\s*(\d+(?:\.\d+)?)",
+            r"ch\.?\s*(\d+(?:\.\d+)?)",
+            r"#(\d+(?:\.\d+)?)",
+            r"(\d+(?:\.\d+)?)",
+        ]
+
+        for pattern in title_patterns:
+            match = re.search(pattern, title.lower())
+            if match:
+                try:
+                    return float(match.group(1))
+                except ValueError:
+                    continue
+
+        # Try to extract from URL
+        url_patterns = [
+            r"-(\d+(?:\.\d+)?)/?$",
+            r"/(\d+(?:\.\d+)?)/?$",
+            r"chapter-(\d+(?:\.\d+)?)",
+            r"ch-(\d+(?:\.\d+)?)",
+        ]
+
+        for pattern in url_patterns:
+            match = re.search(pattern, url.lower())
+            if match:
+                try:
+                    return float(match.group(1))
+                except ValueError:
+                    continue
+
+        return None
 
     async def download_page(self, page_url: str) -> bytes:
         """Download a page."""
@@ -967,8 +1137,6 @@ class GenericProvider(BaseProvider):
             all_text = element.get_text()
 
             # Look for status patterns in brackets
-            import re
-
             status_match = re.search(
                 r"\[(completed|ongoing|finished|ended|hiatus|cancelled|dropped)\]",
                 all_text,

@@ -58,7 +58,6 @@ class ProviderFactory:
             if provider_id == "mangadex":
                 # MangaDexProvider takes no arguments
                 return provider_class()
-
             else:
                 # Standard provider initialization
                 # Merge top-level config with params

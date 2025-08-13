@@ -591,6 +591,44 @@ class EnhancedGenericProvider(BaseProvider):
 
         return authors[:5]  # Limit to 5 authors
 
+    def _extract_chapter_number(self, title: str, url: str) -> float:
+        """Extract chapter number from title or URL."""
+        import re
+
+        # Try to extract from title first
+        title_patterns = [
+            r"chapter\s*(\d+(?:\.\d+)?)",
+            r"ch\.?\s*(\d+(?:\.\d+)?)",
+            r"#(\d+(?:\.\d+)?)",
+            r"(\d+(?:\.\d+)?)",
+        ]
+
+        for pattern in title_patterns:
+            match = re.search(pattern, title.lower())
+            if match:
+                try:
+                    return float(match.group(1))
+                except ValueError:
+                    continue
+
+        # Try to extract from URL
+        url_patterns = [
+            r"/chapter-(\d+(?:\.\d+)?)",
+            r"/ch-(\d+(?:\.\d+)?)",
+            r"/c(\d+(?:\.\d+)?)",
+            r"/(\d+(?:\.\d+)?)/?$",
+        ]
+
+        for pattern in url_patterns:
+            match = re.search(pattern, url.lower())
+            if match:
+                try:
+                    return float(match.group(1))
+                except ValueError:
+                    continue
+
+        return 0.0
+
     async def _fetch_status_from_detail_page(self, manga_url: str) -> MangaStatus:
         """Fetch status from manga detail page when not available in search results."""
         try:
@@ -638,14 +676,223 @@ class EnhancedGenericProvider(BaseProvider):
     async def get_chapters(
         self, manga_id: str, page: int = 1, limit: int = 100
     ) -> Tuple[List[Dict[str, Any]], int, bool]:
-        """Get chapters (basic implementation)."""
-        # This would need to be implemented based on site structure
-        return [], 0, False
+        """Get chapters with enhanced selector support."""
+        try:
+            manga_url = self._manga_url_pattern.format(manga_id=manga_id)
+            html = await self._make_request(manga_url)
+
+            if not html:
+                return [], 0, False
+
+            soup = BeautifulSoup(html, "html.parser")
+
+            # Find chapter elements using multiple selectors
+            chapter_elements = []
+            chapter_selectors = self._selectors.get("chapters", [])
+
+            # Default chapter selectors if none provided
+            if not chapter_selectors:
+                chapter_selectors = [
+                    ".wp-manga-chapter a",
+                    ".chapter-list a",
+                    ".chapters a",
+                    ".listing-chapters_wrap a",
+                    ".version-chap a",
+                    "li.wp-manga-chapter a",
+                    ".chapter-item a",
+                    "a[href*='chapter']",
+                    ".chapter a",
+                ]
+
+            for selector in chapter_selectors:
+                try:
+                    elements = soup.select(selector)
+                    if elements:
+                        logger.info(
+                            f"Found {len(elements)} chapters with selector '{selector}' for {self.name}"
+                        )
+                        chapter_elements = elements
+                        break
+                except Exception:
+                    continue
+
+            if not chapter_elements:
+                logger.warning(f"No chapters found for {manga_id} on {self.name}")
+                return [], 0, False
+
+            # Parse chapter information
+            chapters = []
+            for element in chapter_elements:
+                try:
+                    # Extract chapter URL
+                    chapter_url = element.get("href", "")
+                    if not chapter_url:
+                        continue
+
+                    # Make URL absolute
+                    if chapter_url.startswith("/"):
+                        chapter_url = urljoin(self._base_url, chapter_url)
+
+                    # Extract chapter ID from URL
+                    chapter_id = (
+                        chapter_url.split("/")[-1] or chapter_url.split("/")[-2]
+                    )
+                    if not chapter_id:
+                        continue
+
+                    # Extract chapter title
+                    chapter_title = element.get_text(strip=True)
+
+                    # Extract chapter number from title or URL
+                    chapter_number = self._extract_chapter_number(
+                        chapter_title, chapter_url
+                    )
+
+                    # Create chapter dict
+                    chapter = {
+                        "id": chapter_id,
+                        "title": chapter_title,
+                        "number": chapter_number,
+                        "volume": None,
+                        "language": "en",
+                        "pages_count": 0,
+                        "manga_id": manga_id,
+                        "publish_at": None,
+                        "readable_at": None,
+                        "source": self.name,
+                        "url": chapter_url,
+                    }
+
+                    chapters.append(chapter)
+
+                except Exception as e:
+                    logger.error(f"Error parsing chapter element: {e}")
+                    continue
+
+            # Apply pagination
+            total = len(chapters)
+            start_idx = (page - 1) * limit
+            end_idx = start_idx + limit
+            paginated_chapters = chapters[start_idx:end_idx]
+            has_next = end_idx < total
+
+            return paginated_chapters, total, has_next
+
+        except Exception as e:
+            logger.error(f"Error getting chapters for {manga_id}: {e}")
+            return [], 0, False
 
     async def get_pages(self, manga_id: str, chapter_id: str) -> List[str]:
-        """Get pages (basic implementation)."""
-        # This would need to be implemented based on site structure
-        return []
+        """Get pages with enhanced selector support."""
+        try:
+            # Build chapter URL
+            chapter_url = self._chapter_url_pattern.format(
+                manga_id=manga_id, chapter_id=chapter_id
+            )
+
+            html = await self._make_request(chapter_url)
+            if not html:
+                return []
+
+            soup = BeautifulSoup(html, "html.parser")
+
+            # Find page images using multiple selectors
+            page_images = []
+            page_selectors = self._selectors.get("pages", [])
+
+            # Default page selectors if none provided
+            if not page_selectors:
+                page_selectors = [
+                    ".reading-content img",
+                    ".page-break img",
+                    ".wp-manga-chapter-img",
+                    ".chapter-content img",
+                    ".chapter-images img",
+                    ".manga-page img",
+                    ".page img",
+                    "img[data-src*='chapter']",
+                    "img[src*='chapter']",
+                    ".reader img",
+                ]
+
+            for selector in page_selectors:
+                try:
+                    elements = soup.select(selector)
+                    if elements:
+                        logger.info(
+                            f"Found {len(elements)} page images with selector '{selector}' for {self.name}"
+                        )
+                        page_images = elements
+                        break
+                except Exception:
+                    continue
+
+            if not page_images:
+                logger.warning(
+                    f"No page images found for {manga_id}/{chapter_id} on {self.name}"
+                )
+                return []
+
+            # Extract page URLs
+            page_urls = []
+            for img in page_images:
+                try:
+                    # Priority: data-src > src (for lazy loading sites)
+                    img_url = None
+
+                    # Check data-src first (common for lazy loading)
+                    data_src = img.get("data-src", "").strip()
+                    if data_src and not any(
+                        placeholder in data_src.lower()
+                        for placeholder in [
+                            "default.jpg",
+                            "placeholder",
+                            "loading",
+                            "lazy",
+                        ]
+                    ):
+                        img_url = data_src
+
+                    # Fallback to src
+                    if not img_url:
+                        src = img.get("src", "").strip()
+                        if src and not any(
+                            placeholder in src.lower()
+                            for placeholder in [
+                                "default.jpg",
+                                "placeholder",
+                                "loading",
+                                "lazy",
+                            ]
+                        ):
+                            img_url = src
+
+                    if img_url:
+                        # Make URL absolute
+                        if img_url.startswith("//"):
+                            img_url = "https:" + img_url
+                        elif img_url.startswith("/"):
+                            img_url = urljoin(self._base_url, img_url)
+
+                        # Validate URL
+                        if (
+                            img_url.startswith(("http://", "https://"))
+                            and img_url not in page_urls
+                        ):
+                            page_urls.append(img_url)
+
+                except Exception as e:
+                    logger.error(f"Error processing page image: {e}")
+                    continue
+
+            logger.info(
+                f"Extracted {len(page_urls)} page URLs for {manga_id}/{chapter_id} on {self.name}"
+            )
+            return page_urls
+
+        except Exception as e:
+            logger.error(f"Error getting pages for {manga_id}/{chapter_id}: {e}")
+            return []
 
     async def download_page(self, page_url: str) -> bytes:
         """Download a page."""

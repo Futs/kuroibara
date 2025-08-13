@@ -11,6 +11,7 @@ import pytest
 from app.core.providers.registry import ProviderRegistry
 
 
+@pytest.mark.skip(reason="Requires FlareSolverr server not available in CI")
 @pytest.mark.asyncio
 async def test_flaresolverr_provider_search():
     """Test search functionality for FlareSolverr providers."""
@@ -54,6 +55,7 @@ async def test_flaresolverr_provider_search():
         pytest.skip(f"Provider {provider_name} connectivity issue: {e}")
 
 
+@pytest.mark.skip(reason="Requires FlareSolverr server not available in CI")
 @pytest.mark.asyncio
 async def test_flaresolverr_provider_metadata():
     """Test metadata extraction for a provider."""
@@ -104,6 +106,7 @@ async def test_flaresolverr_provider_metadata():
         pytest.skip(f"Provider {provider_name} metadata test skipped: {e}")
 
 
+@pytest.mark.skip(reason="Requires FlareSolverr server not available in CI")
 async def test_cloudflare_providers():
     """Test all Cloudflare-enabled providers."""
     print("🚀 Testing FlareSolverr-enabled providers...")

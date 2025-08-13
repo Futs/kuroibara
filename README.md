@@ -7,7 +7,7 @@
 
 # Kuroibara <img src="frontend/app/public/assets/logo/logo.png" alt="Kuroibara Logo" width="32" height="32">
 
-A modern manga management platform for discovering, organizing, and reading manga from 80+ online sources.
+A modern manga management platform for discovering, organizing, and reading manga from multiple online sources.
 
 > [![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
 
@@ -16,7 +16,6 @@ A modern manga management platform for discovering, organizing, and reading mang
 
 ## ✨ Features
 
-- 🔍 **80+ Manga Providers** - MangaDex, MangaPlus, TCBScans, and more
 - 📚 **Smart Library** - Personal collection with automatic metadata
 - 📖 **Advanced Reader** - Multiple reading modes, bookmarks, progress tracking
 - 🎨 **Customizable UI** - Dark/light themes, responsive design

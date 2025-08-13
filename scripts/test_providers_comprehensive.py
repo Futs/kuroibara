@@ -37,35 +37,51 @@ TEST_QUERIES = [
     "dragon ball"
 ]
 
-# Providers known to have Cloudflare protection or be unhealthy
+# Providers known to have issues or be non-working
 SKIP_PROVIDERS = {
     "AllPornComic",  # Cloudflare protected
-    "AnshScans",     # Slow/unreliable
+    "AnshScans",     # Needs investigation
     "HentaiNexus",   # Often down
     "HentaiRead",    # Cloudflare protected
     "HentaiWebtoon", # Cloudflare protected
     "Manga18FX",     # Adult content + protection
     "MangaFoxFull",  # Often blocked
-    "MangaFreak",    # Unreliable
-    "MangaHere",     # Often down
-    "MangaTown",     # Cloudflare protected
+    "MangaFreak",    # Needs selector fixes
+    "MangaHere",     # Needs selector fixes
+    "MangaFire",     # Cloudflare protected
     "ReadAllComics", # Cloudflare protected
-    "TAADD",         # Often unreliable
+    "TAADD",         # Needs investigation
     "Tsumino",       # Adult content + protection
 }
 
-# Priority providers to test first (known to be more reliable)
+# Fully working providers (tested and confirmed)
+WORKING_PROVIDERS = {
+    "MangaDex",      # Native implementation
+    "MangaTown",     # Fixed GenericProvider
+    "Toonily",       # EnhancedGenericProvider
+    "MangaDNA",      # EnhancedGenericProvider
+    "MangaSail",     # GenericProvider with pagination
+    "MangaKakalotFun", # GenericProvider with pagination
+    "ManhuaFast",    # GenericProvider with domain fix
+}
+
+# Partially working providers (some functionality works)
+PARTIAL_PROVIDERS = {
+    "FreeManga",     # Search works, chapters need JS
+    "OmegaScans",    # Direct access works, discovery needs JS
+}
+
+# Priority providers to test first (working providers)
 PRIORITY_PROVIDERS = [
     "MangaDex",
-    "MangaFire",
-    "MangaPill",
-    "MangaHub",
-    "MangaReaderTo",
-    "DynastyScans",
-    "ReaperScans",
-    "OmegaScans",
-    "ArcaneScans",
-    "MangaGG"
+    "MangaTown",
+    "Toonily",
+    "MangaDNA",
+    "MangaSail",
+    "MangaKakalotFun",
+    "ManhuaFast",
+    "FreeManga",
+    "OmegaScans"
 ]
 
 class ProviderTestResult:
@@ -238,8 +254,19 @@ async def test_provider(provider_name: str, db: AsyncSession, user_id: uuid.UUID
                     chapter_id = test_chapter.get('id')
 
                 if chapter_id:
+                    # Debug output for MangaDex
+                    if provider_name == "MangaDex":
+                        print(f"DEBUG: MangaDex get_pages call - Manga ID: {result.test_manga_id}, Chapter ID: {chapter_id}")
+
                     pages_task = asyncio.create_task(provider.get_pages(result.test_manga_id, chapter_id))
                     pages = await asyncio.wait_for(pages_task, timeout=10.0)
+
+                    # Debug output for MangaDex
+                    if provider_name == "MangaDex":
+                        print(f"DEBUG: MangaDx pages result: {len(pages) if pages else 0} pages")
+                        if pages:
+                            print(f"DEBUG: First page: {pages[0][:60]}...")
+
                     if pages and len(pages) > 0:
                         result.download_success = True
                     else:

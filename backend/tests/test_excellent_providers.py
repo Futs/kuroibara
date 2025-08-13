@@ -60,6 +60,7 @@ async def test_provider_factory_creation():
         assert hasattr(provider, "supports_nsfw")
 
 
+@pytest.mark.skip(reason="Takes too long - use scripts/test_working_providers.py instead")
 @pytest.mark.asyncio
 async def test_provider_health_basic():
     """Test basic provider health checks."""

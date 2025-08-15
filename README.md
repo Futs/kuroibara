@@ -24,6 +24,8 @@ A modern manga management platform for discovering, organizing, and reading mang
 - 📊 **Reading Analytics** - Statistics, streaks, achievements
 - 🎯 **Smart Filtering** - Genre, status, year, content rating filters
 
+> **📦 Latest Release**: [v0.6.5](https://github.com/Futs/kuroibara/releases/tag/v0.6.5) - Provider Testing & Stability Improvements
+
 ## 🛠️ Tech Stack
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)

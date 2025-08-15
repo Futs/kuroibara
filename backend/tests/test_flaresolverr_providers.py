@@ -119,9 +119,7 @@ async def test_cloudflare_providers():
 
     # Get Cloudflare providers
     cloudflare_provider_names = [
-        "ReaperScans",
         "Manhuaga",
-        "MangaFire",
         "MangaReaderTo",
     ]
 

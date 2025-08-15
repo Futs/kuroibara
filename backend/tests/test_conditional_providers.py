@@ -10,10 +10,10 @@ from pathlib import Path
 # Add the backend directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
+import pytest
+
 from app.core.providers.registry import ProviderRegistry
 
-
-import pytest
 
 @pytest.mark.skip(reason="Requires FlareSolverr server not available in CI")
 def test_without_flaresolverr():
@@ -38,9 +38,7 @@ def test_without_flaresolverr():
         print(f"  - {provider['name']} ({provider['id']})")
 
     # Check for Cloudflare providers
-    cloudflare_providers = [
-        p for p in providers if p["name"] in ["ReaperScans", "Manhuaga", "MangaFire"]
-    ]
+    cloudflare_providers = [p for p in providers if p["name"] in ["Manhuaga"]]
     print(f"\nCloudflare providers found: {len(cloudflare_providers)}")
     for provider in cloudflare_providers:
         print(f"  - {provider['name']}")
@@ -72,9 +70,7 @@ def test_with_flaresolverr():
         print(f"  - {provider['name']} ({provider['id']})")
 
     # Check for Cloudflare providers
-    cloudflare_providers = [
-        p for p in providers if p["name"] in ["ReaperScans", "Manhuaga", "MangaFire"]
-    ]
+    cloudflare_providers = [p for p in providers if p["name"] in ["Manhuaga"]]
     print(f"\nCloudflare providers found: {len(cloudflare_providers)}")
     for provider in cloudflare_providers:
         print(f"  - {provider['name']}")

@@ -163,20 +163,7 @@
       "name": "TapTrans"
     }
   },
-  {
-    "id": "mangafire",
-    "name": "MangaFire",
-    "class_name": "GenericProvider",
-    "url": "https://mangafire.to",
-    "supports_nsfw": false,
-    "params": {
-      "base_url": "https://mangafire.to",
-      "search_url": "https://mangafire.to/search",
-      "manga_url_pattern": "https://mangafire.to/manga/{manga_id}",
-      "chapter_url_pattern": "https://mangafire.to/manga/{manga_id}/{chapter_id}",
-      "name": "MangaFire"
-    }
-  },
+
   {
     "id": "toonily",
     "name": "Toonily",

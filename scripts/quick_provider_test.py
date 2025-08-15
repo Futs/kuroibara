@@ -12,12 +12,10 @@ from app.core.providers.registry import provider_registry
 # Priority providers to test first
 PRIORITY_PROVIDERS = [
     "MangaDex",
-    "MangaFire", 
     "MangaPill",
     "MangaHub",
     "MangaReaderTo",
     "DynastyScans",
-    "ReaperScans",
     "OmegaScans"
 ]
 

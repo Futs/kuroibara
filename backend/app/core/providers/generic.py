@@ -41,6 +41,8 @@ class GenericProvider(BaseProvider):
         fallback_selectors: Optional[Dict[str, List[str]]] = None,
         use_flaresolverr: bool = False,
         flaresolverr_url: Optional[str] = None,
+        # Store additional configuration parameters
+        **kwargs,
     ):
         """
         Initialize the generic provider.
@@ -199,6 +201,9 @@ class GenericProvider(BaseProvider):
                 ".dropped",
             ],
         }
+
+        # Store additional parameters for configuration access
+        self._params = kwargs
 
     def _get_random_headers(self) -> Dict[str, str]:
         """Get randomized headers to avoid detection."""
@@ -565,6 +570,10 @@ class GenericProvider(BaseProvider):
     ) -> Tuple[List[Dict[str, Any]], int, bool]:
         """Get chapters for a manga with pagination support."""
         try:
+            # Check if this provider uses single chapter mode (for galleries/doujins)
+            if self._params.get("single_chapter_mode", False):
+                return self._get_single_chapter(manga_id), 1, False
+
             # Check if this provider needs multi-page chapter extraction
             all_chapters = await self._get_all_chapters_with_pagination(manga_id)
 
@@ -582,6 +591,22 @@ class GenericProvider(BaseProvider):
         except Exception as e:
             logger.error(f"Error getting chapters: {e}")
             return [], 0, False
+
+    def _get_single_chapter(self, manga_id: str) -> List[Dict[str, Any]]:
+        """Create a single chapter for gallery-style providers like Tsumino."""
+        return [
+            {
+                "id": manga_id,
+                "title": "Gallery",
+                "chapter_number": "1",
+                "url": self._chapter_url_pattern.format(
+                    manga_id=manga_id, chapter_id=manga_id
+                ),
+                "date": None,
+                "scanlator": None,
+                "provider": self.name,
+            }
+        ]
 
     async def _get_all_chapters_with_pagination(
         self, manga_id: str
@@ -705,18 +730,84 @@ class GenericProvider(BaseProvider):
                 # Get page URLs
                 page_urls = []
                 for img in page_images:
-                    src = img.get("src", "")
+                    # Try data-src first (for lazy loading), then src
+                    src = img.get("data-src", "") or img.get("src", "")
                     if isinstance(src, list):
                         src = src[0] if src else ""
                     if src:
+                        # Clean up whitespace and fix malformed URLs
+                        src = src.strip()
+                        # Fix triple slashes in URLs (https:/// -> https://)
+                        if src.startswith("https:///"):
+                            src = src.replace("https:///", "https://")
+                        elif src.startswith("http:///"):
+                            src = src.replace("http:///", "http://")
+
                         # Make sure URL is absolute
                         src = self._normalize_url(src)
                         page_urls.append(src)
 
-                return page_urls
+                # Apply image filtering if configured
+                try:
+                    filtered_urls = self._filter_page_images(page_urls)
+                    logger.info(
+                        f"Page extraction for {self.name}: {len(page_urls)} -> {len(filtered_urls)} pages"
+                    )
+                    return filtered_urls
+                except Exception as filter_error:
+                    logger.error(
+                        f"Error in image filtering for {self.name}: {filter_error}"
+                    )
+                    # Return unfiltered pages if filtering fails
+                    return page_urls
         except Exception as e:
             logger.error(f"Error getting pages: {e}")
             return []
+
+    def _filter_page_images(self, page_urls: List[str]) -> List[str]:
+        """Filter out unwanted images like logos, placeholders, and ads."""
+        if not hasattr(self, "_params") or not self._params:
+            return page_urls
+
+        image_filters = self._params.get("image_filters", {})
+        if not image_filters:
+            return page_urls
+
+        exclude_patterns = image_filters.get("exclude_patterns", [])
+        exclude_extensions = image_filters.get("exclude_extensions", [])
+        min_size_kb = image_filters.get("min_size_kb", 0)
+
+        filtered_urls = []
+
+        for url in page_urls:
+            should_exclude = False
+            url_lower = url.lower()
+
+            # Check exclude patterns
+            for pattern in exclude_patterns:
+                if pattern.lower() in url_lower:
+                    logger.info(f"Excluding image due to pattern '{pattern}': {url}")
+                    should_exclude = True
+                    break
+
+            # Check exclude extensions
+            if not should_exclude:
+                for ext in exclude_extensions:
+                    if url_lower.endswith(ext.lower()):
+                        logger.info(f"Excluding image due to extension '{ext}': {url}")
+                        should_exclude = True
+                        break
+
+            # TODO: Add size filtering if needed (requires HEAD request)
+            # For now, we'll skip size filtering to avoid extra HTTP requests
+
+            if not should_exclude:
+                filtered_urls.append(url)
+
+        logger.info(
+            f"Image filtering: {len(page_urls)} -> {len(filtered_urls)} pages for {self.name}"
+        )
+        return filtered_urls
 
     def _extract_drupal_manga_pages(self, html: str) -> List[str]:
         """Extract manga pages from Drupal.settings JavaScript object."""
@@ -945,6 +1036,17 @@ class GenericProvider(BaseProvider):
 
         # Get the path
         path = url.rstrip("/").split("/")
+
+        # Special handling for DynastyScans: extract series name from chapter URLs
+        if self._params.get("extract_series_from_chapter", False) and len(path) >= 2:
+            if path[-2] == "chapters":
+                # Extract series name from chapter ID (e.g., "every_day_is_a_holiday_ch01" -> "every_day_is_a_holiday")
+                chapter_id = path[-1]
+                # Remove chapter suffix (e.g., "_ch01", "_ch1", "_chapter_1", etc.)
+                import re
+
+                series_id = re.sub(r"_ch\d+.*$|_chapter_?\d+.*$", "", chapter_id)
+                return series_id
 
         # Return the last part of the path
         return path[-1] if path else ""

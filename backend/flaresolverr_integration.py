@@ -198,7 +198,7 @@ async def example_usage():
 
     try:
         # Test with a Cloudflare-protected site
-        result = await provider.make_request("https://reaperscans.com")
+        result = await provider.make_request("https://manhuaga.com")
 
         if result:
             print(f"Status: {result['status_code']}")

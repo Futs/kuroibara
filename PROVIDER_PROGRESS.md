@@ -27,7 +27,7 @@
 
 | Provider | Issue | Status |
 |----------|-------|--------|
-| **MangaFire** | Cloudflare Protection | Blocked |
+
 | **Others** | Various | Needs investigation |
 
 ## 🚀 Technical Achievements

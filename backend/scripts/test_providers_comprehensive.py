@@ -53,12 +53,10 @@ SKIP_PROVIDERS = {
 # Priority providers to test first (known to be more reliable)
 PRIORITY_PROVIDERS = [
     "MangaDex",
-    "MangaFire",
     "MangaPill",
     "MangaHub",
     "MangaReaderTo",
     "DynastyScans",
-    "ReaperScans",
     "OmegaScans",
     "ArcaneScans",
     "MangaGG",

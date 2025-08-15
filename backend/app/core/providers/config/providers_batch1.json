@@ -169,20 +169,7 @@
       "name": "ManhuaPlus"
     }
   },
-  {
-    "id": "reaperscans",
-    "name": "ReaperScans",
-    "class_name": "GenericProvider",
-    "url": "https://reaperscans.com",
-    "supports_nsfw": false,
-    "params": {
-      "base_url": "https://reaperscans.com",
-      "search_url": "https://reaperscans.com/search",
-      "manga_url_pattern": "https://reaperscans.com/series/{manga_id}",
-      "chapter_url_pattern": "https://reaperscans.com/series/{manga_id}/{chapter_id}",
-      "name": "ReaperScans"
-    }
-  },
+
   {
     "id": "hentaiwebtoon",
     "name": "HentaiWebtoon",

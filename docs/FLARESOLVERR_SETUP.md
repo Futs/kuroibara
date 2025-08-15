@@ -23,9 +23,7 @@ These providers work without FlareSolverr and are prioritized first:
 
 ### Cloudflare-Protected Providers (Requires FlareSolverr - Priority 100+)
 These providers are only available when FlareSolverr is configured and appear after default providers:
-- **ReaperScans** - Popular scanlation group
 - **Manhuaga** - Manhua/Manhwa provider
-- **MangaFire** - Large manga aggregator
 - **MangaReaderTo** - Popular manga reader
 
 ## Setup Instructions
@@ -114,7 +112,7 @@ Visit `http://localhost:8191` in your browser. You should see the FlareSolverr w
 You should see additional providers available in the Kuroibara interface when FlareSolverr is configured.
 
 ### Test Provider Functionality
-Use the Kuroibara search interface to test Cloudflare-protected providers like ReaperScans or MangaFire.
+Use the Kuroibara search interface to test Cloudflare-protected providers like Manhuaga or MangaReaderTo.
 
 ## Configuration Options
 
@@ -168,7 +166,7 @@ Use the Kuroibara search interface to test Cloudflare-protected providers like R
    ```bash
    curl -X POST http://localhost:8191/v1 \
      -H "Content-Type: application/json" \
-     -d '{"cmd": "request.get", "url": "https://reaperscans.com", "maxTimeout": 60000}'
+     -d '{"cmd": "request.get", "url": "https://manhuaga.com", "maxTimeout": 60000}'
    ```
 
 ### Performance Issues

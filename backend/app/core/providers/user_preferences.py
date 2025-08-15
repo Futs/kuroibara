@@ -127,7 +127,6 @@ def get_fallback_provider_names() -> List[str]:
         "MangaLife",
         "MangaReaderTo",
         "ReadM",
-        "MangaFire",  # More mainstream providers
         "Toonily",
         "ManhwaHub",
         "ManhuaZ",

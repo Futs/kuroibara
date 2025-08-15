@@ -48,7 +48,7 @@ SKIP_PROVIDERS = {
     "MangaFoxFull",  # Often blocked
     "MangaFreak",    # Needs selector fixes
     "MangaHere",     # Needs selector fixes
-    "MangaFire",     # Cloudflare protected
+
     "ReadAllComics", # Cloudflare protected
     "TAADD",         # Needs investigation
     "Tsumino",       # Adult content + protection
@@ -263,7 +263,7 @@ async def test_provider(provider_name: str, db: AsyncSession, user_id: uuid.UUID
 
                     # Debug output for MangaDex
                     if provider_name == "MangaDex":
-                        print(f"DEBUG: MangaDx pages result: {len(pages) if pages else 0} pages")
+                        print(f"DEBUG: MangaDex pages result: {len(pages) if pages else 0} pages")
                         if pages:
                             print(f"DEBUG: First page: {pages[0][:60]}...")
 

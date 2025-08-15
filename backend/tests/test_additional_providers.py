@@ -55,14 +55,20 @@ async def test_provider_count():
 
     # We should have at least 28 providers (adjusted for MangaHub removal)
     # Local environment has 31, but CI might have fewer due to environment differences
-    assert len(providers) >= 28, f"Expected at least 28 providers, but got {len(providers)}"
+    assert (
+        len(providers) >= 28
+    ), f"Expected at least 28 providers, but got {len(providers)}"
 
     # Check that we have both NSFW and SFW providers
     nsfw_providers = [p for p in providers if p.supports_nsfw]
     sfw_providers = [p for p in providers if not p.supports_nsfw]
 
-    assert len(nsfw_providers) > 0, f"Expected NSFW providers, but got {len(nsfw_providers)}"
-    assert len(sfw_providers) > 0, f"Expected SFW providers, but got {len(sfw_providers)}"
+    assert (
+        len(nsfw_providers) > 0
+    ), f"Expected NSFW providers, but got {len(nsfw_providers)}"
+    assert (
+        len(sfw_providers) > 0
+    ), f"Expected SFW providers, but got {len(sfw_providers)}"
 
 
 @pytest.mark.asyncio

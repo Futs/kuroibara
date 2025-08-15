@@ -28,10 +28,8 @@
 | Provider | Issue | Priority | Notes |
 |----------|-------|----------|-------|
 | **MangaHub** | Cloudflare Protection | Low | Needs FlareSolverr |
-| **MangaFire** | Cloudflare Protection | Low | Needs FlareSolverr |
 | **MangaFreak** | Selectors | High | Likely easy fix |
 | **MangaHere** | Selectors | High | Popular site |
-| **ReaperScans** | Selectors | High | Scanlation group |
 | **Others** | Various | Medium | Need investigation |
 
 ## 📈 Performance Metrics
@@ -64,7 +62,7 @@
 - **MangaFreak** - Standard manga site
 - **MangaHere** - Popular manga site
 - **MangaReaderTo** - Reader-style interface
-- **ReaperScans** - Active scanlation group
+
 - **ArcanScans** - Active scanlation group
 
 ### Medium Priority (Special Handling)

@@ -72,7 +72,7 @@ def generate_provider_tests():
     individual_tests_dir = Path(__file__).parent / "individual_provider_tests"
     individual_tests_dir.mkdir(exist_ok=True)
 
-    print(f"🔧 Generating individual provider test scripts...")
+    print("🔧 Generating individual provider test scripts...")
     print(f"📁 Output directory: {individual_tests_dir}")
     print(f"📊 Total providers: {len(providers)}")
     print()
@@ -139,7 +139,7 @@ This directory contains {len(providers)} test scripts:
 
 ## Maintenance
 
-These scripts are auto-generated from `test_provider_template.py`. 
+These scripts are auto-generated from `test_provider_template.py`.
 To regenerate all scripts, run:
 ```bash
 docker compose -f docker-compose.dev.yml exec backend python scripts/generate_individual_provider_tests.py
@@ -153,7 +153,7 @@ docker compose -f docker-compose.dev.yml exec backend python scripts/generate_in
     print()
     print("✅ Generation complete!")
     print(f"📁 Created {len(providers)} individual test scripts")
-    print(f"📄 Created README.md with usage instructions")
+    print("📄 Created README.md with usage instructions")
     print()
     print("🎯 Priority providers to test first:")
     for provider in priority_providers:

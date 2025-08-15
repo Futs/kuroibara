@@ -78,18 +78,18 @@ class ComprehensiveProviderTester:
 
         try:
             # Test 1: Homepage accessibility
-            print(f"  Testing homepage accessibility...")
+            print("  Testing homepage accessibility...")
             homepage_result = await self._test_homepage(base_url)
             result.update(homepage_result)
 
             if result["accessibility_test"]:
                 # Test 2: Search functionality
-                print(f"  Testing search functionality...")
+                print("  Testing search functionality...")
                 search_result = await self._test_search(search_url or base_url)
                 result.update(search_result)
 
                 # Test 3: Content detection
-                print(f"  Testing content detection...")
+                print("  Testing content detection...")
                 content_result = await self._test_content_detection(base_url)
                 result.update(content_result)
 
@@ -304,7 +304,7 @@ async def main():
 
             elif result["status"] == "timeout":
                 tester.results["timeout"].append(result)
-                print(f"  ⏱️  TIMEOUT - Connection timeout")
+                print("  ⏱️  TIMEOUT - Connection timeout")
 
             elif result["status"] == "connection_error":
                 tester.results["connection_error"].append(result)
@@ -322,9 +322,9 @@ async def main():
             await asyncio.sleep(1)
 
     # Generate comprehensive report
-    print(f"\n" + "=" * 60)
-    print(f"COMPREHENSIVE TEST RESULTS")
-    print(f"=" * 60)
+    print("\n" + "=" * 60)
+    print("COMPREHENSIVE TEST RESULTS")
+    print("=" * 60)
 
     total_tested = len(providers)
     working_count = len(tester.results["working"])
@@ -335,17 +335,22 @@ async def main():
     connection_error_count = len(tester.results["connection_error"])
 
     print(f"Total Providers Tested: {total_tested}")
-    print(f"✅ Fully Working: {working_count} ({working_count/total_tested*100:.1f}%)")
     print(
-        f"⚠️  Partially Working: {partial_count} ({partial_count/total_tested*100:.1f}%)"
+        f"✅ Fully Working: {working_count} ({working_count / total_tested * 100:.1f}%)"
     )
-    print(f"❌ Failed: {failed_count} ({failed_count/total_tested*100:.1f}%)")
     print(
-        f"🛡️  Cloudflare Blocked: {cf_blocked_count} ({cf_blocked_count/total_tested*100:.1f}%)"
+        f"⚠️  Partially Working: {partial_count} "
+        f"({partial_count / total_tested * 100:.1f}%)"
     )
-    print(f"⏱️  Timeout: {timeout_count} ({timeout_count/total_tested*100:.1f}%)")
+    print(f"❌ Failed: {failed_count} ({failed_count / total_tested * 100:.1f}%)")
     print(
-        f"🔌 Connection Error: {connection_error_count} ({connection_error_count/total_tested*100:.1f}%)"
+        f"🛡️  Cloudflare Blocked: {cf_blocked_count} "
+        f"({cf_blocked_count / total_tested * 100:.1f}%)"
+    )
+    print(f"⏱️  Timeout: {timeout_count} ({timeout_count / total_tested * 100:.1f}%)")
+    print(
+        f"🔌 Connection Error: {connection_error_count} "
+        f"({connection_error_count / total_tested * 100:.1f}%)"
     )
 
     # Detailed results
@@ -380,7 +385,7 @@ async def main():
     with open("comprehensive_provider_test_results.json", "w") as f:
         json.dump(tester.results, f, indent=2)
 
-    print(f"\n📊 Detailed results saved to comprehensive_provider_test_results.json")
+    print("\n📊 Detailed results saved to comprehensive_provider_test_results.json")
 
     return tester.results
 

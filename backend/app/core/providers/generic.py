@@ -775,7 +775,7 @@ class GenericProvider(BaseProvider):
 
         exclude_patterns = image_filters.get("exclude_patterns", [])
         exclude_extensions = image_filters.get("exclude_extensions", [])
-        min_size_kb = image_filters.get("min_size_kb", 0)
+        # min_size_kb = image_filters.get("min_size_kb", 0)  # TODO: Implement size filtering
 
         filtered_urls = []
 

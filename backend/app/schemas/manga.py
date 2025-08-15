@@ -94,6 +94,9 @@ class ChapterBase(BaseModel):
     source: Optional[str] = None
     publish_at: Optional[datetime] = None
     readable_at: Optional[datetime] = None
+    download_status: str = "not_downloaded"
+    download_error: Optional[str] = None
+    external_id: Optional[str] = None
 
 
 class ChapterCreate(ChapterBase):
@@ -113,6 +116,9 @@ class ChapterUpdate(ChapterBase):
     file_path: Optional[str] = None
     file_size: Optional[int] = None
     source: Optional[str] = None
+    download_status: Optional[str] = None
+    download_error: Optional[str] = None
+    external_id: Optional[str] = None
 
 
 class ChapterSummary(ChapterBase, BaseSchema):

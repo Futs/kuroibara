@@ -531,6 +531,8 @@
                 </div>
               </div>
 
+
+
               <!-- Chapter Management (for library items) -->
               <div v-if="!isExternal && libraryItemDetails" class="mt-4">
                 <ChapterManagement
@@ -578,6 +580,7 @@
                     libraryItemDetails.chapters.length
                   "
                 >
+
                   <!-- Enhanced Chapter Cards for better UX -->
                   <ul
                     role="list"
@@ -622,205 +625,10 @@
                     </div>
                   </div>
 
-                  <!-- Chapter List -->
-                  <ul
-                    role="list"
-                    class="divide-y divide-gray-200 dark:divide-dark-600"
-                  >
-                    <li
-                      v-for="chapter in paginatedLibraryChapters"
-                      :key="chapter.id"
-                      class="py-4 flex items-center justify-between"
-                    >
-                      <div class="flex items-center">
-                        <!-- Download Status Indicator -->
-                        <div class="mr-3">
-                          <div
-                            v-if="chapter.download_status === 'downloaded'"
-                            class="w-3 h-3 bg-green-500 rounded-full"
-                            title="Downloaded"
-                          ></div>
-                          <div
-                            v-else-if="chapter.download_status === 'error'"
-                            class="w-3 h-3 bg-red-500 rounded-full"
-                            title="Download Failed"
-                          ></div>
-                          <div
-                            v-else
-                            class="w-3 h-3 bg-gray-300 dark:bg-gray-600 rounded-full"
-                            title="Not Downloaded"
-                          ></div>
-                        </div>
 
-                        <div class="flex-1">
-                          <p
-                            class="text-sm font-medium text-gray-900 dark:text-white"
-                          >
-                            Chapter {{ chapter.number
-                            }}{{ chapter.title ? `: ${chapter.title}` : "" }}
-                          </p>
-                          <div class="flex items-center space-x-3 mt-1">
-                            <p
-                              v-if="
-                                chapter.publish_at ||
-                                chapter.readable_at ||
-                                chapter.upload_date ||
-                                chapter.release_date ||
-                                chapter.created_at ||
-                                chapter.updated_at
-                              "
-                              class="text-xs text-gray-500 dark:text-gray-400"
-                            >
-                              📅
-                              {{
-                                formatDate(
-                                  chapter.publish_at ||
-                                    chapter.readable_at ||
-                                    chapter.upload_date ||
-                                    chapter.release_date ||
-                                    chapter.created_at ||
-                                    chapter.updated_at,
-                                )
-                              }}
-                            </p>
-                            <p
-                              v-if="chapter.pages_count || chapter.pages"
-                              class="text-xs text-gray-500 dark:text-gray-400"
-                            >
-                              📄
-                              {{ chapter.pages_count || chapter.pages }} pages
-                            </p>
-                            <p
-                              v-if="
-                                chapter.language && chapter.language !== 'en'
-                              "
-                              class="text-xs text-gray-500 dark:text-gray-400"
-                            >
-                              🌐 {{ chapter.language.toUpperCase() }}
-                            </p>
-                            <p
-                              v-if="chapter.source || (manga && manga.provider)"
-                              class="text-xs text-blue-600 dark:text-blue-400 font-medium"
-                            >
-                              {{ chapter.source || manga.provider }}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
 
-                      <div class="flex items-center space-x-2">
-                        <!-- Read Button (only if downloaded) -->
-                        <button
-                          v-if="
-                            chapter.download_status === 'downloaded' &&
-                            chapter.library_chapter_id
-                          "
-                          @click="readChapter(chapter.library_chapter_id)"
-                          class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                        >
-                          Read
-                        </button>
 
-                        <!-- Download Button -->
-                        <button
-                          v-if="chapter.download_status !== 'downloaded'"
-                          @click="downloadChapter(chapter)"
-                          class="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-dark-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                        >
-                          <svg
-                            class="w-4 h-4 mr-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                            />
-                          </svg>
-                          Download
-                        </button>
 
-                        <!-- Re-download Button -->
-                        <button
-                          v-if="chapter.download_status === 'error'"
-                          @click="downloadChapter(chapter)"
-                          class="inline-flex items-center px-3 py-1 border border-orange-300 text-sm leading-4 font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-                        >
-                          Retry
-                        </button>
-                      </div>
-                    </li>
-                  </ul>
-
-                  <!-- Bottom Pagination -->
-                  <div class="flex justify-center items-center mt-6 space-x-2">
-                    <button
-                      @click="goToPage(1)"
-                      :disabled="currentPage === 1"
-                      class="px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-dark-700"
-                    >
-                      First
-                    </button>
-                    <button
-                      @click="prevPage"
-                      :disabled="currentPage === 1"
-                      class="px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-dark-700"
-                    >
-                      ← Previous
-                    </button>
-
-                    <!-- Page Numbers -->
-                    <div class="flex space-x-1">
-                      <button
-                        v-for="page in Math.min(5, totalPages)"
-                        :key="page"
-                        @click="goToPage(page)"
-                        :class="[
-                          'px-3 py-2 text-sm border rounded-md',
-                          page === currentPage
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700',
-                        ]"
-                      >
-                        {{ page }}
-                      </button>
-                      <span
-                        v-if="totalPages > 5"
-                        class="px-3 py-2 text-sm text-gray-500"
-                        >...</span
-                      >
-                      <button
-                        v-if="totalPages > 5 && currentPage < totalPages - 2"
-                        @click="goToPage(totalPages)"
-                        :class="[
-                          'px-3 py-2 text-sm border rounded-md',
-                          totalPages === currentPage
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700',
-                        ]"
-                      >
-                        {{ totalPages }}
-                      </button>
-                    </div>
-
-                    <button
-                      @click="nextPage"
-                      :disabled="currentPage === totalPages"
-                      class="px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-dark-700"
-                    >
-                      Next →
-                    </button>
-                    <button
-                      @click="goToPage(totalPages)"
-                      :disabled="currentPage === totalPages"
-                      class="px-3 py-2 text-sm border border-gray-300 dark:border-dark-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-dark-700"
-                    >
-                      Last
-                    </button>
-                  </div>
                 </div>
 
                 <!-- Basic chapters for external manga -->
@@ -1210,8 +1018,8 @@ const sortedEnhancedChapters = computed(() => {
 const paginatedAllProviderChapters = computed(() => {
   if (!providerChapters.value) return [];
 
-  const startIndex = (currentPage.value - 1) * chaptersPerPage.value;
-  const endIndex = startIndex + chaptersPerPage.value;
+  const startIndex = (currentPage.value - 1) * chaptersPerPage;
+  const endIndex = startIndex + chaptersPerPage;
 
   return providerChapters.value.slice(startIndex, endIndex);
 });
@@ -1219,8 +1027,8 @@ const paginatedAllProviderChapters = computed(() => {
 const paginatedLibraryChapters = computed(() => {
   if (!sortedEnhancedChapters.value) return [];
 
-  const startIndex = (currentPage.value - 1) * chaptersPerPage.value;
-  const endIndex = startIndex + chaptersPerPage.value;
+  const startIndex = (currentPage.value - 1) * chaptersPerPage;
+  const endIndex = startIndex + chaptersPerPage;
 
   return sortedEnhancedChapters.value.slice(startIndex, endIndex);
 });
@@ -1440,7 +1248,20 @@ const removeFromLibrary = async () => {
     confirm("Are you sure you want to remove this manga from your library?")
   ) {
     try {
-      await libraryStore.removeFromLibrary(mangaId.value);
+      // Find the library item ID for this manga
+      const libraryResponse = await api.get("/v1/library", {
+        params: { manga_id: mangaId.value },
+      });
+
+      if (
+        !libraryResponse.data.items ||
+        libraryResponse.data.items.length === 0
+      ) {
+        throw new Error("Manga not found in library");
+      }
+
+      const libraryItemId = libraryResponse.data.items[0].id;
+      await libraryStore.removeFromLibrary(libraryItemId);
       inLibrary.value = false;
     } catch (err) {
       console.error("Error removing from library:", err);
@@ -1478,7 +1299,10 @@ const downloadVolume = async (volumeData) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 
@@ -1545,7 +1369,10 @@ const retryFailedChapters = async (volumeData) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 
@@ -1628,7 +1455,10 @@ const downloadChapter = async (chapter) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 
@@ -1674,7 +1504,10 @@ const downloadProviderChapter = async (chapter) => {
       params: { manga_id: mangaId.value },
     });
 
-    if (!libraryResponse.data.items || libraryResponse.data.items.length === 0) {
+    if (
+      !libraryResponse.data.items ||
+      libraryResponse.data.items.length === 0
+    ) {
       throw new Error("Manga not found in library");
     }
 

@@ -22,7 +22,7 @@ async def test_providers_with_auth(client: TestClient, token: str):
     generic_providers = []
 
     for provider in providers:
-        if provider["name"] in ["MangaDex", "MangaPlus", "MangaSee"]:
+        if provider["name"] in ["MangaDex", "Toonily", "MangaDNA"]:
             priority_providers.append(provider["name"])
         else:
             generic_providers.append(provider["name"])

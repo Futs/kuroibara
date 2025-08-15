@@ -1,158 +1,158 @@
 name: 🔌 New Provider Request
 description: Submit a new manga provider for Kuroibara
 title: "[Provider] Add support for [PROVIDER_NAME]"
-labels: ["provider", "enhancement"]
+labels: [ "provider", "enhancement" ]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## 📋 Provider Information Template
-        Please fill out all required fields to add a new manga provider to Kuroibara.
-        
-        **Before submitting:**
-        - Check if the provider already exists in our [supported providers list](https://github.com/Futs/kuroibara/blob/main/docs/PROVIDERS.md)
-        - Ensure the website is accessible and has manga content
-        - Test the CSS selectors work on the target website
-        
-  - type: input
-    id: provider_name
-    attributes:
-      label: Provider Name
-      description: The display name of the manga provider
-      placeholder: "e.g., MangaReader, AsuraScans, ReaperScans"
-    validations:
+- type: markdown
+  attributes:
+    value: |
+      ## 📋 Provider Information Template
+      Please fill out all required fields to add a new manga provider to Kuroibara.
+
+      **Before submitting:**
+      - Check if the provider already exists in our [supported providers list](https://github.com/Futs/kuroibara/blob/main/docs/PROVIDERS.md)
+      - Ensure the website is accessible and has manga content
+      - Test the CSS selectors work on the target website
+
+- type: input
+  id: provider_name
+  attributes:
+    label: Provider Name
+    description: The display name of the manga provider
+    placeholder: "e.g., MangaReader, AsuraScans, MangaDex"
+  validations:
+    required: true
+
+- type: input
+  id: provider_id
+  attributes:
+    label: Provider ID
+    description: Unique identifier (lowercase, no spaces, alphanumeric only)
+    placeholder: "e.g., mangareader, asurascans, mangadex"
+  validations:
+    required: true
+
+- type: input
+  id: base_url
+  attributes:
+    label: Base URL
+    description: Main website URL (include https://)
+    placeholder: "https://example.com"
+  validations:
+    required: true
+
+- type: input
+  id: search_url
+  attributes:
+    label: Search URL Pattern
+    description: URL pattern for search (use {query} as placeholder for search term)
+    placeholder: "https://example.com/search?q={query}"
+  validations:
+    required: true
+
+- type: dropdown
+  id: provider_type
+  attributes:
+    label: Provider Type
+    description: What type of provider is this?
+    options:
+    - Generic (Standard HTML scraping)
+    - Enhanced Generic (Cloudflare bypass needed)
+    - API-based (Custom implementation needed)
+  validations:
+    required: true
+
+- type: checkboxes
+  id: features
+  attributes:
+    label: Provider Features
+    description: Select all that apply
+    options:
+    - label: Supports NSFW content
+    - label: Requires Cloudflare bypass (FlareSolverr)
+    - label: Has official API documentation
+    - label: Supports multiple languages
+    - label: Requires user authentication
+
+- type: dropdown
+  id: priority
+  attributes:
+    label: Provider Priority
+    description: How important is this provider?
+    options:
+    - High (Popular, official source)
+    - Medium (Well-known community source)
+    - Low (Niche or new source)
+  default: 1
+  validations:
+    required: true
+
+- type: textarea
+  id: selectors
+  attributes:
+    label: CSS Selectors (JSON format)
+    description: |
+      Provide CSS selectors for scraping. Test these on the website first!
+      Use browser dev tools to find the correct selectors.
+    placeholder: |
+      {
+        "search_items": [".manga-item", ".search-result", ".listupd .bs"],
+        "title": [".title", "h3 a", ".manga-title", ".tt"],
+        "cover": [".cover img", ".thumbnail img", ".limit img"],
+        "link": ["a[href*='manga']", ".title-link", "a[href*='series']"],
+        "description": [".description", ".summary", ".desc"],
+        "chapters": [".chapter-item", ".chapter-list li", ".eplister li"],
+        "pages": [".page-image img", ".reader-image", ".ts-main-image img"]
+      }
+    render: json
+  validations:
+    required: true
+
+- type: textarea
+  id: test_manga
+  attributes:
+    label: Test Manga Information
+    description: |
+      Provide details of a manga for testing the provider.
+      This helps validate that the selectors work correctly.
+    placeholder: |
+      Title: One Piece
+      URL: https://example.com/manga/one-piece
+      Expected chapters: 1000+
+      Sample chapter URL: https://example.com/manga/one-piece/chapter-1
+    render: text
+  validations:
+    required: true
+
+- type: textarea
+  id: additional_info
+  attributes:
+    label: Additional Information
+    description: |
+      Any additional information about the provider:
+      - Special requirements
+      - Known issues
+      - Rate limiting considerations
+      - Language support details
+    placeholder: |
+      - Provider updates daily at 12:00 UTC
+      - Requires specific user-agent header
+      - Has rate limiting of 1 request per second
+    render: text
+  validations:
+    required: false
+
+- type: checkboxes
+  id: verification
+  attributes:
+    label: Verification Checklist
+    description: Please confirm you have completed these steps
+    options:
+    - label: I have tested the CSS selectors on the target website
       required: true
-      
-  - type: input
-    id: provider_id
-    attributes:
-      label: Provider ID
-      description: Unique identifier (lowercase, no spaces, alphanumeric only)
-      placeholder: "e.g., mangareader, asurascans, reaperscans"
-    validations:
+    - label: I have verified the search URL works with a test query
       required: true
-      
-  - type: input
-    id: base_url
-    attributes:
-      label: Base URL
-      description: Main website URL (include https://)
-      placeholder: "https://example.com"
-    validations:
+    - label: I have checked that this provider is not already supported
       required: true
-      
-  - type: input
-    id: search_url
-    attributes:
-      label: Search URL Pattern
-      description: URL pattern for search (use {query} as placeholder for search term)
-      placeholder: "https://example.com/search?q={query}"
-    validations:
+    - label: I understand this will create an automated pull request for review
       required: true
-      
-  - type: dropdown
-    id: provider_type
-    attributes:
-      label: Provider Type
-      description: What type of provider is this?
-      options:
-        - Generic (Standard HTML scraping)
-        - Enhanced Generic (Cloudflare bypass needed)
-        - API-based (Custom implementation needed)
-    validations:
-      required: true
-      
-  - type: checkboxes
-    id: features
-    attributes:
-      label: Provider Features
-      description: Select all that apply
-      options:
-        - label: Supports NSFW content
-        - label: Requires Cloudflare bypass (FlareSolverr)
-        - label: Has official API documentation
-        - label: Supports multiple languages
-        - label: Requires user authentication
-        
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Provider Priority
-      description: How important is this provider?
-      options:
-        - High (Popular, official source)
-        - Medium (Well-known community source)
-        - Low (Niche or new source)
-    default: 1
-    validations:
-      required: true
-      
-  - type: textarea
-    id: selectors
-    attributes:
-      label: CSS Selectors (JSON format)
-      description: |
-        Provide CSS selectors for scraping. Test these on the website first!
-        Use browser dev tools to find the correct selectors.
-      placeholder: |
-        {
-          "search_items": [".manga-item", ".search-result", ".listupd .bs"],
-          "title": [".title", "h3 a", ".manga-title", ".tt"],
-          "cover": [".cover img", ".thumbnail img", ".limit img"],
-          "link": ["a[href*='manga']", ".title-link", "a[href*='series']"],
-          "description": [".description", ".summary", ".desc"],
-          "chapters": [".chapter-item", ".chapter-list li", ".eplister li"],
-          "pages": [".page-image img", ".reader-image", ".ts-main-image img"]
-        }
-      render: json
-    validations:
-      required: true
-      
-  - type: textarea
-    id: test_manga
-    attributes:
-      label: Test Manga Information
-      description: |
-        Provide details of a manga for testing the provider.
-        This helps validate that the selectors work correctly.
-      placeholder: |
-        Title: One Piece
-        URL: https://example.com/manga/one-piece
-        Expected chapters: 1000+
-        Sample chapter URL: https://example.com/manga/one-piece/chapter-1
-      render: text
-    validations:
-      required: true
-      
-  - type: textarea
-    id: additional_info
-    attributes:
-      label: Additional Information
-      description: |
-        Any additional information about the provider:
-        - Special requirements
-        - Known issues
-        - Rate limiting considerations
-        - Language support details
-      placeholder: |
-        - Provider updates daily at 12:00 UTC
-        - Requires specific user-agent header
-        - Has rate limiting of 1 request per second
-      render: text
-    validations:
-      required: false
-      
-  - type: checkboxes
-    id: verification
-    attributes:
-      label: Verification Checklist
-      description: Please confirm you have completed these steps
-      options:
-        - label: I have tested the CSS selectors on the target website
-          required: true
-        - label: I have verified the search URL works with a test query
-          required: true
-        - label: I have checked that this provider is not already supported
-          required: true
-        - label: I understand this will create an automated pull request for review
-          required: true

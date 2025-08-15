@@ -8,7 +8,6 @@ from app.core.providers.enhanced_generic import EnhancedGenericProvider
 from app.core.providers.factory import provider_factory
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
-from app.core.providers.mangaplus import MangaPlusProvider
 
 # from app.core.providers.mangasee import MangaSeeProvider  # Module not found
 
@@ -25,7 +24,7 @@ class ProviderRegistry:
 
         # Initialize provider factory
         provider_factory.register_provider_class(MangaDexProvider)
-        provider_factory.register_provider_class(MangaPlusProvider)
+
         # MangaSeeProvider removed - moved to weebcentral.com
         provider_factory.register_provider_class(GenericProvider)
         provider_factory.register_provider_class(EnhancedGenericProvider)
@@ -40,7 +39,7 @@ class ProviderRegistry:
                 "No providers loaded from config, registering default providers"
             )
             self.register_provider(MangaDexProvider())
-            self.register_provider(MangaPlusProvider())
+            # MangaPlusProvider removed - protobuf dependency
             # MangaSeeProvider removed - moved to weebcentral.com
 
         logger.info(

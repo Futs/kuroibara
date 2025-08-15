@@ -619,6 +619,29 @@ async def _fetch_and_create_chapters(
                 if existing_chapter:
                     continue  # Skip if chapter already exists
 
+                # Parse datetime fields (convert to naive UTC)
+                publish_at = chapter_data.get("publish_at")
+                if publish_at and isinstance(publish_at, str):
+                    # Parse ISO format datetime string and convert to naive UTC
+                    try:
+                        dt = datetime.fromisoformat(publish_at.replace("Z", "+00:00"))
+                        publish_at = dt.replace(tzinfo=None)  # Remove timezone info
+                    except ValueError:
+                        publish_at = datetime.utcnow()
+                elif not publish_at:
+                    publish_at = datetime.utcnow()
+
+                readable_at = chapter_data.get("readable_at")
+                if readable_at and isinstance(readable_at, str):
+                    # Parse ISO format datetime string and convert to naive UTC
+                    try:
+                        dt = datetime.fromisoformat(readable_at.replace("Z", "+00:00"))
+                        readable_at = dt.replace(tzinfo=None)  # Remove timezone info
+                    except ValueError:
+                        readable_at = datetime.utcnow()
+                elif not readable_at:
+                    readable_at = datetime.utcnow()
+
                 # Create new chapter
                 chapter = Chapter(
                     manga_id=manga_id,
@@ -630,9 +653,9 @@ async def _fetch_and_create_chapters(
                     language=chapter_data.get("language", "en"),
                     pages_count=chapter_data.get("pages_count", 0),
                     external_id=chapter_data.get("id"),
-                    external_url=chapter_data.get("url", ""),
-                    publish_at=chapter_data.get("publish_at") or datetime.utcnow(),
-                    readable_at=chapter_data.get("readable_at") or datetime.utcnow(),
+                    source=chapter_data.get("source", provider_name),
+                    publish_at=publish_at,
+                    readable_at=readable_at,
                 )
 
                 db.add(chapter)

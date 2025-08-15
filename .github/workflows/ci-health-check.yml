@@ -1,0 +1,119 @@
+name: CI Health Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 8 AM UTC
+    - cron: '0 8 * * 1'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  ci-health-check:
+    name: CI Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check workflow files
+        run: |
+          echo "=== Checking GitHub Actions workflow files ==="
+          find .github/workflows -name "*.yml" -o -name "*.yaml" | while read file; do
+            echo "Checking: $file"
+            if ! yamllint "$file" 2>/dev/null; then
+              echo "⚠️  YAML syntax issues in $file"
+            else
+              echo "✅ $file is valid"
+            fi
+          done
+
+      - name: Check for problematic actions
+        run: |
+          echo "=== Checking for problematic GitHub Actions ==="
+          
+          # Check for component-detection issues
+          if grep -r "component-detection" .github/workflows/ 2>/dev/null; then
+            echo "⚠️  Found component-detection references"
+          else
+            echo "✅ No component-detection references found"
+          fi
+          
+          # Check for deprecated actions
+          if grep -r "actions/setup-node@v3" .github/workflows/ 2>/dev/null; then
+            echo "⚠️  Found deprecated setup-node@v3"
+          fi
+          
+          if grep -r "actions/setup-python@v4" .github/workflows/ 2>/dev/null; then
+            echo "⚠️  Found deprecated setup-python@v4"
+          fi
+
+      - name: Validate dependency files
+        run: |
+          echo "=== Validating dependency files ==="
+          
+          # Check Python requirements
+          if [ -f "backend/requirements.txt" ]; then
+            echo "✅ Python requirements.txt found"
+            echo "Python packages: $(wc -l < backend/requirements.txt)"
+          else
+            echo "❌ Python requirements.txt not found"
+          fi
+          
+          # Check Node.js package files
+          if [ -f "frontend/app/package.json" ]; then
+            echo "✅ Node.js package.json found"
+            if [ -f "frontend/app/package-lock.json" ]; then
+              echo "✅ Node.js package-lock.json found"
+            else
+              echo "⚠️  Node.js package-lock.json not found"
+            fi
+          else
+            echo "❌ Node.js package.json not found"
+          fi
+
+      - name: Check CI configuration
+        run: |
+          echo "=== Checking CI configuration files ==="
+          
+          # Check for dependency review config
+          if [ -f ".github/dependency-review-config.yml" ]; then
+            echo "✅ Dependency review config found"
+          else
+            echo "⚠️  Dependency review config not found"
+          fi
+          
+          # Check for security configs
+          if [ -f ".github/workflows/security-scan.yml" ]; then
+            echo "✅ Security scan workflow found"
+          else
+            echo "⚠️  Security scan workflow not found"
+          fi
+
+      - name: Test basic workflow syntax
+        run: |
+          echo "=== Testing workflow syntax ==="
+          
+          # Install yamllint if available
+          if command -v yamllint >/dev/null 2>&1; then
+            echo "Using yamllint for validation"
+            find .github/workflows -name "*.yml" -exec yamllint {} \;
+          else
+            echo "yamllint not available, using basic checks"
+            find .github/workflows -name "*.yml" -exec python -c "import yaml; yaml.safe_load(open('{}'))" \; 2>/dev/null || echo "YAML validation completed"
+          fi
+
+      - name: Generate CI health report
+        run: |
+          echo "=== CI Health Report ==="
+          echo "Generated at: $(date)"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo ""
+          echo "Workflow files found:"
+          find .github/workflows -name "*.yml" -exec basename {} \;
+          echo ""
+          echo "✅ CI Health Check completed successfully"

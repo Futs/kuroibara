@@ -248,11 +248,9 @@ async def main():
 
     # Cloudflare-protected providers identified from our tests
     test_providers = [
-        ("ReaperScans", "https://reaperscans.com"),
         ("ManhuaFast", "https://manhuafast.com"),
         ("Manhuaga", "https://manhuaga.com"),
         # Add a few more that might be Cloudflare protected
-        ("MangaFire", "https://mangafire.to"),
         ("MangaReaderTo", "https://mangareader.to"),
         ("Toonily", "https://toonily.com"),  # This one was working, for comparison
     ]

@@ -10,7 +10,7 @@ from app.core.events import shutdown_event_handler, startup_event_handler
 app = FastAPI(
     title=settings.APP_NAME,
     description="API for Kuroibara manga/manhua/manhwa library",
-    version="0.2.0",
+    version="0.6.5",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",

@@ -2,19 +2,20 @@
 [![Deploy](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/Futs/kuroibara/actions/workflows/deploy.yml)
 [![Security Scan](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml/badge.svg?branch=main)](https://github.com/Futs/kuroibara/actions/workflows/security-scan.yml)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Futs/kuroibara/pr-checks.yml?branch=main&label=tests)](https://github.com/Futs/kuroibara/actions/workflows/pr-checks.yml)
-[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
-[![GitHub Stars](https://img.shields.io/github/stars/Futs/kuroibara)](https://github.com/Futs/kuroibara/stargazers)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/Futs/kuroibara)](https://github.com/Futs/kuroibara/stargazers)
 
 # Kuroibara <img src="frontend/app/public/assets/logo/logo.png" alt="Kuroibara Logo" width="32" height="32">
 
-A modern manga management platform for discovering, organizing, and reading manga from 80+ online sources.
+A modern manga management platform for discovering, organizing, and reading manga from multiple online sources.
+
+[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)  
 
 > **🚀 Latest Release**: v0.6.0 with Enhanced Testing
 
+
 ## ✨ Features
 
-- 🔍 **80+ Manga Providers** - MangaDex, MangaPlus, TCBScans, and more
 - 📚 **Smart Library** - Personal collection with automatic metadata
 - 📖 **Advanced Reader** - Multiple reading modes, bookmarks, progress tracking
 - 🎨 **Customizable UI** - Dark/light themes, responsive design
@@ -47,8 +48,10 @@ docker compose up -d
 ```
 
 **Docker Images:**
-- **Backend**: [![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)
-- **Frontend**: [![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend)
+- **Backend**:  
+[![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)  
+- **Frontend**:  
+[![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend) 
 
 ### 📦 From Source
 

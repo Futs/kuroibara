@@ -128,5 +128,11 @@ test_provider_fixes.py
 **/test_provider_*.py
 **/test_*_fixes.py
 
+# Provider testing directories
+scripts/individual_provider_tests/
+scripts/test_results/
+backend/scripts/individual_provider_tests/
+backend/scripts/test_results/
+
 # Temporary - to fix GitHub README display issue
 # CI-CD-SETUP.md

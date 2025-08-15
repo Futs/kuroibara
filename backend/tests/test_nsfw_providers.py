@@ -134,11 +134,11 @@ def test_search_result_nsfw_tagging():
 
     # Test non-NSFW provider
     safe_provider = GenericProvider(
-        base_url="https://mangaplus.shueisha.co.jp",
-        search_url="https://mangaplus.shueisha.co.jp/search",
-        manga_url_pattern="https://mangaplus.shueisha.co.jp/titles/{manga_id}",
-        chapter_url_pattern="https://mangaplus.shueisha.co.jp/viewer/{chapter_id}",
-        name="MangaPlus",
+        base_url="https://mangadex.org",
+        search_url="https://mangadex.org/search",
+        manga_url_pattern="https://mangadex.org/title/{manga_id}",
+        chapter_url_pattern="https://mangadex.org/chapter/{chapter_id}",
+        name="MangaDex",
         supports_nsfw=False,
     )
 

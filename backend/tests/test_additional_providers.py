@@ -54,23 +54,39 @@ async def test_provider_count():
     print("=" * 30)
 
     # Test that we have providers loaded (basic sanity check)
-    assert len(providers) > 0, "No providers found - this indicates a serious configuration issue"
+    assert (
+        len(providers) > 0
+    ), "No providers found - this indicates a serious configuration issue"
 
     # Test that we have essential working providers (these should always be present)
     provider_names = [p.name for p in providers]
-    essential_providers = ["MangaDex", "MangaTown", "Toonily"]  # Core working providers we know exist
+    essential_providers = [
+        "MangaDex",
+        "MangaTown",
+        "Toonily",
+    ]  # Core working providers we know exist
 
-    missing_essential = [name for name in essential_providers if name not in provider_names]
-    assert len(missing_essential) == 0, f"Missing essential providers: {missing_essential}"
+    missing_essential = [
+        name for name in essential_providers if name not in provider_names
+    ]
+    assert (
+        len(missing_essential) == 0
+    ), f"Missing essential providers: {missing_essential}"
 
     # Check that we have both NSFW and SFW providers
     nsfw_providers = [p for p in providers if p.supports_nsfw]
     sfw_providers = [p for p in providers if not p.supports_nsfw]
 
-    assert len(nsfw_providers) > 0, f"Expected NSFW providers, but got {len(nsfw_providers)}"
-    assert len(sfw_providers) > 0, f"Expected SFW providers, but got {len(sfw_providers)}"
+    assert (
+        len(nsfw_providers) > 0
+    ), f"Expected NSFW providers, but got {len(nsfw_providers)}"
+    assert (
+        len(sfw_providers) > 0
+    ), f"Expected SFW providers, but got {len(sfw_providers)}"
 
-    print(f"✅ Provider validation passed: {len(providers)} total, {len(nsfw_providers)} NSFW, {len(sfw_providers)} SFW")
+    print(
+        f"✅ Provider validation passed: {len(providers)} total, {len(nsfw_providers)} NSFW, {len(sfw_providers)} SFW"
+    )
 
 
 @pytest.mark.asyncio

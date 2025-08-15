@@ -32,6 +32,15 @@ class TestBackupService:
         self.service = BackupService()
         self.service.backup_path = self.backup_path
         self.service.storage_path = self.storage_path
+        # Update derived paths after changing backup_path
+        self.service.backups_dir = os.path.join(self.backup_path, "archives")
+        self.service.restore_temp_dir = os.path.join(self.backup_path, "restore_temp")
+        self.service.logs_dir = os.path.join(self.backup_path, "logs")
+
+        # Ensure backup subdirectories exist
+        os.makedirs(self.service.backups_dir, exist_ok=True)
+        os.makedirs(self.service.restore_temp_dir, exist_ok=True)
+        os.makedirs(self.service.logs_dir, exist_ok=True)
 
         # Create mock user
         self.user = Mock(spec=User)

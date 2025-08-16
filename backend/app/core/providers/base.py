@@ -2,6 +2,8 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
+from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
@@ -9,6 +11,27 @@ import aiohttp
 from app.schemas.search import SearchResult
 
 logger = logging.getLogger(__name__)
+
+
+class AgentCapability(Enum):
+    """Capabilities that an agent can support."""
+
+    SEARCH = "search"
+    MANGA_DETAILS = "manga_details"
+    CHAPTERS = "chapters"
+    PAGES = "pages"
+    DOWNLOAD_PAGE = "download_page"
+    DOWNLOAD_COVER = "download_cover"
+    HEALTH_CHECK = "health_check"
+
+
+class AgentStatus(Enum):
+    """Status of an agent."""
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    ERROR = "error"
+    CIRCUIT_OPEN = "circuit_open"
 
 
 class BaseProvider(ABC):

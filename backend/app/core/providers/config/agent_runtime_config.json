@@ -1,0 +1,255 @@
+{
+  "MangaDex": {
+    "enabled": true,
+    "priority": 1,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "MangaPill": {
+    "enabled": true,
+    "priority": 20,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "ArcaneScans": {
+    "enabled": true,
+    "priority": 20,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "ManhuaFast": {
+    "enabled": true,
+    "priority": 30,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "Toonily": {
+    "enabled": true,
+    "priority": 4,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "MangaTown": {
+    "enabled": true,
+    "priority": 8,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "MangaDNA": {
+    "enabled": true,
+    "priority": 6,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "Manga18FX": {
+    "enabled": true,
+    "priority": 7,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "MangaFreak": {
+    "enabled": true,
+    "priority": 13,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "MangaSail": {
+    "enabled": true,
+    "priority": 15,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  },
+  "MangaKakalotFun": {
+    "enabled": true,
+    "priority": 22,
+    "circuit_breaker": {
+      "threshold": 5,
+      "timeout": 300,
+      "enabled": true
+    },
+    "rate_limiting": {
+      "max_concurrent": 3,
+      "min_time_between_requests": 1000,
+      "enabled": true
+    },
+    "monitoring": {
+      "health_check_enabled": true,
+      "metrics_collection": true,
+      "alert_on_failures": true
+    },
+    "timeouts": {
+      "request_timeout": 30,
+      "health_check_timeout": 30
+    }
+  }
+}

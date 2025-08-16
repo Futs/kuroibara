@@ -1,11 +1,13 @@
+import logging
 import os
 import uuid
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
 from app.core.providers.registry import provider_registry
@@ -40,7 +42,16 @@ async def read_manga(
     """
     Retrieve manga.
     """
-    result = await db.execute(select(Manga).offset(skip).limit(limit))
+    result = await db.execute(
+        select(Manga)
+        .options(
+            selectinload(Manga.genres),
+            selectinload(Manga.authors),
+            selectinload(Manga.chapters).selectinload(Chapter.pages),
+        )
+        .offset(skip)
+        .limit(limit)
+    )
     manga_list = result.scalars().all()
     return manga_list
 
@@ -111,7 +122,7 @@ async def read_manga_by_id(
         .options(
             selectinload(Manga.genres),
             selectinload(Manga.authors),
-            selectinload(Manga.chapters),
+            selectinload(Manga.chapters).selectinload(Chapter.pages),
         )
         .where(Manga.id == uuid.UUID(manga_id))
     )
@@ -268,6 +279,7 @@ async def read_manga_chapters(
 
     result = await db.execute(
         select(Chapter)
+        .options(selectinload(Chapter.pages))
         .where(Chapter.manga_id == uuid.UUID(manga_id))
         .order_by(Chapter.number)
         .offset(skip)
@@ -301,9 +313,129 @@ async def create_manga_chapter(
 
     db.add(chapter)
     await db.commit()
-    await db.refresh(chapter)
 
-    return chapter
+    # Load chapter with pages relationship
+    result = await db.execute(
+        select(Chapter)
+        .options(selectinload(Chapter.pages))
+        .where(Chapter.id == chapter.id)
+    )
+    chapter_with_pages = result.scalars().first()
+
+    return chapter_with_pages
+
+
+@router.post("/{manga_id}/refresh-chapters")
+async def refresh_manga_chapters(
+    manga_id: str,
+    provider_id: str = Query(
+        None, description="Override provider to use for fetching chapters"
+    ),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Refresh/fetch chapters for a manga from its provider.
+    """
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    # Determine which provider to use
+    if provider_id:
+        # Use specified provider
+        provider_name = provider_id
+        external_id = manga.external_id
+    elif manga.provider:
+        # Use manga's existing provider (normalize to lowercase)
+        provider_name = manga.provider.lower()
+        external_id = manga.external_id
+    else:
+        # Try to find the manga on available providers
+        # For now, try MangaDex as it's the most common
+        provider_name = "mangadex"
+        external_id = manga.external_id
+
+    if not external_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Manga has no external ID to fetch chapters from",
+        )
+
+    # Get provider
+    provider = provider_registry.get_provider(provider_name)
+    if not provider:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Provider '{provider_name}' not found",
+        )
+
+    try:
+        # Fetch chapters from provider
+        chapters_data, total_chapters, has_more = await provider.get_chapters(
+            external_id
+        )
+
+        if not chapters_data:
+            return {
+                "message": "No chapters found for this manga",
+                "chapters_added": 0,
+                "total_chapters": 0,
+            }
+
+        # Update manga provider if not set
+        if not manga.provider:
+            manga.provider = provider_name
+            await db.commit()
+
+        chapters_added = 0
+        for chapter_data in chapters_data:
+            # Check if chapter already exists
+            # Convert chapter number to string for comparison
+            chapter_number = str(chapter_data.get("number", ""))
+            result = await db.execute(
+                select(Chapter).where(
+                    (Chapter.manga_id == uuid.UUID(manga_id))
+                    & (Chapter.number == chapter_number)
+                )
+            )
+            existing_chapter = result.scalars().first()
+
+            if not existing_chapter:
+                # Create new chapter
+                chapter = Chapter(
+                    manga_id=uuid.UUID(manga_id),
+                    title=chapter_data.get("title", f"Chapter {chapter_number}"),
+                    number=chapter_number,
+                    volume=chapter_data.get("volume"),
+                    language=chapter_data.get("language", "en"),
+                    pages_count=chapter_data.get("pages_count"),
+                    source=provider_name,
+                    external_id=chapter_data.get("id"),
+                    publish_at=chapter_data.get("publish_at"),
+                    readable_at=chapter_data.get("readable_at"),
+                )
+                db.add(chapter)
+                chapters_added += 1
+
+        await db.commit()
+
+        return {
+            "message": f"Successfully refreshed chapters for {manga.title}",
+            "chapters_added": chapters_added,
+            "total_chapters": len(chapters_data),
+            "provider": provider_name,
+        }
+
+    except Exception as e:
+        logging.error(f"Error refreshing chapters for manga {manga_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to refresh chapters: {str(e)}",
+        )
 
 
 @router.get("/external/{provider}/{manga_id}")
@@ -493,8 +625,14 @@ async def get_chapter_by_id(
             detail="Manga not found",
         )
 
-    # Check if chapter exists
-    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+    # Check if chapter exists with eager loading
+    result = await db.execute(
+        select(Chapter)
+        .options(selectinload(Chapter.pages))
+        .where(Chapter.id == uuid.UUID(chapter_id))
+    )
+    chapter = result.scalars().first()
+
     if not chapter or chapter.manga_id != uuid.UUID(manga_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -580,7 +718,7 @@ async def create_manga_from_external(
             .options(
                 selectinload(Manga.genres),
                 selectinload(Manga.authors),
-                selectinload(Manga.chapters),
+                selectinload(Manga.chapters).selectinload(Chapter.pages),
             )
             .where((Manga.provider == provider) & (Manga.external_id == external_id))
         )

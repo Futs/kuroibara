@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
 from app.models.library import ReadingList
-from app.models.manga import Manga
+from app.models.manga import Chapter, Manga
 from app.models.user import User
 from app.schemas.library import ReadingList as ReadingListSchema
 from app.schemas.library import (
@@ -31,7 +31,13 @@ async def read_reading_lists(
     """
     result = await db.execute(
         select(ReadingList)
-        .options(selectinload(ReadingList.manga))
+        .options(
+            selectinload(ReadingList.manga).selectinload(Manga.genres),
+            selectinload(ReadingList.manga).selectinload(Manga.authors),
+            selectinload(ReadingList.manga)
+            .selectinload(Manga.chapters)
+            .selectinload(Chapter.pages),
+        )
         .where(ReadingList.user_id == current_user.id)
         .offset(skip)
         .limit(limit)
@@ -101,7 +107,9 @@ async def create_reading_list(
         .options(
             selectinload(ReadingList.manga).selectinload(Manga.genres),
             selectinload(ReadingList.manga).selectinload(Manga.authors),
-            selectinload(ReadingList.manga).selectinload(Manga.chapters),
+            selectinload(ReadingList.manga)
+            .selectinload(Manga.chapters)
+            .selectinload(Chapter.pages),
         )
         .where(ReadingList.id == reading_list.id)
     )
@@ -121,7 +129,13 @@ async def read_reading_list(
     """
     result = await db.execute(
         select(ReadingList)
-        .options(selectinload(ReadingList.manga))
+        .options(
+            selectinload(ReadingList.manga).selectinload(Manga.genres),
+            selectinload(ReadingList.manga).selectinload(Manga.authors),
+            selectinload(ReadingList.manga)
+            .selectinload(Manga.chapters)
+            .selectinload(Chapter.pages),
+        )
         .where(ReadingList.id == uuid.UUID(reading_list_id))
     )
     reading_list = result.scalars().first()
@@ -276,7 +290,9 @@ async def add_manga_to_reading_list(
         .options(
             selectinload(ReadingList.manga).selectinload(Manga.genres),
             selectinload(ReadingList.manga).selectinload(Manga.authors),
-            selectinload(ReadingList.manga).selectinload(Manga.chapters),
+            selectinload(ReadingList.manga)
+            .selectinload(Manga.chapters)
+            .selectinload(Chapter.pages),
         )
         .where(ReadingList.id == reading_list.id)
     )

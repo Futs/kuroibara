@@ -93,9 +93,9 @@ async def test_provider_count():
 async def test_provider_registry_get_provider():
     """Test getting specific providers from the registry."""
     # Test getting MangaDex provider
-    mangadx_provider = provider_registry.get_provider("MangaDex")
-    assert mangadx_provider is not None
-    assert mangadx_provider.name == "MangaDex"
+    mangadex_provider = provider_registry.get_provider("MangaDex")
+    assert mangadex_provider is not None
+    assert mangadex_provider.name == "MangaDex"
 
     # Test getting non-existent provider
     non_existent = provider_registry.get_provider("non_existent_provider")

@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_current_user, get_db
 from app.models.library import MangaUserLibrary as MangaUserLibraryModel
-from app.models.manga import Manga
+from app.models.manga import Chapter, Manga
 from app.models.user import User
 from app.schemas.library import MangaUserLibrary as MangaUserLibrarySchema
 
@@ -41,7 +41,13 @@ async def get_user_favorites(
         # Build base query
         query = (
             select(MangaUserLibraryModel)
-            .options(selectinload(MangaUserLibraryModel.manga))
+            .options(
+                selectinload(MangaUserLibraryModel.manga).selectinload(Manga.genres),
+                selectinload(MangaUserLibraryModel.manga).selectinload(Manga.authors),
+                selectinload(MangaUserLibraryModel.manga)
+                .selectinload(Manga.chapters)
+                .selectinload(Chapter.pages),
+            )
             .where(
                 and_(
                     MangaUserLibraryModel.user_id == current_user.id,
@@ -340,7 +346,13 @@ async def export_favorites(
         # Get all user favorites
         result = await db.execute(
             select(MangaUserLibraryModel)
-            .options(selectinload(MangaUserLibraryModel.manga))
+            .options(
+                selectinload(MangaUserLibraryModel.manga).selectinload(Manga.genres),
+                selectinload(MangaUserLibraryModel.manga).selectinload(Manga.authors),
+                selectinload(MangaUserLibraryModel.manga)
+                .selectinload(Manga.chapters)
+                .selectinload(Chapter.pages),
+            )
             .where(
                 and_(
                     MangaUserLibraryModel.user_id == current_user.id,

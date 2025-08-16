@@ -74,7 +74,9 @@ async def read_library(
         .options(
             selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
             selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
-            selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
+            selectinload(MangaUserLibrary.manga)
+            .selectinload(Manga.chapters)
+            .selectinload(Chapter.pages),
             selectinload(MangaUserLibrary.categories),
         )
         .where(MangaUserLibrary.user_id == current_user.id)
@@ -269,7 +271,9 @@ async def add_to_library(
             .options(
                 selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
                 selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
-                selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
+                selectinload(MangaUserLibrary.manga)
+                .selectinload(Manga.chapters)
+                .selectinload(Chapter.pages),
                 selectinload(MangaUserLibrary.categories),
             )
             .where(MangaUserLibrary.id == library_item_obj.id)
@@ -332,7 +336,9 @@ async def read_library_item_detailed(
         .options(
             selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
             selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
-            selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
+            selectinload(MangaUserLibrary.manga)
+            .selectinload(Manga.chapters)
+            .selectinload(Chapter.pages),
             selectinload(MangaUserLibrary.categories),
         )
         .where(MangaUserLibrary.id == uuid.UUID(library_item_id))

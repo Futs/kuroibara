@@ -355,9 +355,22 @@ class EnhancedGenericProvider(BaseProvider):
                     )
                     title = "Unknown Title"
                     if title_element:
-                        raw_title = title_element.get_text(strip=True)
+                        # Check if it's an img element with alt attribute
+                        if title_element.name == "img" and title_element.get("alt"):
+                            raw_title = title_element.get("alt")
+                        else:
+                            # Try to get text content first
+                            raw_title = title_element.get_text(strip=True)
+
+                            # If no text content, check for img[alt] within the element
+                            if not raw_title:
+                                img_elem = title_element.select_one("img[alt]")
+                                if img_elem:
+                                    raw_title = img_elem.get("alt", "")
+
                         # Clean up title by removing common badges and indicators
-                        title = self._clean_title(raw_title)
+                        if raw_title:
+                            title = self._clean_title(raw_title)
 
                     # Extract link
                     link_element = self._find_element_with_selectors(
@@ -794,6 +807,14 @@ class EnhancedGenericProvider(BaseProvider):
                     if not chapter_url:
                         continue
 
+                    # Skip chapters with template variables or malformed URLs
+                    if (
+                        "{{" in chapter_url
+                        or "}}" in chapter_url
+                        or chapter_url.startswith("#")
+                    ):
+                        continue
+
                     # Make URL absolute
                     if chapter_url.startswith("/"):
                         chapter_url = urljoin(self._base_url, chapter_url)
@@ -807,6 +828,10 @@ class EnhancedGenericProvider(BaseProvider):
 
                     # Extract chapter title
                     chapter_title = element.get_text(strip=True)
+
+                    # Skip chapters with template variables in title
+                    if "{{" in chapter_title or "}}" in chapter_title:
+                        continue
 
                     # Extract chapter number from title or URL
                     chapter_number = self._extract_chapter_number(
@@ -851,9 +876,16 @@ class EnhancedGenericProvider(BaseProvider):
         """Get pages with enhanced selector support."""
         try:
             # Build chapter URL
-            chapter_url = self._chapter_url_pattern.format(
-                manga_id=manga_id, chapter_id=chapter_id
-            )
+            # Check if chapter_id is already a full slug (contains manga_id)
+            if manga_id in chapter_id and chapter_id.startswith(manga_id):
+                # chapter_id is already a full slug like "manga-name-chapter-123"
+                # Use it directly in the pattern
+                chapter_url = f"{self._base_url}/{chapter_id}/"
+            else:
+                # chapter_id is just the chapter number, use the pattern
+                chapter_url = self._chapter_url_pattern.format(
+                    manga_id=manga_id, chapter_id=chapter_id
+                )
 
             html = await self._make_request(chapter_url)
             if not html:

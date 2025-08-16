@@ -8,6 +8,7 @@ from app.core.providers.enhanced_generic import EnhancedGenericProvider
 from app.core.providers.factory import provider_factory
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
+from app.core.providers.mangapill import MangaPillProvider
 
 # from app.core.providers.mangasee import MangaSeeProvider  # Module not found
 
@@ -24,6 +25,7 @@ class ProviderRegistry:
 
         # Initialize provider factory
         provider_factory.register_provider_class(MangaDexProvider)
+        provider_factory.register_provider_class(MangaPillProvider)
 
         # MangaSeeProvider removed - moved to weebcentral.com
         provider_factory.register_provider_class(GenericProvider)

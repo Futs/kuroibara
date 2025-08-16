@@ -122,6 +122,7 @@ TEMP_*.md
 *provider_*_report.json
 *flaresolverr_test_results*
 PROVIDER_HEALTH_REPORT.md
+*providers*.csv
 
 # Test Files
 test_provider_fixes.py

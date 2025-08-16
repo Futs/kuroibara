@@ -1,0 +1,29 @@
+{
+  "provider_name": "TrueManga",
+  "test_timestamp": "2025-08-16T09:50:12.652171",
+  "test_duration": 3.3855438232421875e-05,
+  "search": {
+    "success": false,
+    "results_count": 0,
+    "error": "Provider not found in registry"
+  },
+  "details": {
+    "success": false,
+    "error": ""
+  },
+  "chapters": {
+    "success": false,
+    "count": 0,
+    "error": ""
+  },
+  "pages": {
+    "success": false,
+    "count": 0,
+    "error": ""
+  },
+  "test_manga": {
+    "title": "",
+    "id": ""
+  },
+  "overall_status": "NOT_WORKING"
+}

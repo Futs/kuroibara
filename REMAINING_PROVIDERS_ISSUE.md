@@ -159,9 +159,35 @@ Enhance FlareSolverr integration:
 - [ ] ManhuaFast - Handle JS image loading
 - [ ] FreeManga - Add JS interaction
 
-### Phase 3: Advanced Features (Future)
+### Phase 3: Cloudflare Bypass (Advanced)
 - [ ] MangaGG - Cloudflare bypass
 - [ ] MangaHere - Cloudflare bypass
+
+### Phase 4: High-Volume Untested Providers (Next 2-3 weeks)
+- [ ] MangaOnlineFun - 67,154 manga, NSFW content
+- [ ] MangaForest - 53,153 manga, NSFW content
+- [ ] TrueManga - 53,153 manga, NSFW content
+- [ ] MangaKakalotFun - 44,045 manga, NSFW content
+- [ ] ReadComicsOnline.li - 33,986 comics, NSFW content
+
+### Phase 5: Medium-Volume Untested Providers (Next 3-4 weeks)
+- [ ] MangaReader.to - 12,837 manga, NSFW content
+- [ ] Kissmanga - 10,525 manga, NSFW content
+- [ ] MangaPlaza - 10,317 manga, NSFW content
+- [ ] ZinManga - 6,779 manga, NSFW content
+- [ ] S2Manga - 5,424 manga, NSFW content
+
+### Phase 6: Official/Premium Services (Next 2-3 weeks)
+- [ ] Tapas - 1,733 webtoons (Official platform with API)
+- [ ] Toomics - 902 manga, NSFW content (Premium service)
+- [ ] Comikey - 527 manga (Official English publisher)
+
+### Phase 7: Revisit Disabled Integrations
+- [ ] MangaBuddy - 52,840 manga (Enhanced Integration Disabled)
+- [ ] WeebCentral - 9,495 manga (Basic Integration Disabled)
+- [ ] WebComicsApp - 3,914 manga (Enhanced Integration Disabled)
+
+### Phase 8: Remaining Testing
 - [ ] HentaiNexus - NSFW testing
 - [ ] TAADD - Structure analysis
 
@@ -188,7 +214,18 @@ Enhance FlareSolverr integration:
 
 ---
 
-**Priority**: Medium (9/32 working is solid foundation)
-**Estimated Effort**: 4-6 weeks for realistic targets
-**Expected Outcome**: 12-15 working providers (38-47% success rate)
-**Dependencies**: Current system works well, JS support needed for next phase
+## 📈 Updated Project Scope
+
+**Current Status**: 9/32 working providers (28% success rate)
+**Total Available Providers**: 121 providers (32 tested + 89 untested)
+**Updated Priority**: High (massive expansion potential with untested providers)
+**Estimated Effort**: 8-12 weeks for comprehensive integration
+**Expected Outcome**: 20-30 working providers (significant improvement)
+**Dependencies**: Current system works well, focus on high-volume untested providers first
+
+### 🎯 Strategic Focus
+1. **Immediate Impact**: Target high-volume untested providers (50K+ manga each)
+2. **Quality over Quantity**: Focus on providers with large, diverse collections
+3. **NSFW Support**: Many high-volume providers have NSFW content
+4. **Official Integration**: Prioritize official platforms with APIs
+5. **Revisit Disabled**: Re-examine previously disabled integrations

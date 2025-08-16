@@ -1,0 +1,29 @@
+{
+  "provider_name": "MangaOnlineFun",
+  "test_timestamp": "2025-08-16T09:49:51.667044",
+  "test_duration": 2.0742416381835938e-05,
+  "search": {
+    "success": false,
+    "results_count": 0,
+    "error": "Provider not found in registry"
+  },
+  "details": {
+    "success": false,
+    "error": ""
+  },
+  "chapters": {
+    "success": false,
+    "count": 0,
+    "error": ""
+  },
+  "pages": {
+    "success": false,
+    "count": 0,
+    "error": ""
+  },
+  "test_manga": {
+    "title": "",
+    "id": ""
+  },
+  "overall_status": "NOT_WORKING"
+}

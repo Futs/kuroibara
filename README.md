@@ -7,24 +7,28 @@
 
 # Kuroibara <img src="frontend/app/public/assets/logo/logo.png" alt="Kuroibara Logo" width="32" height="32">
 
-A modern manga management platform for discovering, organizing, and reading manga from multiple online sources.
+A modern manga management platform for discovering, organizing, and reading manga from multiple online sources. Built with reliability and performance in mind.
 
-[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)  
+[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
 
-> **🚀 Latest Release**: v0.6.0 with Enhanced Testing
+> **🚀 Latest Release**: v0.7.0 with Enhanced Architecture & Job System
 
 
 ## ✨ Features
 
-- 📚 **Smart Library** - Personal collection with automatic metadata
+- 📚 **Smart Library** - Personal collection with automatic metadata and organization
 - 📖 **Advanced Reader** - Multiple reading modes, bookmarks, progress tracking
+- 🔍 **Multi-Provider Search** - Search across multiple manga sources simultaneously
+- 📥 **Reliable Downloads** - Robust download system with automatic retry and progress tracking
 - 🎨 **Customizable UI** - Dark/light themes, responsive design
 - 🔐 **Secure Authentication** - 2FA support, external account linking
-- ☁️ **Cloudflare Bypass** - Optional FlareSolverr integration
-- 📊 **Reading Analytics** - Statistics, streaks, achievements
+- 📊 **Reading Analytics** - Statistics, streaks, achievements, reading history
 - 🎯 **Smart Filtering** - Genre, status, year, content rating filters
+- ☁️ **Cloudflare Bypass** - Optional FlareSolverr integration for protected sites
+- 🔄 **Background Processing** - Automated downloads, health checks, and maintenance
+- � **Real-time Updates** - Live progress tracking and status notifications
 
-> **📦 Latest Release**: [v0.6.5](https://github.com/Futs/kuroibara/releases/tag/v0.6.5) - Provider Testing & Stability Improvements
+> **📦 Latest Release**: [v0.7.0](https://github.com/Futs/kuroibara/releases/tag/v0.7.0) - Enhanced Architecture & Job System
 
 ## 🛠️ Tech Stack
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -38,6 +42,8 @@ A modern manga management platform for discovering, organizing, and reading mang
 - **Backend**: Python 3.13, FastAPI, PostgreSQL, Valkey (Redis fork)
 - **Frontend**: Vue.js 3.5.17, Tailwind CSS 4, Vite 6
 - **Infrastructure**: Docker, Nginx
+- **Architecture**: Agent-based providers, Job queue system, Health monitoring
+- **Real-time**: WebSocket support, Progress tracking, Live updates
 
 ## 🚀 Quick Start
 
@@ -68,6 +74,10 @@ docker compose up -d
 
 - **Application**: http://localhost:3000
 - **API Docs**: http://localhost:8000/docs
+- **Job Queue API**: http://localhost:8000/docs#/Jobs
+- **Health Monitoring**: http://localhost:8000/docs#/Health%20Monitoring
+- **Agent Management**: http://localhost:8000/docs#/Agents
+- **Progress Tracking**: http://localhost:8000/docs#/Progress
 
 ## 🔓 Optional: FlareSolverr Integration
 
@@ -81,12 +91,24 @@ docker compose restart backend
 
 📖 [Complete Setup Guide](docs/FLARESOLVERR_SETUP.md)
 
+## 🏗️ Architecture
+
+Kuroibara is built with a modern, reliable architecture:
+
+- 🤖 **Smart Provider System** - Intelligent manga provider management with health monitoring
+- 📋 **Job Queue** - Priority-based download and task scheduling
+- ⚡ **Rate Limiting** - Optimized request handling for each provider
+- 📊 **Real-time Updates** - Live progress tracking with WebSocket support
+- 🛡️ **Fault Tolerance** - Provider failures don't affect other providers
+
+� **[Technical Details](docs/ARCHITECTURE.md)** - Complete architecture documentation
+
 ## 📚 Documentation
 
 - 📖 [GitHub Wiki](https://github.com/Futs/kuroibara/wiki) - User guides and tutorials
-- 🔧 [Technical Docs](docs/README.md) - Development and API documentation
 - 🚀 [Getting Started](https://github.com/Futs/kuroibara/wiki/Getting-Started) - Setup guide
-- 🐛 [Troubleshooting](https://github.com/Futs/kuroibara/wiki/Troubleshooting) - Common issues
+- � [Technical Docs](docs/README.md) - Development and API documentation
+- � [Troubleshooting](https://github.com/Futs/kuroibara/wiki/Troubleshooting) - Common issues
 
 ## 🤝 Contributing
 

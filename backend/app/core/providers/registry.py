@@ -10,18 +10,40 @@ from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangapill import MangaPillProvider
 
+# Import agent system for new architecture
+try:
+    from app.core.agents.compatibility import compatibility_provider_registry
+
+    AGENT_SYSTEM_AVAILABLE = True
+except ImportError:
+    AGENT_SYSTEM_AVAILABLE = False
+
 # from app.core.providers.mangasee import MangaSeeProvider  # Module not found
 
 logger = logging.getLogger(__name__)
 
 
 class ProviderRegistry:
-    """Registry for manga providers."""
+    """
+    Registry for manga providers.
+
+    This class now serves as a compatibility layer that delegates to the
+    new agent system when available, while maintaining backward compatibility.
+    """
 
     def __init__(self):
-        self._providers: Dict[str, BaseProvider] = {}
+        # Check if agent system is available
+        if AGENT_SYSTEM_AVAILABLE:
+            logger.info("Initializing ProviderRegistry with Agent System backend")
+            self._use_agent_system = True
+            self._agent_registry = compatibility_provider_registry
+            # Delegate initialization to agent system
+            return
 
-        logger.info("Initializing ProviderRegistry")
+        # Fallback to legacy provider system
+        logger.info("Initializing ProviderRegistry with legacy provider system")
+        self._use_agent_system = False
+        self._providers: Dict[str, BaseProvider] = {}
 
         # Initialize provider factory
         provider_factory.register_provider_class(MangaDexProvider)
@@ -50,22 +72,38 @@ class ProviderRegistry:
 
     def register_provider(self, provider: BaseProvider) -> None:
         """Register a provider."""
-        self._providers[provider.name.lower()] = provider
+        if self._use_agent_system:
+            return self._agent_registry.register_provider(provider)
+        else:
+            self._providers[provider.name.lower()] = provider
 
     def get_provider(self, name: str) -> Optional[BaseProvider]:
         """Get a provider by name."""
-        return self._providers.get(name.lower())
+        if self._use_agent_system:
+            return self._agent_registry.get_provider(name)
+        else:
+            return self._providers.get(name.lower())
 
     def get_all_providers(self) -> List[BaseProvider]:
         """Get all registered providers."""
-        return list(self._providers.values())
+        if self._use_agent_system:
+            return self._agent_registry.get_all_providers()
+        else:
+            return list(self._providers.values())
 
     def get_provider_names(self) -> List[str]:
         """Get the names of all registered providers."""
-        return sorted([provider.name for provider in self._providers.values()])
+        if self._use_agent_system:
+            return self._agent_registry.get_provider_names()
+        else:
+            return sorted([provider.name for provider in self._providers.values()])
 
     def get_provider_info(self) -> List[Dict[str, Any]]:
         """Get information about all registered providers."""
+        if self._use_agent_system:
+            return self._agent_registry.get_provider_info()
+
+        # Legacy implementation for fallback
         # Get all providers with their priority information
         providers_with_priority = []
 

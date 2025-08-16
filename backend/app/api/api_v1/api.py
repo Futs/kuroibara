@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.api_v1.endpoints import (
+    agents,
     auth,
     backup,
     categories,
@@ -8,9 +9,11 @@ from app.api.api_v1.endpoints import (
     favorites,
     import_files,
     integrations,
+    jobs,
     library,
     manga,
     organizer,
+    progress,
     providers,
     reading_lists,
     search,
@@ -43,4 +46,9 @@ api_router.include_router(organizer.router, prefix="/organizer", tags=["Organize
 api_router.include_router(backup.router, prefix="/backup", tags=["Backup"])
 api_router.include_router(
     integrations.router, prefix="/integrations", tags=["Integrations"]
+)
+api_router.include_router(agents.router, prefix="/agents", tags=["Agents"])
+api_router.include_router(progress.router, prefix="/progress", tags=["Progress"])
+api_router.include_router(
+    jobs.router, prefix="/jobs", tags=["Jobs", "Health Monitoring"]
 )

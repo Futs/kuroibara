@@ -145,6 +145,43 @@ class EnhancedGenericProvider(BaseProvider):
                 "h3 a",
                 "h4 a",
             ],
+            "status": [
+                ".status",
+                ".manga-status",
+                ".series-status",
+                "[class*='status']",
+                ".info .status",
+                ".details .status",
+                ".post-status",
+                ".mg_status",
+                ".summary-content .status",
+                ".meta-item .status",
+                ".manga-info .status",
+                ".series-info .status",
+                ".post-content_item:contains('Status')",
+                ".summary-heading:contains('Status') + .summary-content",
+                ".fmed b:contains('Status')",
+                ".tsinfo .imptdt:contains('Status')",
+                ".infotable tr:contains('Status') td",
+                ".manga-info-table tr:contains('Status') td",
+            ],
+            "genres": [
+                ".genres",
+                ".tags",
+                ".categories",
+                ".genre",
+                ".tag",
+                ".category",
+                "[class*='genre']",
+                "[class*='tag']",
+                "[class*='category']",
+                ".manga-genres",
+                ".series-genres",
+                ".post-content_item:contains('Genre')",
+                ".summary-heading:contains('Genre') + .summary-content",
+                ".fmed:contains('Genre')",
+                ".tsinfo .imptdt:contains('Genre')",
+            ],
         }
 
         # Initialize FlareSolverr client if needed
@@ -267,7 +304,15 @@ class EnhancedGenericProvider(BaseProvider):
             )
             return False
 
-        # NSFW keywords to look for (more conservative list)
+        # Providers that are primarily NSFW - mark all content as NSFW
+        nsfw_only_providers = ["MangaDNA", "Manga18FX"]
+        if self.name in nsfw_only_providers:
+            logger.debug(
+                f"Provider {self.name} is NSFW-only, marking '{title}' as NSFW"
+            )
+            return True
+
+        # NSFW keywords to look for (comprehensive list)
         nsfw_keywords = {
             "hentai",
             "ecchi",
@@ -280,32 +325,187 @@ class EnhancedGenericProvider(BaseProvider):
             "xxx",
             "18+",
             "nsfw",
+            "r18",
+            "r-18",
+            "explicit",
+            "uncensored",
+            "doujin",
+            "doujinshi",
+            "yaoi",
+            "yuri",
+            "shounen-ai",
+            "shoujo-ai",
+            "bl",
+            "gl",
+            "lemon",
+            "lime",
+            "hardcore",
+            "softcore",
+            "nudity",
+            "sex",
+            "rape",
+            "incest",
+            "netorare",
+            "ntr",
+            "ahegao",
+            "milf",
+            "loli",
+            "shota",
+            "futanari",
+            "futa",
+            "tentacle",
+            "monster",
+            "bdsm",
+            "femdom",
+            "maledom",
+            "gangbang",
+            "orgy",
+            "threesome",
+            "creampie",
+            "cumshot",
+            "blowjob",
+            "handjob",
+            "footjob",
+            "titjob",
+            "anal",
+            "oral",
+            "vaginal",
+            "masturbation",
+            "virgin",
+            "defloration",
+            "impregnation",
+            "pregnant",
+            "lactation",
+            "breast",
+            "oppai",
+            "big breasts",
+            "huge breasts",
+            "small breasts",
+            "flat chest",
+            "panties",
+            "underwear",
+            "lingerie",
+            "swimsuit",
+            "bikini",
+            "naked",
+            "nude",
+            "topless",
+            "bottomless",
+            "upskirt",
+            "pantyshot",
+            "cameltoe",
+            "cleavage",
+            "nipples",
+            "areola",
+            "pussy",
+            "vagina",
+            "penis",
+            "dick",
+            "cock",
+            "balls",
+            "testicles",
+            "semen",
+            "cum",
+            "orgasm",
+            "climax",
+            "moan",
+            "panting",
+            "aroused",
+            "horny",
+            "lust",
+            "desire",
+            "seduction",
+            "temptation",
+            "forbidden",
+            "taboo",
+            "kinky",
+            "pervert",
+            "perverted",
+            "lewd",
+            "dirty",
+            "naughty",
+            "slutty",
+            "whore",
+            "bitch",
+            "slut",
         }
 
-        # Check title
+        # Check title - use word boundaries for more accurate matching
         title_lower = title.lower()
-        if any(keyword in title_lower for keyword in nsfw_keywords):
-            logger.debug(f"NSFW detected in title '{title}' for provider {self.name}")
-            return True
+        title_words = set(title_lower.split())
+
+        # Direct keyword matches in title
+        for keyword in nsfw_keywords:
+            if keyword in title_lower:
+                # For single words, check if it's a complete word match
+                if len(keyword.split()) == 1:
+                    if keyword in title_words or keyword in title_lower:
+                        logger.debug(
+                            f"NSFW detected in title '{title}' (keyword: '{keyword}') for provider {self.name}"
+                        )
+                        return True
+                else:
+                    # For multi-word keywords, check substring
+                    if keyword in title_lower:
+                        logger.debug(
+                            f"NSFW detected in title '{title}' (phrase: '{keyword}') for provider {self.name}"
+                        )
+                        return True
 
         # Check genres (be more specific about genre matching)
         genres_lower = [genre.lower() for genre in genres]
         for genre in genres_lower:
-            if any(
-                keyword == genre or keyword in genre.split()
-                for keyword in nsfw_keywords
-            ):
-                logger.debug(
-                    f"NSFW detected in genre '{genre}' for '{title}' from provider {self.name}"
-                )
-                return True
+            genre_words = set(genre.split())
+            for keyword in nsfw_keywords:
+                if len(keyword.split()) == 1:
+                    # Single word - check exact match or word boundary
+                    if keyword == genre or keyword in genre_words:
+                        logger.debug(
+                            f"NSFW detected in genre '{genre}' (keyword: '{keyword}') for '{title}' from provider {self.name}"
+                        )
+                        return True
+                else:
+                    # Multi-word - check substring
+                    if keyword in genre:
+                        logger.debug(
+                            f"NSFW detected in genre '{genre}' (phrase: '{keyword}') for '{title}' from provider {self.name}"
+                        )
+                        return True
 
-        # Check description
+        # Check description with context awareness
         if description:
             description_lower = description.lower()
-            if any(keyword in description_lower for keyword in nsfw_keywords):
+            description_words = set(description_lower.split())
+
+            # Count NSFW indicators
+            nsfw_score = 0
+            found_keywords = []
+
+            for keyword in nsfw_keywords:
+                if len(keyword.split()) == 1:
+                    if keyword in description_words or keyword in description_lower:
+                        nsfw_score += 1
+                        found_keywords.append(keyword)
+                else:
+                    if keyword in description_lower:
+                        nsfw_score += 2  # Multi-word phrases are stronger indicators
+                        found_keywords.append(keyword)
+
+            # If we find multiple NSFW indicators, it's likely NSFW
+            if nsfw_score >= 2 or any(
+                strong_keyword in found_keywords
+                for strong_keyword in [
+                    "hentai",
+                    "pornographic",
+                    "explicit",
+                    "xxx",
+                    "18+",
+                    "adult",
+                    "nsfw",
+                ]
+            ):
                 logger.debug(
-                    f"NSFW detected in description for '{title}' from provider {self.name}"
+                    f"NSFW detected in description for '{title}' (score: {nsfw_score}, keywords: {found_keywords}) from provider {self.name}"
                 )
                 return True
 
@@ -487,6 +687,119 @@ class EnhancedGenericProvider(BaseProvider):
         except Exception as e:
             logger.error(f"Error searching on {self.name}: {e}")
             return [], 0, False
+
+    async def get_available_manga(
+        self, page: int = 1, limit: int = 20
+    ) -> Tuple[List[SearchResult], int, bool]:
+        """Get available/popular manga from the provider."""
+        try:
+            # Try to get popular/latest manga from the homepage or popular page
+            popular_urls = [
+                f"{self._base_url}/popular",
+                f"{self._base_url}/latest",
+                f"{self._base_url}/trending",
+                f"{self._base_url}/manga",
+                f"{self._base_url}/series",
+                f"{self._base_url}/",  # Homepage
+            ]
+
+            for url in popular_urls:
+                try:
+                    html = await self._make_request(url)
+                    if not html:
+                        continue
+
+                    soup = BeautifulSoup(html, "html.parser")
+
+                    # Find manga items using search selectors
+                    items = None
+                    for selector in self._selectors["search_items"]:
+                        items = soup.select(selector)
+                        if (
+                            items and len(items) >= 3
+                        ):  # Need at least 3 items to be useful
+                            logger.info(
+                                f"Found {len(items)} manga items on {url} with selector '{selector}'"
+                            )
+                            break
+
+                    if items and len(items) >= 3:
+                        # Parse the items using the same logic as search
+                        results = []
+                        for item in items[:limit]:
+                            try:
+                                # Extract title
+                                title = self._extract_title(item)
+                                if not title or title == "Unknown Title":
+                                    continue
+
+                                # Extract link and manga ID
+                                href = self._extract_link(item)
+                                if not href:
+                                    continue
+
+                                manga_id = self._extract_manga_id_from_url(href)
+                                if not manga_id:
+                                    continue
+
+                                # Extract cover image
+                                cover_url = self._extract_cover_image(item)
+
+                                # Extract description
+                                description = self._extract_description(item)
+
+                                # Extract status (basic)
+                                status = MangaStatus.UNKNOWN
+
+                                # Detect NSFW based on content
+                                is_nsfw = self._detect_nsfw_from_content(
+                                    title, [], description or ""
+                                )
+
+                                result = SearchResult(
+                                    id=manga_id,
+                                    title=title,
+                                    alternative_titles={},
+                                    description=description or "",
+                                    cover_image=str(cover_url) if cover_url else "",
+                                    type=MangaType.UNKNOWN,
+                                    status=status,
+                                    year=None,
+                                    is_nsfw=is_nsfw,
+                                    genres=[],
+                                    authors=[],
+                                    provider=self.name,
+                                    url=str(href) if href else "",
+                                    in_library=False,
+                                    extra=None,
+                                )
+                                results.append(result)
+
+                            except Exception as e:
+                                logger.debug(f"Error parsing manga item: {e}")
+                                continue
+
+                        if results:
+                            total = len(results)
+                            has_more = len(items) > limit
+                            logger.info(
+                                f"{self.name} get_available_manga returned {len(results)} results from {url}"
+                            )
+                            return results, total, has_more
+
+                except Exception as e:
+                    logger.debug(f"Error trying URL {url}: {e}")
+                    continue
+
+            # If no popular pages work, fallback to default implementation
+            logger.info(
+                f"{self.name} falling back to default get_available_manga implementation"
+            )
+            return await super().get_available_manga(page, limit)
+
+        except Exception as e:
+            logger.error(f"Error getting available manga from {self.name}: {e}")
+            return await super().get_available_manga(page, limit)
 
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
         """Get manga details with enhanced extraction."""

@@ -274,18 +274,10 @@
   {
     "id": "mangasail",
     "name": "MangaSail",
-    "class_name": "GenericProvider",
+    "class_name": "MangaSailProvider",
     "supports_nsfw": false,
     "priority": 15,
-    "params": {
-      "base_url": "https://www.sailmg.com",
-      "search_url": "https://www.sailmg.com/search?q={query}",
-      "manga_url_pattern": "https://www.sailmg.com/content/{manga_id}",
-      "chapter_url_pattern": "https://www.sailmg.com/content/{chapter_id}",
-      "name": "MangaSail",
-      "supports_nsfw": false,
-      "chapter_selector": "td.active"
-    }
+    "params": {}
   },
   {
     "id": "mangakakalotfun",

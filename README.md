@@ -11,24 +11,28 @@ A modern manga management platform for discovering, organizing, and reading mang
 
 [![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
 
-> **🚀 Latest Release**: v0.7.0 with Enhanced Architecture & Job System
+> **📦 Latest Release**: v0.7.0 with Enhanced Architecture & Job System
 
 
 ## ✨ Features
 
-- 📚 **Smart Library** - Personal collection with automatic metadata and organization
-- 📖 **Advanced Reader** - Multiple reading modes, bookmarks, progress tracking
-- 🔍 **Multi-Provider Search** - Search across multiple manga sources simultaneously
-- 📥 **Reliable Downloads** - Robust download system with automatic retry and progress tracking
-- 🎨 **Customizable UI** - Dark/light themes, responsive design
-- 🔐 **Secure Authentication** - 2FA support, external account linking
-- 📊 **Reading Analytics** - Statistics, streaks, achievements, reading history
-- 🎯 **Smart Filtering** - Genre, status, year, content rating filters
-- ☁️ **Cloudflare Bypass** - Optional FlareSolverr integration for protected sites
-- 🔄 **Background Processing** - Automated downloads, health checks, and maintenance
-- � **Real-time Updates** - Live progress tracking and status notifications
+![Providers](https://img.shields.io/badge/Providers-11+-blue)
+![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-green)
+![Authentication](https://img.shields.io/badge/Auth-Role--based-orange)
+![Themes](https://img.shields.io/badge/Themes-Dark%2FLight-purple)
 
-> **📦 Latest Release**: [v0.7.0](https://github.com/Futs/kuroibara/releases/tag/v0.7.0) - Enhanced Architecture & Job System
+- **Personal Library** - Organize your manga collection with automatic metadata
+- **Built-in Reader** - Read manga with bookmarks and progress tracking
+- **Multi-Provider Search** - Search across 11+ manga sources simultaneously
+- **Batch Downloads** - Download entire series with progress tracking and retry logic
+- **Modern Interface** - Clean, responsive design with dark/light themes
+- **User Management** - Secure authentication with role-based access
+- **Reading History** - Track your reading progress and statistics
+- **Advanced Filtering** - Filter by genre, status, year, and content rating
+- **Cloudflare Support** - Optional FlareSolverr integration for protected sites
+- **Background Tasks** - Automated health checks and maintenance
+- **Real-time Updates** - Live progress notifications via WebSocket
+
 
 ## 🛠️ Tech Stack
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -124,3 +128,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **Kuroibara** - Modern manga management for enthusiasts worldwide.
+
+## 🤖 Repo Statistics
+![Alt](https://repobeats.axiom.co/api/embed/f25e543ba7457e8ca5c622072e11becd5e6e2cd4.svg "Repobeats analytics image")

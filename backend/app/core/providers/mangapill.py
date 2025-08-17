@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
@@ -8,6 +9,8 @@ from bs4 import BeautifulSoup
 from app.core.providers.base import BaseProvider
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
+
+logger = logging.getLogger(__name__)
 
 
 class MangaPillProvider(BaseProvider):
@@ -131,34 +134,104 @@ class MangaPillProvider(BaseProvider):
                     if not manga_id:
                         continue
 
-                    # Get title - try multiple selectors
-                    title = ""
-                    title_selectors = [
-                        ".font-bold",
-                        ".text-truncate",
-                        "a[href*='/manga/']",
-                        ".title",
-                    ]
+                    # Get title - try multiple approaches
+                    title = "Unknown Title"
 
-                    for selector in title_selectors:
-                        title_elem = item.select_one(selector)
-                        if title_elem:
-                            title = title_elem.get_text(strip=True)
-                            if title:
-                                break
+                    # Try title from link element first
+                    if link_elem.get("title"):
+                        title = link_elem.get("title").strip()
+                    elif link_elem.get("aria-label"):
+                        title = link_elem.get("aria-label").strip()
+                    else:
+                        # Try multiple selectors within the item
+                        title_selectors = [
+                            ".font-bold",
+                            ".text-truncate",
+                            ".title",
+                            "a[href*='/manga/']",
+                            ".manga-title",
+                            ".name",
+                            "h3",
+                            "h4",
+                            ".text-sm",
+                            ".text-base",
+                        ]
 
-                    if not title:
-                        title = "Unknown Title"
+                        for selector in title_selectors:
+                            title_elem = item.select_one(selector)
+                            if title_elem:
+                                candidate_title = title_elem.get_text(strip=True)
+                                if (
+                                    candidate_title
+                                    and len(candidate_title) > 1
+                                    and not candidate_title.isdigit()
+                                ):
+                                    title = candidate_title
+                                    break
 
-                    # Get cover image
+                        # If still no title, try extracting from image alt text
+                        if title == "Unknown Title":
+                            img_elem = item.select_one("img")
+                            if img_elem and img_elem.get("alt"):
+                                alt_text = img_elem.get("alt").strip()
+                                if alt_text and len(alt_text) > 1:
+                                    title = alt_text
+
+                        # Last resort: extract from URL
+                        if title == "Unknown Title" and manga_url:
+                            url_part = (
+                                manga_url.split("/manga/")[-1].split("/")[0]
+                                if "/manga/" in manga_url
+                                else ""
+                            )
+                            if url_part:
+                                title = (
+                                    url_part.replace("-", " ").replace("_", " ").title()
+                                )
+
+                    # Clean up title
+                    if title and title != "Unknown Title":
+                        title = title.replace("Manga", "").strip()
+                        title = title.replace("Read", "").strip()
+                        if len(title) < 2:
+                            title = "Unknown Title"
+
+                    # Get cover image - try multiple approaches
                     cover_url = ""
                     img_elem = item.select_one("img")
                     if img_elem:
-                        cover_url = img_elem.get("src", "") or img_elem.get(
-                            "data-src", ""
+                        # Try different image source attributes
+                        cover_url = (
+                            img_elem.get("src")
+                            or img_elem.get("data-src")
+                            or img_elem.get("data-lazy")
+                            or img_elem.get("data-original")
+                            or ""
                         )
-                        if cover_url and not cover_url.startswith("http"):
-                            cover_url = urljoin(self._base_url, cover_url)
+
+                        # Make URL absolute
+                        if cover_url:
+                            if not cover_url.startswith("http"):
+                                cover_url = urljoin(self._base_url, cover_url)
+
+                            # Handle lazy loading placeholders
+                            if (
+                                "placeholder" in cover_url.lower()
+                                or "loading" in cover_url.lower()
+                            ):
+                                # Try to find the real image URL in data attributes
+                                for attr in ["data-src", "data-lazy", "data-original"]:
+                                    real_url = img_elem.get(attr)
+                                    if (
+                                        real_url
+                                        and "placeholder" not in real_url.lower()
+                                    ):
+                                        cover_url = (
+                                            real_url
+                                            if real_url.startswith("http")
+                                            else urljoin(self._base_url, real_url)
+                                        )
+                                        break
 
                     # Build full manga URL
                     if manga_url.startswith("/"):
@@ -204,6 +277,224 @@ class MangaPillProvider(BaseProvider):
         except Exception as e:
             print(f"Search error: {e}")
             return [], 0, False
+
+    async def get_available_manga(
+        self, page: int = 1, limit: int = 20
+    ) -> Tuple[List[SearchResult], int, bool]:
+        """Get available/popular manga from MangaPill."""
+        try:
+            # MangaPill homepage has popular manga
+            popular_url = f"{self._base_url}/"
+
+            html = await self._make_request(popular_url)
+            if not html:
+                # Fallback to default implementation
+                return await super().get_available_manga(page, limit)
+
+            soup = BeautifulSoup(html, "html.parser")
+
+            # Find the manga grid - MangaPill uses a grid layout for manga
+            manga_items = []
+
+            # Try multiple selectors for manga items
+            selectors = [
+                "a[href*='/manga/']",  # Any manga links (most general)
+                ".grid a[href*='/manga/']",  # Direct links in grid
+                ".manga-item",
+                ".grid .item",
+                ".flex a[href*='/manga/']",  # Flex layout links
+                ".space-y-2 a[href*='/manga/']",  # Spaced layout links
+            ]
+
+            for selector in selectors:
+                manga_items = soup.select(selector)
+                if manga_items:
+                    logger.info(
+                        f"Found {len(manga_items)} manga items with selector '{selector}'"
+                    )
+                    break
+
+            if not manga_items:
+                logger.warning("No manga items found on MangaPill popular page")
+                return await super().get_available_manga(page, limit)
+
+            results = []
+            for item in manga_items[:limit]:  # Limit results
+                try:
+                    # Extract manga URL and ID
+                    href = item.get("href")
+                    if not href:
+                        continue
+
+                    if not href.startswith("http"):
+                        href = urljoin(self._base_url, href)
+
+                    # Extract manga ID from URL
+                    manga_id = (
+                        href.split("/manga/")[-1].split("/")[0]
+                        if "/manga/" in href
+                        else ""
+                    )
+                    if not manga_id:
+                        continue
+
+                    # Extract title - try multiple approaches
+                    title = "Unknown Title"
+
+                    # Try title attribute first
+                    if item.get("title"):
+                        title = item.get("title").strip()
+                    elif item.get("aria-label"):
+                        title = item.get("aria-label").strip()
+                    else:
+                        # Try finding title in child elements - look for text elements
+                        title_selectors = [
+                            ".font-bold",
+                            ".text-truncate",
+                            ".title",
+                            ".manga-title",
+                            ".name",
+                            "h3",
+                            "h4",
+                            ".text-sm",
+                            ".text-base",
+                            "span",
+                            "div",
+                        ]
+
+                        for selector in title_selectors:
+                            title_elem = item.find(selector)
+                            if title_elem:
+                                candidate_title = title_elem.get_text(strip=True)
+                                if (
+                                    candidate_title
+                                    and len(candidate_title) > 1
+                                    and not candidate_title.isdigit()
+                                ):
+                                    title = candidate_title
+                                    break
+
+                        # Try image alt text
+                        if title == "Unknown Title":
+                            title_elem = item.find("img")
+                            if title_elem and title_elem.get("alt"):
+                                alt_text = title_elem.get("alt").strip()
+                                if alt_text and len(alt_text) > 1:
+                                    title = alt_text
+                            elif title_elem and title_elem.get("title"):
+                                title_text = title_elem.get("title").strip()
+                                if title_text and len(title_text) > 1:
+                                    title = title_text
+
+                        # Try text content of the link as fallback
+                        if title == "Unknown Title":
+                            text_content = item.get_text(strip=True)
+                            if (
+                                text_content
+                                and len(text_content) > 1
+                                and not text_content.isdigit()
+                            ):
+                                # Take first meaningful text
+                                lines = [
+                                    line.strip()
+                                    for line in text_content.split("\n")
+                                    if line.strip()
+                                ]
+                                for line in lines:
+                                    if len(line) > 1 and not line.isdigit():
+                                        title = line
+                                        break
+
+                        # Last resort: extract from URL
+                        if title == "Unknown Title" and href and "/manga/" in href:
+                            url_part = href.split("/manga/")[-1].split("/")[0]
+                            if url_part:
+                                title = (
+                                    url_part.replace("-", " ").replace("_", " ").title()
+                                )
+
+                    # Clean up title
+                    if title and title != "Unknown Title":
+                        # Remove common prefixes/suffixes
+                        title = title.replace("Manga", "").strip()
+                        title = title.replace("Read", "").strip()
+                        if len(title) < 2:
+                            title = "Unknown Title"
+
+                    # Extract cover image - try multiple approaches
+                    cover_url = ""
+                    img_elem = item.find("img")
+                    if img_elem:
+                        # Try different image source attributes
+                        cover_url = (
+                            img_elem.get("src")
+                            or img_elem.get("data-src")
+                            or img_elem.get("data-lazy")
+                            or img_elem.get("data-original")
+                            or ""
+                        )
+
+                        # Make URL absolute
+                        if cover_url:
+                            if not cover_url.startswith("http"):
+                                cover_url = urljoin(self._base_url, cover_url)
+
+                            # Handle lazy loading placeholders
+                            if (
+                                "placeholder" in cover_url.lower()
+                                or "loading" in cover_url.lower()
+                            ):
+                                # Try to find the real image URL in data attributes
+                                for attr in ["data-src", "data-lazy", "data-original"]:
+                                    real_url = img_elem.get(attr)
+                                    if (
+                                        real_url
+                                        and "placeholder" not in real_url.lower()
+                                    ):
+                                        cover_url = (
+                                            real_url
+                                            if real_url.startswith("http")
+                                            else urljoin(self._base_url, real_url)
+                                        )
+                                        break
+
+                    # Create search result
+                    result = SearchResult(
+                        id=manga_id,
+                        title=title,
+                        alternative_titles={},
+                        description="",
+                        cover_image=cover_url,
+                        type=MangaType.UNKNOWN,
+                        status=MangaStatus.UNKNOWN,
+                        year=None,
+                        is_nsfw=False,  # MangaPill is generally safe
+                        genres=[],
+                        authors=[],
+                        provider=self.name,
+                        url=href,
+                        in_library=False,
+                        extra=None,
+                    )
+                    results.append(result)
+
+                except Exception as e:
+                    logger.error(f"Error parsing manga item on MangaPill: {e}")
+                    continue
+
+            # Calculate pagination
+            total = len(results)
+            has_more = len(manga_items) > limit
+
+            logger.info(
+                f"MangaPill get_available_manga returned {len(results)} results"
+            )
+            return results, total, has_more
+
+        except Exception as e:
+            logger.error(f"Error getting available manga from MangaPill: {e}")
+            # Fallback to default implementation
+            return await super().get_available_manga(page, limit)
 
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
         """Get manga details from MangaPill."""

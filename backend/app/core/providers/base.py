@@ -139,6 +139,52 @@ class BaseProvider(ABC):
             The cover content as bytes
         """
 
+    async def get_available_manga(
+        self, page: int = 1, limit: int = 20
+    ) -> tuple[List[SearchResult], int, bool]:
+        """
+        Get available/popular manga from the provider.
+
+        This method should return popular, trending, or recently updated manga
+        instead of requiring a search query. Providers can override this method
+        to implement their own logic for fetching available manga.
+
+        Default implementation falls back to an empty search query.
+
+        Args:
+            page: The page number
+            limit: The number of results per page
+
+        Returns:
+            A tuple containing:
+            - List of search results
+            - Total number of results
+            - Whether there are more results
+        """
+        # Default implementation: try empty search, then popular terms
+        try:
+            # Try empty search first
+            results, total, has_more = await self.search("", page, limit)
+            if results:
+                return results, total, has_more
+
+            # If empty search fails, try common popular terms
+            popular_terms = ["popular", "trending", "latest", "new", "top"]
+            for term in popular_terms:
+                try:
+                    results, total, has_more = await self.search(term, page, limit)
+                    if results:
+                        return results, total, has_more
+                except Exception:
+                    continue
+
+            # If all fails, return empty
+            return [], 0, False
+
+        except Exception as e:
+            logger.error(f"Error getting available manga from {self.name}: {e}")
+            return [], 0, False
+
     async def health_check(
         self, timeout: int = 30
     ) -> Tuple[bool, Optional[int], Optional[str]]:

@@ -109,48 +109,7 @@ jobs:
           echo "docker_tags=$DOCKER_TAGS" >> $GITHUB_OUTPUT
           echo "Generated version: $VERSION"
           echo "Docker tags: $DOCKER_TAGS"
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      is_release: ${{ steps.version.outputs.is_release }}
-      docker_tags: ${{ steps.version.outputs.docker_tags }}
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Generate version and tags
-        id: version
-        run: |
-          chmod +x ./version.sh
-          
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            VERSION=$(QUIET=true ./version.sh current)
-            IS_RELEASE="false"
-            DOCKER_TAGS="latest,${VERSION}"
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION="${{ github.ref_name }}"
-            IS_RELEASE="true"
-            # Remove 'v' prefix for Docker tags
-            CLEAN_VERSION=${VERSION#v}
-            DOCKER_TAGS="latest,${CLEAN_VERSION},${VERSION}"
-          elif [[ "${{ github.event_name }}" == "release" ]]; then
-            VERSION="${{ github.event.release.tag_name }}"
-            IS_RELEASE="true"
-            CLEAN_VERSION=${VERSION#v}
-            DOCKER_TAGS="latest,${CLEAN_VERSION},${VERSION}"
-          else
-            VERSION="dev"
-            IS_RELEASE="false"
-            DOCKER_TAGS="dev"
-          fi
-          
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
-          echo "docker_tags=$DOCKER_TAGS" >> $GITHUB_OUTPUT
-          echo "Generated version: $VERSION"
-          echo "Docker tags: $DOCKER_TAGS"
 
   # Build and push backend image
   build-backend:

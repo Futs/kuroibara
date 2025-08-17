@@ -7,24 +7,32 @@
 
 # Kuroibara <img src="frontend/app/public/assets/logo/logo.png" alt="Kuroibara Logo" width="32" height="32">
 
-A modern manga management platform for discovering, organizing, and reading manga from multiple online sources.
+A modern manga management platform for discovering, organizing, and reading manga from multiple online sources. Built with reliability and performance in mind.
 
-[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)  
+[![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
 
-> **🚀 Latest Release**: v0.6.0 with Enhanced Testing
+> **📦 Latest Release**: v0.7.0 with Enhanced Architecture & Job System
 
 
 ## ✨ Features
 
-- 📚 **Smart Library** - Personal collection with automatic metadata
-- 📖 **Advanced Reader** - Multiple reading modes, bookmarks, progress tracking
-- 🎨 **Customizable UI** - Dark/light themes, responsive design
-- 🔐 **Secure Authentication** - 2FA support, external account linking
-- ☁️ **Cloudflare Bypass** - Optional FlareSolverr integration
-- 📊 **Reading Analytics** - Statistics, streaks, achievements
-- 🎯 **Smart Filtering** - Genre, status, year, content rating filters
+![Providers](https://img.shields.io/badge/Providers-11+-blue)
+![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-green)
+![Authentication](https://img.shields.io/badge/Auth-Role--based-orange)
+![Themes](https://img.shields.io/badge/Themes-Dark%2FLight-purple)
 
-> **📦 Latest Release**: [v0.6.5](https://github.com/Futs/kuroibara/releases/tag/v0.6.5) - Provider Testing & Stability Improvements
+- **Personal Library** - Organize your manga collection with automatic metadata
+- **Built-in Reader** - Read manga with bookmarks and progress tracking
+- **Multi-Provider Search** - Search across 11+ manga sources simultaneously
+- **Batch Downloads** - Download entire series with progress tracking and retry logic
+- **Modern Interface** - Clean, responsive design with dark/light themes
+- **User Management** - Secure authentication with role-based access
+- **Reading History** - Track your reading progress and statistics
+- **Advanced Filtering** - Filter by genre, status, year, and content rating
+- **Cloudflare Support** - Optional FlareSolverr integration for protected sites
+- **Background Tasks** - Automated health checks and maintenance
+- **Real-time Updates** - Live progress notifications via WebSocket
+
 
 ## 🛠️ Tech Stack
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -38,6 +46,8 @@ A modern manga management platform for discovering, organizing, and reading mang
 - **Backend**: Python 3.13, FastAPI, PostgreSQL, Valkey (Redis fork)
 - **Frontend**: Vue.js 3.5.17, Tailwind CSS 4, Vite 6
 - **Infrastructure**: Docker, Nginx
+- **Architecture**: Agent-based providers, Job queue system, Health monitoring
+- **Real-time**: WebSocket support, Progress tracking, Live updates
 
 ## 🚀 Quick Start
 
@@ -68,6 +78,10 @@ docker compose up -d
 
 - **Application**: http://localhost:3000
 - **API Docs**: http://localhost:8000/docs
+- **Job Queue API**: http://localhost:8000/docs#/Jobs
+- **Health Monitoring**: http://localhost:8000/docs#/Health%20Monitoring
+- **Agent Management**: http://localhost:8000/docs#/Agents
+- **Progress Tracking**: http://localhost:8000/docs#/Progress
 
 ## 🔓 Optional: FlareSolverr Integration
 
@@ -81,12 +95,24 @@ docker compose restart backend
 
 📖 [Complete Setup Guide](docs/FLARESOLVERR_SETUP.md)
 
+## 🏗️ Architecture
+
+Kuroibara is built with a modern, reliable architecture:
+
+- 🤖 **Smart Provider System** - Intelligent manga provider management with health monitoring
+- 📋 **Job Queue** - Priority-based download and task scheduling
+- ⚡ **Rate Limiting** - Optimized request handling for each provider
+- 📊 **Real-time Updates** - Live progress tracking with WebSocket support
+- 🛡️ **Fault Tolerance** - Provider failures don't affect other providers
+
+� **[Technical Details](docs/ARCHITECTURE.md)** - Complete architecture documentation
+
 ## 📚 Documentation
 
 - 📖 [GitHub Wiki](https://github.com/Futs/kuroibara/wiki) - User guides and tutorials
-- 🔧 [Technical Docs](docs/README.md) - Development and API documentation
 - 🚀 [Getting Started](https://github.com/Futs/kuroibara/wiki/Getting-Started) - Setup guide
-- 🐛 [Troubleshooting](https://github.com/Futs/kuroibara/wiki/Troubleshooting) - Common issues
+- � [Technical Docs](docs/README.md) - Development and API documentation
+- � [Troubleshooting](https://github.com/Futs/kuroibara/wiki/Troubleshooting) - Common issues
 
 ## 🤝 Contributing
 
@@ -102,3 +128,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **Kuroibara** - Modern manga management for enthusiasts worldwide.
+
+## 🤖 Repo Statistics
+![Alt](https://repobeats.axiom.co/api/embed/f25e543ba7457e8ca5c622072e11becd5e6e2cd4.svg "Repobeats analytics image")

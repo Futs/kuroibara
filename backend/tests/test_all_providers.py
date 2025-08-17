@@ -18,9 +18,9 @@ import httpx
 # Add the backend directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from app.core.providers.factory import ProviderFactory
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
+from app.core.providers.registry import provider_registry
 
 # Configure logging
 logging.basicConfig(
@@ -38,13 +38,10 @@ class ProviderTester:
 
     def __init__(self):
         self.results = {}
-        self.factory = ProviderFactory()
+        self.registry = provider_registry
         self.timeout = 30.0
 
-        # Register provider classes
-        self.factory.register_provider_class(MangaDexProvider)
-        # MangaPlusProvider removed
-        self.factory.register_provider_class(GenericProvider)
+        # Provider classes are automatically registered in the agent system
 
     async def test_url_accessibility(
         self, url: str, provider_name: str
@@ -257,15 +254,19 @@ class ProviderTester:
                 base_url, provider_name
             )
 
-        # Create provider instance for functional testing
+        # Get provider instance from registry for functional testing
         provider = None
         try:
-            # Add config to factory
-            self.factory._provider_configs[provider_id] = provider_config
-            provider = self.factory.create_provider(provider_id)
+            # Try to get provider from registry
+            provider = self.registry.get_provider(provider_name)
+            if not provider:
+                result["provider_creation_error"] = (
+                    f"Provider {provider_name} not found in registry"
+                )
+                logger.error(f"Provider {provider_name} not found in registry")
         except Exception as e:
             result["provider_creation_error"] = str(e)
-            logger.error(f"Failed to create provider {provider_name}: {e}")
+            logger.error(f"Failed to get provider {provider_name}: {e}")
 
         if provider:
             # Test search functionality

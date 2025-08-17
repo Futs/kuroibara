@@ -417,6 +417,11 @@ class GenericProvider(BaseProvider):
                     status = self._extract_status(item)
 
                     # Create search result
+                    # Detect NSFW based on content
+                    is_nsfw = self._detect_nsfw_from_content(
+                        title, genres, description or ""
+                    )
+
                     result = SearchResult(
                         id=manga_id,
                         title=title,
@@ -428,7 +433,7 @@ class GenericProvider(BaseProvider):
                         type=MangaType.UNKNOWN,
                         status=status,
                         year=None,
-                        is_nsfw=self._supports_nsfw,
+                        is_nsfw=is_nsfw,
                         genres=genres,
                         authors=authors,
                         provider=self.name,
@@ -545,6 +550,9 @@ class GenericProvider(BaseProvider):
                     except (ValueError, TypeError):
                         pass
 
+                # Detect NSFW based on content
+                is_nsfw = self._detect_nsfw_from_content(title, genres, description)
+
                 # Return manga details
                 return {
                     "id": manga_id,
@@ -555,7 +563,7 @@ class GenericProvider(BaseProvider):
                     "type": manga_type,
                     "status": manga_status,
                     "year": year,
-                    "is_nsfw": self._supports_nsfw,
+                    "is_nsfw": is_nsfw,
                     "genres": genres,
                     "authors": authors,
                     "provider": self.name,
@@ -1192,6 +1200,63 @@ class GenericProvider(BaseProvider):
                 continue
 
         return authors
+
+    def _detect_nsfw_from_content(
+        self, title: str, genres: List[str], description: str = ""
+    ) -> bool:
+        """Detect if manga is NSFW based on title, genres, and description."""
+        if not self._supports_nsfw:
+            logger.debug(
+                f"Provider {self.name} doesn't support NSFW, returning False for '{title}'"
+            )
+            return False
+
+        # NSFW keywords to look for (more conservative list)
+        nsfw_keywords = {
+            "hentai",
+            "ecchi",
+            "adult",
+            "mature",
+            "smut",
+            "pornographic",
+            "erotic",
+            "sexual",
+            "xxx",
+            "18+",
+            "nsfw",
+        }
+
+        # Check title
+        title_lower = title.lower()
+        if any(keyword in title_lower for keyword in nsfw_keywords):
+            logger.debug(f"NSFW detected in title '{title}' for provider {self.name}")
+            return True
+
+        # Check genres (be more specific about genre matching)
+        genres_lower = [genre.lower() for genre in genres]
+        for genre in genres_lower:
+            if any(
+                keyword == genre or keyword in genre.split()
+                for keyword in nsfw_keywords
+            ):
+                logger.debug(
+                    f"NSFW detected in genre '{genre}' for '{title}' from provider {self.name}"
+                )
+                return True
+
+        # Check description
+        if description:
+            description_lower = description.lower()
+            if any(keyword in description_lower for keyword in nsfw_keywords):
+                logger.debug(
+                    f"NSFW detected in description for '{title}' from provider {self.name}"
+                )
+                return True
+
+        logger.debug(
+            f"No NSFW detected for '{title}' from provider {self.name} - genres: {genres}"
+        )
+        return False
 
     def _extract_status(self, element) -> "MangaStatus":
         """Extract status from element."""

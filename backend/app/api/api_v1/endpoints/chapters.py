@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
@@ -37,8 +38,13 @@ async def delete_chapter(
     """
     Delete a chapter and its associated files.
     """
-    # Get the chapter
-    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+    # Get the chapter with eager loading
+    result = await db.execute(
+        select(Chapter)
+        .options(selectinload(Chapter.pages))
+        .where(Chapter.id == uuid.UUID(chapter_id))
+    )
+    chapter = result.scalars().first()
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -86,8 +92,13 @@ async def redownload_chapter(
     """
     Re-download a chapter (for downloaded chapters only).
     """
-    # Get the chapter
-    chapter = await db.get(Chapter, uuid.UUID(chapter_id))
+    # Get the chapter with eager loading
+    result = await db.execute(
+        select(Chapter)
+        .options(selectinload(Chapter.pages))
+        .where(Chapter.id == uuid.UUID(chapter_id))
+    )
+    chapter = result.scalars().first()
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

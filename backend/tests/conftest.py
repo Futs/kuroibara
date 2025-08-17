@@ -1,11 +1,14 @@
-# Disable provider monitoring and database initialization for tests - MUST be set before any imports
+# Disable provider monitoring and database initialization for tests
+# MUST be set before any imports - this is intentional for testing
 import os
 
 os.environ["ENABLE_PROVIDER_MONITORING"] = "false"
 os.environ["ENABLE_DB_INIT"] = "false"
 
+# Standard library imports
 from typing import AsyncGenerator, Generator
 
+# Third-party imports
 import asyncpg
 import pytest
 from fastapi.testclient import TestClient
@@ -13,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
+# Local imports
 from app.core.config import settings
 from app.db.session import Base, get_db
 from app.main import app

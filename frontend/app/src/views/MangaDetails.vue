@@ -531,8 +531,6 @@
                 </div>
               </div>
 
-
-
               <!-- Chapter Management (for library items) -->
               <div v-if="!isExternal && libraryItemDetails" class="mt-4">
                 <ChapterManagement
@@ -580,7 +578,6 @@
                     libraryItemDetails.chapters.length
                   "
                 >
-
                   <!-- Enhanced Chapter Cards for better UX -->
                   <ul
                     role="list"
@@ -624,11 +621,6 @@
                       </button>
                     </div>
                   </div>
-
-
-
-
-
                 </div>
 
                 <!-- Basic chapters for external manga -->

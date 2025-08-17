@@ -17,7 +17,7 @@ backend_path = Path(__file__).parent.parent / 'backend'
 sys.path.insert(0, str(backend_path))
 
 try:
-    from app.core.providers.factory import ProviderFactory
+    from app.core.providers.registry import provider_registry
     from app.core.providers.generic import GenericProvider
     from app.core.providers.enhanced_generic import EnhancedGenericProvider
     from app.core.providers.base import BaseProvider
@@ -29,34 +29,25 @@ except ImportError as e:
 
 class ProviderTester:
     """Test provider functionality."""
-    
+
     def __init__(self):
-        self.factory = ProviderFactory()
-        self.setup_factory()
-    
-    def setup_factory(self):
-        """Set up the provider factory with available classes."""
-        self.factory.register_provider_class(GenericProvider)
-        self.factory.register_provider_class(EnhancedGenericProvider)
-        print("✅ Provider factory initialized")
+        self.registry = provider_registry
+        print("✅ Provider registry initialized")
     
     async def test_provider_creation(self, config: Dict[str, Any]) -> BaseProvider:
         """Test provider instance creation."""
         print(f"🔧 Testing provider creation for {config['name']}...")
         
-        # Load config into factory
-        self.factory._provider_configs[config['id']] = config
-        
-        # Create provider instance
-        provider = self.factory.create_provider(config['id'])
-        
+        # Try to get provider from registry
+        provider = self.registry.get_provider(config['name'])
+
         if not provider:
-            raise Exception("Failed to create provider instance")
-        
-        print(f"✅ Provider created: {provider.name}")
+            raise Exception(f"Provider {config['name']} not found in registry")
+
+        print(f"✅ Provider found: {provider.name}")
         print(f"   - URL: {provider.url}")
         print(f"   - NSFW Support: {provider.supports_nsfw}")
-        
+
         return provider
     
     async def test_search_functionality(self, provider: BaseProvider) -> List[Any]:

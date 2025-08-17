@@ -5,7 +5,6 @@ Test script for excellent performance providers
 
 import pytest
 
-from app.core.providers.factory import ProviderFactory
 from app.core.providers.registry import provider_registry
 
 
@@ -38,21 +37,15 @@ async def test_provider_registry_excellent_providers():
 
 
 @pytest.mark.asyncio
-async def test_provider_factory_creation():
-    """Test provider factory can create providers."""
-    factory = ProviderFactory()
+async def test_provider_registry_creation():
+    """Test provider registry has providers available."""
+    providers = provider_registry.get_all_providers()
 
-    # Test that factory can create providers
-    providers = factory.create_all_providers()
+    # Registry should have providers from agent system
+    assert len(providers) > 0
+    print(f"✅ Registry has {len(providers)} providers available")
 
-    # Factory might return empty list if no configs, use registry instead
-    if len(providers) == 0:
-        registry_providers = provider_registry.get_all_providers()
-        assert len(registry_providers) > 0
-    else:
-        assert len(providers) > 0
-
-    # Test that all created providers have required methods
+    # Test that all providers have required methods
     for provider in providers[:5]:  # Test first 5
         assert hasattr(provider, "search")
         assert hasattr(provider, "get_manga_details")

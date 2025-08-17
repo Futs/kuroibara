@@ -5,7 +5,7 @@
 
 export const PROVIDER_RATE_LIMITS = {
   // MangaDex - Popular, well-maintained API
-  mangadx: {
+  mangadex: {
     limit: 60, // 60 requests per minute
     windowMs: 60000,
     burstLimit: 5, // 5 requests per second burst
@@ -82,7 +82,7 @@ export const PROVIDER_RATE_LIMITS = {
  * Provider-specific download settings
  */
 export const PROVIDER_DOWNLOAD_SETTINGS = {
-  mangadx: {
+  mangadex: {
     maxConcurrentDownloads: 3,
     chapterDelay: 500, // ms between chapter downloads
     pageDelay: 100, // ms between page downloads

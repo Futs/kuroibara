@@ -1,0 +1,185 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version (e.g., 0.8.0)'
+        required: true
+        type: string
+      bump_type:
+        description: 'Type of version bump'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - custom
+
+jobs:
+  bump-version:
+    name: Bump Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Validate version format
+        if: inputs.bump_type == 'custom'
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format! Use semantic versioning (e.g., 1.2.3)"
+            exit 1
+          fi
+
+      - name: Get current version
+        id: current
+        run: |
+          CURRENT_VERSION=$(cat VERSION | tr -d '\n')
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          CURRENT="${{ steps.current.outputs.version }}"
+          
+          if [[ "${{ inputs.bump_type }}" == "custom" ]]; then
+            NEW_VERSION="${{ inputs.version }}"
+          else
+            # Parse current version
+            IFS='.' read -ra VERSION_PARTS <<< "$CURRENT"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+            
+            case "${{ inputs.bump_type }}" in
+              "patch")
+                PATCH=$((PATCH + 1))
+                ;;
+              "minor")
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              "major")
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+            esac
+            
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          fi
+          
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Update version files
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          
+          echo "🔄 Updating version to $NEW_VERSION..."
+          
+          # Update VERSION file
+          echo "$NEW_VERSION" > VERSION
+          
+          # Update backend files
+          sed -i "s/__version__ = \".*\"/__version__ = \"$NEW_VERSION\"/" backend/app/__init__.py
+          sed -i "s/version=\".*\"/version=\"$NEW_VERSION\"/" backend/app/main.py
+          sed -i "s/version = \".*\"/version = \"$NEW_VERSION\"/" backend/pyproject.toml
+          
+          # Update frontend files
+          sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" frontend/app/package.json
+          
+          # Update docker-compose files if they exist
+          if [ -f "docker-compose.yml" ]; then
+            sed -i "s/:v[0-9]\+\.[0-9]\+\.[0-9]\+/:v$NEW_VERSION/g" docker-compose.yml
+          fi
+          
+          if [ -f "docker-compose.dev.yml" ]; then
+            sed -i "s/:v[0-9]\+\.[0-9]\+\.[0-9]\+/:v$NEW_VERSION/g" docker-compose.dev.yml
+          fi
+          
+          echo "✅ Version files updated"
+
+      - name: Verify changes
+        run: |
+          echo "📋 Version references:"
+          echo "VERSION file: $(cat VERSION)"
+          echo "Backend __init__.py: $(grep '__version__' backend/app/__init__.py)"
+          echo "Backend main.py: $(grep 'version=' backend/app/main.py)"
+          echo "Backend pyproject.toml: $(grep 'version =' backend/pyproject.toml)"
+          echo "Frontend package.json: $(grep '"version"' frontend/app/package.json)"
+
+      - name: Commit changes
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          git add .
+          git commit -m "bump: version $NEW_VERSION
+
+          - Updated all version references to $NEW_VERSION
+          - Backend: __init__.py, main.py, pyproject.toml
+          - Frontend: package.json
+          - Root: VERSION file
+          
+          Bump type: ${{ inputs.bump_type }}
+          Previous version: ${{ steps.current.outputs.version }}"
+
+      - name: Create and push tag
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          
+          git tag "v$NEW_VERSION"
+          git push origin main
+          git push origin "v$NEW_VERSION"
+          
+          echo "🏷️ Created and pushed tag v$NEW_VERSION"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.new_version.outputs.version }}
+          name: Release v${{ steps.new_version.outputs.version }}
+          body: |
+            ## 🚀 Release v${{ steps.new_version.outputs.version }}
+            
+            **Bump Type:** ${{ inputs.bump_type }}
+            **Previous Version:** ${{ steps.current.outputs.version }}
+            
+            ### 📦 Docker Images
+            
+            - Backend: `futs/kuroibara-backend:v${{ steps.new_version.outputs.version }}`
+            - Frontend: `futs/kuroibara-frontend:v${{ steps.new_version.outputs.version }}`
+            
+            ### 🔄 Automated Version Bump
+            
+            This release was created automatically using the Version Bump workflow.
+            All version references have been updated consistently across the codebase.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          echo "🎉 Version bump completed successfully!"
+          echo "📋 Summary:"
+          echo "  - Previous version: ${{ steps.current.outputs.version }}"
+          echo "  - New version: $NEW_VERSION"
+          echo "  - Bump type: ${{ inputs.bump_type }}"
+          echo "  - Tag created: v$NEW_VERSION"
+          echo "  - Release created: https://github.com/${{ github.repository }}/releases/tag/v$NEW_VERSION"
+          echo "  - Docker images will be built automatically"

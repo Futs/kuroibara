@@ -73,7 +73,7 @@ print_success "Updated backend/app/__init__.py"
 sed -i "s/version=\".*\"/version=\"$NEW_VERSION\"/" backend/app/main.py
 print_success "Updated backend/app/main.py"
 
-sed -i "s/version = \".*\"/version = \"$NEW_VERSION\"/" backend/pyproject.toml
+sed -i "0,/version = \".*\"/{s/version = \".*\"/version = \"$NEW_VERSION\"/}" backend/pyproject.toml
 print_success "Updated backend/pyproject.toml"
 
 # Update frontend files

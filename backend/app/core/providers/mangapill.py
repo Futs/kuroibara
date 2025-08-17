@@ -92,15 +92,27 @@ class MangaPillProvider(BaseProvider):
 
         # Try multiple selectors within the element
         title_selectors = [
-            ".font-bold", ".text-truncate", ".title", "a[href*='/manga/']",
-            ".manga-title", ".name", "h3", "h4", ".text-sm", ".text-base"
+            ".font-bold",
+            ".text-truncate",
+            ".title",
+            "a[href*='/manga/']",
+            ".manga-title",
+            ".name",
+            "h3",
+            "h4",
+            ".text-sm",
+            ".text-base",
         ]
 
         for selector in title_selectors:
             title_elem = element.select_one(selector)
             if title_elem:
                 candidate_title = title_elem.get_text(strip=True)
-                if candidate_title and len(candidate_title) > 1 and not candidate_title.isdigit():
+                if (
+                    candidate_title
+                    and len(candidate_title) > 1
+                    and not candidate_title.isdigit()
+                ):
                     return candidate_title
 
         # Try image alt text
@@ -120,8 +132,11 @@ class MangaPillProvider(BaseProvider):
 
         # Try different image source attributes
         cover_url = (
-            img_elem.get("src") or img_elem.get("data-src")
-            or img_elem.get("data-lazy") or img_elem.get("data-original") or ""
+            img_elem.get("src")
+            or img_elem.get("data-src")
+            or img_elem.get("data-lazy")
+            or img_elem.get("data-original")
+            or ""
         )
 
         if not cover_url:
@@ -136,7 +151,11 @@ class MangaPillProvider(BaseProvider):
             for attr in ["data-src", "data-lazy", "data-original"]:
                 real_url = img_elem.get(attr)
                 if real_url and "placeholder" not in real_url.lower():
-                    return real_url if real_url.startswith("http") else urljoin(self._base_url, real_url)
+                    return (
+                        real_url
+                        if real_url.startswith("http")
+                        else urljoin(self._base_url, real_url)
+                    )
 
         return cover_url
 
@@ -150,7 +169,11 @@ class MangaPillProvider(BaseProvider):
 
     def _create_search_result(self, manga_id, title, cover_url, manga_url):
         """Create a SearchResult object."""
-        full_url = urljoin(self._base_url, manga_url) if manga_url.startswith("/") else manga_url
+        full_url = (
+            urljoin(self._base_url, manga_url)
+            if manga_url.startswith("/")
+            else manga_url
+        )
 
         return SearchResult(
             id=manga_id,
@@ -194,8 +217,11 @@ class MangaPillProvider(BaseProvider):
 
             # Find manga items in the grid
             items = [
-                child for child in grid.children
-                if hasattr(child, "name") and child.name and child.select("a[href*='/manga/']")
+                child
+                for child in grid.children
+                if hasattr(child, "name")
+                and child.name
+                and child.select("a[href*='/manga/']")
             ]
 
             if not items:
@@ -217,14 +243,20 @@ class MangaPillProvider(BaseProvider):
                     title = self._extract_title_from_element(item, link_elem)
                     if title == "Unknown Title" and manga_url:
                         # Last resort: extract from URL
-                        url_part = manga_url.split("/manga/")[-1].split("/")[0] if "/manga/" in manga_url else ""
+                        url_part = (
+                            manga_url.split("/manga/")[-1].split("/")[0]
+                            if "/manga/" in manga_url
+                            else ""
+                        )
                         if url_part:
                             title = url_part.replace("-", " ").replace("_", " ").title()
 
                     title = self._clean_title(title)
                     cover_url = self._extract_cover_url(item)
 
-                    result = self._create_search_result(manga_id, title, cover_url, manga_url)
+                    result = self._create_search_result(
+                        manga_id, title, cover_url, manga_url
+                    )
                     results.append(result)
 
                     if len(results) >= limit:
@@ -250,15 +282,28 @@ class MangaPillProvider(BaseProvider):
 
         # Try finding title in child elements
         title_selectors = [
-            ".font-bold", ".text-truncate", ".title", ".manga-title", ".name",
-            "h3", "h4", ".text-sm", ".text-base", "span", "div"
+            ".font-bold",
+            ".text-truncate",
+            ".title",
+            ".manga-title",
+            ".name",
+            "h3",
+            "h4",
+            ".text-sm",
+            ".text-base",
+            "span",
+            "div",
         ]
 
         for selector in title_selectors:
             title_elem = item.find(selector)
             if title_elem:
                 candidate_title = title_elem.get_text(strip=True)
-                if candidate_title and len(candidate_title) > 1 and not candidate_title.isdigit():
+                if (
+                    candidate_title
+                    and len(candidate_title) > 1
+                    and not candidate_title.isdigit()
+                ):
                     return candidate_title
 
         # Try image alt/title text
@@ -293,7 +338,9 @@ class MangaPillProvider(BaseProvider):
         for selector in selectors:
             manga_items = soup.select(selector)
             if manga_items:
-                logger.info(f"Found {len(manga_items)} manga items with selector '{selector}'")
+                logger.info(
+                    f"Found {len(manga_items)} manga items with selector '{selector}'"
+                )
                 return manga_items
 
         return []
@@ -324,7 +371,11 @@ class MangaPillProvider(BaseProvider):
                     if not href.startswith("http"):
                         href = urljoin(self._base_url, href)
 
-                    manga_id = href.split("/manga/")[-1].split("/")[0] if "/manga/" in href else ""
+                    manga_id = (
+                        href.split("/manga/")[-1].split("/")[0]
+                        if "/manga/" in href
+                        else ""
+                    )
                     if not manga_id:
                         continue
 
@@ -342,8 +393,11 @@ class MangaPillProvider(BaseProvider):
                     img_elem = item.find("img")
                     if img_elem:
                         cover_url = (
-                            img_elem.get("src") or img_elem.get("data-src")
-                            or img_elem.get("data-lazy") or img_elem.get("data-original") or ""
+                            img_elem.get("src")
+                            or img_elem.get("data-src")
+                            or img_elem.get("data-lazy")
+                            or img_elem.get("data-original")
+                            or ""
                         )
                         if cover_url and not cover_url.startswith("http"):
                             cover_url = urljoin(self._base_url, cover_url)
@@ -372,7 +426,9 @@ class MangaPillProvider(BaseProvider):
                     logger.error(f"Error parsing manga item on MangaPill: {e}")
                     continue
 
-            logger.info(f"MangaPill get_available_manga returned {len(results)} results")
+            logger.info(
+                f"MangaPill get_available_manga returned {len(results)} results"
+            )
             return results, len(results), len(manga_items) > limit
 
         except Exception as e:

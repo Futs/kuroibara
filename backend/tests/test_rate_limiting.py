@@ -242,11 +242,11 @@ class TestRateLimiterManager:
 
     def test_provider_specific_configs(self, manager):
         """Test that providers get their specific configurations."""
-        # Test MangaDex config
+        # Test MangaDex config (updated to match current configuration)
         mangadex_limiter = manager.get_limiter("MangaDex")
         status = mangadex_limiter.get_status()
-        assert status["config"]["max_concurrent"] == 3
-        assert status["current_min_time_ms"] == 800
+        assert status["config"]["max_concurrent"] == 2  # Updated from 3 to 2
+        assert status["current_min_time_ms"] == 5000  # Updated from 800 to 5000
 
         # Test ManhuaFast config (more conservative)
         manhua_limiter = manager.get_limiter("ManhuaFast")

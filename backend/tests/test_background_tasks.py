@@ -41,9 +41,20 @@ async def test_download_manga_task(mock_download_manga):
         db=mock_download_manga.call_args[1]["db"],
     )
 
-    # Check if task was created
-    task_id = f"{user_id}_{manga_id}"
-    task = get_download_task(task_id)
+    # Check if task was created (task ID now includes timestamp)
+    from app.core.services.background import download_tasks
+
+    # Find the task by checking all tasks for this user/manga combination
+    task = None
+    for task_id, task_data in download_tasks.items():
+        if (
+            task_data["user_id"] == str(user_id)
+            and task_data["manga_id"] == str(manga_id)
+            and task_data["provider"] == provider_name
+            and task_data["external_id"] == external_id
+        ):
+            task = task_data
+            break
 
     assert task is not None
     assert task["manga_id"] == str(manga_id)
@@ -76,9 +87,20 @@ async def test_download_manga_task_error(mock_download_manga):
         external_id=external_id,
     )
 
-    # Check if task was created with error
-    task_id = f"{user_id}_{manga_id}"
-    task = get_download_task(task_id)
+    # Check if task was created with error (task ID now includes timestamp)
+    from app.core.services.background import download_tasks
+
+    # Find the task by checking all tasks for this user/manga combination
+    task = None
+    for task_id, task_data in download_tasks.items():
+        if (
+            task_data["user_id"] == str(user_id)
+            and task_data["manga_id"] == str(manga_id)
+            and task_data["provider"] == provider_name
+            and task_data["external_id"] == external_id
+        ):
+            task = task_data
+            break
 
     assert task is not None
     assert task["manga_id"] == str(manga_id)

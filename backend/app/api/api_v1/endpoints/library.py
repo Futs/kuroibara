@@ -205,7 +205,7 @@ async def check_external_library_status(
         }
 
 
-@router.post("", response_model=MangaUserLibrarySchema)
+@router.post("", response_model=MangaUserLibrarySummary)
 async def add_to_library(
     library_item: MangaUserLibraryCreate,
     current_user: User = Depends(get_current_user),
@@ -264,6 +264,7 @@ async def add_to_library(
         await db.refresh(library_item_obj)
 
         # Load relationships explicitly to avoid greenlet issues
+        # Use ChapterSummary instead of Chapter to avoid loading pages
         from sqlalchemy.orm import selectinload
 
         result = await db.execute(
@@ -271,9 +272,7 @@ async def add_to_library(
             .options(
                 selectinload(MangaUserLibrary.manga).selectinload(Manga.genres),
                 selectinload(MangaUserLibrary.manga).selectinload(Manga.authors),
-                selectinload(MangaUserLibrary.manga)
-                .selectinload(Manga.chapters)
-                .selectinload(Chapter.pages),
+                selectinload(MangaUserLibrary.manga).selectinload(Manga.chapters),
                 selectinload(MangaUserLibrary.categories),
             )
             .where(MangaUserLibrary.id == library_item_obj.id)
@@ -299,6 +298,154 @@ async def add_to_library(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to add manga to library",
         )
+
+
+@router.get("/downloads", response_model=Dict[str, Any])
+async def get_download_tasks(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get all download tasks for the current user.
+    """
+    try:
+        from app.core.services.background import get_user_download_tasks
+
+        # Get user's download tasks
+        user_tasks = get_user_download_tasks(current_user.id)
+
+        # Convert to list format expected by frontend
+        tasks_list = []
+        for task_id, task_data in user_tasks.items():
+            tasks_list.append({"task_id": task_id, **task_data})
+
+        return {"tasks": tasks_list, "count": len(tasks_list)}
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching download tasks: {e}")
+
+        # Return empty tasks list on error
+        return {"tasks": [], "count": 0}
+
+
+@router.get("/downloads/{task_id}", response_model=Dict[str, Any])
+async def get_download_task(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Get a specific download task by ID.
+    """
+    from app.core.services.background import get_download_task
+
+    # Get task
+    task = get_download_task(task_id)
+
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Download task not found",
+        )
+
+    # Check if task belongs to user
+    if task["user_id"] != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    return task
+
+
+@router.delete("/downloads/{task_id}", status_code=status.HTTP_200_OK)
+async def cancel_download_task(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Cancel a download task.
+    """
+    from app.core.services.background import cancel_download_task
+
+    # Cancel task
+    success = cancel_download_task(task_id, current_user.id)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Download task not found or already completed",
+        )
+
+    return {"message": "Download task cancelled successfully"}
+
+
+@router.post("/downloads/{task_id}/pause", status_code=status.HTTP_200_OK)
+async def pause_download_task(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Pause a download task.
+    """
+    from app.core.services.background import get_download_task
+
+    # Get task
+    task = get_download_task(task_id)
+
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Download task not found",
+        )
+
+    # Check if task belongs to user
+    if task["user_id"] != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    # Update task status to paused
+    from app.core.services.background import update_download_task_status
+
+    update_download_task_status(task_id, "paused")
+
+    return {"message": "Download paused successfully", "task_id": task_id}
+
+
+@router.post("/downloads/{task_id}/resume", status_code=status.HTTP_200_OK)
+async def resume_download_task(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Resume a paused download task.
+    """
+    from app.core.services.background import get_download_task
+
+    # Get task
+    task = get_download_task(task_id)
+
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Download task not found",
+        )
+
+    # Check if task belongs to user
+    if task["user_id"] != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    # Update task status to downloading
+    from app.core.services.background import update_download_task_status
+
+    update_download_task_status(task_id, "downloading")
+
+    return {"message": "Download resumed successfully", "task_id": task_id}
 
 
 @router.get("/{library_item_id}", response_model=MangaUserLibrarySchema)
@@ -603,8 +750,30 @@ async def download_manga(
                 "message": "Manga is already downloaded",
             }
 
-        # Create task ID
-        task_id = f"{current_user.id}_{library_item.manga_id}"
+        # Create task ID with timestamp to match background service
+        import time
+
+        task_id = f"{current_user.id}_{library_item.manga_id}_{int(time.time())}"
+
+        # Create task entry immediately so it appears in downloads
+        from app.core.services.background import download_tasks
+
+        download_tasks[task_id] = {
+            "task_id": task_id,
+            "manga_id": str(library_item.manga_id),
+            "manga_title": "Loading...",  # Will be updated by background task
+            "user_id": str(current_user.id),
+            "provider": provider,
+            "external_id": external_id,
+            "status": "starting",
+            "progress": 0,
+            "total_chapters": 0,
+            "downloaded_chapters": 0,
+            "current_chapter": "",
+            "speed": "0 B/s",
+            "eta": "",
+            "created_at": time.time(),
+        }
 
         # Add download task to background tasks
         background_tasks.add_task(
@@ -613,6 +782,7 @@ async def download_manga(
             user_id=current_user.id,
             provider_name=provider,
             external_id=external_id,
+            task_id=task_id,
         )
 
         # Return task information
@@ -813,93 +983,6 @@ async def read_bookmarks(
     return bookmarks
 
 
-@router.get("/downloads", response_model=Dict[str, Any])
-async def get_download_tasks(
-    current_user: User = Depends(get_current_user),
-) -> Any:
-    """
-    Get all download tasks for the current user.
-    """
-    try:
-        # For now, return empty tasks list since background service needs fixing
-        # TODO: Implement proper background task tracking
-        return {"tasks": [], "count": 0}
-    except Exception as e:
-        import logging
-
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error fetching download tasks: {e}")
-
-        # Return empty tasks list on error
-        return {"tasks": [], "count": 0}
-
-
-@router.get("/downloads/{task_id}", response_model=Dict[str, Any])
-async def get_download_task(
-    task_id: str,
-    current_user: User = Depends(get_current_user),
-) -> Any:
-    """
-    Get a download task by ID.
-    """
-    from app.core.services.background import get_download_task
-
-    # Get task
-    task = get_download_task(task_id)
-
-    if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Download task not found",
-        )
-
-    # Check if task belongs to user
-    if task["user_id"] != str(current_user.id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
-        )
-
-    return task
-
-
-@router.delete("/downloads/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def cancel_download_task(
-    task_id: str,
-    current_user: User = Depends(get_current_user),
-) -> None:
-    """
-    Cancel a download task.
-    """
-    from app.core.services.background import cancel_download_task as cancel_task
-    from app.core.services.background import (
-        get_download_task,
-    )
-
-    # Get task
-    task = get_download_task(task_id)
-
-    if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Download task not found",
-        )
-
-    # Check if task belongs to user
-    if task["user_id"] != str(current_user.id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
-        )
-
-    # Cancel task
-    if not cancel_task(task_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to cancel download task",
-        )
-
-
 @router.post("/{library_item_id}/download-chapter", response_model=Dict[str, Any])
 async def download_chapter_endpoint(
     library_item_id: str,
@@ -965,14 +1048,16 @@ async def download_chapter_endpoint(
             chapter_id_for_download = chapter.id
 
         # Add download task to background tasks
+        from app.core.services.background import download_chapter_task
+
         background_tasks.add_task(
-            download_chapter,
+            download_chapter_task,
             manga_id=library_item.manga_id,
             chapter_id=chapter_id_for_download,
             provider_name=request.provider,
             external_manga_id=request.external_manga_id,
             external_chapter_id=request.external_chapter_id,
-            db=db,
+            user_id=current_user.id,
         )
 
         # Return task information

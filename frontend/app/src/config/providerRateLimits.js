@@ -4,14 +4,14 @@
  */
 
 export const PROVIDER_RATE_LIMITS = {
-  // MangaDex - Popular, well-maintained API
+  // MangaDex - Popular, well-maintained API (requires conservative rate limiting)
   mangadex: {
-    limit: 60, // 60 requests per minute
+    limit: 12, // 12 requests per minute (5 second intervals)
     windowMs: 60000,
-    burstLimit: 5, // 5 requests per second burst
-    retryAfter: 500,
+    burstLimit: 2, // 2 requests per second burst
+    retryAfter: 5000, // 5 second retry delay
     description:
-      "MangaDex has generous rate limits but prefers controlled access",
+      "MangaDex requires 5 second intervals between API requests to avoid rate limiting",
   },
 
   // MangaHub - GraphQL API with rate limiting
@@ -83,9 +83,9 @@ export const PROVIDER_RATE_LIMITS = {
  */
 export const PROVIDER_DOWNLOAD_SETTINGS = {
   mangadex: {
-    maxConcurrentDownloads: 3,
-    chapterDelay: 500, // ms between chapter downloads
-    pageDelay: 100, // ms between page downloads
+    maxConcurrentDownloads: 2,
+    chapterDelay: 5000, // 5 seconds between chapter downloads (user reports)
+    pageDelay: 500, // 500ms between page downloads (HakuNeko default)
     retryAttempts: 3,
     timeout: 30000,
   },

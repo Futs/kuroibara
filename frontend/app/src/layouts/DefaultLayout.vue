@@ -330,9 +330,11 @@ const navItems = computed(() => {
   if (isAuthenticated.value) {
     items.push(
       { name: "Library", to: "/library" },
+      { name: "Downloads", to: "/downloads" },
       { name: "Categories", to: "/categories" },
       { name: "Reading Lists", to: "/reading-lists" },
       { name: "Providers", to: "/providers" },
+      { name: "🧪 Progress Test", to: "/dev/progress-test" },
     );
   }
 

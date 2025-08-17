@@ -691,7 +691,7 @@ async def get_chapter_pages(
     return page_data
 
 
-@router.post("/from-external", response_model=MangaSchema)
+@router.post("/from-external", response_model=MangaSummary)
 async def create_manga_from_external(
     provider: str,
     external_id: str,

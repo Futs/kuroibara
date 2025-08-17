@@ -6,7 +6,7 @@
     "supports_nsfw": true,
     "priority": 1,
     "params": {
-      "base_url": "https://api.mangadx.org",
+      "base_url": "https://api.mangadex.org",
       "supports_nsfw": true
     }
   },

@@ -252,32 +252,48 @@
               </button>
 
               <!-- Download All (only for library items) -->
-              <button
+              <div
                 v-if="
                   !isExternal &&
                   inLibrary &&
                   manga.provider &&
                   manga.external_id
                 "
-                @click="downloadManga"
-                class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                class="space-y-2"
               >
-                <svg
-                  class="h-5 w-5 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                <button
+                  @click="downloadManga"
+                  :disabled="bulkDownloadProgress.isDownloading"
+                  class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-                Download All
-              </button>
+                  <svg
+                    class="h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  {{ bulkDownloadProgress.isDownloading ? 'Downloading...' : 'Download All' }}
+                </button>
+
+                <!-- Progress Bar (Example B Style) -->
+                <div v-if="bulkDownloadProgress.isDownloading" class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div
+                    class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                    :style="{width: `${bulkDownloadProgress.progress}%`}"
+                  ></div>
+                </div>
+                <div v-if="bulkDownloadProgress.isDownloading" class="text-xs text-gray-600 dark:text-gray-400 text-center">
+                  {{ bulkDownloadProgress.completedChapters }}/{{ bulkDownloadProgress.totalChapters }} chapters • {{ Math.round(bulkDownloadProgress.progress) }}%
+                </div>
+              </div>
 
               <!-- Import Files (only for library items) -->
               <button
@@ -733,10 +749,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useLibraryStore } from "../stores/library";
 import { useSettingsStore } from "../stores/settings";
+import { useDownloadsStore } from "../stores/downloads";
 import EnhancedChapterCard from "../components/EnhancedChapterCard.vue";
 import ChapterFilters from "../components/ChapterFilters.vue";
 import ChapterManagement from "../components/ChapterManagement.vue";
@@ -750,6 +767,7 @@ const route = useRoute();
 const router = useRouter();
 const libraryStore = useLibraryStore();
 const settingsStore = useSettingsStore();
+const downloadsStore = useDownloadsStore();
 
 const mangaId = computed(() => route.params.id);
 const provider = computed(() => route.params.provider);
@@ -773,6 +791,65 @@ const showImportDialog = ref(false);
 
 const currentPage = ref(1);
 const chaptersPerPage = 10;
+
+// Bulk download progress state
+const bulkDownloadProgress = ref({
+  isDownloading: false,
+  progress: 0,
+  completedChapters: 0,
+  totalChapters: 0,
+  downloadId: null,
+});
+
+// Check for existing bulk download from downloads store
+const activeBulkDownload = computed(() => {
+  const bulkDownloads = Array.from(downloadsStore.bulkDownloads.values());
+  return bulkDownloads.find(download =>
+    download.manga_id === mangaId.value &&
+    (download.status === 'downloading' || download.status === 'queued')
+  );
+});
+
+// Update local progress from downloads store
+const updateBulkProgressFromStore = () => {
+  const activeBulk = activeBulkDownload.value;
+  if (activeBulk) {
+    bulkDownloadProgress.value = {
+      isDownloading: true,
+      progress: activeBulk.progress || 0,
+      completedChapters: activeBulk.completed_chapters || 0,
+      totalChapters: activeBulk.total_chapters || 0,
+      downloadId: activeBulk.id,
+    };
+  } else {
+    // Check if there's an active download in the activeDownloads
+    const activeDownloads = Array.from(downloadsStore.activeDownloads.values());
+    const mangaBulkDownload = activeDownloads.find(download =>
+      download.manga_id === mangaId.value && download.type === 'bulk'
+    );
+
+    if (mangaBulkDownload) {
+      bulkDownloadProgress.value = {
+        isDownloading: true,
+        progress: mangaBulkDownload.progress || 0,
+        completedChapters: mangaBulkDownload.completed_chapters || 0,
+        totalChapters: mangaBulkDownload.total_chapters || 0,
+        downloadId: mangaBulkDownload.task_id,
+      };
+    } else {
+      bulkDownloadProgress.value.isDownloading = false;
+    }
+  }
+};
+
+// Watch for changes in downloads store to update bulk progress
+watch(
+  () => [downloadsStore.activeDownloads, downloadsStore.bulkDownloads],
+  () => {
+    updateBulkProgressFromStore();
+  },
+  { deep: true }
+);
 
 // Chapter update settings (from settings store)
 const autoRefreshInterval = computed(
@@ -1404,17 +1481,44 @@ const downloadManga = async () => {
     }
 
     // Get the library item ID
-    const libraryResponse = await api.get("/v1/library");
-    const libraryItem = libraryResponse.data.items?.find(
-      (item) => item.manga_id === mangaId.value,
-    );
+    const libraryResponse = await api.get("/v1/library", {
+      params: { manga_id: mangaId.value },
+    });
+    const libraryItem = libraryResponse.data.items?.[0];
 
     if (!libraryItem) {
       throw new Error("Manga not found in library");
     }
 
+    // Initialize bulk download progress
+    const totalChapters = manga.value?.chapters?.length || 0;
+    bulkDownloadProgress.value = {
+      isDownloading: true,
+      progress: 0,
+      completedChapters: 0,
+      totalChapters: totalChapters,
+      downloadId: `bulk_${libraryItem.id}_${Date.now()}`,
+    };
+
+    // Import downloads store
+    const { useDownloadsStore } = await import("../stores/downloads");
+    const downloadsStore = useDownloadsStore();
+
+    // Add to downloads store for tracking
+    downloadsStore.addBulkDownload({
+      id: bulkDownloadProgress.value.downloadId,
+      manga_title: manga.value.title,
+      manga_id: mangaId.value,
+      type: 'bulk',
+      status: 'downloading',
+      progress: 0,
+      total_chapters: totalChapters,
+      completed_chapters: 0,
+      started_at: new Date().toISOString(),
+    });
+
     // Start the download
-    await api.post(
+    const downloadResponse = await api.post(
       `/v1/library/${libraryItem.id}/download`,
       {},
       {
@@ -1425,9 +1529,26 @@ const downloadManga = async () => {
       },
     );
 
+    console.log("Download response:", downloadResponse.data);
+
+    // Update bulk download with real task ID
+    if (downloadResponse.data.task_id) {
+      bulkDownloadProgress.value.downloadId = downloadResponse.data.task_id;
+
+      // Update downloads store with real task ID
+      downloadsStore.updateBulkDownloadProgress(
+        downloadResponse.data.task_id,
+        null,
+        'downloading',
+        0,
+        0
+      );
+    }
+
     alert("Download started! Check your downloads page for progress.");
   } catch (err) {
     console.error("Error downloading manga:", err);
+    bulkDownloadProgress.value.isDownloading = false;
     alert(
       "Failed to download manga: " +
         (err.response?.data?.detail || err.message),
@@ -1463,7 +1584,7 @@ const downloadChapter = async (chapter) => {
       external_id: manga.value.external_id,
     });
 
-    // Download the specific chapter
+    // Download the specific chapter using the library store (which handles rate limiting and downloads store integration)
     // For library chapters, use library_chapter_id if available, otherwise null
     // Use chapter.id as the external_chapter_id (provider chapter ID)
     const downloadResult = await libraryStore.downloadChapter(
@@ -1475,6 +1596,9 @@ const downloadChapter = async (chapter) => {
     );
 
     console.log("Download result:", downloadResult);
+
+    // The library store already adds the download to the downloads store
+    // Real progress updates will come from WebSocket connections
 
     // Reload library item details to update download status
     await loadLibraryItemDetails();
@@ -1739,6 +1863,14 @@ const goToMediaManagement = () => {
 
 onMounted(() => {
   fetchMangaDetails();
+
+  // Initialize downloads store if not already initialized
+  if (!downloadsStore.pollingInterval) {
+    downloadsStore.init();
+  }
+
+  // Update bulk download progress from store
+  updateBulkProgressFromStore();
 
   // Set up auto-refresh after initial load
   setTimeout(() => {

@@ -97,9 +97,32 @@ async def download_chapter(
     # Get pages
     page_urls = await provider.get_pages(external_manga_id, external_chapter_id)
 
-    # Download pages
+    # Download pages with optimized rate limiting for page downloads
+    import asyncio
+
+    # Provider-specific page download delays (much faster than API calls)
+    page_delays = {
+        "MangaDx": 0.5,  # 500ms for MangaDx pages (vs 5s for API)
+        "MangaPill": 0.3,  # 300ms for MangaPill pages
+        "Toonily": 0.4,  # 400ms for Toonily pages
+        "MangaTown": 0.5,  # 500ms for MangaTown pages
+        "ManhuaFast": 0.6,  # 600ms for ManhuaFast pages
+        "ArcaneScans": 0.5,  # 500ms for ArcaneScans pages
+        "Manga18FX": 0.7,  # 700ms for NSFW providers
+        "MangaFreak": 0.5,  # 500ms for MangaFreak pages
+        "MangaSail": 0.4,  # 400ms for MangaSail pages
+        "MangaKakalotFun": 0.3,  # 300ms for MangaKakalotFun pages
+        "MangaDNA": 0.5,  # 500ms for MangaDNA pages
+    }
+
+    page_delay = page_delays.get(provider_name, 0.5)  # Default 500ms
+
     pages = []
     for i, page_url in enumerate(page_urls):
+        # Add delay between page downloads (much shorter than API delays)
+        if i > 0:
+            await asyncio.sleep(page_delay)
+
         # Download page
         page_data = await provider.download_page(page_url)
 
@@ -113,8 +136,17 @@ async def download_chapter(
                 file_ext = f".{url_ext}"
 
         page_path = get_page_storage_path(manga_id, chapter_id, page_number, file_ext)
-        with open(page_path, "wb") as f:
-            f.write(page_data)
+
+        # Only save if we got actual data
+        if page_data and len(page_data) > 0:
+            os.makedirs(os.path.dirname(page_path), exist_ok=True)
+            with open(page_path, "wb") as f:
+                f.write(page_data)
+        else:
+            # Create empty file to track failed download
+            os.makedirs(os.path.dirname(page_path), exist_ok=True)
+            with open(page_path, "wb") as f:
+                f.write(b"")
 
         # Create page object
         page = Page(

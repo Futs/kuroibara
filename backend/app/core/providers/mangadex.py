@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List, Tuple
 
 import httpx
@@ -5,6 +6,8 @@ import httpx
 from app.core.providers.base import BaseProvider
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
+
+logger = logging.getLogger(__name__)
 
 
 class MangaDexProvider(BaseProvider):
@@ -366,8 +369,16 @@ class MangaDexProvider(BaseProvider):
 
     async def get_pages(self, manga_id: str, chapter_id: str) -> List[str]:
         """Get pages for a chapter on MangaDex."""
-        # Make request to get chapter data
         async with httpx.AsyncClient() as client:
+            # First check if this is an external chapter
+            external_url = await self._check_external_chapter(client, chapter_id)
+            if external_url:
+                logger.warning(f"Chapter {chapter_id} is external-only: {external_url}")
+                raise ValueError(
+                    f"Chapter is external-only and redirects to: {external_url}"
+                )
+
+            # Make request to get chapter data
             response = await client.get(
                 f"{self.url}/at-home/server/{chapter_id}",
             )
@@ -385,6 +396,15 @@ class MangaDexProvider(BaseProvider):
             # Get page filenames
             page_filenames = data["chapter"]["data"]
 
+            # Check if chapter has no pages (external-only)
+            if not page_filenames:
+                logger.warning(
+                    f"Chapter {chapter_id} has 0 pages - trying fallback servers"
+                )
+                return await self._try_fallback_servers(
+                    client, chapter_hash, chapter_id
+                )
+
             # Build page URLs
             page_urls = []
             for filename in page_filenames:
@@ -392,6 +412,58 @@ class MangaDexProvider(BaseProvider):
                 page_urls.append(page_url)
 
             return page_urls
+
+    async def _check_external_chapter(
+        self, client: httpx.AsyncClient, chapter_id: str
+    ) -> str:
+        """Check if a chapter is external-only and return the external URL if so."""
+        try:
+            response = await client.get(f"{self.url}/chapter/{chapter_id}")
+            response.raise_for_status()
+            data = response.json()
+
+            chapter_data = data.get("data", {})
+            attributes = chapter_data.get("attributes", {})
+            external_url = attributes.get("externalUrl")
+
+            return external_url
+        except Exception as e:
+            logger.debug(f"Could not check external URL for chapter {chapter_id}: {e}")
+            return None
+
+    async def _try_fallback_servers(
+        self, client: httpx.AsyncClient, chapter_hash: str, chapter_id: str
+    ) -> List[str]:
+        """Try fallback servers when official at-home server has no pages (like HakuNeko does)."""
+        fallback_servers = [
+            "https://uploads.mangadex.org/data/",  # MangaDx upload server
+            "https://cache.ayaya.red/mdah/data/",  # Third-party cache server
+        ]
+
+        logger.info(f"Trying fallback servers for chapter {chapter_id}")
+
+        for server in fallback_servers:
+            try:
+                # Try to access the chapter directory on fallback server
+                test_url = f"{server}{chapter_hash}/"
+                response = await client.get(test_url, timeout=10)
+
+                if response.status_code == 200:
+                    logger.info(f"Fallback server accessible: {server}")
+                    # For now, return empty list since we don't have page filenames
+                    # In a full implementation, we'd need to parse the directory listing
+                    # or get page filenames from another source
+                    logger.warning(
+                        f"Fallback server found but page enumeration not implemented"
+                    )
+                    return []
+
+            except Exception as e:
+                logger.debug(f"Fallback server {server} failed: {e}")
+                continue
+
+        logger.warning(f"All fallback servers failed for chapter {chapter_id}")
+        return []
 
     async def download_page(self, page_url: str) -> bytes:
         """Download a page from MangaDex."""

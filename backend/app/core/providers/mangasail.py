@@ -21,7 +21,7 @@ class MangaSailProvider(BaseProvider):
 
     def __init__(self):
         self._base_url = "https://www.sailmg.com"
-        self._search_url = "https://www.sailmg.com/search?q={query}"
+        self._search_url = "https://www.sailmg.com/search/node/{query}"
         self._manga_url_pattern = "https://www.sailmg.com/content/{manga_id}"
         self._chapter_url_pattern = "https://www.sailmg.com/content/{chapter_id}"
         self._name = "MangaSail"
@@ -92,8 +92,16 @@ class MangaSailProvider(BaseProvider):
 
             soup = BeautifulSoup(html, "html.parser")
 
-            # Find manga items using a.mtitle selector
-            manga_items = soup.select("a.mtitle")
+            # Find manga items using content links selector
+            manga_items = soup.select("a[href*='/content/']")
+
+            # Filter out navigation links
+            manga_items = [
+                item
+                for item in manga_items
+                if item.get_text(strip=True)
+                and "skip to main content" not in item.get_text(strip=True).lower()
+            ]
 
             if not manga_items:
                 logger.warning(f"No manga items found for query '{query}' on MangaSail")
@@ -192,8 +200,16 @@ class MangaSailProvider(BaseProvider):
 
             soup = BeautifulSoup(html, "html.parser")
 
-            # Find manga items using a.mtitle selector
-            manga_items = soup.select("a.mtitle")
+            # Find manga items using content links selector
+            manga_items = soup.select("a[href*='/content/']")
+
+            # Filter out navigation links
+            manga_items = [
+                item
+                for item in manga_items
+                if item.get_text(strip=True)
+                and "skip to main content" not in item.get_text(strip=True).lower()
+            ]
 
             if not manga_items:
                 logger.warning("No manga items found on MangaSail homepage")

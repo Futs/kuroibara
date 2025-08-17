@@ -243,8 +243,8 @@ class TestRateLimiterManager:
     def test_provider_specific_configs(self, manager):
         """Test that providers get their specific configurations."""
         # Test MangaDex config
-        mangadx_limiter = manager.get_limiter("MangaDex")
-        status = mangadx_limiter.get_status()
+        mangadex_limiter = manager.get_limiter("MangaDex")
+        status = mangadex_limiter.get_status()
         assert status["config"]["max_concurrent"] == 3
         assert status["current_min_time_ms"] == 800
 

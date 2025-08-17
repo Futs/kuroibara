@@ -45,26 +45,27 @@ def debug_config_loading():
     print()
 
 
-def debug_provider_factory():
-    """Debug the provider factory loading."""
-    print("=== Debugging Provider Factory ===")
+def debug_agent_system():
+    """Debug the agent system loading."""
+    print("=== Debugging Agent System ===")
 
-    from app.core.providers.factory import provider_factory
+    from app.core.providers.registry import provider_registry
 
-    print(f"Provider configs loaded: {len(provider_factory._provider_configs)}")
-    print(f"Provider config IDs: {list(provider_factory._provider_configs.keys())}")
+    providers = provider_registry.get_all_providers()
+    print(f"Providers loaded: {len(providers)}")
+    print(f"Provider names: {[p.name for p in providers]}")
 
     # Check specific NSFW providers
-    nsfw_providers = ["manga18fx", "mangadna"]
-    for provider_id in nsfw_providers:
-        if provider_id in provider_factory._provider_configs:
-            config = provider_factory._provider_configs[provider_id]
-            print(f"{provider_id} config:")
-            print(f"  - supports_nsfw: {config.get('supports_nsfw', 'NOT SET')}")
-            print(f"  - url: {config.get('url', 'NOT SET')}")
-            print(f"  - class_name: {config.get('class_name', 'NOT SET')}")
+    nsfw_providers = ["Manga18FX", "MangaDNA"]
+    for provider_name in nsfw_providers:
+        provider = provider_registry.get_provider(provider_name)
+        if provider:
+            print(f"{provider_name} provider:")
+            print(f"  - supports_nsfw: {provider.supports_nsfw}")
+            print(f"  - url: {provider.url}")
+            print(f"  - type: {type(provider).__name__}")
         else:
-            print(f"{provider_id}: NOT FOUND in factory configs")
+            print(f"{provider_name}: NOT FOUND in registry")
 
     print()
 
@@ -161,7 +162,7 @@ def main():
     try:
         debug_config_loading()
         check_config_file_contents()
-        debug_provider_factory()
+        debug_agent_system()
         debug_registry_loading()
 
         print("🎯 Debug session completed!")
@@ -169,7 +170,7 @@ def main():
         print("  • Check if providers_default.json is being loaded")
         print("  • Verify NSFW settings in loaded configs")
         print("  • Identify which config files are actually being used")
-        print("  • Confirm registry loading behavior")
+        print("  • Confirm agent system loading behavior")
 
     except Exception as e:
         print(f"❌ Debug failed: {e}")

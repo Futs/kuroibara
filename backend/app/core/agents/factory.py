@@ -15,6 +15,7 @@ from app.core.providers.enhanced_generic import EnhancedGenericProvider
 from app.core.providers.generic import GenericProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangapill import MangaPillProvider
+from app.core.providers.mangasail import MangaSailProvider
 
 from .base import BaseAgent
 from .provider_agent import ProviderAgent
@@ -40,6 +41,7 @@ class AgentFactory:
             {
                 "MangaDexProvider": MangaDexProvider,
                 "MangaPillProvider": MangaPillProvider,
+                "MangaSailProvider": MangaSailProvider,
                 "GenericProvider": GenericProvider,
                 "EnhancedGenericProvider": EnhancedGenericProvider,
             }
@@ -120,6 +122,9 @@ class AgentFactory:
             # Handle special provider cases
             if provider_id == "mangadex":
                 # MangaDexProvider takes no arguments
+                return provider_class()
+            elif provider_id == "mangasail":
+                # MangaSailProvider takes no arguments
                 return provider_class()
             else:
                 # Standard provider initialization

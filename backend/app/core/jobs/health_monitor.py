@@ -403,7 +403,7 @@ class EnhancedHealthMonitor:
             return False
 
         metrics = self._provider_metrics[provider_name]
-        old_status = metrics.status
+        # old_status = metrics.status  # Unused variable
 
         metrics.status = ProviderHealthStatus.DISABLED
         metrics.status_changed_at = datetime.utcnow()

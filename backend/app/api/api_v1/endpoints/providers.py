@@ -394,8 +394,15 @@ async def get_provider_manga(
             )
 
         # Use search parameter for provider search
-        # If no search term provided, use empty string to get popular/recent manga
-        results, total, has_more = await provider.search(search, page=page, limit=limit)
+        # If no search term provided, use get_available_manga to get popular/recent manga
+        if search.strip():
+            results, total, has_more = await provider.search(
+                search, page=page, limit=limit
+            )
+        else:
+            results, total, has_more = await provider.get_available_manga(
+                page=page, limit=limit
+            )
 
         # Filter by genre if specified
         if genre:

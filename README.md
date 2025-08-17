@@ -124,3 +124,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **Kuroibara** - Modern manga management for enthusiasts worldwide.
+
+  ## 🤖 Repo Statistics
+![Alt](https://repobeats.axiom.co/api/embed/f25e543ba7457e8ca5c622072e11becd5e6e2cd4.svg "Repobeats analytics image")

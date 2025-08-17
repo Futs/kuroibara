@@ -543,10 +543,14 @@ class RateLimiterManager:
         """Get summary of all rate limiters."""
         total_limiters = len(self.limiters)
         active_circuits = sum(
-            1 for limiter in self.limiters.values() if limiter.circuit_state == CircuitState.CLOSED
+            1
+            for limiter in self.limiters.values()
+            if limiter.circuit_state == CircuitState.CLOSED
         )
         open_circuits = sum(
-            1 for limiter in self.limiters.values() if limiter.circuit_state == CircuitState.OPEN
+            1
+            for limiter in self.limiters.values()
+            if limiter.circuit_state == CircuitState.OPEN
         )
         half_open_circuits = sum(
             1
@@ -554,7 +558,9 @@ class RateLimiterManager:
             if limiter.circuit_state == CircuitState.HALF_OPEN
         )
 
-        total_requests = sum(limiter.metrics.total_requests for limiter in self.limiters.values())
+        total_requests = sum(
+            limiter.metrics.total_requests for limiter in self.limiters.values()
+        )
         total_throttled = sum(
             limiter.metrics.throttled_requests for limiter in self.limiters.values()
         )

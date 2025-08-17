@@ -16,8 +16,13 @@ A modern manga management platform for discovering, organizing, and reading mang
 
 ## ✨ Features
 
+![Providers](https://img.shields.io/badge/Providers-11+-blue)
+![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-green)
+![Authentication](https://img.shields.io/badge/Auth-Role--based-orange)
+![Themes](https://img.shields.io/badge/Themes-Dark%2FLight-purple)
+
 - **Personal Library** - Organize your manga collection with automatic metadata
-- **Built-in Reader** - Read manga with bookmarks and progress tracking  
+- **Built-in Reader** - Read manga with bookmarks and progress tracking
 - **Multi-Provider Search** - Search across 11+ manga sources simultaneously
 - **Batch Downloads** - Download entire series with progress tracking and retry logic
 - **Modern Interface** - Clean, responsive design with dark/light themes

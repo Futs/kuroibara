@@ -237,9 +237,8 @@ async def add_to_library(
                 & (
                     # Exact title match (case insensitive)
                     (func.lower(Manga.title) == func.lower(manga.title))
-                    |
                     # Normalized title match (handles "Sex Stopwatch" vs "Sextopwatch")
-                    (
+                    | (
                         func.lower(
                             func.regexp_replace(Manga.title, "[^a-zA-Z0-9]", "", "g")
                         )
@@ -1119,7 +1118,6 @@ async def download_chapter_endpoint(
 
     try:
         # Import download function
-        
 
         # Create task ID
         chapter_id_for_task = chapter.id if chapter else "new"

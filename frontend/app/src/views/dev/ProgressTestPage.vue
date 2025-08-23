@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-dark-900 py-8">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="mb-8">
@@ -12,7 +12,7 @@
       </div>
 
       <!-- Controls -->
-      <div class="bg-white dark:bg-dark-800 rounded-lg shadow p-6 mb-8">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Test Controls
         </h2>
@@ -41,7 +41,7 @@
       </div>
 
       <!-- Download All Button Examples -->
-      <div class="bg-white dark:bg-dark-800 rounded-lg shadow p-6 mb-8">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">
           "Download All" Button Progress Indicators
         </h2>
@@ -52,7 +52,7 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example A: Inline Progress with Spinner
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-dark-600 rounded-lg">
+            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
               <button 
                 class="btn-primary w-full flex items-center justify-center"
                 :disabled="bulkDownloading"
@@ -91,7 +91,7 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example B: Progress Bar Below Button
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-dark-600 rounded-lg">
+            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
               <div class="space-y-2">
                 <button 
                   class="btn-primary w-full" 
@@ -121,7 +121,7 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example C: Overlay Progress Card
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-dark-600 rounded-lg relative">
+            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg relative">
               <button 
                 class="btn-primary w-full" 
                 :disabled="bulkDownloading"
@@ -133,7 +133,7 @@
               <!-- Overlay Progress Card -->
               <div 
                 v-if="bulkDownloading" 
-                class="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg shadow-lg p-3 z-10"
+                class="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3 z-10"
               >
                 <div class="flex items-center space-x-3">
                   <svg class="animate-spin h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24">
@@ -160,7 +160,7 @@
       </div>
 
       <!-- Individual Chapter Button Examples -->
-      <div class="bg-white dark:bg-dark-800 rounded-lg shadow p-6 mb-8">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">
           Individual Chapter "Download" Button Progress Indicators
         </h2>
@@ -171,7 +171,7 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example A: Button State Change
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-dark-600 rounded-lg">
+            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
               <div class="space-y-3">
                 <div v-for="(chapter, index) in testChapters" :key="index" class="flex items-center justify-between">
                   <span class="text-sm text-gray-900 dark:text-white">Chapter {{ chapter.number }}</span>
@@ -202,7 +202,7 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example B: Inline Progress Bar
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-dark-600 rounded-lg">
+            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
               <div class="space-y-3">
                 <div v-for="(chapter, index) in testChapters" :key="`b-${index}`" class="flex items-center justify-between">
                   <span class="text-sm text-gray-900 dark:text-white">Chapter {{ chapter.number }}</span>
@@ -234,7 +234,7 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example C: Status Indicator Replacement
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-dark-600 rounded-lg">
+            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
               <div class="space-y-3">
                 <div v-for="(chapter, index) in testChapters" :key="`c-${index}`" class="flex items-center justify-between">
                   <div class="flex items-center space-x-3">
@@ -248,7 +248,7 @@
                             background: `conic-gradient(rgb(2 132 199) ${chapter.progress * 3.6}deg, rgb(229 231 235) 0deg)`
                           }"
                         ></div>
-                        <div class="absolute inset-1 rounded-full bg-white dark:bg-dark-800"></div>
+                        <div class="absolute inset-1 rounded-full bg-white dark:bg-gray-800"></div>
                       </div>
                       <!-- Status Dots -->
                       <div v-else-if="chapter.status === 'downloaded'" class="w-4 h-4 rounded-full bg-green-500" title="Downloaded"></div>
@@ -278,7 +278,7 @@
       </div>
 
       <!-- Real-world Example -->
-      <div class="bg-white dark:bg-dark-800 rounded-lg shadow p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">
           Real-world Example: Manga Chapter List
         </h2>
@@ -307,7 +307,7 @@
               <!-- Progress overlay for bulk download -->
               <div
                 v-if="bulkDownloading"
-                class="absolute top-full right-0 mt-2 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg shadow-lg p-3 min-w-64 z-10"
+                class="absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3 min-w-64 z-10"
               >
                 <div class="flex items-center space-x-3">
                   <svg class="animate-spin h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24">
@@ -328,7 +328,7 @@
             </div>
           </div>
 
-          <div class="border border-gray-200 dark:border-dark-600 rounded-lg divide-y divide-gray-200 dark:divide-dark-600">
+          <div class="border border-gray-200 dark:border-gray-600 rounded-lg divide-y divide-gray-200 dark:divide-dark-600">
             <div
               v-for="(chapter, index) in testChapters"
               :key="`real-${index}`"
@@ -346,7 +346,7 @@
                           background: `conic-gradient(rgb(2 132 199) ${chapter.progress * 3.6}deg, transparent 0deg)`
                         }"
                       ></div>
-                      <div class="absolute inset-1 rounded-full bg-white dark:bg-dark-800"></div>
+                      <div class="absolute inset-1 rounded-full bg-white dark:bg-gray-800"></div>
                     </div>
                     <!-- Status indicators -->
                     <div v-else-if="chapter.status === 'downloaded'" class="w-5 h-5 rounded-full bg-green-500" title="Downloaded"></div>

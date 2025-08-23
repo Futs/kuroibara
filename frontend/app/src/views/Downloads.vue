@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-dark-900">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header -->
-    <div class="bg-white dark:bg-dark-800 shadow">
+    <div class="bg-white dark:bg-gray-800 shadow">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="py-6">
           <div class="flex items-center justify-between">
@@ -57,7 +57,7 @@
           <div
             v-for="download in activeDownloads"
             :key="download.id"
-            class="bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg p-6"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-6"
           >
             <!-- Download Header -->
             <div class="flex items-start justify-between mb-4">
@@ -138,11 +138,11 @@
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Download Queue ({{ queuedDownloads.length }})
         </h2>
-        <div class="bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg divide-y divide-gray-200 dark:divide-dark-600">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg divide-y divide-gray-200 dark:divide-gray-600">
           <div
             v-for="(download, index) in queuedDownloads"
             :key="download.id"
-            class="p-4 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
+            class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
@@ -193,11 +193,11 @@
             {{ clearingHistory ? 'Clearing...' : 'Clear History' }}
           </button>
         </div>
-        <div class="bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg divide-y divide-gray-200 dark:divide-dark-600">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg divide-y divide-gray-200 dark:divide-gray-600">
           <div
             v-for="download in downloadHistory.slice(0, 10)"
             :key="download.id"
-            class="p-4 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
+            class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
@@ -457,6 +457,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@reference "../style.css";
 .btn {
   @apply px-4 py-2 rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
 }

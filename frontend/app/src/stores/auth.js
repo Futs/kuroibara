@@ -5,8 +5,7 @@ import router from "../router";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
-    token:
-      localStorage.getItem("token") || sessionStorage.getItem("token") || null,
+    token: localStorage.getItem("token") || sessionStorage.getItem("token") || null,
     loading: false,
     error: null,
   }),
@@ -33,14 +32,10 @@ export const useAuthStore = defineStore("auth", {
         this.token = access_token;
         this.user = user;
 
-        // Store token based on remember me preference
-        if (rememberMe) {
-          localStorage.setItem("token", access_token);
-          sessionStorage.removeItem("token"); // Clear session storage
-        } else {
-          sessionStorage.setItem("token", access_token);
-          localStorage.removeItem("token"); // Clear local storage
-        }
+        // Always store token in localStorage for cross-tab compatibility
+        // The "Remember Me" option can control session duration instead
+        localStorage.setItem("token", access_token);
+        sessionStorage.removeItem("token"); // Clear session storage
 
         // Set the Authorization header for all future requests
         axios.defaults.headers.common["Authorization"] =
@@ -175,21 +170,32 @@ export const useAuthStore = defineStore("auth", {
       sessionStorage.removeItem("token");
       delete axios.defaults.headers.common["Authorization"];
 
+      // Clear auth service cache
+      try {
+        const { authService } = await import("../services/authService.js");
+        authService.invalidateCache();
+      } catch (error) {
+        console.error("Error clearing auth cache:", error);
+      }
+
       router.push("/login");
     },
 
     initAuth() {
-      console.log("Auth store: initAuth called");
-      console.log("Auth store: token exists:", !!this.token);
+      // Re-read token from storage in case it was set in another tab
+      const storedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+      // Update token if it's different from what's in storage
+      if (storedToken && storedToken !== this.token) {
+        this.token = storedToken;
+      } else if (!storedToken && this.token) {
+        this.token = null;
+        this.user = null;
+      }
 
       if (this.token) {
-        console.log(
-          "Auth store: Setting authorization header and fetching user",
-        );
         axios.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
         this.fetchUser();
-      } else {
-        console.log("Auth store: No token found, user not authenticated");
       }
     },
   },

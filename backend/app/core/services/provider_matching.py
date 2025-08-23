@@ -170,7 +170,7 @@ class ProviderMatchingService:
 
         for i, provider in enumerate(providers_to_search):
             logger.info(
-                f"Searching provider {i+1}/{len(providers_to_search)}: {provider.name}"
+                f"Searching provider {i + 1}/{len(providers_to_search)}: {provider.name}"
             )
 
             try:

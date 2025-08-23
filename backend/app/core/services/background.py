@@ -19,7 +19,7 @@ async def download_manga_task(
     user_id,
     provider_name: str,
     external_id: str,
-    task_id: str = None,
+    task_id: Optional[str] = None,
 ) -> None:
     """
     Background task to download a manga.
@@ -204,6 +204,7 @@ async def download_chapter_task(
                 db=db,
                 fallback_providers=fallback_providers,
                 auto_discover_alternatives=True,
+                task_id=task_id,
             )
 
             # Update task status
@@ -216,6 +217,19 @@ async def download_chapter_task(
         # Update task status
         download_tasks[task_id]["status"] = "failed"
         download_tasks[task_id]["error"] = str(e)
+
+        # Send download failed event
+        try:
+            from app.core.services.download import send_download_progress_update
+
+            await send_download_progress_update(
+                task_id=task_id,
+                event_type="download_failed",
+                progress=0,
+                error=str(e),
+            )
+        except Exception as ws_error:
+            logger.error(f"Error sending download failed event: {ws_error}")
 
     return task_id
 

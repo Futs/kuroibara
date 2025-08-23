@@ -42,7 +42,7 @@ async def refresh_manga_chapters(manga_id: str, token: str):
 
             if response.status_code == 200:
                 result = response.json()
-                logger.info(f"✅ Successfully refreshed chapters!")
+                logger.info("✅ Successfully refreshed chapters!")
                 logger.info(f"📊 Chapters added: {result.get('chapters_added', 0)}")
                 logger.info(f"📊 Total chapters: {result.get('total_chapters', 0)}")
                 return True

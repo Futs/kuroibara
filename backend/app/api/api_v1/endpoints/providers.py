@@ -762,3 +762,43 @@ async def proxy_image(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
+
+
+@router.get("/{provider_id}/rate-limit-status")
+async def get_provider_rate_limit_status(
+    provider_id: str, current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get rate limit status for a provider.
+    """
+    provider = provider_registry.get_provider(provider_id)
+    if not provider:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Provider '{provider_id}' not found",
+        )
+
+    try:
+        # Check if provider has rate limit status method
+        if hasattr(provider, "get_rate_limit_status"):
+            rate_limit_status = provider.get_rate_limit_status()
+            return {
+                "provider_id": provider_id,
+                "provider_name": provider.name,
+                **rate_limit_status,
+            }
+        else:
+            # Provider doesn't support rate limit status
+            return {
+                "provider_id": provider_id,
+                "provider_name": provider.name,
+                "is_rate_limited": False,
+                "reset_time": None,
+                "seconds_remaining": 0,
+            }
+    except Exception as e:
+        logger.error(f"Error getting rate limit status from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get rate limit status: {str(e)}",
+        )

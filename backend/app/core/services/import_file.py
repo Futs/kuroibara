@@ -659,9 +659,14 @@ async def _fetch_and_create_chapters(
         for chapter_data in all_chapters:
             try:
                 # Check if chapter already exists
+                # Convert number to string to match database schema
+                chapter_number = chapter_data.get("number", "0")
+                if isinstance(chapter_number, (int, float)):
+                    chapter_number = str(chapter_number)
+
                 existing_chapter = await check_chapter_exists(
                     manga_id=manga_id,
-                    chapter_number=chapter_data.get("number", "0"),
+                    chapter_number=chapter_number,
                     language=chapter_data.get("language", "en"),
                     db=db,
                 )
@@ -693,12 +698,15 @@ async def _fetch_and_create_chapters(
                     readable_at = datetime.utcnow()
 
                 # Create new chapter
+                # Convert number to string to match database schema
+                chapter_number = chapter_data.get("number", "0")
+                if isinstance(chapter_number, (int, float)):
+                    chapter_number = str(chapter_number)
+
                 chapter = Chapter(
                     manga_id=manga_id,
-                    title=chapter_data.get(
-                        "title", f"Chapter {chapter_data.get('number', '0')}"
-                    ),
-                    number=chapter_data.get("number", "0"),
+                    title=chapter_data.get("title", f"Chapter {chapter_number}"),
+                    number=chapter_number,
                     volume=chapter_data.get("volume"),
                     language=chapter_data.get("language", "en"),
                     pages_count=chapter_data.get("pages_count", 0),

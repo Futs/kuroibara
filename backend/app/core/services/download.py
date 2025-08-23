@@ -1,11 +1,13 @@
 import logging
 import os
+from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.providers.registry import provider_registry
+from app.core.services.provider_matching import provider_matching_service
 from app.core.utils import (
     create_cbz_from_directory,
     get_chapter_storage_path,
@@ -176,6 +178,183 @@ async def download_chapter(
     create_cbz_from_directory(chapter_path, cbz_path)
 
     return cbz_path
+
+
+async def download_chapter_with_fallback(
+    manga_id: UUID,
+    chapter_id: UUID,
+    primary_provider: str,
+    external_manga_id: str,
+    external_chapter_id: str,
+    db: AsyncSession,
+    fallback_providers: Optional[List[str]] = None,
+    auto_discover_alternatives: bool = True,
+) -> str:
+    """
+    Download a chapter with automatic fallback to alternative providers.
+
+    Args:
+        manga_id: The ID of the manga
+        chapter_id: The ID of the chapter
+        primary_provider: The primary provider to try first
+        external_manga_id: The external ID of the manga on primary provider
+        external_chapter_id: The external ID of the chapter on primary provider
+        db: The database session
+        fallback_providers: List of fallback providers to try
+        auto_discover_alternatives: Whether to auto-discover alternatives if fallback fails
+
+    Returns:
+        The path to the downloaded chapter
+
+    Raises:
+        Exception: If all providers fail to download the chapter
+    """
+    # Get manga and chapter info for fallback discovery
+    manga = await db.get(Manga, manga_id)
+    chapter = await db.get(Chapter, chapter_id)
+
+    if not manga or not chapter:
+        raise ValueError(f"Manga or chapter not found: {manga_id}, {chapter_id}")
+
+    # Try primary provider first
+    try:
+        logger.info(f"Attempting download from primary provider: {primary_provider}")
+        result = await download_chapter(
+            manga_id,
+            chapter_id,
+            primary_provider,
+            external_manga_id,
+            external_chapter_id,
+            db,
+        )
+
+        # Update chapter with successful provider info
+        chapter.source = primary_provider
+        if not chapter.provider_external_ids:
+            chapter.provider_external_ids = {}
+        chapter.provider_external_ids[primary_provider.lower()] = external_chapter_id
+        await db.commit()
+
+        logger.info(
+            f"Successfully downloaded chapter from primary provider: {primary_provider}"
+        )
+        return result
+
+    except Exception as e:
+        logger.warning(f"Primary provider {primary_provider} failed: {e}")
+
+        # Update chapter with error info
+        chapter.download_error = f"Primary provider failed: {str(e)}"
+        await db.commit()
+
+        # Try fallback providers
+        if fallback_providers:
+            for fallback_provider in fallback_providers:
+                try:
+                    logger.info(f"Trying fallback provider: {fallback_provider}")
+
+                    # Check if we have external IDs for this provider
+                    fallback_external_manga_id = external_manga_id
+                    fallback_external_chapter_id = external_chapter_id
+
+                    # If we have provider-specific external IDs, use them
+                    if (
+                        chapter.provider_external_ids
+                        and fallback_provider.lower() in chapter.provider_external_ids
+                    ):
+                        fallback_external_chapter_id = chapter.provider_external_ids[
+                            fallback_provider.lower()
+                        ]
+
+                    result = await download_chapter(
+                        manga_id,
+                        chapter_id,
+                        fallback_provider,
+                        fallback_external_manga_id,
+                        fallback_external_chapter_id,
+                        db,
+                    )
+
+                    # Update chapter with successful fallback provider info
+                    chapter.source = fallback_provider
+                    chapter.download_error = None
+                    if not chapter.provider_external_ids:
+                        chapter.provider_external_ids = {}
+                    chapter.provider_external_ids[fallback_provider.lower()] = (
+                        fallback_external_chapter_id
+                    )
+                    await db.commit()
+
+                    logger.info(
+                        f"Successfully downloaded chapter from fallback provider: {fallback_provider}"
+                    )
+                    return result
+
+                except Exception as fallback_error:
+                    logger.warning(
+                        f"Fallback provider {fallback_provider} failed: {fallback_error}"
+                    )
+                    continue
+
+        # Try auto-discovery of alternatives if enabled
+        if auto_discover_alternatives:
+            try:
+                logger.info("Attempting auto-discovery of alternative sources")
+                alternatives = (
+                    await provider_matching_service.find_chapter_alternatives(
+                        manga_title=manga.title,
+                        chapter_number=chapter.number,
+                        original_provider=primary_provider,
+                        exclude_providers=fallback_providers or [],
+                        max_alternatives=3,
+                    )
+                )
+
+                for alternative in alternatives:
+                    try:
+                        logger.info(
+                            f"Trying auto-discovered alternative: {alternative.provider_name} (confidence: {alternative.confidence:.2f})"
+                        )
+
+                        result = await download_chapter(
+                            manga_id,
+                            chapter_id,
+                            alternative.provider_name,
+                            alternative.external_manga_id,
+                            alternative.external_chapter_id,
+                            db,
+                        )
+
+                        # Update chapter with successful alternative provider info
+                        chapter.source = alternative.provider_name
+                        chapter.download_error = None
+                        if not chapter.provider_external_ids:
+                            chapter.provider_external_ids = {}
+                        chapter.provider_external_ids[
+                            alternative.provider_name.lower()
+                        ] = alternative.external_chapter_id
+                        await db.commit()
+
+                        logger.info(
+                            f"Successfully downloaded chapter from auto-discovered provider: {alternative.provider_name}"
+                        )
+                        return result
+
+                    except Exception as alt_error:
+                        logger.warning(
+                            f"Auto-discovered provider {alternative.provider_name} failed: {alt_error}"
+                        )
+                        continue
+
+            except Exception as discovery_error:
+                logger.warning(f"Auto-discovery failed: {discovery_error}")
+
+        # All providers failed
+        error_msg = f"All providers failed to download chapter {chapter_id}. Primary: {primary_provider}, Fallbacks: {fallback_providers}"
+        chapter.download_error = error_msg
+        await db.commit()
+
+        raise Exception(error_msg)
 
 
 async def download_manga(

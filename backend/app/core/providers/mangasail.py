@@ -332,18 +332,20 @@ class MangaSailProvider(BaseProvider):
             logger.error(f"Error getting manga details for {manga_id}: {e}")
             return {}
 
-    async def get_chapters(self, manga_id: str) -> List[Dict[str, Any]]:
-        """Get chapters for a manga."""
+    async def get_chapters(
+        self, manga_id: str, page: int = 1, limit: int = 100
+    ) -> Tuple[List[Dict[str, Any]], int, bool]:
+        """Get chapters for a manga with pagination support."""
         try:
             manga_url = self._manga_url_pattern.format(manga_id=manga_id)
             html = await self._make_request(manga_url)
 
             if not html:
-                return []
+                return [], 0, False
 
             soup = BeautifulSoup(html, "html.parser")
 
-            chapters = []
+            all_chapters = []
             # Look for chapter links
             chapter_links = soup.select("a[href*='/content/']")
 
@@ -353,24 +355,38 @@ class MangaSailProvider(BaseProvider):
                     chapter_id = href.split("/")[-1] or href.split("/")[-2]
                     title = link.get_text(strip=True) or f"Chapter {i + 1}"
 
-                    chapters.append(
+                    all_chapters.append(
                         {
                             "id": chapter_id,
                             "title": title,
+                            "number": float(i + 1),
+                            "volume": None,
+                            "language": "en",
+                            "pages_count": 0,
+                            "manga_id": manga_id,
+                            "publish_at": None,
+                            "readable_at": None,
+                            "source": self.name,
                             "url": (
                                 urljoin(self._base_url, href)
                                 if not href.startswith("http")
                                 else href
                             ),
-                            "number": i + 1,
                         }
                     )
 
-            return chapters
+            # Apply pagination
+            total = len(all_chapters)
+            start_idx = (page - 1) * limit
+            end_idx = start_idx + limit
+            paginated_chapters = all_chapters[start_idx:end_idx]
+            has_next = end_idx < total
+
+            return paginated_chapters, total, has_next
 
         except Exception as e:
             logger.error(f"Error getting chapters for {manga_id}: {e}")
-            return []
+            return [], 0, False
 
     async def download_cover(self, manga_id: str) -> bytes:
         """Download a manga cover."""
@@ -392,7 +408,7 @@ class MangaSailProvider(BaseProvider):
             logger.error(f"Error downloading cover for {manga_id}: {e}")
             return b""
 
-    async def get_pages(self, chapter_id: str) -> List[str]:
+    async def get_pages(self, manga_id: str, chapter_id: str) -> List[str]:
         """Get pages for a chapter."""
         try:
             chapter_url = self._chapter_url_pattern.format(chapter_id=chapter_id)

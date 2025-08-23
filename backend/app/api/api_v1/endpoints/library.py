@@ -223,7 +223,59 @@ async def add_to_library(
                 detail="Manga not found",
             )
 
-        # Check if manga is already in library
+        # Check if manga with same title is already in library (prevent duplicates from different providers)
+        # Normalize title for comparison (remove spaces, special chars, lowercase)
+        normalized_title = func.lower(
+            func.regexp_replace(manga.title, "[^a-zA-Z0-9]", "", "g")
+        )
+
+        result = await db.execute(
+            select(MangaUserLibrary, Manga)
+            .join(Manga)
+            .where(
+                (MangaUserLibrary.user_id == current_user.id)
+                & (
+                    # Exact title match (case insensitive)
+                    (func.lower(Manga.title) == func.lower(manga.title))
+                    |
+                    # Normalized title match (handles "Sex Stopwatch" vs "Sextopwatch")
+                    (
+                        func.lower(
+                            func.regexp_replace(Manga.title, "[^a-zA-Z0-9]", "", "g")
+                        )
+                        == normalized_title
+                    )
+                )
+            )
+        )
+        existing_library_item = result.first()
+        if existing_library_item:
+            existing_library_entry = existing_library_item[
+                0
+            ]  # Get the MangaUserLibrary object
+            existing_manga = existing_library_item[
+                1
+            ]  # Get the Manga object from the join
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "message": f"A manga with similar title '{existing_manga.title}' is already in your library from provider '{existing_manga.provider}'.",
+                    "suggestion": "Use the 'Find Alternatives' feature to add additional sources for this manga.",
+                    "existing_manga": {
+                        "library_id": str(existing_library_entry.id),
+                        "manga_id": str(existing_manga.id),
+                        "title": existing_manga.title,
+                        "provider": existing_manga.provider,
+                    },
+                    "attempted_manga": {
+                        "manga_id": str(manga.id),
+                        "title": manga.title,
+                        "provider": manga.provider,
+                    },
+                },
+            )
+
+        # Check if this specific manga is already in library
         result = await db.execute(
             select(MangaUserLibrary).where(
                 (MangaUserLibrary.user_id == current_user.id)
@@ -356,6 +408,42 @@ async def get_download_task(
         )
 
     return task
+
+
+@router.delete("/downloads", status_code=status.HTTP_200_OK)
+async def cancel_all_downloads(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Cancel all active download tasks for the current user.
+    """
+    from app.core.services.background import cancel_all_user_downloads
+
+    # Cancel all user downloads
+    cancelled_count = cancel_all_user_downloads(current_user.id)
+
+    return {
+        "message": f"Successfully cancelled {cancelled_count} download tasks",
+        "cancelled_count": cancelled_count,
+    }
+
+
+@router.delete("/downloads/history", status_code=status.HTTP_200_OK)
+async def clear_download_history(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Clear download history (completed/failed tasks) for the current user.
+    """
+    from app.core.services.background import clear_user_download_history
+
+    # Clear user download history
+    cleared_count = clear_user_download_history(current_user.id)
+
+    return {
+        "message": f"Successfully cleared {cleared_count} completed/failed download tasks",
+        "cleared_count": cleared_count,
+    }
 
 
 @router.delete("/downloads/{task_id}", status_code=status.HTTP_200_OK)
@@ -1031,7 +1119,7 @@ async def download_chapter_endpoint(
 
     try:
         # Import download function
-        from app.core.services.download import download_chapter
+        
 
         # Create task ID
         chapter_id_for_task = chapter.id if chapter else "new"

@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Type
 from app.core.providers.base import BaseProvider
 from app.core.providers.enhanced_generic import EnhancedGenericProvider
 from app.core.providers.generic import GenericProvider
+from app.core.providers.madaradex import MadaraDexProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangapill import MangaPillProvider
 from app.core.providers.mangasail import MangaSailProvider
@@ -39,6 +40,7 @@ class AgentFactory:
         """Register all available provider classes."""
         self._provider_classes.update(
             {
+                "MadaraDexProvider": MadaraDexProvider,
                 "MangaDexProvider": MangaDexProvider,
                 "MangaPillProvider": MangaPillProvider,
                 "MangaSailProvider": MangaSailProvider,

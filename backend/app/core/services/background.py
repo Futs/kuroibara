@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-from app.core.services.download import download_manga
+from app.core.services.download import download_chapter_with_fallback, download_manga
 from app.db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
@@ -140,19 +140,26 @@ async def download_chapter_task(
     try:
         # Create a new database session to get details
         async with AsyncSessionLocal() as db:
-            from app.models.chapter import Chapter
-            from app.models.manga import Manga
+            from app.models.manga import Chapter, Manga
+
+            logger.info(f"Looking up manga {manga_id} and chapter {chapter_id}")
 
             manga = await db.get(Manga, manga_id)
             if manga:
                 manga_title = manga.title
+                logger.info(f"Found manga: {manga_title}")
+            else:
+                logger.warning(f"Manga not found: {manga_id}")
 
             chapter = await db.get(Chapter, chapter_id)
             if chapter:
                 chapter_number = str(chapter.number)
                 chapter_title = chapter.title or ""
+                logger.info(f"Found chapter: {chapter_number} - {chapter_title}")
+            else:
+                logger.warning(f"Chapter not found: {chapter_id}")
     except Exception as e:
-        logger.warning(f"Could not get chapter details for task: {e}")
+        logger.error(f"Could not get chapter details for task: {e}", exc_info=True)
 
     # Update task status
     download_tasks[task_id] = {
@@ -178,16 +185,25 @@ async def download_chapter_task(
     try:
         # Create a new database session
         async with AsyncSessionLocal() as db:
-            # Download chapter
-            from app.core.services.download import download_chapter
+            # Get chapter to check for fallback providers
+            from app.models.manga import Chapter
 
-            await download_chapter(
+            chapter = await db.get(Chapter, chapter_id)
+            fallback_providers = None
+
+            if chapter and chapter.fallback_providers:
+                fallback_providers = chapter.fallback_providers
+
+            # Download chapter with fallback support
+            await download_chapter_with_fallback(
                 manga_id=manga_id,
                 chapter_id=chapter_id,
-                provider_name=provider_name,
+                primary_provider=provider_name,
                 external_manga_id=external_manga_id,
                 external_chapter_id=external_chapter_id,
                 db=db,
+                fallback_providers=fallback_providers,
+                auto_discover_alternatives=True,
             )
 
             # Update task status
@@ -235,22 +251,84 @@ def get_user_download_tasks(user_id) -> Dict[str, Dict[str, Any]]:
     return user_tasks
 
 
-def cancel_download_task(task_id: str) -> bool:
+def cancel_download_task(task_id: str, user_id: UUID = None) -> bool:
     """
     Cancel a download task.
 
     Args:
         task_id: The ID of the task
+        user_id: The ID of the user (for security check)
 
     Returns:
         True if the task was cancelled, False otherwise
     """
     if task_id in download_tasks:
+        task = download_tasks[task_id]
+
+        # Security check: ensure user owns the task
+        if user_id and task["user_id"] != str(user_id):
+            return False
+
         # Update task status
         download_tasks[task_id]["status"] = "cancelled"
         return True
 
     return False
+
+
+def cancel_all_user_downloads(user_id: UUID) -> int:
+    """
+    Cancel all download tasks for a specific user.
+
+    Args:
+        user_id: The ID of the user
+
+    Returns:
+        Number of tasks cancelled
+    """
+    cancelled_count = 0
+    user_id_str = str(user_id)
+
+    for task_id, task in download_tasks.items():
+        if task["user_id"] == user_id_str and task["status"] in [
+            "queued",
+            "downloading",
+            "starting",
+        ]:
+            download_tasks[task_id]["status"] = "cancelled"
+            cancelled_count += 1
+
+    return cancelled_count
+
+
+def clear_user_download_history(user_id: UUID) -> int:
+    """
+    Clear completed/failed download tasks for a specific user.
+
+    Args:
+        user_id: The ID of the user
+
+    Returns:
+        Number of tasks cleared
+    """
+    cleared_count = 0
+    user_id_str = str(user_id)
+    tasks_to_remove = []
+
+    for task_id, task in download_tasks.items():
+        if task["user_id"] == user_id_str and task["status"] in [
+            "completed",
+            "failed",
+            "cancelled",
+        ]:
+            tasks_to_remove.append(task_id)
+            cleared_count += 1
+
+    # Remove tasks from the dictionary
+    for task_id in tasks_to_remove:
+        del download_tasks[task_id]
+
+    return cleared_count
 
 
 def update_download_task_status(task_id: str, status: str) -> bool:

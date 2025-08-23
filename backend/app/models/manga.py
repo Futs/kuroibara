@@ -155,6 +155,12 @@ class Chapter(BaseModel):
     external_id = Column(
         String(255), nullable=True, index=True
     )  # External ID from the provider
+    provider_external_ids = Column(
+        JSONB, nullable=True
+    )  # External IDs from multiple providers {"mangadex": "abc123", "mangapill": "def456"}
+    fallback_providers = Column(
+        JSONB, nullable=True
+    )  # List of fallback providers to try ["mangapill", "mangasee", "mangakakalot"]
 
     # Relationships
     manga = relationship("Manga", back_populates="chapters")

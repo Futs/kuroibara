@@ -92,6 +92,34 @@ export const useDownloadsStore = defineStore("downloads", {
       }
     },
 
+    async cancelAllDownloads() {
+      try {
+        const response = await api.delete("/v1/library/downloads");
+
+        // Clear all active downloads from the store
+        this.activeDownloads.clear();
+
+        return response.data;
+      } catch (error) {
+        console.error("Error canceling all downloads:", error);
+        throw error;
+      }
+    },
+
+    async clearDownloadHistory() {
+      try {
+        const response = await api.delete("/v1/library/downloads/history");
+
+        // Clear download history from the store
+        this.downloadHistory = [];
+
+        return response.data;
+      } catch (error) {
+        console.error("Error clearing download history:", error);
+        throw error;
+      }
+    },
+
     // Bulk download management
     addBulkDownload(bulkDownloadData) {
       this.bulkDownloads.set(bulkDownloadData.id, {

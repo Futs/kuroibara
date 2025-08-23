@@ -24,13 +24,23 @@
                 </div>
               </div>
               <!-- Controls -->
-              <button
-                @click="pauseAllDownloads"
-                :disabled="activeDownloadsCount === 0"
-                class="btn btn-secondary text-sm"
-              >
-                {{ allPaused ? 'Resume All' : 'Pause All' }}
-              </button>
+              <div class="flex items-center space-x-2">
+                <button
+                  @click="pauseAllDownloads"
+                  :disabled="activeDownloadsCount === 0"
+                  class="btn btn-secondary text-sm"
+                >
+                  {{ allPaused ? 'Resume All' : 'Pause All' }}
+                </button>
+                <button
+                  v-if="activeDownloadsCount > 0 || queuedDownloadsCount > 0"
+                  @click="cancelAllDownloads"
+                  class="btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 text-sm"
+                  :disabled="cancellingAll"
+                >
+                  {{ cancellingAll ? 'Cancelling...' : 'Cancel All' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -176,10 +186,11 @@
             Recent Downloads ({{ downloadHistory.length }})
           </h2>
           <button
-            @click="clearHistory"
+            @click="clearAllHistory"
             class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            :disabled="clearingHistory"
           >
-            Clear History
+            {{ clearingHistory ? 'Clearing...' : 'Clear History' }}
           </button>
         </div>
         <div class="bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg divide-y divide-gray-200 dark:divide-dark-600">
@@ -259,15 +270,22 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useDownloadsStore } from '../stores/downloads';
 
 const downloadsStore = useDownloadsStore();
 
+// Reactive state
+const cancellingAll = ref(false);
+const clearingHistory = ref(false);
+
 // Computed properties
 const activeDownloads = computed(() => {
   return Array.from(downloadsStore.activeDownloads.values()).filter(
-    download => download.status === 'downloading' || download.status === 'paused'
+    download => download.status === 'downloading' ||
+                download.status === 'paused' ||
+                download.status === 'completed' ||
+                download.status === 'failed'
   );
 });
 
@@ -385,9 +403,33 @@ const removeFromQueue = async (downloadId) => {
   }
 };
 
-const clearHistory = () => {
-  if (confirm('Are you sure you want to clear the download history?')) {
-    downloadsStore.clearHistory();
+const cancelAllDownloads = async () => {
+  if (confirm('Are you sure you want to cancel all active downloads? This action cannot be undone.')) {
+    cancellingAll.value = true;
+    try {
+      const result = await downloadsStore.cancelAllDownloads();
+      alert(`Successfully cancelled ${result.cancelled_count} downloads`);
+    } catch (error) {
+      console.error('Error cancelling all downloads:', error);
+      alert('Failed to cancel all downloads: ' + error.message);
+    } finally {
+      cancellingAll.value = false;
+    }
+  }
+};
+
+const clearAllHistory = async () => {
+  if (confirm('Are you sure you want to clear all download history? This action cannot be undone.')) {
+    clearingHistory.value = true;
+    try {
+      const result = await downloadsStore.clearDownloadHistory();
+      alert(`Successfully cleared ${result.cleared_count} completed downloads`);
+    } catch (error) {
+      console.error('Error clearing download history:', error);
+      alert('Failed to clear download history: ' + error.message);
+    } finally {
+      clearingHistory.value = false;
+    }
   }
 };
 

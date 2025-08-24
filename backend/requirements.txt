@@ -30,6 +30,7 @@ httpx>=0.28.1
 requests>=2.32.4
 aiohttp>=3.12.15
 beautifulsoup4>=4.13.4
+lxml>=5.0.0
 
 # File Processing
 python-magic>=0.4.27

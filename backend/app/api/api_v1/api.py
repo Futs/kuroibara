@@ -6,6 +6,7 @@ from app.api.api_v1.endpoints import (
     backup,
     categories,
     chapters,
+    enhanced_search,
     favorites,
     import_files,
     integrations,
@@ -33,6 +34,7 @@ api_router.include_router(
     reading_lists.router, prefix="/reading-lists", tags=["Reading Lists"]
 )
 api_router.include_router(search.router, prefix="/search", tags=["Search"])
+api_router.include_router(enhanced_search.router, prefix="/search", tags=["Enhanced Search"])
 api_router.include_router(library.router, prefix="/library", tags=["Library"])
 api_router.include_router(import_files.router, prefix="/import", tags=["Import"])
 api_router.include_router(providers.router, prefix="/providers", tags=["Providers"])

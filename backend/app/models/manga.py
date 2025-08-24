@@ -88,6 +88,8 @@ class Manga(BaseModel):
     chapters = relationship(
         "Chapter", back_populates="manga", cascade="all, delete-orphan"
     )
+    universal_mapping = relationship("UniversalMangaMapping", back_populates="manga", uselist=False)
+    downloads = relationship("Download", back_populates="manga", cascade="all, delete-orphan")
     manga_metadata = relationship(
         "MangaMetadata",
         back_populates="manga",
@@ -165,6 +167,7 @@ class Chapter(BaseModel):
     # Relationships
     manga = relationship("Manga", back_populates="chapters")
     pages = relationship("Page", back_populates="chapter", cascade="all, delete-orphan")
+    downloads = relationship("Download", back_populates="chapter", cascade="all, delete-orphan")
     reading_progress = relationship(
         "ReadingProgress", back_populates="chapter", cascade="all, delete-orphan"
     )

@@ -1,18 +1,18 @@
 """Enhanced search endpoints with MangaUpdates integration."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
-from app.core.services.tiered_indexing import tiered_search_service
 from app.core.services.enhanced_search import enhanced_search_service
+from app.core.services.mangaupdates import mangaupdates_service
+from app.core.services.tiered_indexing import tiered_search_service
 from app.models.user import User
 from app.schemas.search import SearchResponse
-from app.schemas.manga import MangaCreate
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,13 @@ async def enhanced_search(
 
             # For indexer results, we need to use a special provider format
             # to indicate this should use the enhanced search add-to-library flow
-            provider_name = result.source_indexer.lower() if result.source_indexer else "unknown"
+            provider_name = (
+                result.source_indexer.lower() if result.source_indexer else "unknown"
+            )
             if provider_name == "mangaupdates":
-                provider_name = "enhanced_mangaupdates"  # Special identifier for frontend
+                provider_name = (
+                    "enhanced_mangaupdates"  # Special identifier for frontend
+                )
 
             search_result = {
                 "id": result.source_id,
@@ -68,11 +72,13 @@ async def enhanced_search(
                 "year": result.year,
                 "is_nsfw": result.is_nsfw,
                 "genres": result.genres or [],
-                "authors": [author.get("name", "") for author in (result.authors or [])],
+                "authors": [
+                    author.get("name", "") for author in (result.authors or [])
+                ],
                 "provider": provider_name,
                 "url": result.source_url or "",
                 "confidence_score": result.confidence_score,
-                "in_library": False  # TODO: Implement library checking
+                "in_library": False,  # TODO: Implement library checking
             }
             search_results.append(search_result)
 
@@ -87,7 +93,7 @@ async def enhanced_search(
             total=total_results,
             page=page,
             limit=limit,
-            has_next=end_idx < total_results
+            has_next=end_idx < total_results,
         )
 
     except Exception as e:
@@ -115,9 +121,11 @@ async def get_indexer_health(
             indexer_status[indexer_name] = {
                 "healthy": is_healthy,
                 "message": message,
-                "tier": "primary" if indexer_name == "MangaUpdates"
-                       else "secondary" if indexer_name == "MadaraDex"
-                       else "tertiary"
+                "tier": (
+                    "primary"
+                    if indexer_name == "MangaUpdates"
+                    else "secondary" if indexer_name == "MadaraDex" else "tertiary"
+                ),
             }
             if is_healthy:
                 healthy_count += 1
@@ -127,8 +135,10 @@ async def get_indexer_health(
             "summary": {
                 "total_indexers": len(health_results),
                 "healthy_indexers": healthy_count,
-                "overall_health": healthy_count / len(health_results) if health_results else 0
-            }
+                "overall_health": (
+                    healthy_count / len(health_results) if health_results else 0
+                ),
+            },
         }
 
     except Exception as e:
@@ -145,7 +155,7 @@ async def add_to_library_from_mangaupdates(
 ) -> Any:
     """
     Add manga to library from MangaUpdates entry.
-    
+
     Args:
         mu_entry_id: MangaUpdates entry ID
         selected_provider_match: Optional provider match for download source
@@ -155,13 +165,13 @@ async def add_to_library_from_mangaupdates(
             mu_entry_id=mu_entry_id,
             user_id=str(current_user.id),
             db=db,
-            selected_provider_match=selected_provider_match
+            selected_provider_match=selected_provider_match,
         )
-        
+
         return {
             "message": "Manga added to library successfully",
             "manga_id": str(manga.id),
-            "title": manga.title
+            "title": manga.title,
         }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -178,7 +188,7 @@ async def get_mangaupdates_details(
 ) -> Any:
     """
     Get detailed information about a MangaUpdates series.
-    
+
     This endpoint fetches comprehensive metadata from MangaUpdates
     and finds available provider matches.
     """
@@ -187,25 +197,31 @@ async def get_mangaupdates_details(
         mu_entry = await mangaupdates_service.search_and_create_entry(
             query=f"series_id:{series_id}",  # Special query format for direct ID lookup
             db=db,
-            auto_select_best=True
+            auto_select_best=True,
         )
-        
+
         if not mu_entry:
             raise HTTPException(status_code=404, detail="Series not found")
-        
+
         # Find provider matches
         from app.core.services.enhanced_search import ProviderMatcher
+
         matcher = ProviderMatcher()
-        provider_matches = await matcher.find_provider_matches(mu_entry, max_providers=10)
-        
+        provider_matches = await matcher.find_provider_matches(
+            mu_entry, max_providers=10
+        )
+
         # Check library status
         from app.core.services.enhanced_search import EnhancedSearchResult
+
         result = EnhancedSearchResult(mu_entry)
         result.provider_matches = provider_matches
-        result.in_library, result.library_manga = await enhanced_search_service._check_library_status(
-            mu_entry, str(current_user.id), db
+        result.in_library, result.library_manga = (
+            await enhanced_search_service._check_library_status(
+                mu_entry, str(current_user.id), db
+            )
         )
-        
+
         return {
             "mu_entry": {
                 "id": str(mu_entry.id),
@@ -230,9 +246,11 @@ async def get_mangaupdates_details(
             },
             "provider_matches": provider_matches,
             "in_library": result.in_library,
-            "library_manga_id": str(result.library_manga.id) if result.library_manga else None
+            "library_manga_id": (
+                str(result.library_manga.id) if result.library_manga else None
+            ),
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -242,25 +260,29 @@ async def get_mangaupdates_details(
 
 @router.post("/refresh-mangaupdates")
 async def refresh_mangaupdates_entries(
-    batch_size: int = Query(10, ge=1, le=50, description="Number of entries to refresh"),
+    batch_size: int = Query(
+        10, ge=1, le=50, description="Number of entries to refresh"
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
     Manually trigger refresh of stale MangaUpdates entries.
-    
+
     This endpoint refreshes entries that haven't been updated recently
     with fresh data from the MangaUpdates API.
     """
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Admin access required")
-    
+
     try:
-        refreshed_count = await mangaupdates_service.refresh_stale_entries(db, batch_size)
-        
+        refreshed_count = await mangaupdates_service.refresh_stale_entries(
+            db, batch_size
+        )
+
         return {
             "message": f"Refreshed {refreshed_count} MangaUpdates entries",
-            "refreshed_count": refreshed_count
+            "refreshed_count": refreshed_count,
         }
     except Exception as e:
         logger.error(f"Failed to refresh MangaUpdates entries: {e}")
@@ -270,41 +292,45 @@ async def refresh_mangaupdates_entries(
 @router.get("/provider-matches/{mu_entry_id}")
 async def get_provider_matches(
     mu_entry_id: UUID,
-    max_providers: int = Query(5, ge=1, le=20, description="Maximum providers to search"),
+    max_providers: int = Query(
+        5, ge=1, le=20, description="Maximum providers to search"
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
     Get provider matches for a specific MangaUpdates entry.
-    
+
     This endpoint searches configured providers for content matching
     the given MangaUpdates entry.
     """
     try:
         from sqlalchemy import select
+
         from app.models.mangaupdates import MangaUpdatesEntry
-        
+
         # Get MangaUpdates entry
         result = await db.execute(
             select(MangaUpdatesEntry).where(MangaUpdatesEntry.id == mu_entry_id)
         )
         mu_entry = result.scalars().first()
-        
+
         if not mu_entry:
             raise HTTPException(status_code=404, detail="MangaUpdates entry not found")
-        
+
         # Find provider matches
         from app.core.services.enhanced_search import ProviderMatcher
+
         matcher = ProviderMatcher()
         provider_matches = await matcher.find_provider_matches(mu_entry, max_providers)
-        
+
         return {
             "mu_entry_id": str(mu_entry_id),
             "title": mu_entry.title,
             "provider_matches": provider_matches,
-            "total_matches": len(provider_matches)
+            "total_matches": len(provider_matches),
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -323,50 +349,49 @@ async def create_manga_mapping(
 ) -> Any:
     """
     Create a mapping between existing manga and MangaUpdates entry.
-    
+
     This endpoint allows linking existing manga in the library
     with MangaUpdates entries for enhanced metadata.
     """
     try:
         from sqlalchemy import select
+
         from app.models.manga import Manga
         from app.models.mangaupdates import MangaUpdatesEntry
-        
+
         # Verify manga exists and user has access
-        manga_result = await db.execute(
-            select(Manga).where(Manga.id == manga_id)
-        )
+        manga_result = await db.execute(select(Manga).where(Manga.id == manga_id))
         manga = manga_result.scalars().first()
-        
+
         if not manga:
             raise HTTPException(status_code=404, detail="Manga not found")
-        
+
         # Verify MangaUpdates entry exists
         mu_result = await db.execute(
             select(MangaUpdatesEntry).where(MangaUpdatesEntry.id == mu_entry_id)
         )
         mu_entry = mu_result.scalars().first()
-        
+
         if not mu_entry:
             raise HTTPException(status_code=404, detail="MangaUpdates entry not found")
-        
+
         # Create mapping
         mapping = await mangaupdates_service.create_manga_mapping(
             manga=manga,
             mu_entry=mu_entry,
             db=db,
             confidence_score=confidence_score,
-            mapping_source=mapping_source
+            mapping_source=mapping_source,
         )
-        
+
         return {
             "message": "Mapping created successfully",
             "mapping_id": str(mapping.id),
             "manga_title": manga.title,
             "mu_title": mu_entry.title,
-            "confidence_score": confidence_score
+            "confidence_score": confidence_score,
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -383,7 +408,7 @@ async def get_search_suggestions(
 ) -> Any:
     """
     Get search suggestions based on partial query.
-    
+
     This endpoint provides autocomplete suggestions from MangaUpdates
     to help users find content more easily.
     """
@@ -396,25 +421,24 @@ async def get_search_suggestions(
             page=1,
             limit=limit,
             user_id=str(current_user.id),
-            include_provider_matches=False  # Skip provider matching for suggestions
+            include_provider_matches=False,  # Skip provider matching for suggestions
         )
-        
+
         # Extract just the titles for suggestions
         suggestions = []
         for result in search_results.results:
-            suggestions.append({
-                "title": result.title,
-                "mu_entry_id": result.id,
-                "year": result.year,
-                "type": result.type,
-                "cover_image": result.cover_image
-            })
-        
-        return {
-            "query": query,
-            "suggestions": suggestions
-        }
-        
+            suggestions.append(
+                {
+                    "title": result.title,
+                    "mu_entry_id": result.id,
+                    "year": result.year,
+                    "type": result.type,
+                    "cover_image": result.cover_image,
+                }
+            )
+
+        return {"query": query, "suggestions": suggestions}
+
     except Exception as e:
         logger.error(f"Failed to get search suggestions: {e}")
         raise HTTPException(status_code=500, detail="Failed to get suggestions")

@@ -238,11 +238,6 @@ export const useSearchStore = defineStore("search", {
       }
     },
 
-    setQuery(query) {
-      this.query = query;
-      this.pagination.page = 1; // Reset to first page when query changes
-    },
-
     setProvider(provider) {
       this.provider = provider;
       this.pagination.page = 1; // Reset to first page when provider changes
@@ -251,11 +246,6 @@ export const useSearchStore = defineStore("search", {
     setFilters(filters) {
       this.filters = { ...this.filters, ...filters };
       this.pagination.page = 1; // Reset to first page when filters change
-    },
-
-    setPage(page) {
-      this.pagination.page = page;
-      this.search();
     },
 
     resetSearch() {

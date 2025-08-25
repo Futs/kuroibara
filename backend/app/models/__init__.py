@@ -11,9 +11,9 @@ from app.models.library import (
 )
 from app.models.manga import Chapter, Manga
 from app.models.mangaupdates import (
+    CrossIndexerReference,
     UniversalMangaEntry,
     UniversalMangaMapping,
-    CrossIndexerReference,
 )
 from app.models.organization import (
     ChapterMetadata,

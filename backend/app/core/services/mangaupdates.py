@@ -66,18 +66,45 @@ class MangaUpdatesAPI:
         """Get detailed information about a series."""
         if not self.session:
             raise RuntimeError("MangaUpdatesAPI must be used as async context manager")
-            
+
         url = f"{self.BASE_URL}/series/{series_id}"
-        
+        logger.info(f"MangaUpdatesAPI.get_series_details called with series_id: {series_id}")
+        logger.info(f"Making HTTP GET request to: {url}")
+
         try:
             async with self.session.get(url) as response:
+                logger.info(f"HTTP response received - status: {response.status}")
+                logger.info(f"Response headers: {dict(response.headers)}")
+
                 if response.status == 200:
-                    return await response.json()
+                    logger.info(f"Success response, parsing JSON...")
+                    result = await response.json()
+                    logger.info(f"JSON parsed successfully - type: {type(result)}")
+
+                    if isinstance(result, dict):
+                        logger.info(f"Response is dict with keys: {list(result.keys())}")
+                        # Log first few characters of important fields
+                        if 'title' in result:
+                            logger.info(f"Title: {result.get('title', 'N/A')}")
+                        if 'error' in result:
+                            logger.error(f"API returned error in response: {result['error']}")
+                    else:
+                        logger.warning(f"Response is not a dict: {result}")
+
+                    return result
                 else:
-                    logger.error(f"Failed to get series {series_id}: {response.status}")
-                    return None
+                    response_text = await response.text()
+                    logger.error(f"HTTP error {response.status} for series {series_id}")
+                    logger.error(f"Response body: {response_text}")
+                    return response_text  # Return the error text so we can see what it is
+
+        except aiohttp.ClientError as e:
+            logger.error(f"HTTP client error getting series details: {e}")
+            return None
         except Exception as e:
-            logger.error(f"Error getting series details: {e}")
+            logger.error(f"Unexpected error getting series details: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return None
     
     async def get_series_chapters(self, series_id: int) -> List[Dict]:
@@ -147,39 +174,76 @@ class MangaUpdatesService:
                 return await self._create_entry_from_api(series_id, api, db)
     
     async def _create_entry_from_api(
-        self, 
-        series_id: int, 
-        api: MangaUpdatesAPI, 
+        self,
+        series_id: int,
+        api: MangaUpdatesAPI,
         db: AsyncSession
     ) -> Optional[MangaUpdatesEntry]:
         """Create a new MangaUpdates entry from API data."""
-        details = await api.get_series_details(series_id)
-        if not details:
-            return None
-        
-        # Extract data from API response
-        entry_data = self._extract_entry_data(details)
-        entry_data["mu_series_id"] = series_id
-        entry_data["last_refreshed"] = datetime.utcnow()
-        entry_data["raw_data"] = details
-        
-        # Create entry
-        entry = MangaUpdatesEntry(**entry_data)
-        db.add(entry)
-        await db.commit()
-        await db.refresh(entry)
-        
-        logger.info(f"Created MangaUpdates entry for series {series_id}: {entry.title}")
-        return entry
+        try:
+            logger.info(f"_create_entry_from_api called with series_id: {series_id}")
+            logger.info(f"API object type: {type(api)}")
+
+            logger.info(f"Making API call to get_series_details({series_id})")
+            details = await api.get_series_details(series_id)
+            logger.info(f"API response received - type: {type(details)}")
+
+            if isinstance(details, dict):
+                logger.info(f"API response is dict with keys: {list(details.keys())}")
+                if 'error' in details:
+                    logger.error(f"API returned error response: {details}")
+                    return None
+            elif isinstance(details, str):
+                logger.error(f"API returned string response (likely error): {details}")
+                return None
+            else:
+                logger.info(f"API response content (first 500 chars): {str(details)[:500]}")
+
+            if not details:
+                logger.warning(f"No details returned for series ID: {series_id}")
+                return None
+
+            if not isinstance(details, dict):
+                logger.error(f"Expected dict but got {type(details)}: {details}")
+                return None
+
+            # Extract data from API response
+            logger.info(f"Calling _extract_entry_data with details")
+            entry_data = self._extract_entry_data(details)
+            logger.info(f"_extract_entry_data returned successfully")
+
+            entry_data["mu_series_id"] = str(series_id)  # Convert to string for VARCHAR
+            entry_data["last_refreshed"] = datetime.utcnow()
+            entry_data["raw_data"] = details
+
+            # Create entry
+            logger.info(f"Creating MangaUpdatesEntry object")
+            entry = MangaUpdatesEntry(**entry_data)
+            logger.info(f"Adding entry to database session")
+            db.add(entry)
+            logger.info(f"Committing to database")
+            await db.commit()
+            await db.refresh(entry)
+
+            logger.info(f"Successfully created MangaUpdates entry for series {series_id}: {entry.title}")
+            return entry
+
+        except Exception as e:
+            logger.error(f"Error in _create_entry_from_api: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            raise
     
     async def _update_entry_from_api(
-        self, 
-        entry: MangaUpdatesEntry, 
-        api: MangaUpdatesAPI, 
+        self,
+        entry: MangaUpdatesEntry,
+        api: MangaUpdatesAPI,
         db: AsyncSession
     ) -> None:
         """Update existing entry with fresh API data."""
-        details = await api.get_series_details(entry.mu_series_id)
+        # Convert string series ID back to integer for API call
+        series_id = int(entry.mu_series_id)
+        details = await api.get_series_details(series_id)
         if not details:
             return
         
@@ -196,28 +260,40 @@ class MangaUpdatesService:
     
     def _extract_entry_data(self, api_data: Dict) -> Dict:
         """Extract relevant data from MangaUpdates API response."""
+        logger.info(f"_extract_entry_data called with type: {type(api_data)}, data: {api_data}")
+
+        if not isinstance(api_data, dict):
+            logger.error(f"Expected dict but got {type(api_data)}: {api_data}")
+            raise ValueError(f"API returned error or invalid response: {api_data}")
+
+        # Safely extract nested values with proper fallbacks
+        type_info = api_data.get("type", {})
+        type_value = type_info.get("type") if isinstance(type_info, dict) else None
+
+        status_info = api_data.get("status", {})
+        status_value = status_info.get("status") if isinstance(status_info, dict) else None
+
         return {
+            "mu_series_id": str(api_data.get("series_id", "")),
             "mu_url": api_data.get("url"),
             "title": api_data.get("title", ""),
             "alternative_titles": self._extract_alternative_titles(api_data),
             "description": api_data.get("description", ""),
             "cover_image_url": self._extract_cover_url(api_data),
-            "type": api_data.get("type", {}).get("type"),
-            "status": api_data.get("status", {}).get("status"),
+            "type": type_value,
+            "status": status_value,
             "year": self._extract_year(api_data),
             "completed_year": self._extract_completed_year(api_data),
             "is_nsfw": self._is_nsfw(api_data),
             "content_rating": self._extract_content_rating(api_data),
             "genres": self._extract_genres(api_data),
-            "categories": self._extract_categories(api_data),
             "authors": self._extract_authors(api_data),
-            "artists": self._extract_artists(api_data),
             "publishers": self._extract_publishers(api_data),
             "rating": api_data.get("rating", {}).get("average"),
             "rating_count": api_data.get("rating", {}).get("votes"),
-            "popularity_rank": api_data.get("rank", {}).get("position"),
             "latest_chapter": self._extract_latest_chapter(api_data),
             "total_chapters": self._extract_total_chapters(api_data),
+            "raw_data": api_data,
         }
     
     def _extract_alternative_titles(self, data: Dict) -> Dict:

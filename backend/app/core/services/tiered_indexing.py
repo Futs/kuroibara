@@ -85,7 +85,7 @@ class BaseIndexer(ABC):
     async def __aenter__(self):
         """Async context manager entry."""
         self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30),
+            timeout=aiohttp.ClientTimeout(total=8),  # 8 seconds per indexer
             headers=self._get_headers()
         )
         return self

@@ -41,7 +41,7 @@ class EnhancedSearchResult:
             is_nsfw=self.mu_entry.is_nsfw,
             genres=self.mu_entry.genres or [],
             authors=[author.get("name", "") for author in (self.mu_entry.authors or [])],
-            provider="mangaupdates",
+            provider="enhanced_mangaupdates",
             url=self.mu_entry.mu_url or "",
             in_library=self.in_library,
             extra={
@@ -300,14 +300,66 @@ class EnhancedSearchService:
         selected_provider_match: Optional[Dict] = None
     ) -> Manga:
         """Add manga to library from MangaUpdates entry."""
-        # Get MangaUpdates entry
-        result = await db.execute(
-            select(MangaUpdatesEntry).where(MangaUpdatesEntry.id == mu_entry_id)
-        )
-        mu_entry = result.scalars().first()
-        
+        # Try to parse as UUID first, then as series ID
+        logger.info(f"Starting add_from_mangaupdates with mu_entry_id: {mu_entry_id}")
+
+        try:
+            # Try UUID lookup first
+            logger.info(f"Trying UUID lookup for: {mu_entry_id}")
+            result = await db.execute(
+                select(MangaUpdatesEntry).where(MangaUpdatesEntry.id == mu_entry_id)
+            )
+            mu_entry = result.scalars().first()
+            logger.info(f"UUID lookup result: {mu_entry}")
+        except Exception as e:
+            logger.info(f"UUID lookup failed: {e}")
+            mu_entry = None
+
         if not mu_entry:
-            raise ValueError("MangaUpdates entry not found")
+            # Try series ID lookup (now as string)
+            logger.info(f"Trying series ID lookup for: {mu_entry_id}")
+            result = await db.execute(
+                select(MangaUpdatesEntry).where(MangaUpdatesEntry.mu_series_id == mu_entry_id)
+            )
+            mu_entry = result.scalars().first()
+            logger.info(f"Series ID lookup result: {mu_entry}")
+
+            if not mu_entry:
+                # Create new entry from MangaUpdates API using direct series ID
+                logger.info(f"No existing entry found, creating new one")
+                from app.core.services.mangaupdates import mangaupdates_service
+                try:
+                    logger.info(f"Converting mu_entry_id '{mu_entry_id}' to int")
+                    series_id = int(mu_entry_id)
+                    logger.info(f"Successfully converted to series_id: {series_id}")
+
+                    logger.info(f"Opening mangaupdates_service.api context manager")
+                    async with mangaupdates_service.api as api:
+                        logger.info(f"Context manager opened, API object: {type(api)}")
+                        logger.info(f"Calling mangaupdates_service._create_entry_from_api({series_id}, api, db)")
+                        mu_entry = await mangaupdates_service._create_entry_from_api(series_id, api, db)
+                        logger.info(f"_create_entry_from_api returned: {type(mu_entry)} - {mu_entry}")
+
+                    logger.info(f"Context manager closed, final result: {mu_entry}")
+
+                except ValueError as e:
+                    logger.error(f"ValueError converting mu_entry_id '{mu_entry_id}' to int: {e}")
+                    # If mu_entry_id is not a valid integer, try searching
+                    logger.info(f"Falling back to search_and_create_entry with query: {mu_entry_id}")
+                    mu_entry = await mangaupdates_service.search_and_create_entry(
+                        query=mu_entry_id,
+                        db=db,
+                        auto_select_best=True
+                    )
+                    logger.info(f"search_and_create_entry returned: {mu_entry}")
+                except Exception as e:
+                    logger.error(f"Error creating MangaUpdates entry: {e}")
+                    import traceback
+                    logger.error(f"Full traceback: {traceback.format_exc()}")
+                    raise
+
+            if not mu_entry:
+                raise ValueError(f"Could not find or create MangaUpdates entry for ID: {mu_entry_id}")
         
         # Check if already mapped to a manga
         mapping_result = await db.execute(

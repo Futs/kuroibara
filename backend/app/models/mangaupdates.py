@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import sqlalchemy as sa
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text, ForeignKey
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, Integer, String, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -234,9 +234,76 @@ class Indexer(BaseModel):
     last_request_reset = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
+class MangaUpdatesEntry(BaseModel):
+    """MangaUpdates specific entry model."""
+
+    __tablename__ = "mangaupdates_entries"
+
+    # MangaUpdates specific fields
+    mu_series_id = Column(String(100), nullable=False, unique=True, index=True)
+    mu_url = Column(String(500), nullable=True)
+
+    # Core metadata
+    title = Column(String(500), nullable=False, index=True)
+    alternative_titles = Column(JSONB, nullable=True)
+    description = Column(Text, nullable=True)
+    cover_image_url = Column(String(500), nullable=True)
+
+    # Series information
+    type = Column(String(50), nullable=True)
+    status = Column(String(50), nullable=True)
+    year = Column(Integer, nullable=True)
+    completed_year = Column(Integer, nullable=True)
+
+    # Content ratings
+    is_nsfw = Column(Boolean, default=False, nullable=False)
+    content_rating = Column(String(20), nullable=True)
+
+    # Enhanced metadata
+    genres = Column(JSONB, nullable=True)
+    authors = Column(JSONB, nullable=True)
+    publishers = Column(JSONB, nullable=True)
+
+    # Statistics
+    rating = Column(Float, nullable=True)
+    rating_count = Column(Integer, nullable=True)
+
+    # Chapter information
+    latest_chapter = Column(String(20), nullable=True)
+    total_chapters = Column(Integer, nullable=True)
+
+    # Refresh tracking
+    last_refreshed = Column(DateTime(timezone=True), nullable=True)
+    auto_refresh_enabled = Column(Boolean, default=True, nullable=False)
+
+    # Raw data
+    raw_data = Column(JSONB, nullable=True)
+
+    # Relationships
+    manga_mappings = relationship("MangaUpdatesMapping", back_populates="mu_entry", cascade="all, delete-orphan")
+
+
+class MangaUpdatesMapping(BaseModel):
+    """Maps local manga entries to MangaUpdates entries."""
+
+    __tablename__ = "mangaupdates_mappings"
+
+    manga_id = Column(UUID(as_uuid=True), ForeignKey("manga.id"), nullable=False)
+    mu_entry_id = Column(UUID(as_uuid=True), ForeignKey("mangaupdates_entries.id"), nullable=False)
+
+    # Mapping confidence and source
+    confidence_score = Column(Float, nullable=True)
+    mapping_source = Column(String(50), nullable=False)
+    verified_by_user = Column(Boolean, default=False, nullable=False)
+
+    # Relationships
+    manga = relationship("Manga", back_populates="mangaupdates_mapping")
+    mu_entry = relationship("MangaUpdatesEntry", back_populates="manga_mappings")
+
+
 class Download(BaseModel):
     """Download tracking for all download types."""
-    
+
     __tablename__ = "downloads"
     
     # What's being downloaded

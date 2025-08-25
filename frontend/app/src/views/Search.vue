@@ -155,6 +155,25 @@
                 </select>
               </div>
 
+              <!-- NSFW Filter -->
+              <div class="mt-4 sm:mt-0 sm:w-1/4">
+                <label
+                  for="nsfw"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Content
+                </label>
+                <select
+                  id="nsfw"
+                  v-model="filters.nsfw"
+                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-dark-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-dark-700 dark:text-white sm:text-sm rounded-md"
+                >
+                  <option :value="null">All Content</option>
+                  <option :value="false">Safe Only</option>
+                  <option :value="true">NSFW Only</option>
+                </select>
+              </div>
+
               <div class="mt-4 sm:mt-0 sm:w-1/3 flex items-end">
                 <button
                   type="submit"
@@ -203,6 +222,9 @@
             </div>
           </form>
         </div>
+
+        <!-- Search Status Bar -->
+        <SearchStatusBar v-if="hasSearched || searchStore.loading" />
 
         <!-- Loading State -->
         <div v-if="loading" class="mt-8 flex justify-center">
@@ -293,20 +315,12 @@
 
         <!-- Results -->
         <div v-else-if="results.length > 0" class="mt-8">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-            Search Results
-          </h2>
-
-          <div
-            class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-          >
-            <SearchResultCard
-              v-for="result in results"
-              :key="result.id"
-              :manga="result"
-              @add-to-library="addToLibrary"
-            />
-          </div>
+          <SearchResultsGrid
+            :results="results"
+            :blur-nsfw="!showNsfwContent"
+            @view-details="viewMangaDetails"
+            @add-to-library="addToLibrary"
+          />
 
           <!-- Pagination -->
           <div v-if="totalPages > 1" class="mt-6 flex justify-center">
@@ -374,6 +388,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Manga Details Modal -->
+    <MangaDetailsModal
+      :manga="selectedManga"
+      :is-open="showDetailsModal"
+      :blur-nsfw="!showNsfwContent"
+      @close="closeDetailsModal"
+      @add-to-library="addToLibrary"
+    />
   </div>
 </template>
 
@@ -383,7 +406,10 @@ import { useSearchStore } from "../stores/search";
 import { useLibraryStore } from "../stores/library";
 import { useProviderPreferencesStore } from "../stores/providerPreferences";
 import { useAuthStore } from "../stores/auth";
-import SearchResultCard from "../components/SearchResultCard.vue";
+import EnhancedSearchResultCard from "../components/EnhancedSearchResultCard.vue";
+import SearchStatusBar from "../components/SearchStatusBar.vue";
+import SearchResultsGrid from "../components/SearchResultsGrid.vue";
+import MangaDetailsModal from "../components/MangaDetailsModal.vue";
 import api from "../services/api";
 
 const searchStore = useSearchStore();
@@ -397,12 +423,18 @@ const providers = ref([]);
 const genres = ref([]);
 const hasSearched = ref(false);
 const providersLoading = ref(false);
+const showNsfwContent = ref(false);
+const selectedManga = ref(null);
+const showDetailsModal = ref(false);
 
 // Get data from store
 const results = computed(() => searchStore.getResults);
 const loading = computed(() => searchStore.loading);
 const error = computed(() => searchStore.error);
-const filters = computed(() => searchStore.getFilters);
+const filters = computed({
+  get: () => searchStore.getFilters,
+  set: (value) => searchStore.updateFilters(value)
+});
 const pagination = computed(() => searchStore.getPagination);
 
 // Computed values for pagination
@@ -529,6 +561,7 @@ const search = async () => {
   if (!searchQuery.value) return;
 
   hasSearched.value = true;
+  searchStore.query = searchQuery.value;
   await searchStore.search();
 };
 
@@ -549,40 +582,64 @@ const goToPage = (page) => {
   searchStore.setPage(page);
 };
 
-// Add manga to library
-const addToLibrary = async (mangaId) => {
-  try {
-    // Find the manga object from search results
-    const manga = results.value.find((m) => m.id === mangaId);
-    if (!manga) {
-      console.error("Manga not found in search results");
-      return;
-    }
+// Enhanced search methods
+const viewMangaDetails = (manga) => {
+  selectedManga.value = manga;
+  showDetailsModal.value = true;
+};
 
-    let actualMangaId = mangaId;
+const closeDetailsModal = () => {
+  showDetailsModal.value = false;
+  selectedManga.value = null;
+};
+
+// Add manga to library
+const addToLibrary = async (manga) => {
+  try {
+    let actualMangaId = manga.id;
 
     // If this is an external manga (has provider field), create a local record first
     if (manga.provider) {
-      const response = await api.post(
-        "/v1/manga/from-external",
-        {},
-        {
+      let response;
+
+      // Handle MangaUpdates entries differently
+      if (manga.provider === "enhanced_mangaupdates") {
+        response = await api.post("/v1/search/enhanced/add-from-mangaupdates", null, {
           params: {
-            provider: manga.provider,
-            external_id: mangaId,
+            mu_entry_id: manga.id,
+            selected_provider_match: null // Let the system auto-select
+          }
+        });
+        actualMangaId = response.data.manga_id || response.data.id;
+
+        // MangaUpdates endpoint already adds to library, so skip the second call
+        manga.in_library = true;
+        return;
+      } else {
+        // Regular provider manga
+        response = await api.post(
+          "/v1/manga/from-external",
+          {},
+          {
+            params: {
+              provider: manga.provider,
+              external_id: manga.id,
+            },
           },
-        },
-      );
-      actualMangaId = response.data.id;
+        );
+        actualMangaId = response.data.manga_id || response.data.id;
+      }
     }
 
     await libraryStore.addToLibrary(actualMangaId);
+
+    // Update the manga object to reflect it's now in library
+    manga.in_library = true;
+
   } catch (error) {
     console.error("Failed to add manga to library:", error);
-    alert(
-      "Failed to add manga to library: " +
-        (error.response?.data?.detail || error.message),
-    );
+    const errorMessage = error.response?.data?.detail || error.message || JSON.stringify(error);
+    alert("Failed to add manga to library: " + errorMessage);
   }
 };
 
@@ -595,6 +652,9 @@ onMounted(() => {
     providerPreferencesStore.fetchProviderPreferences();
   }
 
+  // Initialize NSFW preference from user settings
+  showNsfwContent.value = authStore.user?.preferences?.show_nsfw || false;
+
   // Initialize from URL query params if present
   const urlParams = new URLSearchParams(window.location.search);
   const q = urlParams.get("q");
@@ -602,16 +662,29 @@ onMounted(() => {
 
   if (q) {
     searchQuery.value = q;
-    searchStore.setQuery(q);
+    searchStore.query = q;
 
     if (p) {
       provider.value = p;
-      searchStore.setProvider(p);
     }
 
     search();
   }
+
+  // Check indexer health on mount
+  searchStore.checkIndexerHealth();
 });
+
+// Watch for filter changes and trigger search
+watch(
+  () => filters.value,
+  (newFilters, oldFilters) => {
+    if (hasSearched.value && searchQuery.value) {
+      search();
+    }
+  },
+  { deep: true }
+);
 
 // Watch for authentication changes and fetch provider preferences when user logs in
 watch(
@@ -619,6 +692,8 @@ watch(
   (isAuthenticated) => {
     if (isAuthenticated) {
       providerPreferencesStore.fetchProviderPreferences();
+      // Update NSFW preference when user logs in
+      showNsfwContent.value = authStore.user?.preferences?.show_nsfw || false;
     }
   },
 );

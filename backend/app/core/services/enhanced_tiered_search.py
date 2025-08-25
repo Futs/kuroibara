@@ -508,8 +508,24 @@ class EnhancedTieredSearchService:
             # This would integrate with the existing provider matching system
             pass
         
+        # For MangaUpdates entries, we need to use the UUID from the database
+        if entry.source_indexer == "mangaupdates":
+            # Look up the UUID for this MangaUpdates entry in universal_manga_entries
+            from app.models.mangaupdates import UniversalMangaEntry
+            stmt = select(UniversalMangaEntry.id).where(
+                and_(
+                    UniversalMangaEntry.source_indexer == "mangaupdates",
+                    UniversalMangaEntry.source_id == entry.source_id
+                )
+            )
+            result = await db.execute(stmt)
+            uuid_result = result.scalar_one_or_none()
+            entry_id = str(uuid_result) if uuid_result else entry.source_id
+        else:
+            entry_id = entry.source_id
+
         return SearchResult(
-            id=str(entry.id),
+            id=entry_id,
             title=entry.title,
             alternative_titles=entry.alternative_titles or {},
             description=entry.description,
@@ -520,7 +536,7 @@ class EnhancedTieredSearchService:
             is_nsfw=entry.is_nsfw,
             genres=entry.genres or [],
             authors=[author.get("name", "") for author in (entry.authors or [])],
-            provider=entry.source_indexer,
+            provider="enhanced_mangaupdates" if entry.source_indexer == "mangaupdates" else entry.source_indexer,
             url=entry.source_url or "",
             in_library=in_library,
             extra={

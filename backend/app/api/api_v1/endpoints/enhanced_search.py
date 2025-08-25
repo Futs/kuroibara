@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
 from app.core.services.tiered_indexing import tiered_search_service
+from app.core.services.enhanced_search import enhanced_search_service
 from app.models.user import User
 from app.schemas.search import SearchResponse
 from app.schemas.manga import MangaCreate
@@ -39,19 +40,36 @@ async def enhanced_search(
         # Convert results to the expected format
         search_results = []
         for result in results:
+            # Normalize type field to match enum values
+            manga_type = "unknown"
+            if result.type:
+                type_lower = result.type.lower()
+                if type_lower in ["manga", "manhua", "manhwa", "comic"]:
+                    manga_type = type_lower
+                elif type_lower == "novel":
+                    manga_type = "comic"  # Map novel to comic for now
+                else:
+                    manga_type = "unknown"
+
+            # For indexer results, we need to use a special provider format
+            # to indicate this should use the enhanced search add-to-library flow
+            provider_name = result.source_indexer.lower() if result.source_indexer else "unknown"
+            if provider_name == "mangaupdates":
+                provider_name = "enhanced_mangaupdates"  # Special identifier for frontend
+
             search_result = {
                 "id": result.source_id,
                 "title": result.title,
                 "alternative_titles": result.alternative_titles or {},
                 "description": result.description,
                 "cover_image": result.cover_image_url,
-                "type": result.type or "unknown",
+                "type": manga_type,
                 "status": result.status or "unknown",
                 "year": result.year,
                 "is_nsfw": result.is_nsfw,
                 "genres": result.genres or [],
                 "authors": [author.get("name", "") for author in (result.authors or [])],
-                "provider": result.source_indexer,
+                "provider": provider_name,
                 "url": result.source_url or "",
                 "confidence_score": result.confidence_score,
                 "in_library": False  # TODO: Implement library checking
@@ -73,8 +91,8 @@ async def enhanced_search(
         )
 
     except Exception as e:
-        logger.error(f"Enhanced search failed: {e}")
-        raise HTTPException(status_code=500, detail="Search failed")
+        logger.error(f"Enhanced search failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 
 @router.get("/indexers/health")
@@ -118,7 +136,7 @@ async def get_indexer_health(
         raise HTTPException(status_code=500, detail="Health check failed")
 
 
-@router.post("/add-from-mangaupdates")
+@router.post("/enhanced/add-from-mangaupdates")
 async def add_to_library_from_mangaupdates(
     mu_entry_id: str,
     selected_provider_match: Optional[Dict] = None,

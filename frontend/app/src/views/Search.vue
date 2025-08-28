@@ -603,7 +603,7 @@ const addToLibrary = async (manga) => {
       let response;
 
       // Handle MangaUpdates entries differently
-      if (manga.provider === "enhanced_mangaupdates") {
+      if (manga.provider === "enhanced_mangaupdates" || manga.provider === "mangaupdates") {
         response = await api.post("/v1/search/enhanced/add-from-mangaupdates", null, {
           params: {
             mu_entry_id: manga.id,

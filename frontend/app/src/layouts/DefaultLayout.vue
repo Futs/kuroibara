@@ -331,6 +331,7 @@ const navItems = computed(() => {
     items.push(
       { name: "Library", to: "/library" },
       { name: "Downloads", to: "/downloads" },
+      { name: "Monitoring", to: "/monitoring" },
       { name: "Categories", to: "/categories" },
       { name: "Reading Lists", to: "/reading-lists" },
       { name: "Providers", to: "/providers" },

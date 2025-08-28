@@ -17,6 +17,7 @@ import ReadingLists from "../views/ReadingLists.vue";
 import Providers from "../views/Providers.vue";
 import Settings from "../views/Settings.vue";
 import Downloads from "../views/Downloads.vue";
+import Monitoring from "../views/Monitoring.vue";
 // import ProgressTestPage from "../views/dev/ProgressTestPage.vue";
 
 import NotFound from "../views/NotFound.vue";
@@ -119,6 +120,12 @@ const routes = [
         path: "downloads",
         name: "downloads",
         component: Downloads,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: "monitoring",
+        name: "monitoring",
+        component: Monitoring,
         beforeEnter: requireAuth,
       },
       // {

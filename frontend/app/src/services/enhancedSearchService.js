@@ -208,10 +208,11 @@ class EnhancedSearchService {
   getSourceTier(provider) {
     const tierMap = {
       'mangaupdates': 'primary',
-      'madaradex': 'secondary', 
+      'enhanced_mangaupdates': 'primary',
+      'madaradex': 'secondary',
       'mangadex': 'tertiary'
     };
-    return tierMap[provider.toLowerCase()] || 'unknown';
+    return tierMap[provider?.toLowerCase()] || 'unknown';
   }
 
   /**

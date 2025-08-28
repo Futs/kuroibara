@@ -1249,7 +1249,7 @@ class TieredSearchService:
         self, results: List[UniversalMetadata]
     ) -> List[UniversalMetadata]:
         """Sort results by tier priority and confidence score."""
-        tier_priority = {"mangaupdates": 1, "madaradx": 2, "mangadex": 3}
+        tier_priority = {"mangaupdates": 1, "madaradex": 2, "mangadex": 3}
 
         return sorted(
             results,

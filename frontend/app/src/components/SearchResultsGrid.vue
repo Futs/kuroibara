@@ -408,6 +408,7 @@ export default {
     formatProviderName(provider) {
       const nameMap = {
         'mangaupdates': 'MangaUpdates',
+        'enhanced_mangaupdates': 'MangaUpdates',
         'madaradex': 'MadaraDex',
         'mangadex': 'MangaDex'
       };

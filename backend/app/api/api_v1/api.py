@@ -19,6 +19,7 @@ from app.api.api_v1.endpoints import (
     providers,
     reading_lists,
     search,
+    torrents,
     user_provider_preferences,
     users,
 )
@@ -42,6 +43,7 @@ api_router.include_router(
 api_router.include_router(library.router, prefix="/library", tags=["Library"])
 api_router.include_router(import_files.router, prefix="/import", tags=["Import"])
 api_router.include_router(providers.router, prefix="/providers", tags=["Providers"])
+api_router.include_router(torrents.router, prefix="/torrents", tags=["Torrents"])
 api_router.include_router(favorites.router, prefix="/favorites", tags=["Favorites"])
 api_router.include_router(
     user_provider_preferences.router,

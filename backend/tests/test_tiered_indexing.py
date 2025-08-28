@@ -486,8 +486,8 @@ class TestLiveIndexerConnections:
             pytest.skip(f"MangaDx API unavailable: {message}")
 
     @pytest.mark.asyncio
-    async def test_madaradx_live_connection(self):
-        """Test live connection to MadaraDx."""
+    async def test_madaradex_live_connection(self):
+        """Test live connection to MadaraDex."""
         indexer = MadaraDexIndexer()
 
         async with indexer as idx:
@@ -497,7 +497,7 @@ class TestLiveIndexerConnections:
         if success:
             assert "Connected to MadaraDex" in message
         else:
-            pytest.skip(f"MadaraDx unavailable: {message}")
+            pytest.skip(f"MadaraDex unavailable: {message}")
 
 
 if __name__ == "__main__":

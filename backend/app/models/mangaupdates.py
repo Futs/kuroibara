@@ -175,7 +175,7 @@ class CrossIndexerReference(BaseModel):
     )
 
     # Reference to another indexer's entry for the same manga
-    reference_indexer = Column(String(50), nullable=False)  # madaradx, mangadx, etc.
+    reference_indexer = Column(String(50), nullable=False)  # madaradex, mangadex, etc.
     reference_id = Column(String(100), nullable=False)
     reference_url = Column(String(500), nullable=True)
 

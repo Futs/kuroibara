@@ -26,7 +26,7 @@ class TorrentService {
         params.append('indexer', options.indexer);
       }
 
-      const response = await api.get(`/torrents/search?${params}`);
+      const response = await api.get(`/api/v1/torrents/search?${params}`);
       return response.data;
     } catch (error) {
       console.error('Error searching torrents:', error);
@@ -41,7 +41,7 @@ class TorrentService {
    */
   async downloadTorrent(torrentData) {
     try {
-      const response = await api.post('/torrents/download', torrentData);
+      const response = await api.post('/api/v1/torrents/download', torrentData);
       return response.data;
     } catch (error) {
       console.error('Error downloading torrent:', error);
@@ -55,7 +55,7 @@ class TorrentService {
    */
   async getIndexers() {
     try {
-      const response = await api.get('/torrents/indexers');
+      const response = await api.get('/api/v1/torrents/indexers');
       return response.data;
     } catch (error) {
       console.error('Error getting indexers:', error);
@@ -69,7 +69,7 @@ class TorrentService {
    */
   async checkIndexerHealth() {
     try {
-      const response = await api.get('/torrents/indexers/health');
+      const response = await api.get('/api/v1/torrents/indexers/health');
       return response.data;
     } catch (error) {
       console.error('Error checking indexer health:', error);
@@ -84,7 +84,7 @@ class TorrentService {
    */
   async testIndexer(indexerName) {
     try {
-      const response = await api.post(`/torrents/indexers/${indexerName}/test`);
+      const response = await api.post(`/api/v1/torrents/indexers/${indexerName}/test`);
       return response.data;
     } catch (error) {
       console.error(`Error testing indexer ${indexerName}:`, error);

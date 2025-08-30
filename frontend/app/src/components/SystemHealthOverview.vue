@@ -194,7 +194,7 @@ export default {
       
       loading.value = true;
       try {
-        const response = await api.get('/health/');
+        const response = await api.get('/api/v1/health/');
         healthData.value = response.data;
       } catch (error) {
         console.error('Error fetching health data:', error);

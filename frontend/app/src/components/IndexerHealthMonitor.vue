@@ -143,7 +143,7 @@ export default {
       
       loading.value = true;
       try {
-        const response = await api.get('/health/indexers');
+        const response = await api.get('/api/v1/health/indexers');
         indexerData.value = response.data;
       } catch (error) {
         console.error('Error fetching indexer health:', error);

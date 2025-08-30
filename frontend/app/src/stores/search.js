@@ -40,8 +40,8 @@ export const useSearchStore = defineStore("search", {
     // Enhanced getters
     getResultsBySource: (state) => {
       const grouped = {};
-      state.results.forEach(result => {
-        const source = result.provider || 'unknown';
+      state.results.forEach((result) => {
+        const source = result.provider || "unknown";
         if (!grouped[source]) {
           grouped[source] = [];
         }
@@ -51,17 +51,17 @@ export const useSearchStore = defineStore("search", {
     },
 
     getHighConfidenceResults: (state) => {
-      return state.results.filter(result =>
-        result.confidence_score && result.confidence_score >= 0.8
+      return state.results.filter(
+        (result) => result.confidence_score && result.confidence_score >= 0.8,
       );
     },
 
     getNsfwResults: (state) => {
-      return state.results.filter(result => result.is_nsfw);
+      return state.results.filter((result) => result.is_nsfw);
     },
 
     getSafeResults: (state) => {
-      return state.results.filter(result => !result.is_nsfw);
+      return state.results.filter((result) => !result.is_nsfw);
     },
   },
 
@@ -85,14 +85,14 @@ export const useSearchStore = defineStore("search", {
           searchResults = await enhancedSearchService.search({
             query: this.query.trim(),
             page,
-            limit
+            limit,
           });
         } else {
           // Fallback to legacy search
           searchResults = await enhancedSearchService.fallbackSearch({
             query: this.query.trim(),
             page,
-            limit
+            limit,
           });
         }
 
@@ -103,7 +103,6 @@ export const useSearchStore = defineStore("search", {
         this.pagination.has_next = searchResults.has_next;
         this.sources = searchResults.sources || [];
         this.performance = searchResults.performance || {};
-
       } catch (error) {
         this.error = error.message;
         console.error("Search error:", error);
@@ -115,7 +114,7 @@ export const useSearchStore = defineStore("search", {
             const fallbackResults = await enhancedSearchService.fallbackSearch({
               query: this.query.trim(),
               page: this.pagination.page,
-              limit: this.pagination.limit
+              limit: this.pagination.limit,
             });
 
             this.results = this.applyFilters(fallbackResults.results);
@@ -123,9 +122,11 @@ export const useSearchStore = defineStore("search", {
             this.pagination.page = fallbackResults.page;
             this.pagination.has_next = fallbackResults.has_next;
             this.sources = fallbackResults.sources || [];
-            this.performance = { ...fallbackResults.performance, fallback: true };
+            this.performance = {
+              ...fallbackResults.performance,
+              fallback: true,
+            };
             this.error = null; // Clear error since fallback worked
-
           } catch (fallbackError) {
             console.error("Fallback search also failed:", fallbackError);
             this.error = `Search failed: ${fallbackError.message}`;
@@ -148,24 +149,28 @@ export const useSearchStore = defineStore("search", {
 
       // Apply NSFW filter
       if (this.filters.nsfw === false) {
-        filtered = filtered.filter(result => !result.is_nsfw);
+        filtered = filtered.filter((result) => !result.is_nsfw);
       } else if (this.filters.nsfw === true) {
-        filtered = filtered.filter(result => result.is_nsfw);
+        filtered = filtered.filter((result) => result.is_nsfw);
       }
 
       // Apply status filter
       if (this.filters.status) {
-        filtered = filtered.filter(result =>
-          result.status && result.status.toLowerCase() === this.filters.status.toLowerCase()
+        filtered = filtered.filter(
+          (result) =>
+            result.status &&
+            result.status.toLowerCase() === this.filters.status.toLowerCase(),
         );
       }
 
       // Apply genre filter
       if (this.filters.genre) {
-        filtered = filtered.filter(result =>
-          result.genres && result.genres.some(genre =>
-            genre.toLowerCase().includes(this.filters.genre.toLowerCase())
-          )
+        filtered = filtered.filter(
+          (result) =>
+            result.genres &&
+            result.genres.some((genre) =>
+              genre.toLowerCase().includes(this.filters.genre.toLowerCase()),
+            ),
         );
       }
 
@@ -232,8 +237,8 @@ export const useSearchStore = defineStore("search", {
       } catch (error) {
         console.error("Failed to check indexer health:", error);
         this.indexerHealth = {
-          status: 'unhealthy',
-          message: 'Health check failed'
+          status: "unhealthy",
+          message: "Health check failed",
         };
       }
     },

@@ -44,14 +44,14 @@ class MangaUpdatesAPI:
             raise RuntimeError("MangaUpdatesAPI must be used as async context manager")
 
         url = f"{self.BASE_URL}/series/search"
-        params = {
+        data = {
             "search": query,
             "page": page,
             "perpage": min(per_page, 100),  # API limit
         }
 
         try:
-            async with self.session.get(url, params=params) as response:
+            async with self.session.post(url, json=data) as response:
                 if response.status == 200:
                     return await response.json()
                 else:
@@ -167,7 +167,7 @@ class MangaUpdatesService:
             # Check if we already have this entry
             result = await db.execute(
                 select(MangaUpdatesEntry).where(
-                    MangaUpdatesEntry.mu_series_id == series_id
+                    MangaUpdatesEntry.mu_series_id == str(series_id)
                 )
             )
             existing_entry = result.scalars().first()
@@ -344,15 +344,34 @@ class MangaUpdatesService:
     def _is_nsfw(self, data: Dict) -> bool:
         """Determine if content is NSFW."""
         # Check various indicators
-        genres = [g.get("genre", "").lower() for g in data.get("genres", [])]
-        categories = [c.get("category", "").lower() for c in data.get("categories", [])]
+        genres = [g.get("genre", "").lower().strip() for g in data.get("genres", [])]
+        categories = [
+            c.get("category", "").lower().strip() for c in data.get("categories", [])
+        ]
 
-        nsfw_indicators = ["adult", "mature", "ecchi", "hentai", "smut", "pornographic"]
+        # Use exact matches to avoid false positives
+        # Note: "mature" rating is NOT NSFW - it's for teen+ content with violence/action
+        # Only "adult" rating and explicit sexual genres are NSFW
+        nsfw_indicators = {
+            "adult",
+            "ecchi",
+            "hentai",
+            "smut",
+            "pornographic",
+            "erotica",
+            "sexual content",
+            "yaoi",
+            "yuri",
+        }
 
-        for indicator in nsfw_indicators:
-            if any(indicator in g for g in genres) or any(
-                indicator in c for c in categories
-            ):
+        # Check for exact matches in genres and categories
+        all_tags = set(genres + categories)
+
+        for tag in all_tags:
+            if tag in nsfw_indicators:
+                return True
+            # Also check for common NSFW patterns
+            if any(nsfw_word in tag.split() for nsfw_word in nsfw_indicators):
                 return True
 
         return False

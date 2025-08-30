@@ -433,7 +433,7 @@ const loading = computed(() => searchStore.loading);
 const error = computed(() => searchStore.error);
 const filters = computed({
   get: () => searchStore.getFilters,
-  set: (value) => searchStore.updateFilters(value)
+  set: (value) => searchStore.updateFilters(value),
 });
 const pagination = computed(() => searchStore.getPagination);
 
@@ -603,13 +603,20 @@ const addToLibrary = async (manga) => {
       let response;
 
       // Handle MangaUpdates entries differently
-      if (manga.provider === "enhanced_mangaupdates" || manga.provider === "mangaupdates") {
-        response = await api.post("/v1/search/enhanced/add-from-mangaupdates", null, {
-          params: {
-            mu_entry_id: manga.id,
-            selected_provider_match: null // Let the system auto-select
-          }
-        });
+      if (
+        manga.provider === "enhanced_mangaupdates" ||
+        manga.provider === "mangaupdates"
+      ) {
+        response = await api.post(
+          "/v1/search/enhanced/add-from-mangaupdates",
+          null,
+          {
+            params: {
+              mu_entry_id: manga.id,
+              selected_provider_match: null, // Let the system auto-select
+            },
+          },
+        );
         actualMangaId = response.data.manga_id || response.data.id;
 
         // MangaUpdates endpoint already adds to library, so skip the second call
@@ -635,11 +642,26 @@ const addToLibrary = async (manga) => {
 
     // Update the manga object to reflect it's now in library
     manga.in_library = true;
-
   } catch (error) {
     console.error("Failed to add manga to library:", error);
-    const errorMessage = error.response?.data?.detail || error.message || JSON.stringify(error);
-    alert("Failed to add manga to library: " + errorMessage);
+
+    // Handle detailed error response (like duplicate manga)
+    const errorDetail = error.response?.data?.detail;
+    let errorMessage = "Failed to add manga to library";
+
+    if (typeof errorDetail === "object" && errorDetail.message) {
+      // Handle structured error response (duplicate manga)
+      errorMessage =
+        `${errorDetail.message} ${errorDetail.suggestion || ""}`.trim();
+    } else if (typeof errorDetail === "string") {
+      // Handle simple string error
+      errorMessage = `Failed to add manga to library: ${errorDetail}`;
+    } else if (error.message) {
+      // Fallback to error message
+      errorMessage = `Failed to add manga to library: ${error.message}`;
+    }
+
+    alert(errorMessage);
   }
 };
 
@@ -683,7 +705,7 @@ watch(
       search();
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Watch for authentication changes and fetch provider preferences when user logs in

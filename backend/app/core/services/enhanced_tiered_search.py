@@ -5,7 +5,8 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, cast, or_, select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.services.tiered_indexing import (
@@ -66,12 +67,18 @@ class EnhancedTieredSearchService:
 
         # Perform tiered search
         logger.info(f"Performing tiered search for: {query}")
-        tiered_results = await self.tiered_service.search(
-            query=query,
-            limit=limit * 2,  # Get more results to account for filtering
-            use_fallback=True,
-            min_results=5,
-        )
+        try:
+            tiered_results = await self.tiered_service.search(
+                query=query,
+                limit=limit * 2,  # Get more results to account for filtering
+                use_fallback=True,
+                min_results=5,
+            )
+        except Exception as e:
+            logger.error(f"Error during tiered search: {e}")
+            return SearchResponse(
+                results=[], total=0, page=page, limit=limit, has_next=False
+            )
 
         if not tiered_results:
             return SearchResponse(
@@ -306,7 +313,7 @@ class EnhancedTieredSearchService:
                 or_(
                     UniversalMangaEntry.title.ilike(f"%{normalized_query}%"),
                     UniversalMangaEntry.alternative_titles.op("@>")(
-                        f'["{normalized_query}"]'
+                        cast(f'["{normalized_query}"]', JSONB)
                     ),
                 )
             )

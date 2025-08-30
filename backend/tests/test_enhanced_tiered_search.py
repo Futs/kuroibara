@@ -297,6 +297,7 @@ class TestEnhancedTieredSearchService:
             # Test with recent refresh
             sample_universal_entry.last_refreshed = datetime.utcnow()
             sample_universal_entry.refresh_interval_hours = 24
+            sample_universal_entry.auto_refresh_enabled = True  # Enable auto refresh
             needs_refresh = service._needs_refresh(sample_universal_entry)
             assert needs_refresh is False
 

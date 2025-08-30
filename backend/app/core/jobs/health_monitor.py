@@ -11,10 +11,9 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-from uuid import uuid4
+from typing import Any, Dict, List, Optional
 
-from .events import JobPriority, JobType
+from .events import JobPriority
 from .models import HealthCheckJob
 
 logger = logging.getLogger(__name__)

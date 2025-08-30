@@ -60,7 +60,7 @@ export const useDownloadsStore = defineStore("downloads", {
               ...download,
               // Ensure required fields exist
               progress: download.progress || 0,
-              status: download.status || 'downloading',
+              status: download.status || "downloading",
               downloaded_pages: download.downloaded_pages || 0,
               total_pages: download.total_pages || 0,
             });
@@ -164,7 +164,13 @@ export const useDownloadsStore = defineStore("downloads", {
       }
     },
 
-    updateBulkDownloadProgress(bulkId, chapterTaskId, status, progress = null, completedChapters = null) {
+    updateBulkDownloadProgress(
+      bulkId,
+      chapterTaskId,
+      status,
+      progress = null,
+      completedChapters = null,
+    ) {
       const bulkDownload = this.bulkDownloads.get(bulkId);
       if (!bulkDownload) return;
 
@@ -368,7 +374,7 @@ export const useDownloadsStore = defineStore("downloads", {
         await api.post(`/v1/library/downloads/${taskId}/pause`);
         const download = this.activeDownloads.get(taskId);
         if (download) {
-          download.status = 'paused';
+          download.status = "paused";
         }
       } catch (error) {
         console.error("Error pausing download:", error);
@@ -381,7 +387,7 @@ export const useDownloadsStore = defineStore("downloads", {
         await api.post(`/v1/library/downloads/${taskId}/resume`);
         const download = this.activeDownloads.get(taskId);
         if (download) {
-          download.status = 'downloading';
+          download.status = "downloading";
         }
       } catch (error) {
         console.error("Error resuming download:", error);

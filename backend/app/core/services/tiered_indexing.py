@@ -337,7 +337,19 @@ class MangaUpdatesIndexer(BaseIndexer):
             c.get("category", "").lower() for c in record.get("categories", [])
         ]
 
-        nsfw_indicators = ["adult", "mature", "ecchi", "hentai", "smut", "pornographic"]
+        # Note: "mature" rating is NOT NSFW - it's for teen+ content with violence/action
+        # Only "adult" rating and explicit sexual genres are NSFW
+        nsfw_indicators = [
+            "adult",
+            "ecchi",
+            "hentai",
+            "smut",
+            "pornographic",
+            "erotica",
+            "sexual content",
+            "yaoi",
+            "yuri",
+        ]
 
         for indicator in nsfw_indicators:
             if any(indicator in g for g in genres) or any(
@@ -752,8 +764,8 @@ class MadaraDexIndexer(BaseIndexer):
         """Extract NSFW status."""
         # Check for adult content indicators
         text_content = soup.get_text().lower()
+        # Note: "mature" is NOT NSFW - it's for teen+ content with violence/action
         nsfw_indicators = [
-            "mature",
             "adult",
             "ecchi",
             "smut",
@@ -770,7 +782,17 @@ class MadaraDexIndexer(BaseIndexer):
 
         # Check genres for NSFW indicators
         genres = self._extract_genres(soup)
-        nsfw_genres = ["mature", "adult", "ecchi", "smut"]
+        # Note: "mature" is NOT NSFW - it's for teen+ content with violence/action
+        nsfw_genres = [
+            "adult",
+            "ecchi",
+            "smut",
+            "hentai",
+            "pornographic",
+            "erotica",
+            "yaoi",
+            "yuri",
+        ]
         for genre in genres:
             if genre.lower() in nsfw_genres:
                 return True
@@ -908,7 +930,16 @@ class MadaraDexIndexer(BaseIndexer):
     def _check_nsfw_indicators(self, soup, title: str, genres: List[str]) -> bool:
         """Check for NSFW indicators in search results."""
         # Check title
-        nsfw_keywords = ["mature", "adult", "ecchi", "smut", "18+"]
+        # Note: "mature" is NOT NSFW - it's for teen+ content with violence/action
+        nsfw_keywords = [
+            "adult",
+            "ecchi",
+            "smut",
+            "18+",
+            "hentai",
+            "pornographic",
+            "erotica",
+        ]
         title_lower = title.lower()
 
         for keyword in nsfw_keywords:
@@ -916,7 +947,17 @@ class MadaraDexIndexer(BaseIndexer):
                 return True
 
         # Check genres
-        nsfw_genres = ["mature", "adult", "ecchi", "smut", "harem"]
+        # Note: "mature" and "harem" are NOT NSFW - they're for teen+ content
+        nsfw_genres = [
+            "adult",
+            "ecchi",
+            "smut",
+            "hentai",
+            "pornographic",
+            "erotica",
+            "yaoi",
+            "yuri",
+        ]
         for genre in genres:
             if genre.lower() in nsfw_genres:
                 return True

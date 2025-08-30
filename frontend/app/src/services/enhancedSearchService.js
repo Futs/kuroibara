@@ -1,11 +1,11 @@
 /**
  * Enhanced Search Service
- * 
+ *
  * Integrates with the new tiered indexing system providing:
  * - MangaUpdates (primary tier)
- * - MadaraDex (secondary tier) 
+ * - MadaraDex (secondary tier)
  * - MangaDex (tertiary tier)
- * 
+ *
  * Features:
  * - Rich metadata from multiple sources
  * - Source attribution and confidence scoring
@@ -13,7 +13,7 @@
  * - Intelligent fallback between indexers
  */
 
-import api from './api.js';
+import api from "./api.js";
 
 class EnhancedSearchService {
   constructor() {
@@ -38,7 +38,7 @@ class EnhancedSearchService {
         limit,
         has_next: false,
         sources: [],
-        performance: {}
+        performance: {},
       };
     }
 
@@ -48,20 +48,24 @@ class EnhancedSearchService {
     if (cached) {
       return {
         ...cached,
-        cached: true
+        cached: true,
       };
     }
 
     try {
       const startTime = performance.now();
 
-      console.log('Enhanced search: calling /v1/search/enhanced with params:', { query, page, limit });
-
-      const response = await api.post('/v1/search/enhanced', null, {
-        params: { query, page, limit }
+      console.log("Enhanced search: calling /v1/search/enhanced with params:", {
+        query,
+        page,
+        limit,
       });
 
-      console.log('Enhanced search: received response:', response.data);
+      const response = await api.post("/v1/search/enhanced", null, {
+        params: { query, page, limit },
+      });
+
+      console.log("Enhanced search: received response:", response.data);
 
       const endTime = performance.now();
       const responseTime = Math.round(endTime - startTime);
@@ -75,28 +79,31 @@ class EnhancedSearchService {
         sources: this.extractSources(response.data.results || []),
         performance: {
           response_time_ms: responseTime,
-          cached: false
-        }
+          cached: false,
+        },
       };
 
       // Cache the results
       this.setCache(cacheKey, searchResults);
 
       return searchResults;
-
     } catch (error) {
-      console.error('Enhanced search failed:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      console.error('Error status:', error.response?.status);
+      console.error("Enhanced search failed:", error);
+      console.error("Error details:", error.response?.data || error.message);
+      console.error("Error status:", error.response?.status);
 
       // Fallback to legacy search if enhanced search fails
-      console.log('Falling back to legacy search...');
+      console.log("Falling back to legacy search...");
       try {
-        const fallbackResults = await this.fallbackSearch({ query, page, limit });
-        console.log('Fallback search successful:', fallbackResults);
+        const fallbackResults = await this.fallbackSearch({
+          query,
+          page,
+          limit,
+        });
+        console.log("Fallback search successful:", fallbackResults);
         return fallbackResults;
       } catch (fallbackError) {
-        console.error('Fallback search also failed:', fallbackError);
+        console.error("Fallback search also failed:", fallbackError);
         throw new Error(`Search failed: ${error.message}`);
       }
     }
@@ -108,11 +115,11 @@ class EnhancedSearchService {
    * @returns {Promise<Object>} Legacy search results
    */
   async fallbackSearch({ query, page = 1, limit = 20 }) {
-    const response = await api.post('/v1/search', {
+    const response = await api.post("/v1/search", {
       query,
       page,
       limit,
-      provider: null
+      provider: null,
     });
 
     return {
@@ -125,8 +132,8 @@ class EnhancedSearchService {
       performance: {
         response_time_ms: null,
         cached: false,
-        fallback: true
-      }
+        fallback: true,
+      },
     };
   }
 
@@ -136,13 +143,13 @@ class EnhancedSearchService {
    */
   async getSystemHealth() {
     try {
-      const response = await api.get('/v1/health/');
+      const response = await api.get("/v1/health/");
       return response.data;
     } catch (error) {
-      console.error('Health check failed:', error);
+      console.error("Health check failed:", error);
       return {
-        status: 'unhealthy',
-        message: 'Health check failed'
+        status: "unhealthy",
+        message: "Health check failed",
       };
     }
   }
@@ -153,14 +160,14 @@ class EnhancedSearchService {
    */
   async getIndexerHealth() {
     try {
-      const response = await api.get('/v1/search/indexers/health');
+      const response = await api.get("/v1/search/indexers/health");
       return response.data;
     } catch (error) {
-      console.error('Indexer health check failed:', error);
+      console.error("Indexer health check failed:", error);
       return {
-        status: 'unhealthy',
+        status: "unhealthy",
         indexers: {},
-        message: 'Indexer health check failed'
+        message: "Indexer health check failed",
       };
     }
   }
@@ -172,8 +179,8 @@ class EnhancedSearchService {
    */
   extractSources(results) {
     const sourceMap = new Map();
-    
-    results.forEach(result => {
+
+    results.forEach((result) => {
       if (result.provider && !sourceMap.has(result.provider)) {
         sourceMap.set(result.provider, {
           name: result.provider,
@@ -181,21 +188,27 @@ class EnhancedSearchService {
           count: 1,
           confidence_range: {
             min: result.confidence_score || 0,
-            max: result.confidence_score || 0
-          }
+            max: result.confidence_score || 0,
+          },
         });
       } else if (result.provider && sourceMap.has(result.provider)) {
         const source = sourceMap.get(result.provider);
         source.count++;
         if (result.confidence_score) {
-          source.confidence_range.min = Math.min(source.confidence_range.min, result.confidence_score);
-          source.confidence_range.max = Math.max(source.confidence_range.max, result.confidence_score);
+          source.confidence_range.min = Math.min(
+            source.confidence_range.min,
+            result.confidence_score,
+          );
+          source.confidence_range.max = Math.max(
+            source.confidence_range.max,
+            result.confidence_score,
+          );
         }
       }
     });
 
     return Array.from(sourceMap.values()).sort((a, b) => {
-      const tierOrder = { 'primary': 1, 'secondary': 2, 'tertiary': 3, 'unknown': 4 };
+      const tierOrder = { primary: 1, secondary: 2, tertiary: 3, unknown: 4 };
       return tierOrder[a.tier] - tierOrder[b.tier];
     });
   }
@@ -207,12 +220,12 @@ class EnhancedSearchService {
    */
   getSourceTier(provider) {
     const tierMap = {
-      'mangaupdates': 'primary',
-      'enhanced_mangaupdates': 'primary',
-      'madaradex': 'secondary',
-      'mangadex': 'tertiary'
+      mangaupdates: "primary",
+      enhanced_mangaupdates: "primary",
+      madaradex: "secondary",
+      mangadex: "tertiary",
     };
-    return tierMap[provider?.toLowerCase()] || 'unknown';
+    return tierMap[provider?.toLowerCase()] || "unknown";
   }
 
   /**
@@ -239,7 +252,7 @@ class EnhancedSearchService {
   setCache(key, data) {
     this.cache.set(key, {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Clean up old cache entries (simple LRU)
@@ -262,13 +275,13 @@ class EnhancedSearchService {
    * @returns {string} Formatted confidence
    */
   formatConfidence(score) {
-    if (!score) return 'Unknown';
+    if (!score) return "Unknown";
     const percentage = Math.round(score * 100);
-    if (percentage >= 90) return 'Excellent';
-    if (percentage >= 80) return 'Very Good';
-    if (percentage >= 70) return 'Good';
-    if (percentage >= 60) return 'Fair';
-    return 'Low';
+    if (percentage >= 90) return "Excellent";
+    if (percentage >= 80) return "Very Good";
+    if (percentage >= 70) return "Good";
+    if (percentage >= 60) return "Fair";
+    return "Low";
   }
 
   /**
@@ -277,13 +290,13 @@ class EnhancedSearchService {
    * @returns {string} CSS color class
    */
   getConfidenceColor(score) {
-    if (!score) return 'text-gray-500';
+    if (!score) return "text-gray-500";
     const percentage = Math.round(score * 100);
-    if (percentage >= 90) return 'text-green-600';
-    if (percentage >= 80) return 'text-green-500';
-    if (percentage >= 70) return 'text-yellow-500';
-    if (percentage >= 60) return 'text-orange-500';
-    return 'text-red-500';
+    if (percentage >= 90) return "text-green-600";
+    if (percentage >= 80) return "text-green-500";
+    if (percentage >= 70) return "text-yellow-500";
+    if (percentage >= 60) return "text-orange-500";
+    return "text-red-500";
   }
 }
 

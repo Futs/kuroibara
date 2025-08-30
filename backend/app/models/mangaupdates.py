@@ -2,11 +2,9 @@
 
 import enum
 from datetime import datetime
-from typing import Dict, List, Optional
 
 import sqlalchemy as sa
 from sqlalchemy import (
-    BigInteger,
     Boolean,
     Column,
     DateTime,
@@ -321,6 +319,7 @@ class MangaUpdatesEntry(BaseModel):
     # Statistics
     rating = Column(Float, nullable=True)
     rating_count = Column(Integer, nullable=True)
+    popularity_rank = Column(Integer, nullable=True)
 
     # Chapter information
     latest_chapter = Column(String(20), nullable=True)
@@ -337,6 +336,18 @@ class MangaUpdatesEntry(BaseModel):
     manga_mappings = relationship(
         "MangaUpdatesMapping", back_populates="mu_entry", cascade="all, delete-orphan"
     )
+
+    def needs_refresh(self) -> bool:
+        """Check if entry needs refreshing."""
+        if not self.auto_refresh_enabled or not self.last_refreshed:
+            return True
+
+        from datetime import datetime
+
+        hours_since_refresh = (
+            datetime.utcnow() - self.last_refreshed
+        ).total_seconds() / 3600
+        return hours_since_refresh >= 24  # Default 24 hour refresh interval
 
 
 class MangaUpdatesMapping(BaseModel):

@@ -47,17 +47,26 @@
           <!-- Download Status Icon (Example C: Status Indicator Replacement) -->
           <div class="flex-shrink-0">
             <!-- Progress Circle for downloading chapters -->
-            <div v-if="activeDownload && activeDownload.status === 'downloading'" class="relative w-8 h-8">
-              <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600"></div>
+            <div
+              v-if="activeDownload && activeDownload.status === 'downloading'"
+              class="relative w-8 h-8"
+            >
+              <div
+                class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600"
+              ></div>
               <div
                 class="absolute inset-0 rounded-full transition-all duration-300"
                 :style="{
-                  background: `conic-gradient(rgb(2 132 199) ${(activeDownload.progress || 0) * 3.6}deg, transparent 0deg)`
+                  background: `conic-gradient(rgb(2 132 199) ${(activeDownload.progress || 0) * 3.6}deg, transparent 0deg)`,
                 }"
               ></div>
-              <div class="absolute inset-1 rounded-full bg-white dark:bg-dark-800"></div>
+              <div
+                class="absolute inset-1 rounded-full bg-white dark:bg-dark-800"
+              ></div>
               <div class="absolute inset-0 flex items-center justify-center">
-                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span
+                  class="text-xs font-medium text-gray-700 dark:text-gray-300"
+                >
                   {{ Math.round(activeDownload.progress || 0) }}
                 </span>
               </div>
@@ -216,7 +225,10 @@
             <!-- Download Button or Progress (Example C Style) -->
             <div v-if="chapter.download_status !== 'downloaded'">
               <!-- Show progress percentage if actively downloading -->
-              <div v-if="activeDownload && activeDownload.status === 'downloading'" class="flex items-center space-x-2">
+              <div
+                v-if="activeDownload && activeDownload.status === 'downloading'"
+                class="flex items-center space-x-2"
+              >
                 <span class="text-sm text-gray-500 dark:text-gray-400">
                   {{ Math.round(activeDownload.progress || 0) }}%
                 </span>
@@ -249,11 +261,7 @@
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                   />
                 </svg>
-                {{
-                  chapter.download_status === "error"
-                    ? "Retry"
-                    : "Download"
-                }}
+                {{ chapter.download_status === "error" ? "Retry" : "Download" }}
               </button>
             </div>
           </div>

@@ -22,21 +22,35 @@
             :disabled="bulkDownloading"
             class="btn-primary"
           >
-            {{ bulkDownloading ? 'Stop Bulk Download' : 'Start Bulk Download Test' }}
+            {{
+              bulkDownloading
+                ? "Stop Bulk Download"
+                : "Start Bulk Download Test"
+            }}
           </button>
           <button
             @click="startChapterDownload"
             :disabled="chapterDownloading"
             class="btn-secondary"
           >
-            {{ chapterDownloading ? 'Stop Chapter Download' : 'Start Chapter Download Test' }}
+            {{
+              chapterDownloading
+                ? "Stop Chapter Download"
+                : "Start Chapter Download Test"
+            }}
           </button>
-          <button @click="resetAll" class="btn bg-gray-500 text-white hover:bg-gray-600">
+          <button
+            @click="resetAll"
+            class="btn bg-gray-500 text-white hover:bg-gray-600"
+          >
             Reset All
           </button>
         </div>
         <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-          <p>Progress: {{ Math.round(progress) }}% | Chapters: {{ completedChapters }}/{{ totalChapters }}</p>
+          <p>
+            Progress: {{ Math.round(progress) }}% | Chapters:
+            {{ completedChapters }}/{{ totalChapters }}
+          </p>
         </div>
       </div>
 
@@ -45,40 +59,46 @@
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">
           "Download All" Button Progress Indicators
         </h2>
-        
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Example A: Inline Progress with Spinner -->
           <div class="space-y-4">
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example A: Inline Progress with Spinner
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-              <button 
+            <div
+              class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg"
+            >
+              <button
                 class="btn-primary w-full flex items-center justify-center"
                 :disabled="bulkDownloading"
                 @click="startBulkDownload"
               >
-                <svg 
-                  v-if="bulkDownloading" 
-                  class="animate-spin -ml-1 mr-2 h-4 w-4" 
-                  fill="none" 
+                <svg
+                  v-if="bulkDownloading"
+                  class="animate-spin -ml-1 mr-2 h-4 w-4"
+                  fill="none"
                   viewBox="0 0 24 24"
                 >
-                  <circle 
-                    class="opacity-25" 
-                    cx="12" 
-                    cy="12" 
-                    r="10" 
-                    stroke="currentColor" 
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
                     stroke-width="4"
                   ></circle>
-                  <path 
-                    class="opacity-75" 
-                    fill="currentColor" 
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                {{ bulkDownloading ? `Downloading... ${Math.round(progress)}%` : 'Download All' }}
+                {{
+                  bulkDownloading
+                    ? `Downloading... ${Math.round(progress)}%`
+                    : "Download All"
+                }}
               </button>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -91,23 +111,32 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example B: Progress Bar Below Button
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+            <div
+              class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg"
+            >
               <div class="space-y-2">
-                <button 
-                  class="btn-primary w-full" 
+                <button
+                  class="btn-primary w-full"
                   :disabled="bulkDownloading"
                   @click="startBulkDownload"
                 >
-                  {{ bulkDownloading ? 'Downloading...' : 'Download All' }}
+                  {{ bulkDownloading ? "Downloading..." : "Download All" }}
                 </button>
-                <div v-if="bulkDownloading" class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
-                    class="bg-primary-600 h-2 rounded-full transition-all duration-300" 
-                    :style="{width: `${progress}%`}"
+                <div
+                  v-if="bulkDownloading"
+                  class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2"
+                >
+                  <div
+                    class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                    :style="{ width: `${progress}%` }"
                   ></div>
                 </div>
-                <div v-if="bulkDownloading" class="text-xs text-gray-600 dark:text-gray-400 text-center">
-                  {{ completedChapters }}/{{ totalChapters }} chapters • {{ Math.round(progress) }}%
+                <div
+                  v-if="bulkDownloading"
+                  class="text-xs text-gray-600 dark:text-gray-400 text-center"
+                >
+                  {{ completedChapters }}/{{ totalChapters }} chapters •
+                  {{ Math.round(progress) }}%
                 </div>
               </div>
             </div>
@@ -121,32 +150,59 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example C: Overlay Progress Card
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg relative">
-              <button 
-                class="btn-primary w-full" 
+            <div
+              class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg relative"
+            >
+              <button
+                class="btn-primary w-full"
                 :disabled="bulkDownloading"
                 @click="startBulkDownload"
               >
                 Download All
               </button>
-              
+
               <!-- Overlay Progress Card -->
-              <div 
-                v-if="bulkDownloading" 
+              <div
+                v-if="bulkDownloading"
                 class="absolute top-full left-4 right-4 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3 z-10"
               >
                 <div class="flex items-center space-x-3">
-                  <svg class="animate-spin h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    class="animate-spin h-5 w-5 text-primary-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   <div class="flex-1">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">Downloading All Chapters</div>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-                      <div class="bg-primary-600 h-1.5 rounded-full transition-all duration-300" :style="{width: `${progress}%`}"></div>
+                    <div
+                      class="text-sm font-medium text-gray-900 dark:text-white"
+                    >
+                      Downloading All Chapters
+                    </div>
+                    <div
+                      class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1"
+                    >
+                      <div
+                        class="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
+                        :style="{ width: `${progress}%` }"
+                      ></div>
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {{ completedChapters }}/{{ totalChapters }} • {{ Math.round(progress) }}%
+                      {{ completedChapters }}/{{ totalChapters }} •
+                      {{ Math.round(progress) }}%
                     </div>
                   </div>
                 </div>
@@ -164,36 +220,67 @@
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">
           Individual Chapter "Download" Button Progress Indicators
         </h2>
-        
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Example A: Button State Change -->
           <div class="space-y-4">
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example A: Button State Change
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+            <div
+              class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg"
+            >
               <div class="space-y-3">
-                <div v-for="(chapter, index) in testChapters" :key="index" class="flex items-center justify-between">
-                  <span class="text-sm text-gray-900 dark:text-white">Chapter {{ chapter.number }}</span>
-                  <button 
+                <div
+                  v-for="(chapter, index) in testChapters"
+                  :key="index"
+                  class="flex items-center justify-between"
+                >
+                  <span class="text-sm text-gray-900 dark:text-white"
+                    >Chapter {{ chapter.number }}</span
+                  >
+                  <button
                     :class="[
                       'text-xs px-2 py-1 rounded-md transition-all duration-200 flex items-center',
-                      chapter.downloading ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-primary-600 dark:text-primary-400 hover:text-primary-700'
+                      chapter.downloading
+                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                        : 'text-primary-600 dark:text-primary-400 hover:text-primary-700',
                     ]"
                     :disabled="chapter.downloading"
                     @click="startChapterDownload(index)"
                   >
-                    <svg v-if="chapter.downloading" class="animate-spin h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      v-if="chapter.downloading"
+                      class="animate-spin h-3 w-3 inline mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
-                    {{ chapter.downloading ? `${Math.round(chapter.progress)}%` : 'Download' }}
+                    {{
+                      chapter.downloading
+                        ? `${Math.round(chapter.progress)}%`
+                        : "Download"
+                    }}
                   </button>
                 </div>
               </div>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              Button changes appearance and shows spinner with progress percentage
+              Button changes appearance and shows spinner with progress
+              percentage
             </p>
           </div>
 
@@ -202,14 +289,29 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example B: Inline Progress Bar
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+            <div
+              class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg"
+            >
               <div class="space-y-3">
-                <div v-for="(chapter, index) in testChapters" :key="`b-${index}`" class="flex items-center justify-between">
-                  <span class="text-sm text-gray-900 dark:text-white">Chapter {{ chapter.number }}</span>
-                  <div class="flex items-center space-x-2 min-w-0 flex-1 max-w-32">
+                <div
+                  v-for="(chapter, index) in testChapters"
+                  :key="`b-${index}`"
+                  class="flex items-center justify-between"
+                >
+                  <span class="text-sm text-gray-900 dark:text-white"
+                    >Chapter {{ chapter.number }}</span
+                  >
+                  <div
+                    class="flex items-center space-x-2 min-w-0 flex-1 max-w-32"
+                  >
                     <div v-if="chapter.downloading" class="flex-1">
-                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                        <div class="bg-primary-600 h-1.5 rounded-full transition-all duration-300" :style="{width: `${chapter.progress}%`}"></div>
+                      <div
+                        class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5"
+                      >
+                        <div
+                          class="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
+                          :style="{ width: `${chapter.progress}%` }"
+                        ></div>
                       </div>
                     </div>
                     <button
@@ -219,7 +321,11 @@
                     >
                       Download
                     </button>
-                    <span v-else class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ Math.round(chapter.progress) }}%</span>
+                    <span
+                      v-else
+                      class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap"
+                      >{{ Math.round(chapter.progress) }}%</span
+                    >
                   </div>
                 </div>
               </div>
@@ -234,37 +340,66 @@
             <h3 class="font-medium text-gray-900 dark:text-white">
               Example C: Status Indicator Replacement
             </h3>
-            <div class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+            <div
+              class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg"
+            >
               <div class="space-y-3">
-                <div v-for="(chapter, index) in testChapters" :key="`c-${index}`" class="flex items-center justify-between">
+                <div
+                  v-for="(chapter, index) in testChapters"
+                  :key="`c-${index}`"
+                  class="flex items-center justify-between"
+                >
                   <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0">
                       <!-- Progress Circle -->
                       <div v-if="chapter.downloading" class="relative w-4 h-4">
-                        <div class="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-600"></div>
+                        <div
+                          class="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-600"
+                        ></div>
                         <div
                           class="absolute inset-0 rounded-full bg-primary-600 transition-all duration-300"
                           :style="{
-                            background: `conic-gradient(rgb(2 132 199) ${chapter.progress * 3.6}deg, rgb(229 231 235) 0deg)`
+                            background: `conic-gradient(rgb(2 132 199) ${chapter.progress * 3.6}deg, rgb(229 231 235) 0deg)`,
                           }"
                         ></div>
-                        <div class="absolute inset-1 rounded-full bg-white dark:bg-gray-800"></div>
+                        <div
+                          class="absolute inset-1 rounded-full bg-white dark:bg-gray-800"
+                        ></div>
                       </div>
                       <!-- Status Dots -->
-                      <div v-else-if="chapter.status === 'downloaded'" class="w-4 h-4 rounded-full bg-green-500" title="Downloaded"></div>
-                      <div v-else-if="chapter.status === 'error'" class="w-4 h-4 rounded-full bg-red-500" title="Error"></div>
-                      <div v-else class="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600" title="Not Downloaded"></div>
+                      <div
+                        v-else-if="chapter.status === 'downloaded'"
+                        class="w-4 h-4 rounded-full bg-green-500"
+                        title="Downloaded"
+                      ></div>
+                      <div
+                        v-else-if="chapter.status === 'error'"
+                        class="w-4 h-4 rounded-full bg-red-500"
+                        title="Error"
+                      ></div>
+                      <div
+                        v-else
+                        class="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600"
+                        title="Not Downloaded"
+                      ></div>
                     </div>
-                    <span class="text-sm text-gray-900 dark:text-white">Chapter {{ chapter.number }}</span>
+                    <span class="text-sm text-gray-900 dark:text-white"
+                      >Chapter {{ chapter.number }}</span
+                    >
                   </div>
                   <button
-                    v-if="!chapter.downloading && chapter.status !== 'downloaded'"
+                    v-if="
+                      !chapter.downloading && chapter.status !== 'downloaded'
+                    "
                     class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700"
                     @click="startChapterDownload(index)"
                   >
                     Download
                   </button>
-                  <span v-else-if="chapter.downloading" class="text-xs text-gray-500 dark:text-gray-400">
+                  <span
+                    v-else-if="chapter.downloading"
+                    class="text-xs text-gray-500 dark:text-gray-400"
+                  >
                     {{ Math.round(chapter.progress) }}%
                   </span>
                 </div>
@@ -285,7 +420,9 @@
 
         <div class="space-y-4">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Solo Leveling</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              Solo Leveling
+            </h3>
             <div class="relative">
               <button
                 class="btn-primary"
@@ -298,10 +435,25 @@
                   fill="none"
                   viewBox="0 0 24 24"
                 >
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
-                {{ bulkDownloading ? `Downloading... ${Math.round(progress)}%` : 'Download All' }}
+                {{
+                  bulkDownloading
+                    ? `Downloading... ${Math.round(progress)}%`
+                    : "Download All"
+                }}
               </button>
 
               <!-- Progress overlay for bulk download -->
@@ -310,17 +462,42 @@
                 class="absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3 min-w-64 z-10"
               >
                 <div class="flex items-center space-x-3">
-                  <svg class="animate-spin h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    class="animate-spin h-5 w-5 text-primary-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   <div class="flex-1">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">Downloading All Chapters</div>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-                      <div class="bg-primary-600 h-1.5 rounded-full transition-all duration-300" :style="{width: `${progress}%`}"></div>
+                    <div
+                      class="text-sm font-medium text-gray-900 dark:text-white"
+                    >
+                      Downloading All Chapters
+                    </div>
+                    <div
+                      class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1"
+                    >
+                      <div
+                        class="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
+                        :style="{ width: `${progress}%` }"
+                      ></div>
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {{ completedChapters }}/{{ totalChapters }} chapters • {{ Math.round(progress) }}% • ETA: {{ estimatedTime }}
+                      {{ completedChapters }}/{{ totalChapters }} chapters •
+                      {{ Math.round(progress) }}% • ETA: {{ estimatedTime }}
                     </div>
                   </div>
                 </div>
@@ -328,7 +505,9 @@
             </div>
           </div>
 
-          <div class="border border-gray-200 dark:border-gray-600 rounded-lg divide-y divide-gray-200 dark:divide-dark-600">
+          <div
+            class="border border-gray-200 dark:border-gray-600 rounded-lg divide-y divide-gray-200 dark:divide-dark-600"
+          >
             <div
               v-for="(chapter, index) in testChapters"
               :key="`real-${index}`"
@@ -339,22 +518,40 @@
                   <div class="flex-shrink-0">
                     <!-- Progress Circle for downloading -->
                     <div v-if="chapter.downloading" class="relative w-5 h-5">
-                      <div class="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-600"></div>
+                      <div
+                        class="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-600"
+                      ></div>
                       <div
                         class="absolute inset-0 rounded-full transition-all duration-300"
                         :style="{
-                          background: `conic-gradient(rgb(2 132 199) ${chapter.progress * 3.6}deg, transparent 0deg)`
+                          background: `conic-gradient(rgb(2 132 199) ${chapter.progress * 3.6}deg, transparent 0deg)`,
                         }"
                       ></div>
-                      <div class="absolute inset-1 rounded-full bg-white dark:bg-gray-800"></div>
+                      <div
+                        class="absolute inset-1 rounded-full bg-white dark:bg-gray-800"
+                      ></div>
                     </div>
                     <!-- Status indicators -->
-                    <div v-else-if="chapter.status === 'downloaded'" class="w-5 h-5 rounded-full bg-green-500" title="Downloaded"></div>
-                    <div v-else-if="chapter.status === 'error'" class="w-5 h-5 rounded-full bg-red-500" title="Error"></div>
-                    <div v-else class="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600" title="Not Downloaded"></div>
+                    <div
+                      v-else-if="chapter.status === 'downloaded'"
+                      class="w-5 h-5 rounded-full bg-green-500"
+                      title="Downloaded"
+                    ></div>
+                    <div
+                      v-else-if="chapter.status === 'error'"
+                      class="w-5 h-5 rounded-full bg-red-500"
+                      title="Error"
+                    ></div>
+                    <div
+                      v-else
+                      class="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600"
+                      title="Not Downloaded"
+                    ></div>
                   </div>
                   <div>
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    <div
+                      class="text-sm font-medium text-gray-900 dark:text-white"
+                    >
                       Chapter {{ chapter.number }}: {{ chapter.title }}
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -367,7 +564,8 @@
                   <!-- Progress info for downloading chapters -->
                   <div v-if="chapter.downloading" class="text-right">
                     <div class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ Math.round(chapter.progress) }}% • {{ chapter.downloadedPages }}/{{ chapter.pages }} pages
+                      {{ Math.round(chapter.progress) }}% •
+                      {{ chapter.downloadedPages }}/{{ chapter.pages }} pages
                     </div>
                     <div class="text-xs text-gray-400 dark:text-gray-500">
                       {{ chapter.speed }} • ETA: {{ chapter.eta }}
@@ -376,7 +574,9 @@
 
                   <!-- Action buttons -->
                   <button
-                    v-if="!chapter.downloading && chapter.status !== 'downloaded'"
+                    v-if="
+                      !chapter.downloading && chapter.status !== 'downloaded'
+                    "
                     class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 px-3 py-1 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900"
                     @click="startChapterDownload(index)"
                   >
@@ -407,7 +607,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted } from "vue";
 
 // State
 const bulkDownloading = ref(false);
@@ -418,11 +618,66 @@ const totalChapters = ref(24);
 
 // Test data
 const testChapters = ref([
-  { number: 1, title: "I'm the Only One Who Knows the End", pages: 45, size: "12.3 MB", downloading: false, progress: 0, status: 'downloaded', downloadedPages: 45, speed: '', eta: '' },
-  { number: 2, title: "If I Don't Get Stronger, I'll Die", pages: 38, size: "9.8 MB", downloading: false, progress: 0, status: 'not_downloaded', downloadedPages: 0, speed: '', eta: '' },
-  { number: 3, title: "It's Like a Game", pages: 42, size: "11.2 MB", downloading: false, progress: 0, status: 'error', downloadedPages: 0, speed: '', eta: '' },
-  { number: 4, title: "I Hate Hospitals", pages: 40, size: "10.5 MB", downloading: false, progress: 0, status: 'not_downloaded', downloadedPages: 0, speed: '', eta: '' },
-  { number: 5, title: "The Weakest Hunter", pages: 44, size: "12.1 MB", downloading: false, progress: 0, status: 'not_downloaded', downloadedPages: 0, speed: '', eta: '' },
+  {
+    number: 1,
+    title: "I'm the Only One Who Knows the End",
+    pages: 45,
+    size: "12.3 MB",
+    downloading: false,
+    progress: 0,
+    status: "downloaded",
+    downloadedPages: 45,
+    speed: "",
+    eta: "",
+  },
+  {
+    number: 2,
+    title: "If I Don't Get Stronger, I'll Die",
+    pages: 38,
+    size: "9.8 MB",
+    downloading: false,
+    progress: 0,
+    status: "not_downloaded",
+    downloadedPages: 0,
+    speed: "",
+    eta: "",
+  },
+  {
+    number: 3,
+    title: "It's Like a Game",
+    pages: 42,
+    size: "11.2 MB",
+    downloading: false,
+    progress: 0,
+    status: "error",
+    downloadedPages: 0,
+    speed: "",
+    eta: "",
+  },
+  {
+    number: 4,
+    title: "I Hate Hospitals",
+    pages: 40,
+    size: "10.5 MB",
+    downloading: false,
+    progress: 0,
+    status: "not_downloaded",
+    downloadedPages: 0,
+    speed: "",
+    eta: "",
+  },
+  {
+    number: 5,
+    title: "The Weakest Hunter",
+    pages: 44,
+    size: "12.1 MB",
+    downloading: false,
+    progress: 0,
+    status: "not_downloaded",
+    downloadedPages: 0,
+    speed: "",
+    eta: "",
+  },
 ]);
 
 // Intervals
@@ -431,7 +686,7 @@ let chapterIntervals = new Map();
 
 // Computed
 const estimatedTime = computed(() => {
-  if (!bulkDownloading.value || progress.value === 0) return '--';
+  if (!bulkDownloading.value || progress.value === 0) return "--";
   const remainingProgress = 100 - progress.value;
   const timePerPercent = 200; // ms per percent (simulated)
   const remainingTime = (remainingProgress * timePerPercent) / 1000;
@@ -453,7 +708,9 @@ const startBulkDownload = () => {
 
   bulkInterval = setInterval(() => {
     progress.value += Math.random() * 3 + 1; // Random progress increment
-    completedChapters.value = Math.floor((progress.value / 100) * totalChapters.value);
+    completedChapters.value = Math.floor(
+      (progress.value / 100) * totalChapters.value,
+    );
 
     if (progress.value >= 100) {
       progress.value = 100;
@@ -483,12 +740,14 @@ const startChapterDownload = (index = null) => {
     chapter.downloading = true;
     chapter.progress = 0;
     chapter.downloadedPages = 0;
-    chapter.speed = '1.2 MB/s';
-    chapter.eta = '30s';
+    chapter.speed = "1.2 MB/s";
+    chapter.eta = "30s";
 
     const interval = setInterval(() => {
       chapter.progress += Math.random() * 4 + 2;
-      chapter.downloadedPages = Math.floor((chapter.progress / 100) * chapter.pages);
+      chapter.downloadedPages = Math.floor(
+        (chapter.progress / 100) * chapter.pages,
+      );
 
       // Update ETA
       const remainingProgress = 100 - chapter.progress;
@@ -499,9 +758,9 @@ const startChapterDownload = (index = null) => {
         chapter.progress = 100;
         chapter.downloadedPages = chapter.pages;
         chapter.downloading = false;
-        chapter.status = 'downloaded';
-        chapter.speed = '';
-        chapter.eta = '';
+        chapter.status = "downloaded";
+        chapter.speed = "";
+        chapter.eta = "";
         clearInterval(interval);
         chapterIntervals.delete(index);
       }
@@ -518,7 +777,9 @@ const startChapterDownload = (index = null) => {
     chapterDownloading.value = true;
 
     // Start downloading first non-downloaded chapter
-    const firstChapter = testChapters.value.find(ch => ch.status !== 'downloaded' && !ch.downloading);
+    const firstChapter = testChapters.value.find(
+      (ch) => ch.status !== "downloaded" && !ch.downloading,
+    );
     if (firstChapter) {
       const index = testChapters.value.indexOf(firstChapter);
       startChapterDownload(index);
@@ -533,8 +794,8 @@ const stopChapterDownload = (index = null) => {
     chapter.downloading = false;
     chapter.progress = 0;
     chapter.downloadedPages = 0;
-    chapter.speed = '';
-    chapter.eta = '';
+    chapter.speed = "";
+    chapter.eta = "";
 
     if (chapterIntervals.has(index)) {
       clearInterval(chapterIntervals.get(index));
@@ -561,17 +822,17 @@ const resetAll = () => {
   // Reset test chapters
   testChapters.value.forEach((chapter, index) => {
     if (index === 0) {
-      chapter.status = 'downloaded';
+      chapter.status = "downloaded";
     } else if (index === 2) {
-      chapter.status = 'error';
+      chapter.status = "error";
     } else {
-      chapter.status = 'not_downloaded';
+      chapter.status = "not_downloaded";
     }
     chapter.downloading = false;
     chapter.progress = 0;
     chapter.downloadedPages = index === 0 ? chapter.pages : 0;
-    chapter.speed = '';
-    chapter.eta = '';
+    chapter.speed = "";
+    chapter.eta = "";
   });
 };
 

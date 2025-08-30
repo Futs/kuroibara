@@ -24,7 +24,8 @@ import NotFound from "../views/NotFound.vue";
 
 // Route Guards
 const requireAuth = (to, from, next) => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   if (token) {
     next();
   } else {

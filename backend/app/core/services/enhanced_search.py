@@ -248,7 +248,9 @@ class EnhancedSearchService:
         """Get existing or create new MangaUpdates entry."""
         # Check if entry exists
         result = await db.execute(
-            select(MangaUpdatesEntry).where(MangaUpdatesEntry.mu_series_id == series_id)
+            select(MangaUpdatesEntry).where(
+                MangaUpdatesEntry.mu_series_id == str(series_id)
+            )
         )
         existing_entry = result.scalars().first()
 
@@ -323,7 +325,7 @@ class EnhancedSearchService:
             logger.info(f"Trying series ID lookup for: {mu_entry_id}")
             result = await db.execute(
                 select(MangaUpdatesEntry).where(
-                    MangaUpdatesEntry.mu_series_id == mu_entry_id
+                    MangaUpdatesEntry.mu_series_id == str(mu_entry_id)
                 )
             )
             mu_entry = result.scalars().first()
@@ -331,7 +333,7 @@ class EnhancedSearchService:
 
             if not mu_entry:
                 # Create new entry from MangaUpdates API using direct series ID
-                logger.info(f"No existing entry found, creating new one")
+                logger.info("No existing entry found, creating new one")
                 from app.core.services.mangaupdates import mangaupdates_service
 
                 try:
@@ -339,7 +341,7 @@ class EnhancedSearchService:
                     series_id = int(mu_entry_id)
                     logger.info(f"Successfully converted to series_id: {series_id}")
 
-                    logger.info(f"Opening mangaupdates_service.api context manager")
+                    logger.info("Opening mangaupdates_service.api context manager")
                     async with mangaupdates_service.api as api:
                         logger.info(f"Context manager opened, API object: {type(api)}")
                         logger.info(

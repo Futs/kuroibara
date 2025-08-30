@@ -572,7 +572,7 @@ def downgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('downloads_pkey'))
     )
     op.create_table('mangaupdates_entries',
-    sa.Column('mu_series_id', sa.INTEGER(), autoincrement=False, nullable=False),
+    sa.Column('mu_series_id', sa.VARCHAR(length=100), autoincrement=False, nullable=False),
     sa.Column('mu_url', sa.VARCHAR(length=500), autoincrement=False, nullable=True),
     sa.Column('title', sa.VARCHAR(length=500), autoincrement=False, nullable=False),
     sa.Column('alternative_titles', postgresql.JSONB(astext_type=sa.Text()), autoincrement=False, nullable=True),

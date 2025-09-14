@@ -87,7 +87,8 @@ class AgentFactory:
             requires_flaresolverr = config.get("requires_flaresolverr", False)
             if requires_flaresolverr and not flaresolverr_url:
                 logger.debug(
-                    f"Skipping {config.get('name', provider_id)} - requires FlareSolverr"
+                    f"Skipping {config.get('name', provider_id)} - "
+                    f"requires FlareSolverr"
                 )
                 return None
 
@@ -166,7 +167,8 @@ class AgentFactory:
 
         except Exception as e:
             logger.error(
-                f"Error creating provider instance for {config.get('name', 'Unknown')}: {e}"
+                f"Error creating provider instance for "
+                f"{config.get('name', 'Unknown')}: {e}"
             )
             return None
 

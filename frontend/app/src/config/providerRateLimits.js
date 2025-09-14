@@ -68,6 +68,16 @@ export const PROVIDER_RATE_LIMITS = {
     description: "ReadManga requires conservative rate limiting",
   },
 
+  // HiperDEX - JavaScript-heavy NSFW site with bot protection
+  hiperdex: {
+    limit: 20, // 20 requests per minute (3 second intervals)
+    windowMs: 60000,
+    burstLimit: 2, // 2 requests per second burst
+    retryAfter: 3000, // 3 second retry delay
+    description:
+      "HiperDEX requires conservative rate limiting due to JavaScript content and bot protection",
+  },
+
   // Generic fallback for unknown providers
   default: {
     limit: 30, // Conservative default
@@ -136,6 +146,14 @@ export const PROVIDER_DOWNLOAD_SETTINGS = {
     pageDelay: 300,
     retryAttempts: 3,
     timeout: 45000,
+  },
+
+  hiperdex: {
+    maxConcurrentDownloads: 1, // Conservative for JavaScript-heavy site
+    chapterDelay: 3000, // 3 seconds between chapters
+    pageDelay: 1000, // 1 second between pages
+    retryAttempts: 3,
+    timeout: 60000, // Longer timeout for JavaScript execution
   },
 
   default: {

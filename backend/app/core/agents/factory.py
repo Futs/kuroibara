@@ -13,6 +13,8 @@ from typing import Any, Dict, List, Optional, Type
 from app.core.providers.base import BaseProvider
 from app.core.providers.enhanced_generic import EnhancedGenericProvider
 from app.core.providers.generic import GenericProvider
+from app.core.providers.hiperdex import HiperDexProvider
+from app.core.providers.javascript_provider import JavaScriptProvider
 from app.core.providers.madaradex import MadaraDexProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangapill import MangaPillProvider
@@ -46,6 +48,8 @@ class AgentFactory:
                 "MangaSailProvider": MangaSailProvider,
                 "GenericProvider": GenericProvider,
                 "EnhancedGenericProvider": EnhancedGenericProvider,
+                "JavaScriptProvider": JavaScriptProvider,
+                "HiperDexProvider": HiperDexProvider,
             }
         )
 
@@ -127,6 +131,9 @@ class AgentFactory:
                 return provider_class()
             elif provider_id == "mangasail":
                 # MangaSailProvider takes no arguments
+                return provider_class()
+            elif provider_id == "hiperdex":
+                # HiperDexProvider takes no arguments (self-configuring)
                 return provider_class()
             else:
                 # Standard provider initialization

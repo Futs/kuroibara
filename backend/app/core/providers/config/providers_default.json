@@ -392,5 +392,18 @@
       "chapter_selector": "li.list-group-item",
       "page_selector": "img[src*='mghcdn.com']"
     }
+  },
+  {
+    "id": "hiperdex",
+    "name": "HiperDEX",
+    "class_name": "HiperDexProvider",
+    "supports_nsfw": true,
+    "priority": 10,
+    "use_flaresolverr": true,
+    "requires_flaresolverr": false,
+    "params": {
+      "supports_nsfw": true,
+      "use_flaresolverr": true
+    }
   }
 ]

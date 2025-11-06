@@ -114,6 +114,7 @@ async def import_archive(
             language=language,
             pages_count=len(image_files),
             source="import",
+            download_status="downloaded",  # Mark imported chapters as downloaded
         )
 
         db.add(chapter)
@@ -208,6 +209,7 @@ async def import_directory(
         language=language,
         pages_count=len(image_files),
         source="import",
+        download_status="downloaded",  # Mark imported chapters as downloaded
     )
 
     db.add(chapter)

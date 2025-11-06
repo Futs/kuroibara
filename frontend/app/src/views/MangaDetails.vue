@@ -1362,8 +1362,8 @@ const createUnifiedChapter = (
 
     // Database-specific fields
     download_status:
-      libraryChapter?.download_status ||
       databaseChapter?.download_status ||
+      libraryChapter?.download_status ||
       "not_downloaded",
     file_path: databaseChapter?.file_path || null,
     file_size: databaseChapter?.file_size || null,
@@ -1448,7 +1448,11 @@ const mergeChapterSources = (
 const loadProviderChapters = async () => {
   try {
     if (!manga.value?.provider || !manga.value?.external_id) {
-      console.log("No provider information available");
+      console.log(
+        "No provider information available - manga may be imported or from enhanced search",
+      );
+      // For imported manga, just use database chapters
+      providerChapters.value = [];
       return;
     }
 
@@ -1817,6 +1821,13 @@ const downloadChapter = async (chapter) => {
       provider: manga.value.provider,
     });
 
+    // Check if chapter is already downloaded
+    if (chapter.download_status === "downloaded") {
+      throw new Error(
+        "Chapter is already downloaded. Use 'Re-download' if you want to download it again.",
+      );
+    }
+
     // For unified chapters, always use the database chapter ID if available
     // The external_id should be used for provider communication
     const chapterIdToUse = chapter.has_database_entry ? chapter.id : null;
@@ -2015,6 +2026,23 @@ const deleteChapter = async (chapter) => {
 const refreshMangaDetails = async () => {
   await fetchMangaDetails();
   if (!isExternal.value && inLibrary.value) {
+    // Sync download status from filesystem
+    try {
+      const syncResult = await api.post(
+        `/v1/manga/${manga.value.id}/sync-download-status`,
+      );
+      console.log("Download status synced:", syncResult.data);
+      if (syncResult.data.updated > 0) {
+        console.log(
+          `Updated ${syncResult.data.updated} chapters to correct download status`,
+        );
+      }
+    } catch (error) {
+      console.error("Error syncing download status:", error);
+      // Don't fail the whole refresh if sync fails
+    }
+
+    await loadLibraryItemDetails();
     await loadProviderChapters();
   }
 };
@@ -2043,9 +2071,33 @@ const manualRefreshChapters = async () => {
 
   isRefreshing.value = true;
   try {
+    // First, sync download status from filesystem
+    if (manga.value?.id) {
+      try {
+        const syncResult = await api.post(
+          `/v1/manga/${manga.value.id}/sync-download-status`,
+        );
+        console.log("Download status synced:", syncResult.data);
+        if (syncResult.data.updated > 0) {
+          console.log(
+            `✅ Updated ${syncResult.data.updated} chapters to correct download status`,
+          );
+        }
+      } catch (error) {
+        console.error("Error syncing download status:", error);
+        // Don't fail the whole refresh if sync fails
+      }
+    }
+
+    // Then refresh provider chapters
     const previousCount = providerChapters.value.length;
     await loadProviderChapters();
     const newCount = providerChapters.value.length;
+
+    // Reload library item details to get updated download status
+    if (!isExternal.value && inLibrary.value) {
+      await loadLibraryItemDetails();
+    }
 
     lastUpdateTime.value = new Date();
 
@@ -2158,7 +2210,12 @@ const discoverAlternatives = async () => {
       manga.value.id,
     );
 
-    if (result.discovered_count > 0) {
+    // Check if it was queued as a background task
+    if (result.status === "queued") {
+      alert(
+        `🔄 Alternative discovery has been queued as a background task.\n\nThis will process ${result.total_chapters} chapters and may take several minutes.\n\nYou can continue using the app while this runs in the background.`,
+      );
+    } else if (result.discovered_count > 0) {
       alert(
         `✅ Success! Discovered alternatives for ${result.discovered_count} out of ${result.total_chapters} chapters.\n\nDownloads will now automatically use alternative providers when the primary source fails.`,
       );

@@ -3,7 +3,16 @@ import os
 import uuid
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -487,6 +496,90 @@ async def refresh_manga_chapters(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to refresh chapters: {str(e)}",
+        )
+
+
+@router.post("/{manga_id}/sync-download-status")
+async def sync_chapter_download_status(
+    manga_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Sync chapter download status by checking the filesystem.
+    Updates chapters to 'downloaded' if they have files on disk.
+    """
+    manga = await db.get(Manga, uuid.UUID(manga_id))
+    if not manga:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Manga not found",
+        )
+
+    try:
+        # Get all chapters for this manga
+        result = await db.execute(
+            select(Chapter).where(Chapter.manga_id == uuid.UUID(manga_id))
+        )
+        chapters = result.scalars().all()
+
+        updated_count = 0
+        already_correct = 0
+
+        for chapter in chapters:
+            # Check if chapter has a file_path
+            if chapter.file_path and os.path.exists(chapter.file_path):
+                # Check if directory has image files
+                image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+                has_images = False
+
+                if os.path.isdir(chapter.file_path):
+                    for file in os.listdir(chapter.file_path):
+                        if any(file.lower().endswith(ext) for ext in image_extensions):
+                            has_images = True
+                            break
+
+                # Update status if needed
+                if has_images and chapter.download_status != "downloaded":
+                    chapter.download_status = "downloaded"
+                    updated_count += 1
+                    logger.info(
+                        f"Updated chapter {chapter.number} to downloaded status"
+                    )
+                elif has_images and chapter.download_status == "downloaded":
+                    already_correct += 1
+                elif not has_images and chapter.download_status == "downloaded":
+                    # Directory exists but no images - mark as error
+                    chapter.download_status = "error"
+                    chapter.download_error = "Chapter directory exists but contains no images"
+                    updated_count += 1
+                    logger.warning(
+                        f"Chapter {chapter.number} directory exists but has no images"
+                    )
+            elif chapter.file_path and not os.path.exists(chapter.file_path):
+                # File path set but doesn't exist - mark as error
+                if chapter.download_status == "downloaded":
+                    chapter.download_status = "error"
+                    chapter.download_error = "Chapter files not found on disk"
+                    updated_count += 1
+                    logger.warning(
+                        f"Chapter {chapter.number} marked as downloaded but files not found"
+                    )
+
+        await db.commit()
+
+        return {
+            "message": f"Synced download status for {manga.title}",
+            "total_chapters": len(chapters),
+            "updated": updated_count,
+            "already_correct": already_correct,
+        }
+
+    except Exception as e:
+        logger.error(f"Error syncing chapter download status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync download status: {str(e)}",
         )
 
 
@@ -1115,11 +1208,13 @@ async def download_chapter_from_specific_provider(
 @router.post("/{manga_id}/discover-alternatives")
 async def discover_chapter_alternatives(
     manga_id: str,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """
     Discover and store alternative sources for all chapters in a manga.
+    This is a background task that may take several minutes for large manga.
     """
     try:
         # Get manga
@@ -1136,52 +1231,82 @@ async def discover_chapter_alternatives(
         )
         chapters = result.scalars().all()
 
-        discovered_count = 0
+        if not chapters:
+            return {
+                "message": "No chapters found for this manga",
+                "discovered_count": 0,
+                "total_chapters": 0,
+                "status": "completed",
+            }
 
-        for chapter in chapters:
-            try:
-                # Find alternatives for this chapter with optimized settings
-                alternatives = (
-                    await provider_matching_service.find_chapter_alternatives(
-                        manga_title=manga.title,
-                        chapter_number=chapter.number,
-                        original_provider=manga.provider or "mangadex",
-                        max_alternatives=2,  # Reduced for speed
-                        timeout_per_provider=8,  # 8 second timeout per provider
-                        max_providers_to_search=6,  # Only search top 6 providers
-                    )
-                )
+        # For small number of chapters (< 10), process immediately
+        if len(chapters) < 10:
+            discovered_count = 0
 
-                if alternatives:
-                    # Store provider external IDs
-                    if not chapter.provider_external_ids:
-                        chapter.provider_external_ids = {}
-
-                    # Store fallback providers
-                    fallback_providers = []
-
-                    for alt in alternatives:
-                        chapter.provider_external_ids[alt.provider_name.lower()] = (
-                            alt.external_chapter_id
+            for chapter in chapters:
+                try:
+                    # Find alternatives for this chapter with optimized settings
+                    alternatives = (
+                        await provider_matching_service.find_chapter_alternatives(
+                            manga_title=manga.title,
+                            chapter_number=chapter.number,
+                            original_provider=manga.provider or "mangadex",
+                            max_alternatives=2,  # Reduced for speed
+                            timeout_per_provider=5,  # 5 second timeout per provider
+                            max_providers_to_search=4,  # Only search top 4 providers
                         )
-                        fallback_providers.append(alt.provider_name)
+                    )
 
-                    chapter.fallback_providers = fallback_providers
-                    discovered_count += 1
+                    if alternatives:
+                        # Store provider external IDs
+                        if not chapter.provider_external_ids:
+                            chapter.provider_external_ids = {}
 
-            except Exception as e:
-                logger.warning(
-                    f"Error discovering alternatives for chapter {chapter.id}: {e}"
-                )
-                continue
+                        # Store fallback providers
+                        fallback_providers = []
 
-        await db.commit()
+                        for alt in alternatives:
+                            chapter.provider_external_ids[
+                                alt.provider_name.lower()
+                            ] = alt.external_chapter_id
+                            fallback_providers.append(alt.provider_name)
 
-        return {
-            "message": f"Discovered alternatives for {discovered_count} chapters",
-            "discovered_count": discovered_count,
-            "total_chapters": len(chapters),
-        }
+                        chapter.fallback_providers = fallback_providers
+                        discovered_count += 1
+
+                except Exception as e:
+                    logger.warning(
+                        f"Error discovering alternatives for chapter {chapter.id}: {e}"
+                    )
+                    continue
+
+            await db.commit()
+
+            return {
+                "message": f"Discovered alternatives for {discovered_count} chapters",
+                "discovered_count": discovered_count,
+                "total_chapters": len(chapters),
+                "status": "completed",
+            }
+
+        # For large number of chapters, queue as background task
+        else:
+            # Add background task
+            from app.core.services.background import discover_alternatives_task
+
+            background_tasks.add_task(
+                discover_alternatives_task,
+                manga_id=uuid.UUID(manga_id),
+                manga_title=manga.title,
+                provider=manga.provider or "mangadex",
+            )
+
+            return {
+                "message": f"Alternative discovery queued for {len(chapters)} chapters. This may take several minutes.",
+                "discovered_count": 0,
+                "total_chapters": len(chapters),
+                "status": "queued",
+            }
 
     except Exception as e:
         logger.error(f"Error discovering chapter alternatives: {e}")

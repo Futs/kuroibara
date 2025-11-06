@@ -32,6 +32,7 @@ cover/
 venv/
 ENV/
 env/
+temp/
 
 # IDE
 .idea/

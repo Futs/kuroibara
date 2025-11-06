@@ -17,13 +17,15 @@ import ReadingLists from "../views/ReadingLists.vue";
 import Providers from "../views/Providers.vue";
 import Settings from "../views/Settings.vue";
 import Downloads from "../views/Downloads.vue";
+import Monitoring from "../views/Monitoring.vue";
 // import ProgressTestPage from "../views/dev/ProgressTestPage.vue";
 
 import NotFound from "../views/NotFound.vue";
 
 // Route Guards
 const requireAuth = (to, from, next) => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   if (token) {
     next();
   } else {
@@ -119,6 +121,12 @@ const routes = [
         path: "downloads",
         name: "downloads",
         component: Downloads,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: "monitoring",
+        name: "monitoring",
+        component: Monitoring,
         beforeEnter: requireAuth,
       },
       // {

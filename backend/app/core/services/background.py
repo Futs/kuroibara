@@ -361,3 +361,96 @@ def update_download_task_status(task_id: str, status: str) -> bool:
         return True
 
     return False
+
+
+async def discover_alternatives_task(
+    manga_id: UUID,
+    manga_title: str,
+    provider: str,
+) -> None:
+    """
+    Background task to discover alternative sources for all chapters in a manga.
+
+    Args:
+        manga_id: The ID of the manga
+        manga_title: The title of the manga
+        provider: The original provider name
+    """
+    from app.core.services.provider_matching import provider_matching_service
+    from app.models.manga import Chapter
+
+    logger.info(f"Starting alternative discovery for manga {manga_id} ({manga_title})")
+
+    try:
+        # Create a new database session
+        async with AsyncSessionLocal() as db:
+            # Get all chapters
+            from sqlalchemy import select
+
+            result = await db.execute(
+                select(Chapter).where(Chapter.manga_id == manga_id)
+            )
+            chapters = result.scalars().all()
+
+            discovered_count = 0
+            total_chapters = len(chapters)
+
+            logger.info(f"Discovering alternatives for {total_chapters} chapters")
+
+            for idx, chapter in enumerate(chapters, 1):
+                try:
+                    logger.info(
+                        f"Processing chapter {idx}/{total_chapters}: {chapter.number}"
+                    )
+
+                    # Find alternatives for this chapter with optimized settings
+                    alternatives = (
+                        await provider_matching_service.find_chapter_alternatives(
+                            manga_title=manga_title,
+                            chapter_number=chapter.number,
+                            original_provider=provider,
+                            max_alternatives=2,  # Reduced for speed
+                            timeout_per_provider=5,  # 5 second timeout per provider
+                            max_providers_to_search=4,  # Only search top 4 providers
+                        )
+                    )
+
+                    if alternatives:
+                        # Store provider external IDs
+                        if not chapter.provider_external_ids:
+                            chapter.provider_external_ids = {}
+
+                        # Store fallback providers
+                        fallback_providers = []
+
+                        for alt in alternatives:
+                            chapter.provider_external_ids[alt.provider_name.lower()] = (
+                                alt.external_chapter_id
+                            )
+                            fallback_providers.append(alt.provider_name)
+
+                        chapter.fallback_providers = fallback_providers
+                        discovered_count += 1
+
+                        logger.info(
+                            f"Found {len(alternatives)} alternatives for chapter {chapter.number}"
+                        )
+                    else:
+                        logger.info(
+                            f"No alternatives found for chapter {chapter.number}"
+                        )
+
+                except Exception as e:
+                    logger.warning(
+                        f"Error discovering alternatives for chapter {chapter.id}: {e}"
+                    )
+                    continue
+
+            await db.commit()
+
+            logger.info(
+                f"Alternative discovery completed: {discovered_count}/{total_chapters} chapters"
+            )
+
+    except Exception as e:
+        logger.error(f"Error in discover_alternatives_task: {e}", exc_info=True)

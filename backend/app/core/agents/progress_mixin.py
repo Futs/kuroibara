@@ -6,15 +6,10 @@ automatically emit progress events during operations.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
-from uuid import uuid4
+from typing import Any, Dict, Optional
 
 from ..progress import (
     OperationType,
-    ProgressEvent,
-    ProgressEventType,
-    ProgressOperation,
-    ProgressStatus,
     progress_tracker,
 )
 
@@ -89,8 +84,10 @@ class ProgressAwareMixin:
                 "started_by": getattr(self, "name", "unknown"),
             }
 
+            agent_name = getattr(self, "name", "unknown")
             logger.debug(
-                f"Started progress operation {operation_name} ({operation_id}) for agent {getattr(self, 'name', 'unknown')}"
+                f"Started progress operation {operation_name} ({operation_id}) "
+                f"for agent {agent_name}"
             )
             return operation_id
 

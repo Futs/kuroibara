@@ -22,10 +22,10 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
-    "axios": "^1.11.0",
+    "axios": "^1.12.0",
     "lodash-es": "^4.17.21",
     "pinia": "^3.0.3",
-    "vue": "^3.5.17",
+    "vue": "^3.5.20",
     "vue-router": "^4.5.1",
     "vuedraggable": "^4.1.0"
   },

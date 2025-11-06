@@ -5,7 +5,8 @@ import router from "../router";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
-    token: localStorage.getItem("token") || sessionStorage.getItem("token") || null,
+    token:
+      localStorage.getItem("token") || sessionStorage.getItem("token") || null,
     loading: false,
     error: null,
   }),
@@ -183,7 +184,8 @@ export const useAuthStore = defineStore("auth", {
 
     initAuth() {
       // Re-read token from storage in case it was set in another tab
-      const storedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const storedToken =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
 
       // Update token if it's different from what's in storage
       if (storedToken && storedToken !== this.token) {

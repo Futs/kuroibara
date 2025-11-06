@@ -12,9 +12,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Set
 from uuid import uuid4
 
-from fastapi import WebSocket, WebSocketDisconnect
-
-from .events import ProgressEvent, ProgressOperation
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 

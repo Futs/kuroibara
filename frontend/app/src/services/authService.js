@@ -39,7 +39,10 @@ class AuthService {
     const cached = this.tokenValidationCache.get(cacheKey);
 
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-      console.log("AuthService: Using cached validation result:", cached.isValid);
+      console.log(
+        "AuthService: Using cached validation result:",
+        cached.isValid,
+      );
       return cached.isValid;
     }
 
@@ -63,7 +66,11 @@ class AuthService {
 
       return true;
     } catch (error) {
-      console.log("AuthService: Token validation failed:", error.response?.status, error.message);
+      console.log(
+        "AuthService: Token validation failed:",
+        error.response?.status,
+        error.message,
+      );
 
       // Cache failed validation (shorter cache time for failed validations)
       this.tokenValidationCache.set(cacheKey, {
@@ -121,13 +128,13 @@ class AuthService {
    */
   getCachedValidation(token = null) {
     const tokenToCheck = token || this.getToken();
-    
+
     if (!tokenToCheck) {
       return null;
     }
 
     const cached = this.tokenValidationCache.get(tokenToCheck);
-    
+
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return cached.isValid;
     }

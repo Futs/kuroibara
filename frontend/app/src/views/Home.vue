@@ -53,7 +53,10 @@
                   Access your manga collection.
                 </p>
                 <div class="mt-4">
-                  <router-link to="/library" class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150">
+                  <router-link
+                    to="/library"
+                    class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150"
+                  >
                     Go to Library
                   </router-link>
                 </div>
@@ -69,7 +72,10 @@
                   Search for new manga from various providers.
                 </p>
                 <div class="mt-4">
-                  <router-link to="/search" class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150">
+                  <router-link
+                    to="/search"
+                    class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150"
+                  >
                     Search
                   </router-link>
                 </div>
@@ -85,7 +91,10 @@
                   Organize your manga into custom reading lists.
                 </p>
                 <div class="mt-4">
-                  <router-link to="/reading-lists" class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150">
+                  <router-link
+                    to="/reading-lists"
+                    class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150"
+                  >
                     View Lists
                   </router-link>
                 </div>

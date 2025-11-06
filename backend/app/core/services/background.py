@@ -379,9 +379,7 @@ async def discover_alternatives_task(
     from app.core.services.provider_matching import provider_matching_service
     from app.models.manga import Chapter
 
-    logger.info(
-        f"Starting alternative discovery for manga {manga_id} ({manga_title})"
-    )
+    logger.info(f"Starting alternative discovery for manga {manga_id} ({manga_title})")
 
     try:
         # Create a new database session
@@ -426,9 +424,9 @@ async def discover_alternatives_task(
                         fallback_providers = []
 
                         for alt in alternatives:
-                            chapter.provider_external_ids[
-                                alt.provider_name.lower()
-                            ] = alt.external_chapter_id
+                            chapter.provider_external_ids[alt.provider_name.lower()] = (
+                                alt.external_chapter_id
+                            )
                             fallback_providers.append(alt.provider_name)
 
                         chapter.fallback_providers = fallback_providers

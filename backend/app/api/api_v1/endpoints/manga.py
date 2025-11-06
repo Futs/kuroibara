@@ -551,7 +551,9 @@ async def sync_chapter_download_status(
                 elif not has_images and chapter.download_status == "downloaded":
                     # Directory exists but no images - mark as error
                     chapter.download_status = "error"
-                    chapter.download_error = "Chapter directory exists but contains no images"
+                    chapter.download_error = (
+                        "Chapter directory exists but contains no images"
+                    )
                     updated_count += 1
                     logger.warning(
                         f"Chapter {chapter.number} directory exists but has no images"
@@ -1266,9 +1268,9 @@ async def discover_chapter_alternatives(
                         fallback_providers = []
 
                         for alt in alternatives:
-                            chapter.provider_external_ids[
-                                alt.provider_name.lower()
-                            ] = alt.external_chapter_id
+                            chapter.provider_external_ids[alt.provider_name.lower()] = (
+                                alt.external_chapter_id
+                            )
                             fallback_providers.append(alt.provider_name)
 
                         chapter.fallback_providers = fallback_providers

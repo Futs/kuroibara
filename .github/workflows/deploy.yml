@@ -133,21 +133,7 @@ jobs:
           # Run all migrations from scratch to create database schema
           alembic upgrade head
           # Initialize default data
-          python -c "
-          import asyncio
-          import sys
-          sys.path.append('.')
-          from app.db.init_db import create_initial_data
-          from app.db.session import AsyncSessionLocal
-
-          async def init_data():
-              async with AsyncSessionLocal() as session:
-                  await create_initial_data(session)
-                  await session.commit()
-                  print('✅ Initial data created successfully')
-
-          asyncio.run(init_data())
-          "
+          python scripts/init_ci_db.py
         env:
           DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
           SECRET_KEY: test-secret-key-for-ci-1234567890abcdef

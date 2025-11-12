@@ -301,9 +301,17 @@ export const useLibraryStore = defineStore("library", {
         await api.post("/v1/library", { manga_id: mangaId });
         await this.fetchLibrary();
       } catch (error) {
-        this.error =
-          error.response?.data?.detail || "Failed to add manga to library";
-        console.error("Add to library error:", error);
+        const errorDetail = error.response?.data?.detail;
+
+        // Handle detailed duplicate error response
+        if (typeof errorDetail === "object" && errorDetail.message) {
+          this.error = `${errorDetail.message} ${errorDetail.suggestion}`;
+          console.error("Duplicate manga in library:", errorDetail);
+        } else {
+          this.error = errorDetail || "Failed to add manga to library";
+          console.error("Add to library error:", error);
+        }
+
         throw error; // Re-throw so calling code can handle it
       } finally {
         this.loading = false;
@@ -934,6 +942,56 @@ export const useLibraryStore = defineStore("library", {
       } catch (error) {
         console.error("Error importing library:", error);
         return false;
+      }
+    },
+
+    async getChapterAlternatives(mangaId, chapterId) {
+      try {
+        const response = await api.get(
+          `/v1/manga/${mangaId}/chapters/${chapterId}/alternatives`,
+        );
+        return response.data;
+      } catch (error) {
+        console.error("Error getting chapter alternatives:", error);
+        throw error;
+      }
+    },
+
+    async downloadChapterFromProvider(
+      mangaId,
+      chapterId,
+      providerName,
+      externalMangaId,
+      externalChapterId,
+    ) {
+      try {
+        const response = await api.post(
+          `/v1/manga/${mangaId}/chapters/${chapterId}/download-from-provider`,
+          {
+            provider_name: providerName,
+            external_manga_id: externalMangaId,
+            external_chapter_id: externalChapterId,
+          },
+        );
+        return response.data;
+      } catch (error) {
+        console.error(
+          "Error downloading chapter from specific provider:",
+          error,
+        );
+        throw error;
+      }
+    },
+
+    async discoverChapterAlternatives(mangaId) {
+      try {
+        const response = await api.post(
+          `/v1/manga/${mangaId}/discover-alternatives`,
+        );
+        return response.data;
+      } catch (error) {
+        console.error("Error discovering chapter alternatives:", error);
+        throw error;
       }
     },
   },

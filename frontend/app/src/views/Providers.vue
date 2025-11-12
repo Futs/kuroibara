@@ -479,8 +479,23 @@ const addToLibrary = async (manga) => {
     alert(`Successfully added "${manga.title}" to your library!`);
   } catch (error) {
     console.error("Error adding manga to library:", error);
-    const errorMessage =
-      error.response?.data?.detail || error.message || "Unknown error";
+
+    // Handle detailed error response (like duplicate manga)
+    const errorDetail = error.response?.data?.detail;
+    let errorMessage = "Unknown error";
+
+    if (typeof errorDetail === "object" && errorDetail.message) {
+      // Handle structured error response (duplicate manga)
+      errorMessage =
+        `${errorDetail.message} ${errorDetail.suggestion || ""}`.trim();
+    } else if (typeof errorDetail === "string") {
+      // Handle simple string error
+      errorMessage = errorDetail;
+    } else if (error.message) {
+      // Fallback to error message
+      errorMessage = error.message;
+    }
+
     alert(`Failed to add "${manga.title}" to library: ${errorMessage}`);
   }
 };

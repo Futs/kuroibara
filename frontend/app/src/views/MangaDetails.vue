@@ -252,32 +252,61 @@
               </button>
 
               <!-- Download All (only for library items) -->
-              <button
+              <div
                 v-if="
                   !isExternal &&
                   inLibrary &&
                   manga.provider &&
                   manga.external_id
                 "
-                @click="downloadManga"
-                class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                class="space-y-2"
               >
-                <svg
-                  class="h-5 w-5 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                <button
+                  @click="downloadManga"
+                  :disabled="bulkDownloadProgress.isDownloading"
+                  class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-                Download All
-              </button>
+                  <svg
+                    class="h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  {{
+                    bulkDownloadProgress.isDownloading
+                      ? "Downloading..."
+                      : "Download All"
+                  }}
+                </button>
+
+                <!-- Progress Bar (Example B Style) -->
+                <div
+                  v-if="bulkDownloadProgress.isDownloading"
+                  class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2"
+                >
+                  <div
+                    class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                    :style="{ width: `${bulkDownloadProgress.progress}%` }"
+                  ></div>
+                </div>
+                <div
+                  v-if="bulkDownloadProgress.isDownloading"
+                  class="text-xs text-gray-600 dark:text-gray-400 text-center"
+                >
+                  {{ bulkDownloadProgress.completedChapters }}/{{
+                    bulkDownloadProgress.totalChapters
+                  }}
+                  chapters • {{ Math.round(bulkDownloadProgress.progress) }}%
+                </div>
+              </div>
 
               <!-- Import Files (only for library items) -->
               <button
@@ -420,6 +449,49 @@
               ></div>
             </div>
 
+            <!-- Provider Rate Limit Status -->
+            <div
+              v-if="rateLimitStatus && rateLimitStatus.is_rate_limited"
+              class="mt-4"
+            >
+              <div
+                class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4"
+              >
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg
+                      class="h-5 w-5 text-yellow-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3
+                      class="text-sm font-medium text-yellow-800 dark:text-yellow-200"
+                    >
+                      {{ rateLimitStatus.provider_name }} Rate Limited
+                    </h3>
+                    <div
+                      class="mt-2 text-sm text-yellow-700 dark:text-yellow-300"
+                    >
+                      <p>
+                        Downloads are temporarily limited. Please wait
+                        {{ formatTime(rateLimitStatus.seconds_remaining) }}
+                        before trying again.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Chapters -->
             <div
               v-if="
@@ -513,6 +585,37 @@
                       />
                     </svg>
                     {{ isRefreshing ? "Refreshing..." : "Refresh" }}
+                  </button>
+
+                  <!-- Discover Alternatives Button -->
+                  <button
+                    v-if="!isExternal && inLibrary"
+                    @click="discoverAlternatives"
+                    :disabled="isDiscoveringAlternatives"
+                    class="inline-flex items-center px-3 py-1 border border-blue-300 dark:border-blue-600 text-sm leading-4 font-medium rounded-md text-blue-700 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 mr-3"
+                    title="Find alternative sources for chapters"
+                  >
+                    <svg
+                      :class="[
+                        'w-4 h-4 mr-1',
+                        isDiscoveringAlternatives ? 'animate-spin' : '',
+                      ]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    {{
+                      isDiscoveringAlternatives
+                        ? "Discovering..."
+                        : "Find Alternatives"
+                    }}
                   </button>
 
                   <label
@@ -733,10 +836,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useLibraryStore } from "../stores/library";
 import { useSettingsStore } from "../stores/settings";
+import { useDownloadsStore } from "../stores/downloads";
 import EnhancedChapterCard from "../components/EnhancedChapterCard.vue";
 import ChapterFilters from "../components/ChapterFilters.vue";
 import ChapterManagement from "../components/ChapterManagement.vue";
@@ -750,6 +854,7 @@ const route = useRoute();
 const router = useRouter();
 const libraryStore = useLibraryStore();
 const settingsStore = useSettingsStore();
+const downloadsStore = useDownloadsStore();
 
 const mangaId = computed(() => route.params.id);
 const provider = computed(() => route.params.provider);
@@ -774,6 +879,67 @@ const showImportDialog = ref(false);
 const currentPage = ref(1);
 const chaptersPerPage = 10;
 
+// Bulk download progress state
+const bulkDownloadProgress = ref({
+  isDownloading: false,
+  progress: 0,
+  completedChapters: 0,
+  totalChapters: 0,
+  downloadId: null,
+});
+
+// Check for existing bulk download from downloads store
+const activeBulkDownload = computed(() => {
+  const bulkDownloads = Array.from(downloadsStore.bulkDownloads.values());
+  return bulkDownloads.find(
+    (download) =>
+      download.manga_id === mangaId.value &&
+      (download.status === "downloading" || download.status === "queued"),
+  );
+});
+
+// Update local progress from downloads store
+const updateBulkProgressFromStore = () => {
+  const activeBulk = activeBulkDownload.value;
+  if (activeBulk) {
+    bulkDownloadProgress.value = {
+      isDownloading: true,
+      progress: activeBulk.progress || 0,
+      completedChapters: activeBulk.completed_chapters || 0,
+      totalChapters: activeBulk.total_chapters || 0,
+      downloadId: activeBulk.id,
+    };
+  } else {
+    // Check if there's an active download in the activeDownloads
+    const activeDownloads = Array.from(downloadsStore.activeDownloads.values());
+    const mangaBulkDownload = activeDownloads.find(
+      (download) =>
+        download.manga_id === mangaId.value && download.type === "bulk",
+    );
+
+    if (mangaBulkDownload) {
+      bulkDownloadProgress.value = {
+        isDownloading: true,
+        progress: mangaBulkDownload.progress || 0,
+        completedChapters: mangaBulkDownload.completed_chapters || 0,
+        totalChapters: mangaBulkDownload.total_chapters || 0,
+        downloadId: mangaBulkDownload.task_id,
+      };
+    } else {
+      bulkDownloadProgress.value.isDownloading = false;
+    }
+  }
+};
+
+// Watch for changes in downloads store to update bulk progress
+watch(
+  () => [downloadsStore.activeDownloads, downloadsStore.bulkDownloads],
+  () => {
+    updateBulkProgressFromStore();
+  },
+  { deep: true },
+);
+
 // Chapter update settings (from settings store)
 const autoRefreshInterval = computed(
   () => settingsStore.getChapterAutoRefreshInterval,
@@ -792,6 +958,8 @@ const isRefreshing = ref(false);
 const newChaptersCount = ref(0);
 const autoRefreshTimer = ref(null);
 const showUpdateNotification = ref(false);
+const rateLimitStatus = ref(null);
+const isDiscoveringAlternatives = ref(false);
 
 const isNsfw = computed(() => manga.value?.is_nsfw || manga.value?.is_explicit);
 const blurNsfw = computed(() => settingsStore.getNsfwBlur);
@@ -927,11 +1095,17 @@ const availableVolumes = computed(() => {
 });
 
 const sortedEnhancedChapters = computed(() => {
-  if (!libraryItemDetails.value?.chapters) return [];
+  // Use unified chapters if available, fallback to library chapters
+  const chaptersToUse =
+    providerChapters.value?.length > 0
+      ? providerChapters.value
+      : libraryItemDetails.value?.chapters || [];
+
+  if (chaptersToUse.length === 0) return [];
 
   // First deduplicate chapters by number
   const chapterMap = new Map();
-  libraryItemDetails.value.chapters.forEach((chapter) => {
+  chaptersToUse.forEach((chapter) => {
     const chapterNum = chapter.number;
     const existing = chapterMap.get(chapterNum);
 
@@ -1112,6 +1286,8 @@ const fetchMangaDetails = async () => {
     console.error("Error fetching manga details:", err);
   } finally {
     loading.value = false;
+    // Fetch rate limit status after manga details are loaded
+    fetchRateLimitStatus();
   }
 };
 
@@ -1165,10 +1341,118 @@ const loadLibraryItemDetails = async () => {
   }
 };
 
+// Unified Chapter Data Structure
+const createUnifiedChapter = (
+  databaseChapter,
+  providerChapter,
+  libraryChapter,
+) => {
+  // Database chapter is the source of truth for IDs and core data
+  const unified = {
+    // Core identifiers (always from database)
+    id: databaseChapter?.id || null,
+    library_chapter_id: databaseChapter?.id || null,
+
+    // Core metadata (prefer database, fallback to provider)
+    title:
+      databaseChapter?.title || providerChapter?.title || "Unknown Chapter",
+    number: databaseChapter?.number || providerChapter?.number || "Unknown",
+    volume: databaseChapter?.volume || providerChapter?.volume || null,
+    language: databaseChapter?.language || providerChapter?.language || "en",
+
+    // Database-specific fields
+    download_status:
+      databaseChapter?.download_status ||
+      libraryChapter?.download_status ||
+      "not_downloaded",
+    file_path: databaseChapter?.file_path || null,
+    file_size: databaseChapter?.file_size || null,
+    pages_count: databaseChapter?.pages_count || 0,
+    created_at: databaseChapter?.created_at || null,
+    updated_at: databaseChapter?.updated_at || null,
+
+    // Provider-specific fields
+    external_id: databaseChapter?.external_id || providerChapter?.id || null,
+    provider_id: providerChapter?.id || null,
+    provider_url: providerChapter?.url || null,
+    available_on_provider: !!providerChapter,
+
+    // Enhanced fields
+    reading_progress: libraryChapter?.reading_progress || null,
+    publish_at:
+      databaseChapter?.publish_at || providerChapter?.publish_at || null,
+    readable_at:
+      databaseChapter?.readable_at || providerChapter?.readable_at || null,
+
+    // Fallback provider support
+    provider_external_ids: databaseChapter?.provider_external_ids || {},
+    fallback_providers: databaseChapter?.fallback_providers || [],
+
+    // Source tracking
+    source: databaseChapter ? "database" : "provider",
+    has_database_entry: !!databaseChapter,
+    has_provider_entry: !!providerChapter,
+    has_library_entry: !!libraryChapter,
+  };
+
+  return unified;
+};
+
+const mergeChapterSources = (
+  databaseChapters = [],
+  providerChapters = [],
+  libraryChapters = [],
+) => {
+  console.log("Merging chapter sources:", {
+    database: databaseChapters.length,
+    provider: providerChapters.length,
+    library: libraryChapters.length,
+  });
+
+  const unifiedChapters = [];
+  const processedNumbers = new Set();
+
+  // First pass: Process database chapters (primary source)
+  databaseChapters.forEach((dbChapter) => {
+    const libraryChapter = libraryChapters.find((lc) => lc.id === dbChapter.id);
+    const providerChapter = providerChapters.find(
+      (pc) =>
+        pc.external_id === dbChapter.external_id ||
+        pc.id === dbChapter.external_id ||
+        pc.title === dbChapter.title ||
+        pc.number === dbChapter.number,
+    );
+
+    const unified = createUnifiedChapter(
+      dbChapter,
+      providerChapter,
+      libraryChapter,
+    );
+    unifiedChapters.push(unified);
+    processedNumbers.add(dbChapter.number);
+  });
+
+  // Second pass: Add provider-only chapters (not in database)
+  providerChapters.forEach((providerChapter) => {
+    if (!processedNumbers.has(providerChapter.number)) {
+      const unified = createUnifiedChapter(null, providerChapter, null);
+      unifiedChapters.push(unified);
+      processedNumbers.add(providerChapter.number);
+    }
+  });
+
+  console.log("Unified chapters created:", unifiedChapters.length);
+  return unifiedChapters;
+};
+
 const loadProviderChapters = async () => {
   try {
     if (!manga.value?.provider || !manga.value?.external_id) {
-      console.log("No provider information available");
+      console.log(
+        "No provider information available - manga may be imported or from enhanced search",
+      );
+      // For imported manga, just use database chapters
+      providerChapters.value = [];
       return;
     }
 
@@ -1178,22 +1462,29 @@ const loadProviderChapters = async () => {
     );
 
     if (response.data.chapters) {
-      // Enhance chapters with download status
-      const enhancedChapters = response.data.chapters.map((chapter) => {
-        // Check if this chapter exists in library details
-        const libraryChapter = libraryItemDetails.value?.chapters?.find(
-          (lc) => lc.title === chapter.title || lc.number === chapter.number,
-        );
+      // Get all data sources
+      const databaseChapters = manga.value?.chapters || [];
+      const providerChaptersData = response.data.chapters || [];
+      const libraryChapters = libraryItemDetails.value?.chapters || [];
 
-        return {
-          ...chapter,
-          download_status: libraryChapter?.download_status || "not_downloaded",
-          reading_progress: libraryChapter?.reading_progress || null,
-          library_chapter_id: libraryChapter?.id || null,
-        };
+      // Create unified chapters using the merger function
+      const unifiedChapters = mergeChapterSources(
+        databaseChapters,
+        providerChaptersData,
+        libraryChapters,
+      );
+
+      // Store unified chapters
+      providerChapters.value = unifiedChapters;
+
+      console.log("Unified chapters loaded:", {
+        total: unifiedChapters.length,
+        withDatabase: unifiedChapters.filter((c) => c.has_database_entry)
+          .length,
+        withProvider: unifiedChapters.filter((c) => c.has_provider_entry)
+          .length,
+        withLibrary: unifiedChapters.filter((c) => c.has_library_entry).length,
       });
-
-      providerChapters.value = enhancedChapters;
 
       // Update last refresh time
       if (!lastUpdateTime.value) {
@@ -1228,10 +1519,24 @@ const addToLibrary = async () => {
     inLibrary.value = true;
   } catch (err) {
     console.error("Error adding to library:", err);
-    alert(
-      "Failed to add manga to library: " +
-        (err.response?.data?.detail || err.message),
-    );
+
+    // Handle detailed error response (like duplicate manga)
+    const errorDetail = err.response?.data?.detail;
+    let errorMessage = "Failed to add manga to library";
+
+    if (typeof errorDetail === "object" && errorDetail.message) {
+      // Handle structured error response (duplicate manga)
+      errorMessage =
+        `${errorDetail.message} ${errorDetail.suggestion || ""}`.trim();
+    } else if (typeof errorDetail === "string") {
+      // Handle simple string error
+      errorMessage = `Failed to add manga to library: ${errorDetail}`;
+    } else if (err.message) {
+      // Fallback to error message
+      errorMessage = `Failed to add manga to library: ${err.message}`;
+    }
+
+    alert(errorMessage);
   }
 };
 
@@ -1320,12 +1625,15 @@ const downloadVolume = async (volumeData) => {
     // Download all chapters in the volume
     for (const chapter of chaptersToDownload) {
       try {
+        // Determine the correct external chapter ID
+        const externalChapterId = chapter.external_id || chapter.id;
+
         const result = await libraryStore.downloadChapter(
           libraryItemId,
           chapter.library_chapter_id || null,
-          manga.value.provider || "mangadx",
+          manga.value.provider || "mangadex",
           manga.value.external_id || mangaId.value,
-          chapter.id, // Provider chapter ID
+          externalChapterId, // Use the correct external chapter ID
         );
 
         // Track chapter download in bulk download
@@ -1373,12 +1681,15 @@ const retryFailedChapters = async (volumeData) => {
     // Retry failed chapters in the volume
     for (const chapter of volumeData.chapters) {
       if (chapter.download_status === "error") {
+        // Determine the correct external chapter ID
+        const externalChapterId = chapter.external_id || chapter.id;
+
         await libraryStore.downloadChapter(
           libraryItemId,
           chapter.library_chapter_id || null,
-          manga.value.provider || "mangadx",
+          manga.value.provider || "mangadex",
           manga.value.external_id || mangaId.value,
-          chapter.id, // Provider chapter ID
+          externalChapterId, // Use the correct external chapter ID
         );
       }
     }
@@ -1404,17 +1715,44 @@ const downloadManga = async () => {
     }
 
     // Get the library item ID
-    const libraryResponse = await api.get("/v1/library");
-    const libraryItem = libraryResponse.data.items?.find(
-      (item) => item.manga_id === mangaId.value,
-    );
+    const libraryResponse = await api.get("/v1/library", {
+      params: { manga_id: mangaId.value },
+    });
+    const libraryItem = libraryResponse.data.items?.[0];
 
     if (!libraryItem) {
       throw new Error("Manga not found in library");
     }
 
+    // Initialize bulk download progress
+    const totalChapters = manga.value?.chapters?.length || 0;
+    bulkDownloadProgress.value = {
+      isDownloading: true,
+      progress: 0,
+      completedChapters: 0,
+      totalChapters: totalChapters,
+      downloadId: `bulk_${libraryItem.id}_${Date.now()}`,
+    };
+
+    // Import downloads store
+    const { useDownloadsStore } = await import("../stores/downloads");
+    const downloadsStore = useDownloadsStore();
+
+    // Add to downloads store for tracking
+    downloadsStore.addBulkDownload({
+      id: bulkDownloadProgress.value.downloadId,
+      manga_title: manga.value.title,
+      manga_id: mangaId.value,
+      type: "bulk",
+      status: "downloading",
+      progress: 0,
+      total_chapters: totalChapters,
+      completed_chapters: 0,
+      started_at: new Date().toISOString(),
+    });
+
     // Start the download
-    await api.post(
+    const downloadResponse = await api.post(
       `/v1/library/${libraryItem.id}/download`,
       {},
       {
@@ -1425,9 +1763,26 @@ const downloadManga = async () => {
       },
     );
 
+    console.log("Download response:", downloadResponse.data);
+
+    // Update bulk download with real task ID
+    if (downloadResponse.data.task_id) {
+      bulkDownloadProgress.value.downloadId = downloadResponse.data.task_id;
+
+      // Update downloads store with real task ID
+      downloadsStore.updateBulkDownloadProgress(
+        downloadResponse.data.task_id,
+        null,
+        "downloading",
+        0,
+        0,
+      );
+    }
+
     alert("Download started! Check your downloads page for progress.");
   } catch (err) {
     console.error("Error downloading manga:", err);
+    bulkDownloadProgress.value.isDownloading = false;
     alert(
       "Failed to download manga: " +
         (err.response?.data?.detail || err.message),
@@ -1456,25 +1811,48 @@ const downloadChapter = async (chapter) => {
 
     const libraryItemId = libraryResponse.data.items[0].id;
     console.log("Library item ID:", libraryItemId);
-    console.log("Chapter data:", {
+    console.log("Unified chapter data:", {
+      id: chapter.id,
       library_chapter_id: chapter.library_chapter_id,
-      chapter_id: chapter.id,
+      external_id: chapter.external_id,
+      provider_id: chapter.provider_id,
+      source: chapter.source,
+      has_database_entry: chapter.has_database_entry,
       provider: manga.value.provider,
-      external_id: manga.value.external_id,
     });
 
-    // Download the specific chapter
-    // For library chapters, use library_chapter_id if available, otherwise null
-    // Use chapter.id as the external_chapter_id (provider chapter ID)
+    // Check if chapter is already downloaded
+    if (chapter.download_status === "downloaded") {
+      throw new Error(
+        "Chapter is already downloaded. Use 'Re-download' if you want to download it again.",
+      );
+    }
+
+    // For unified chapters, always use the database chapter ID if available
+    // The external_id should be used for provider communication
+    const chapterIdToUse = chapter.has_database_entry ? chapter.id : null;
+    const externalChapterId =
+      chapter.external_id || chapter.provider_id || chapter.id;
+
+    // Only download if we have a database chapter (in library)
+    if (!chapter.has_database_entry) {
+      throw new Error(
+        "Chapter not in library. Please add manga to library first.",
+      );
+    }
+
     const downloadResult = await libraryStore.downloadChapter(
       libraryItemId,
-      chapter.library_chapter_id || null,
-      manga.value.provider || "mangadx",
+      chapterIdToUse, // Use database chapter ID
+      manga.value.provider || "mangadex",
       manga.value.external_id || mangaId.value,
-      chapter.id, // This is the provider chapter ID
+      externalChapterId, // Use the correct external chapter ID
     );
 
     console.log("Download result:", downloadResult);
+
+    // The library store already adds the download to the downloads store
+    // Real progress updates will come from WebSocket connections
 
     // Reload library item details to update download status
     await loadLibraryItemDetails();
@@ -1648,6 +2026,23 @@ const deleteChapter = async (chapter) => {
 const refreshMangaDetails = async () => {
   await fetchMangaDetails();
   if (!isExternal.value && inLibrary.value) {
+    // Sync download status from filesystem
+    try {
+      const syncResult = await api.post(
+        `/v1/manga/${manga.value.id}/sync-download-status`,
+      );
+      console.log("Download status synced:", syncResult.data);
+      if (syncResult.data.updated > 0) {
+        console.log(
+          `Updated ${syncResult.data.updated} chapters to correct download status`,
+        );
+      }
+    } catch (error) {
+      console.error("Error syncing download status:", error);
+      // Don't fail the whole refresh if sync fails
+    }
+
+    await loadLibraryItemDetails();
     await loadProviderChapters();
   }
 };
@@ -1676,9 +2071,33 @@ const manualRefreshChapters = async () => {
 
   isRefreshing.value = true;
   try {
+    // First, sync download status from filesystem
+    if (manga.value?.id) {
+      try {
+        const syncResult = await api.post(
+          `/v1/manga/${manga.value.id}/sync-download-status`,
+        );
+        console.log("Download status synced:", syncResult.data);
+        if (syncResult.data.updated > 0) {
+          console.log(
+            `✅ Updated ${syncResult.data.updated} chapters to correct download status`,
+          );
+        }
+      } catch (error) {
+        console.error("Error syncing download status:", error);
+        // Don't fail the whole refresh if sync fails
+      }
+    }
+
+    // Then refresh provider chapters
     const previousCount = providerChapters.value.length;
     await loadProviderChapters();
     const newCount = providerChapters.value.length;
+
+    // Reload library item details to get updated download status
+    if (!isExternal.value && inLibrary.value) {
+      await loadLibraryItemDetails();
+    }
 
     lastUpdateTime.value = new Date();
 
@@ -1737,8 +2156,103 @@ const goToMediaManagement = () => {
   router.push("/settings?tab=media");
 };
 
+// Format time remaining for rate limit
+const formatTime = (seconds) => {
+  if (seconds < 60) {
+    return `${seconds} seconds`;
+  } else if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+  } else {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours} hour${hours > 1 ? "s" : ""}${minutes > 0 ? ` ${minutes} minute${minutes > 1 ? "s" : ""}` : ""}`;
+  }
+};
+
+// Fetch rate limit status for the provider
+const fetchRateLimitStatus = async () => {
+  if (!manga.value?.provider) return;
+
+  try {
+    const response = await api.get(
+      `/v1/providers/${manga.value.provider}/rate-limit-status`,
+    );
+    rateLimitStatus.value = response.data;
+
+    // If rate limited, set up a timer to refresh the status
+    if (response.data.is_rate_limited && response.data.seconds_remaining > 0) {
+      setTimeout(
+        () => {
+          fetchRateLimitStatus();
+        },
+        Math.min(response.data.seconds_remaining * 1000, 30000),
+      ); // Check again in 30 seconds or when limit expires
+    }
+  } catch (error) {
+    console.error("Error fetching rate limit status:", error);
+    rateLimitStatus.value = null;
+  }
+};
+
+// Discover alternative sources for chapters
+const discoverAlternatives = async () => {
+  if (!manga.value?.id) return;
+
+  isDiscoveringAlternatives.value = true;
+  try {
+    // Show progress message
+    const progressMessage =
+      "Searching across multiple providers for alternative sources...";
+    console.log(progressMessage);
+
+    const result = await libraryStore.discoverChapterAlternatives(
+      manga.value.id,
+    );
+
+    // Check if it was queued as a background task
+    if (result.status === "queued") {
+      alert(
+        `🔄 Alternative discovery has been queued as a background task.\n\nThis will process ${result.total_chapters} chapters and may take several minutes.\n\nYou can continue using the app while this runs in the background.`,
+      );
+    } else if (result.discovered_count > 0) {
+      alert(
+        `✅ Success! Discovered alternatives for ${result.discovered_count} out of ${result.total_chapters} chapters.\n\nDownloads will now automatically use alternative providers when the primary source fails.`,
+      );
+    } else {
+      alert(
+        `ℹ️ No alternatives found for any chapters.\n\nThis might be because:\n• The manga is unique to this provider\n• Chapter titles don't match across providers\n• Alternative providers are currently unavailable`,
+      );
+    }
+
+    // Refresh manga details to show updated chapter info
+    await fetchMangaDetails();
+  } catch (error) {
+    console.error("Error discovering alternatives:", error);
+
+    if (error.message.includes("timeout")) {
+      alert(
+        "⏱️ Discovery timed out. This can happen when providers are slow to respond.\n\nTry again later or the system will automatically discover alternatives during downloads.",
+      );
+    } else {
+      alert("❌ Failed to discover alternatives: " + error.message);
+    }
+  } finally {
+    isDiscoveringAlternatives.value = false;
+  }
+};
+
 onMounted(() => {
   fetchMangaDetails();
+  fetchRateLimitStatus();
+
+  // Initialize downloads store if not already initialized
+  if (!downloadsStore.pollingInterval) {
+    downloadsStore.init();
+  }
+
+  // Update bulk download progress from store
+  updateBulkProgressFromStore();
 
   // Set up auto-refresh after initial load
   setTimeout(() => {

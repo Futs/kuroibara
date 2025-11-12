@@ -45,7 +45,7 @@
             </div>
 
             <div v-else>
-              <div class="card">
+              <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                   Your Library
                 </h2>
@@ -53,7 +53,10 @@
                   Access your manga collection.
                 </p>
                 <div class="mt-4">
-                  <router-link to="/library" class="btn btn-primary">
+                  <router-link
+                    to="/library"
+                    class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150"
+                  >
                     Go to Library
                   </router-link>
                 </div>
@@ -61,7 +64,7 @@
             </div>
 
             <div>
-              <div class="card">
+              <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                   Discover Manga
                 </h2>
@@ -69,7 +72,10 @@
                   Search for new manga from various providers.
                 </p>
                 <div class="mt-4">
-                  <router-link to="/search" class="btn btn-primary">
+                  <router-link
+                    to="/search"
+                    class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150"
+                  >
                     Search
                   </router-link>
                 </div>
@@ -77,7 +83,7 @@
             </div>
 
             <div v-if="isAuthenticated">
-              <div class="card">
+              <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                   Reading Lists
                 </h2>
@@ -85,7 +91,10 @@
                   Organize your manga into custom reading lists.
                 </p>
                 <div class="mt-4">
-                  <router-link to="/reading-lists" class="btn btn-primary">
+                  <router-link
+                    to="/reading-lists"
+                    class="inline-flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-md transition-colors duration-150"
+                  >
                     View Lists
                   </router-link>
                 </div>

@@ -114,6 +114,7 @@ async def import_archive(
             language=language,
             pages_count=len(image_files),
             source="import",
+            download_status="downloaded",  # Mark imported chapters as downloaded
         )
 
         db.add(chapter)
@@ -208,6 +209,7 @@ async def import_directory(
         language=language,
         pages_count=len(image_files),
         source="import",
+        download_status="downloaded",  # Mark imported chapters as downloaded
     )
 
     db.add(chapter)
@@ -387,14 +389,57 @@ async def create_manga_from_external_source(
     Returns:
         The created manga
     """
-    from app.models.manga import Author, Genre, Manga, manga_author, manga_genre
+    from app.models.manga import (
+        Author,
+        Genre,
+        Manga,
+        MangaStatus,
+        MangaType,
+        manga_author,
+        manga_genre,
+    )
+
+    def normalize_status(status_str: str) -> MangaStatus:
+        """Convert status string to proper enum value."""
+        if not status_str:
+            return MangaStatus.UNKNOWN
+
+        status_lower = status_str.lower()
+        if status_lower in ["ongoing", "publishing", "serializing"]:
+            return MangaStatus.ONGOING
+        elif status_lower in ["completed", "finished", "ended", "complete"]:
+            return MangaStatus.COMPLETED
+        elif status_lower in ["hiatus", "on hold", "paused"]:
+            return MangaStatus.HIATUS
+        elif status_lower in ["cancelled", "canceled", "dropped", "discontinued"]:
+            return MangaStatus.CANCELLED
+        else:
+            return MangaStatus.UNKNOWN
+
+    def normalize_type(type_str: str) -> MangaType:
+        """Convert type string to proper enum value."""
+        if not type_str:
+            return MangaType.UNKNOWN
+
+        type_lower = type_str.lower()
+        if type_lower == "manga":
+            return MangaType.MANGA
+        elif type_lower == "manhua":
+            return MangaType.MANHUA
+        elif type_lower == "manhwa":
+            return MangaType.MANHWA
+        elif type_lower == "comic":
+            return MangaType.COMIC
+        else:
+            return MangaType.UNKNOWN
 
     try:
         # Create manga without relationships first
         manga = Manga(
             title=manga_details.get("title", "Unknown Title"),
             description=manga_details.get("description", ""),
-            status=manga_details.get("status", "unknown"),
+            status=normalize_status(manga_details.get("status", "")),
+            type=normalize_type(manga_details.get("type", "")),
             year=manga_details.get("year"),
             provider=provider_name,
             external_id=external_id,
@@ -412,13 +457,20 @@ async def create_manga_from_external_source(
         genres = manga_details.get("genres", [])
         if genres:
             for genre_name in genres:
+                # Truncate genre name to fit database constraint (50 chars max)
+                truncated_genre_name = (
+                    genre_name[:50] if len(genre_name) > 50 else genre_name
+                )
+
                 # Check if genre exists
-                result = await db.execute(select(Genre).where(Genre.name == genre_name))
+                result = await db.execute(
+                    select(Genre).where(Genre.name == truncated_genre_name)
+                )
                 genre = result.scalars().first()
 
                 # Create genre if it doesn't exist
                 if not genre:
-                    genre = Genre(name=genre_name)
+                    genre = Genre(name=truncated_genre_name)
                     db.add(genre)
                     await db.flush()
                     await db.refresh(genre)
@@ -609,9 +661,14 @@ async def _fetch_and_create_chapters(
         for chapter_data in all_chapters:
             try:
                 # Check if chapter already exists
+                # Convert number to string to match database schema
+                chapter_number = chapter_data.get("number", "0")
+                if isinstance(chapter_number, (int, float)):
+                    chapter_number = str(chapter_number)
+
                 existing_chapter = await check_chapter_exists(
                     manga_id=manga_id,
-                    chapter_number=chapter_data.get("number", "0"),
+                    chapter_number=chapter_number,
                     language=chapter_data.get("language", "en"),
                     db=db,
                 )
@@ -643,12 +700,15 @@ async def _fetch_and_create_chapters(
                     readable_at = datetime.utcnow()
 
                 # Create new chapter
+                # Convert number to string to match database schema
+                chapter_number = chapter_data.get("number", "0")
+                if isinstance(chapter_number, (int, float)):
+                    chapter_number = str(chapter_number)
+
                 chapter = Chapter(
                     manga_id=manga_id,
-                    title=chapter_data.get(
-                        "title", f"Chapter {chapter_data.get('number', '0')}"
-                    ),
-                    number=chapter_data.get("number", "0"),
+                    title=chapter_data.get("title", f"Chapter {chapter_number}"),
+                    number=chapter_number,
                     volume=chapter_data.get("volume"),
                     language=chapter_data.get("language", "en"),
                     pages_count=chapter_data.get("pages_count", 0),

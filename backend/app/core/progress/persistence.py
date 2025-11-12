@@ -6,18 +6,16 @@ This module provides database persistence for progress operations and events.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.db.session import AsyncSessionLocal
 from app.models.progress import (
     ProgressEventModel,
     ProgressOperationModel,
-    ProgressSessionModel,
 )
 
 from .events import (

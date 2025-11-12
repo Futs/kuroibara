@@ -1,94 +1,426 @@
-# API Reference
+# Kuroibara API Reference
 
-## Overview
+This document provides a comprehensive reference for all Kuroibara API endpoints, including request/response schemas, authentication requirements, and usage examples.
 
-The Kuroibara API is a RESTful API built with FastAPI, providing comprehensive access to manga search, management, and user functionality. All endpoints are documented with OpenAPI/Swagger.
-
-## Base URLs
-
-- **Development**: `http://localhost:8000/api/v1`
-- **Production**: `https://yourdomain.com/api/v1`
-
-## Interactive Documentation
-
-- **Swagger UI**: `http://localhost:8000/api/docs`
-- **ReDoc**: `http://localhost:8000/api/redoc`
-- **OpenAPI JSON**: `http://localhost:8000/api/openapi.json`
+## Base URL
+```
+http://localhost:8000/api/v1
+```
 
 ## Authentication
+All endpoints require JWT authentication unless otherwise specified.
 
-### JWT Token Authentication
-```bash
-# Login to get access token
-POST /api/v1/auth/login
+```http
+Authorization: Bearer <jwt_token>
+```
+
+---
+
+## API Endpoint Architecture
+
+```mermaid
+graph TB
+    %% API Gateway
+    Client[🌐 Client] --> Gateway[⚡ FastAPI Gateway]
+    Gateway --> Auth[🔐 JWT Middleware]
+
+    %% API Router Groups
+    Auth --> APIv1[🛣️ API Router v1]
+    APIv1 --> AuthGroup[🔐 Authentication]
+    APIv1 --> SearchGroup[🔍 Enhanced Search]
+    APIv1 --> LibraryGroup[📚 Library Management]
+    APIv1 --> TorrentGroup[🌸 Torrent Operations]
+    APIv1 --> HealthGroup[💚 Health Monitoring]
+    APIv1 --> UserGroup[👤 User Management]
+    APIv1 --> DownloadGroup[📥 Download Management]
+
+    %% Authentication Endpoints
+    AuthGroup --> Login[POST /auth/login]
+    AuthGroup --> Register[POST /auth/register]
+    AuthGroup --> Refresh[POST /auth/refresh]
+    AuthGroup --> Logout[POST /auth/logout]
+
+    %% Search Endpoints
+    SearchGroup --> EnhancedSearch[POST /search/enhanced]
+    SearchGroup --> AddFromMU[POST /search/enhanced/add-from-mangaupdates]
+    SearchGroup --> TestIndexer[POST /search/enhanced/test-indexer]
+
+    %% Library Endpoints
+    LibraryGroup --> GetLibrary[GET /library/]
+    LibraryGroup --> AddManga[POST /library/add]
+    LibraryGroup --> UpdateManga[PUT /library/{id}]
+    LibraryGroup --> DeleteManga[DELETE /library/{id}]
+    LibraryGroup --> GetDownloads[GET /library/downloads]
+
+    %% Torrent Endpoints
+    TorrentGroup --> SearchTorrents[GET /torrents/search]
+    TorrentGroup --> DownloadTorrent[POST /torrents/download]
+    TorrentGroup --> ListIndexers[GET /torrents/indexers]
+    TorrentGroup --> IndexerHealth[GET /torrents/indexers/health]
+
+    %% Health Endpoints
+    HealthGroup --> SystemHealth[GET /health/]
+    HealthGroup --> IndexerHealthCheck[GET /health/indexers]
+    HealthGroup --> QuickHealth[GET /health/quick]
+
+    classDef authEndpoint fill:#e3f2fd
+    classDef searchEndpoint fill:#f1f8e9
+    classDef libraryEndpoint fill:#fff3e0
+    classDef torrentEndpoint fill:#fce4ec
+    classDef healthEndpoint fill:#e8f5e8
+
+    class Login,Register,Refresh,Logout authEndpoint
+    class EnhancedSearch,AddFromMU,TestIndexer searchEndpoint
+    class GetLibrary,AddManga,UpdateManga,DeleteManga libraryEndpoint
+    class SearchTorrents,DownloadTorrent,ListIndexers torrentEndpoint
+    class SystemHealth,IndexerHealthCheck,QuickHealth healthEndpoint
+```
+
+---
+
+## Authentication Endpoints
+
+### POST /auth/login
+Authenticate user and receive JWT token.
+
+**Request:**
+```json
 {
-  "username": "your_username",
-  "password": "your_password"
+  "email": "user@example.com",
+  "password": "password123"
 }
+```
 
-# Response
+**Response:**
+```json
 {
   "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
   "token_type": "bearer",
-  "expires_in": 1800
-}
-
-# Use token in subsequent requests
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-```
-
-### Refresh Token
-```bash
-POST /api/v1/auth/refresh
-{
-  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+  "expires_in": 3600,
+  "user": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "email": "user@example.com",
+    "username": "user123",
+    "is_active": true
+  }
 }
 ```
 
-## Core Endpoints
+### POST /auth/register
+Register new user account.
 
-### Search
-```bash
-# Search manga across all providers
-GET /api/v1/search?q={query}&page={page}&limit={limit}&providers={provider_list}
-
-# Parameters:
-# - q: Search query (required)
-# - page: Page number (default: 1)
-# - limit: Results per page (default: 20, max: 100)
-# - providers: Comma-separated provider list (optional)
-# - nsfw: Include NSFW content (default: false)
-
-# Example
-GET /api/v1/search?q=one%20piece&page=1&limit=20&providers=mangadex,mangaplus
-
-# Response
+**Request:**
+```json
 {
+  "email": "newuser@example.com",
+  "username": "newuser",
+  "password": "securepassword123"
+}
+```
+
+---
+
+## Enhanced Search Endpoints
+
+### POST /search/enhanced
+Perform tiered search across multiple providers.
+
+**Request:**
+```json
+{
+  "query": "solo leveling",
+  "limit": 25,
+  "include_nsfw": false,
+  "providers": ["mangaupdates", "madaradx", "mangadx"]
+}
+```
+
+**Response:**
+```json
+{
+  "query": "solo leveling",
+  "total_results": 15,
+  "search_time_ms": 1250,
   "results": [
     {
-      "id": "manga_123",
-      "title": "One Piece",
-      "author": "Eiichiro Oda",
-      "description": "The story follows Monkey D. Luffy...",
-      "cover_url": "https://example.com/cover.jpg",
-      "provider": "mangadex",
-      "status": "ongoing",
-      "genres": ["Action", "Adventure", "Comedy"],
+      "title": "Solo Leveling",
+      "description": "10 years ago, after \"the Gate\"...",
+      "cover_image": "https://example.com/cover.jpg",
+      "provider": "enhanced_mangaupdates",
+      "url": "https://mangaupdates.com/series/123",
+      "type": "manhwa",
+      "status": "completed",
+      "year": 2018,
       "rating": 9.2,
-      "chapters": 1000
+      "genres": ["Action", "Adventure", "Fantasy"],
+      "is_nsfw": false,
+      "in_library": false,
+      "confidence_score": 0.95,
+      "source_tier": "primary"
     }
   ],
+  "provider_stats": {
+    "mangaupdates": {"results": 8, "response_time_ms": 450},
+    "madaradx": {"results": 5, "response_time_ms": 600},
+    "mangadx": {"results": 2, "response_time_ms": 200}
+  }
+}
+```
+
+### POST /search/enhanced/add-from-mangaupdates
+Add manga to library from MangaUpdates search result.
+
+**Request:**
+```json
+{
+  "mu_entry_id": "54572530979",
+  "title": "Solo Leveling",
+  "cover_image": "https://example.com/cover.jpg"
+}
+```
+
+---
+
+## Library Management Endpoints
+
+### GET /library/
+Retrieve user's manga library with filtering and pagination.
+
+**Query Parameters:**
+- `page`: Page number (default: 1)
+- `limit`: Results per page (default: 20)
+- `status`: Filter by reading status
+- `search`: Search within library
+- `sort`: Sort field (title, added_at, rating)
+- `order`: Sort order (asc, desc)
+
+**Response:**
+```json
+{
   "total": 150,
   "page": 1,
   "limit": 20,
-  "has_next": true
+  "pages": 8,
+  "manga": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "title": "Solo Leveling",
+      "description": "10 years ago, after \"the Gate\"...",
+      "cover_image": "https://example.com/cover.jpg",
+      "status": "completed",
+      "type": "manhwa",
+      "year": 2018,
+      "is_nsfw": false,
+      "user_status": "reading",
+      "user_rating": 9.0,
+      "chapters_count": 179,
+      "last_read_chapter": 45,
+      "added_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-20T15:45:00Z"
+    }
+  ]
 }
 ```
 
-### Manga Details
-```bash
-# Get detailed manga information
+### POST /library/add
+Add manga to user's library.
+
+**Request:**
+```json
+{
+  "title": "Solo Leveling",
+  "description": "10 years ago, after \"the Gate\"...",
+  "cover_image": "https://example.com/cover.jpg",
+  "type": "manhwa",
+  "status": "completed",
+  "year": 2018,
+  "genres": ["Action", "Adventure", "Fantasy"],
+  "mangaupdates_id": "54572530979"
+}
+```
+
+---
+
+## Torrent Operations Endpoints
+
+### GET /torrents/search
+Search for torrents across configured indexers.
+
+**Query Parameters:**
+- `query`: Search query (required)
+- `category`: Torrent category (manga, anime, all)
+- `indexer`: Specific indexer to search
+- `limit`: Maximum results per indexer (default: 50)
+
+**Response:**
+```json
+{
+  "query": "solo leveling",
+  "category": "manga",
+  "total_results": 25,
+  "indexer_results": {
+    "nyaa": [
+      {
+        "title": "[Yen Press] Solo Leveling Vol. 1-8 (Digital)",
+        "magnet_link": "magnet:?xt=urn:btih:...",
+        "torrent_url": "https://nyaa.si/download/123456.torrent",
+        "size": "2.1 GB",
+        "size_bytes": 2254857830,
+        "seeders": 45,
+        "leechers": 12,
+        "upload_date": "2024-01-15T10:30:00Z",
+        "category": "Literature - English-translated",
+        "indexer": "Nyaa",
+        "info_hash": "A1B2C3D4E5F6789012345678901234567890ABCD"
+      }
+    ]
+  }
+}
+```
+
+### POST /torrents/download
+Download a torrent using configured download client.
+
+**Request:**
+```json
+{
+  "title": "[Yen Press] Solo Leveling Vol. 1-8 (Digital)",
+  "manga_id": "123e4567-e89b-12d3-a456-426614174000",
+  "client_id": "456e7890-e89b-12d3-a456-426614174000",
+  "magnet_link": "magnet:?xt=urn:btih:...",
+  "indexer": "nyaa",
+  "info_hash": "A1B2C3D4E5F6789012345678901234567890ABCD",
+  "size": "2.1 GB",
+  "seeders": 45,
+  "leechers": 12
+}
+```
+
+---
+
+## Health Monitoring Endpoints
+
+### GET /health/
+Comprehensive system health check.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": 1705320600,
+  "summary": {
+    "response_time_ms": 125,
+    "health_percentage": 95
+  },
+  "components": {
+    "database": {
+      "status": "healthy",
+      "response_time_ms": 15,
+      "message": "Connected to PostgreSQL"
+    },
+    "cache": {
+      "status": "healthy",
+      "response_time_ms": 5,
+      "message": "Connected to Valkey"
+    },
+    "indexers": {
+      "status": "degraded",
+      "healthy_count": 2,
+      "total_count": 3,
+      "message": "MadaraDx temporarily unavailable"
+    },
+    "providers": {
+      "status": "healthy",
+      "enabled_count": 3,
+      "total_count": 3,
+      "message": "All providers operational"
+    }
+  }
+}
+```
+
+### GET /health/indexers
+Detailed health status of search indexers.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "healthy_count": 3,
+  "total_count": 3,
+  "response_time_ms": 450,
+  "indexers": {
+    "mangaupdates": {
+      "status": "healthy",
+      "tier": "primary",
+      "response_time_ms": 380,
+      "last_check": "2024-01-15T10:30:00Z",
+      "message": "API responding normally"
+    },
+    "madaradx": {
+      "status": "healthy",
+      "tier": "secondary",
+      "response_time_ms": 520,
+      "last_check": "2024-01-15T10:30:00Z",
+      "message": "Web scraping operational"
+    },
+    "mangadx": {
+      "status": "healthy",
+      "tier": "tertiary",
+      "response_time_ms": 450,
+      "last_check": "2024-01-15T10:30:00Z",
+      "message": "API responding normally"
+    }
+  }
+}
+```
+
+---
+
+## Error Responses
+
+All endpoints return consistent error responses:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request parameters",
+    "details": {
+      "field": "email",
+      "issue": "Invalid email format"
+    }
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/v1/auth/login"
+}
+```
+
+### Common Error Codes
+- `AUTHENTICATION_REQUIRED`: Missing or invalid JWT token
+- `VALIDATION_ERROR`: Request validation failed
+- `NOT_FOUND`: Requested resource not found
+- `RATE_LIMIT_EXCEEDED`: Too many requests
+- `EXTERNAL_SERVICE_ERROR`: Third-party service unavailable
+- `INTERNAL_SERVER_ERROR`: Unexpected server error
+
+---
+
+## Rate Limiting
+
+API endpoints are rate-limited to ensure fair usage:
+
+- **Authentication**: 5 requests per minute
+- **Search**: 30 requests per minute
+- **Library**: 60 requests per minute
+- **Health**: 10 requests per minute
+
+Rate limit headers are included in responses:
+```http
+X-RateLimit-Limit: 30
+X-RateLimit-Remaining: 25
+X-RateLimit-Reset: 1705320660
+```
 GET /api/v1/manga/{manga_id}
 
 # Response

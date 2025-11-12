@@ -1,0 +1,55 @@
+graph TB
+    %% API Gateway
+    Client[🌐 Client] --> Gateway[⚡ FastAPI Gateway]
+    Gateway --> Auth[🔐 JWT Middleware]
+
+    %% API Router Groups
+    Auth --> APIv1[🛣️ API Router v1]
+    APIv1 --> AuthGroup[🔐 Authentication]
+    APIv1 --> SearchGroup[🔍 Enhanced Search]
+    APIv1 --> LibraryGroup[📚 Library Management]
+    APIv1 --> TorrentGroup[🌸 Torrent Operations]
+    APIv1 --> HealthGroup[💚 Health Monitoring]
+    APIv1 --> UserGroup[👤 User Management]
+    APIv1 --> DownloadGroup[📥 Download Management]
+
+    %% Authentication Endpoints
+    AuthGroup --> Login[POST /auth/login]
+    AuthGroup --> Register[POST /auth/register]
+    AuthGroup --> Refresh[POST /auth/refresh]
+    AuthGroup --> Logout[POST /auth/logout]
+
+    %% Search Endpoints
+    SearchGroup --> EnhancedSearch[POST /search/enhanced]
+    SearchGroup --> AddFromMU[POST /search/enhanced/add-from-mangaupdates]
+    SearchGroup --> TestIndexer[POST /search/enhanced/test-indexer]
+
+    %% Library Endpoints
+    LibraryGroup --> GetLibrary[GET /library/]
+    LibraryGroup --> AddManga[POST /library/add]
+    LibraryGroup --> UpdateManga["PUT /library/{id}"]
+    LibraryGroup --> DeleteManga["DELETE /library/{id}"]
+    LibraryGroup --> GetDownloads[GET /library/downloads]
+
+    %% Torrent Endpoints
+    TorrentGroup --> SearchTorrents[GET /torrents/search]
+    TorrentGroup --> DownloadTorrent[POST /torrents/download]
+    TorrentGroup --> ListIndexers[GET /torrents/indexers]
+    TorrentGroup --> IndexerHealth[GET /torrents/indexers/health]
+
+    %% Health Endpoints
+    HealthGroup --> SystemHealth[GET /health/]
+    HealthGroup --> IndexerHealthCheck[GET /health/indexers]
+    HealthGroup --> QuickHealth[GET /health/quick]
+
+    classDef authEndpoint fill:#e3f2fd
+    classDef searchEndpoint fill:#f1f8e9
+    classDef libraryEndpoint fill:#fff3e0
+    classDef torrentEndpoint fill:#fce4ec
+    classDef healthEndpoint fill:#e8f5e8
+
+    class Login,Register,Refresh,Logout authEndpoint
+    class EnhancedSearch,AddFromMU,TestIndexer searchEndpoint
+    class GetLibrary,AddManga,UpdateManga,DeleteManga libraryEndpoint
+    class SearchTorrents,DownloadTorrent,ListIndexers torrentEndpoint
+    class SystemHealth,IndexerHealthCheck,QuickHealth healthEndpoint

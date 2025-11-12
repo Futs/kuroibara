@@ -8,8 +8,8 @@
       "enabled": true
     },
     "rate_limiting": {
-      "max_concurrent": 3,
-      "min_time_between_requests": 1000,
+      "max_concurrent": 2,
+      "min_time_between_requests": 5000,
       "enabled": true
     },
     "monitoring": {

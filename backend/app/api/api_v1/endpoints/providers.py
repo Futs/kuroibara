@@ -677,12 +677,16 @@ async def proxy_image(
             )
 
         # Set headers to mimic browser request and avoid hotlinking protection
+        user_agent = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        )
+        url_parts = url.split("/")
+        referer = f"{url_parts[0]}//{url_parts[2]}/"
+
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Referer": url.split("/")[0]
-            + "//"
-            + url.split("/")[2]
-            + "/",  # Use domain as referer
+            "User-Agent": user_agent,
+            "Referer": referer,  # Use domain as referer
             "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
         }
@@ -761,4 +765,44 @@ async def proxy_image(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
+        )
+
+
+@router.get("/{provider_id}/rate-limit-status")
+async def get_provider_rate_limit_status(
+    provider_id: str, current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get rate limit status for a provider.
+    """
+    provider = provider_registry.get_provider(provider_id)
+    if not provider:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Provider '{provider_id}' not found",
+        )
+
+    try:
+        # Check if provider has rate limit status method
+        if hasattr(provider, "get_rate_limit_status"):
+            rate_limit_status = provider.get_rate_limit_status()
+            return {
+                "provider_id": provider_id,
+                "provider_name": provider.name,
+                **rate_limit_status,
+            }
+        else:
+            # Provider doesn't support rate limit status
+            return {
+                "provider_id": provider_id,
+                "provider_name": provider.name,
+                "is_rate_limited": False,
+                "reset_time": None,
+                "seconds_remaining": 0,
+            }
+    except Exception as e:
+        logger.error(f"Error getting rate limit status from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get rate limit status: {str(e)}",
         )

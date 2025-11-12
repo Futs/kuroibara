@@ -9,7 +9,6 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-from uuid import UUID
 
 from .events import JobPriority, JobStatus, JobType, get_job_timeout
 

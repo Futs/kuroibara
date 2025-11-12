@@ -97,6 +97,8 @@ class ChapterBase(BaseModel):
     download_status: str = "not_downloaded"
     download_error: Optional[str] = None
     external_id: Optional[str] = None
+    provider_external_ids: Optional[Dict[str, str]] = None
+    fallback_providers: Optional[List[str]] = None
 
 
 class ChapterCreate(ChapterBase):

@@ -34,7 +34,7 @@ class TestProgressEvent:
             event_type=ProgressEventType.PROGRESS,
             progress_percentage=50.0,
             current_step="Searching providers",
-            message="Searching MangaDx...",
+            message="Searching MangaDex...",
         )
 
         assert event.operation_id == "test-op-123"
@@ -42,7 +42,7 @@ class TestProgressEvent:
         assert event.event_type == ProgressEventType.PROGRESS
         assert event.progress_percentage == 50.0
         assert event.current_step == "Searching providers"
-        assert event.message == "Searching MangaDx..."
+        assert event.message == "Searching MangaDex..."
         assert isinstance(event.timestamp, datetime)
 
     def test_progress_event_to_dict(self):

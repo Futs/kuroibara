@@ -338,8 +338,10 @@ async def search_manga(
             priority_providers + regular_providers[:max_regular_providers]
         )
 
+        regular_count = min(len(regular_providers), max_regular_providers)
         logger.info(
-            f"Using user preferences: {len(priority_providers)} favorite providers, {min(len(regular_providers), max_regular_providers)} regular providers"
+            f"Using user preferences: {len(priority_providers)} favorite providers, "
+            f"{regular_count} regular providers"
         )
     else:
         # Fallback to hardcoded prioritization for users without preferences
@@ -349,7 +351,8 @@ async def search_manga(
         selected_providers = priority_providers + generic_providers
 
         logger.info(
-            f"Using fallback prioritization: {len(priority_providers)} priority providers, {len(generic_providers)} generic providers"
+            f"Using fallback prioritization: {len(priority_providers)} priority providers, "
+            f"{len(generic_providers)} generic providers"
         )
 
     # Calculate pagination for multi-provider search

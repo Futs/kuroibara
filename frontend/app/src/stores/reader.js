@@ -13,6 +13,10 @@ export const useReaderStore = defineStore("reader", {
     preloadedImages: new Map(), // Cache for preloaded images
     preloadQueue: [], // Queue of images being preloaded
 
+    // Viewer state
+    zoomLevel: parseFloat(localStorage.getItem("zoomLevel")) || 1.0,
+    isFullscreen: false,
+
     // Reading statistics and progress tracking
     readingSession: {
       startTime: null,
@@ -40,7 +44,7 @@ export const useReaderStore = defineStore("reader", {
     settings: {
       readingDirection: localStorage.getItem("readingDirection") || "rtl", // rtl, ltr
       pageLayout: localStorage.getItem("pageLayout") || "single", // single, double, list, adaptive
-      fitMode: localStorage.getItem("fitMode") || "width", // width, height, both, original
+      fitMode: localStorage.getItem("fitMode") || "height", // width, height, both, original - default to height for better readability
       showPageNumbers: localStorage.getItem("showPageNumbers") === "true",
       autoAdvance: localStorage.getItem("autoAdvance") === "true",
       preloadDistance: parseInt(localStorage.getItem("preloadDistance")) || 3, // number of pages to preload
@@ -186,7 +190,7 @@ export const useReaderStore = defineStore("reader", {
     getCurrentPagePair: (state) => {
       if (state.settings.pageLayout !== "double" || !state.pages.length) {
         const page = state.pages[state.currentPage - 1];
-        return page ? [{ ...page, url: state.getCurrentPageUrl }] : [];
+        return page ? [{ ...page }] : [];
       }
 
       const leftPage = state.pages[state.currentPage - 1];
@@ -261,6 +265,11 @@ export const useReaderStore = defineStore("reader", {
       const page = state.pages[state.currentPage - 1];
       if (!page || !page.url) return null;
 
+      // If it's a blob URL, return it directly (can't add quality parameters to blob URLs)
+      if (page.url.startsWith("blob:")) {
+        return page.url;
+      }
+
       const targetQuality = state.settings.imageQuality;
 
       // If original quality or no quality parameters available, return original URL
@@ -270,7 +279,7 @@ export const useReaderStore = defineStore("reader", {
 
       // Add quality parameters to URL
       try {
-        const url = new URL(page.url);
+        const url = new URL(page.url, window.location.origin);
         switch (targetQuality) {
           case "medium":
             url.searchParams.set("quality", "75");
@@ -354,17 +363,8 @@ export const useReaderStore = defineStore("reader", {
     },
 
     // Theme and UI getters
-    getCurrentTheme: (state) => {
-      if (state.settings.customTheme) {
-        return state.settings.customTheme;
-      }
-      return state.themes[state.settings.theme] || state.themes.dark;
-    },
+    // Note: getCurrentTheme and getCurrentUILayout are defined as actions below, not getters
     getDisplayOptions: (state) => state.settings.displayOptions,
-    getCurrentUILayout: (state) => {
-      const layout = state.settings.uiLayout;
-      return state.uiLayouts[layout] || state.uiLayouts.default;
-    },
   },
 
   actions: {
@@ -405,6 +405,9 @@ export const useReaderStore = defineStore("reader", {
       this.error = null;
 
       try {
+        // Clean up old blob URLs before loading new chapter
+        this.cleanupBlobUrls();
+
         const response = await api.get(
           `/v1/manga/${mangaId}/chapters/${chapterId}`,
         );
@@ -422,6 +425,17 @@ export const useReaderStore = defineStore("reader", {
       }
     },
 
+    cleanupBlobUrls() {
+      // Revoke all blob URLs to free memory
+      if (this.pages && this.pages.length > 0) {
+        this.pages.forEach((page) => {
+          if (page.url && page.url.startsWith("blob:")) {
+            URL.revokeObjectURL(page.url);
+          }
+        });
+      }
+    },
+
     async fetchPages(mangaId, chapterId) {
       this.loading = true;
       this.error = null;
@@ -430,14 +444,49 @@ export const useReaderStore = defineStore("reader", {
         const response = await api.get(
           `/v1/manga/${mangaId}/chapters/${chapterId}/pages`,
         );
-        this.pages = response.data;
+
+        // Fetch each page image and convert to blob URL
+        const pagesWithBlobUrls = await Promise.all(
+          response.data.map(async (page) => {
+            try {
+              // Remove /api prefix if present since api client adds it
+              let imageUrl = page.url;
+              if (imageUrl.startsWith("/api/")) {
+                imageUrl = imageUrl.substring(4); // Remove "/api"
+              }
+
+              // Fetch the image with authentication
+              const imageResponse = await api.get(imageUrl, {
+                responseType: "blob",
+              });
+
+              // Create blob URL
+              const blobUrl = URL.createObjectURL(imageResponse.data);
+
+              return {
+                ...page,
+                url: blobUrl,
+                originalUrl: page.url,
+              };
+            } catch (error) {
+              console.error(`Failed to fetch page ${page.number}:`, error);
+              return {
+                ...page,
+                url: null,
+                error: true,
+              };
+            }
+          })
+        );
+
+        this.pages = pagesWithBlobUrls;
 
         // Trigger adaptive mode analysis if enabled
         if (this.settings.pageLayout === "adaptive") {
           setTimeout(() => this.analyzeContentType(), 100);
         }
 
-        return response.data;
+        return pagesWithBlobUrls;
       } catch (error) {
         this.error = error.response?.data?.detail || "Failed to fetch pages";
         console.error("Pages fetch error:", error);
@@ -516,6 +565,36 @@ export const useReaderStore = defineStore("reader", {
       await this.fetchChapter(this.manga.id, prevChapter.id);
       await this.fetchPages(this.manga.id, prevChapter.id);
       this.currentPage = this.pages.length;
+    },
+
+    // Zoom controls
+    zoomIn() {
+      this.zoomLevel = Math.min(this.zoomLevel + 0.25, 5.0);
+      localStorage.setItem("zoomLevel", this.zoomLevel.toString());
+    },
+
+    zoomOut() {
+      this.zoomLevel = Math.max(this.zoomLevel - 0.25, 0.25);
+      localStorage.setItem("zoomLevel", this.zoomLevel.toString());
+    },
+
+    resetZoom() {
+      this.zoomLevel = 1.0;
+      localStorage.setItem("zoomLevel", this.zoomLevel.toString());
+    },
+
+    setZoom(level) {
+      this.zoomLevel = Math.max(0.25, Math.min(5.0, level));
+      localStorage.setItem("zoomLevel", this.zoomLevel.toString());
+    },
+
+    // Fullscreen controls
+    toggleFullscreen() {
+      this.isFullscreen = !this.isFullscreen;
+    },
+
+    setFullscreen(value) {
+      this.isFullscreen = value;
     },
 
     updateSettings(settings) {
@@ -1268,7 +1347,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     applyTheme() {
-      const theme = this.getCurrentTheme;
+      const theme = this.getCurrentTheme();
       if (!theme || !theme.colors || !theme.ui) {
         console.warn("Theme not available, skipping theme application");
         return;
@@ -1318,7 +1397,7 @@ export const useReaderStore = defineStore("reader", {
     },
 
     exportTheme() {
-      const theme = this.getCurrentTheme;
+      const theme = this.getCurrentTheme();
       const exportData = {
         theme,
         typography: this.settings.typography,

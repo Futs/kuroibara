@@ -6,6 +6,7 @@ from redis.asyncio import Redis
 
 from app.core.config import settings
 from app.core.deps import set_redis_client
+from app.core.jobs import queue_manager
 from app.core.services.backup import scheduled_backup_service
 from app.core.services.provider_monitor import provider_monitor
 from app.db.init_db import init_db
@@ -89,6 +90,14 @@ def startup_event_handler(app: FastAPI) -> Callable:
             logger.error(f"Error starting backup scheduler: {e}")
             # Don't raise here as backup scheduling is not critical for app startup
 
+        # Start download queue manager
+        try:
+            await queue_manager.start()
+            logger.info("Download queue manager started successfully")
+        except Exception as e:
+            logger.error(f"Error starting download queue manager: {e}")
+            # Don't raise here as download queue is not critical for app startup
+
         logger.info("Application startup complete")
 
     return start_app
@@ -109,6 +118,13 @@ def shutdown_event_handler(app: FastAPI) -> Callable:
             logger.info("Provider monitoring stopped")
         except Exception as e:
             logger.warning(f"Error stopping provider monitoring: {e}")
+
+        # Stop download queue manager
+        try:
+            await queue_manager.stop()
+            logger.info("Download queue manager stopped")
+        except Exception as e:
+            logger.warning(f"Error stopping download queue manager: {e}")
 
         # Close Redis connection
         if hasattr(app.state, "redis") and app.state.redis:

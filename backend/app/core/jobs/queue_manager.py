@@ -22,7 +22,7 @@ from .events import (
     is_health_job,
     is_organization_job,
 )
-from .models import BaseJob, DownloadJob, HealthCheckJob, OrganizationJob
+from .models import BaseJob
 from .workers import DownloadWorker, HealthCheckWorker, OrganizationWorker
 
 logger = logging.getLogger(__name__)

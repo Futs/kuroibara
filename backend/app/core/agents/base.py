@@ -5,7 +5,6 @@ This module provides a new agent-based architecture that replaces the existing
 provider system with better error isolation, monitoring, and modularity.
 """
 
-import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod

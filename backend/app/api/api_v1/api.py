@@ -6,7 +6,9 @@ from app.api.api_v1.endpoints import (
     backup,
     categories,
     chapters,
+    enhanced_search,
     favorites,
+    health,
     import_files,
     integrations,
     jobs,
@@ -17,6 +19,7 @@ from app.api.api_v1.endpoints import (
     providers,
     reading_lists,
     search,
+    torrents,
     user_provider_preferences,
     users,
 )
@@ -24,6 +27,7 @@ from app.api.api_v1.endpoints import (
 api_router = APIRouter()
 
 # Include all endpoint routers
+api_router.include_router(health.router, prefix="/health", tags=["System Health"])
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(manga.router, prefix="/manga", tags=["Manga"])
@@ -33,9 +37,13 @@ api_router.include_router(
     reading_lists.router, prefix="/reading-lists", tags=["Reading Lists"]
 )
 api_router.include_router(search.router, prefix="/search", tags=["Search"])
+api_router.include_router(
+    enhanced_search.router, prefix="/search", tags=["Enhanced Search"]
+)
 api_router.include_router(library.router, prefix="/library", tags=["Library"])
 api_router.include_router(import_files.router, prefix="/import", tags=["Import"])
 api_router.include_router(providers.router, prefix="/providers", tags=["Providers"])
+api_router.include_router(torrents.router, prefix="/torrents", tags=["Torrents"])
 api_router.include_router(favorites.router, prefix="/favorites", tags=["Favorites"])
 api_router.include_router(
     user_provider_preferences.router,

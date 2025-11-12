@@ -7,8 +7,8 @@ operation management, event emission, and ETA calculation.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
 
 from .events import (
@@ -624,10 +624,11 @@ class ProgressTracker:
                     f"Bulk operation failed: {failed_children}/{total_children} items failed",
                 )
             else:
-                await self.complete_operation(
-                    bulk_operation_id,
-                    f"Bulk operation completed with warnings: {completed_children} succeeded, {failed_children} failed",
+                message = (
+                    f"Bulk operation completed with warnings: {completed_children} "
+                    f"succeeded, {failed_children} failed"
                 )
+                await self.complete_operation(bulk_operation_id, message)
 
         return True
 

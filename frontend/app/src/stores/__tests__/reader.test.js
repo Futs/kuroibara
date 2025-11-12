@@ -306,7 +306,7 @@ describe("Reader Store", () => {
 
     it("should get current theme", () => {
       const store = useReaderStore();
-      const theme = store.getCurrentTheme;
+      const theme = store.getCurrentTheme();
 
       expect(theme).toHaveProperty("colors");
       expect(theme).toHaveProperty("ui");
@@ -409,7 +409,7 @@ describe("Reader Store", () => {
 
     it("should get current UI layout", () => {
       const store = useReaderStore();
-      const layout = store.getCurrentUILayout;
+      const layout = store.getCurrentUILayout();
 
       expect(layout).toHaveProperty("toolbar");
     });

@@ -1,5 +1,7 @@
 <template>
-  <div class="chapter-management">
+  <div
+    class="bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-lg p-4 mb-6"
+  >
     <!-- Management Header -->
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -51,7 +53,7 @@
         </button>
         <button
           @click="showRenameDialog = true"
-          class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-white dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <svg
             class="h-4 w-4 mr-2"
@@ -261,16 +263,5 @@ const applyRenames = async () => {
 </script>
 
 <style scoped>
-.chapter-management {
-  background-color: rgb(255 255 255);
-  border: 1px solid rgb(229 231 235);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.dark .chapter-management {
-  background-color: rgb(30 41 59);
-  border-color: rgb(71 85 105);
-}
+/* Styles moved to inline Tailwind classes */
 </style>

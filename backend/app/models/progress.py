@@ -6,8 +6,8 @@ and events to the database.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from typing import Any, Dict, Optional
+from uuid import uuid4
 
 from sqlalchemy import (
     JSON,

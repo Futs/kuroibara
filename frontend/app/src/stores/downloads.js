@@ -10,6 +10,7 @@ export const useDownloadsStore = defineStore("downloads", {
     reconnectAttempts: 0,
     maxReconnectAttempts: 5,
     bulkDownloads: new Map(), // Map of bulk download IDs to bulk download info
+    pollingInterval: null, // Polling interval for download updates
   }),
 
   getters: {
@@ -45,12 +46,28 @@ export const useDownloadsStore = defineStore("downloads", {
     async fetchActiveDownloads() {
       try {
         const response = await api.get("/v1/library/downloads");
+        console.log("Downloads API response:", response.data);
 
         // Clear existing downloads and add fetched ones
         this.activeDownloads.clear();
-        response.data.forEach((download) => {
-          this.activeDownloads.set(download.task_id, download);
-        });
+
+        // Handle the response format: { tasks: [...], count: number }
+        if (response.data.tasks && Array.isArray(response.data.tasks)) {
+          console.log("Processing downloads:", response.data.tasks);
+          response.data.tasks.forEach((download) => {
+            console.log("Adding download to store:", download);
+            this.activeDownloads.set(download.task_id, {
+              ...download,
+              // Ensure required fields exist
+              progress: download.progress || 0,
+              status: download.status || "downloading",
+              downloaded_pages: download.downloaded_pages || 0,
+              total_pages: download.total_pages || 0,
+            });
+          });
+        } else {
+          console.log("No tasks found in response or invalid format");
+        }
       } catch (error) {
         console.error("Error fetching active downloads:", error);
       }
@@ -75,7 +92,42 @@ export const useDownloadsStore = defineStore("downloads", {
       }
     },
 
+    async cancelAllDownloads() {
+      try {
+        const response = await api.delete("/v1/library/downloads");
+
+        // Clear all active downloads from the store
+        this.activeDownloads.clear();
+
+        return response.data;
+      } catch (error) {
+        console.error("Error canceling all downloads:", error);
+        throw error;
+      }
+    },
+
+    async clearDownloadHistory() {
+      try {
+        const response = await api.delete("/v1/library/downloads/history");
+
+        // Clear download history from the store
+        this.downloadHistory = [];
+
+        return response.data;
+      } catch (error) {
+        console.error("Error clearing download history:", error);
+        throw error;
+      }
+    },
+
     // Bulk download management
+    addBulkDownload(bulkDownloadData) {
+      this.bulkDownloads.set(bulkDownloadData.id, {
+        ...bulkDownloadData,
+        chapter_downloads: new Set(), // Track individual chapter download IDs
+      });
+    },
+
     startBulkDownload(bulkId, mangaId, totalChapters) {
       this.bulkDownloads.set(bulkId, {
         id: bulkId,
@@ -112,26 +164,47 @@ export const useDownloadsStore = defineStore("downloads", {
       }
     },
 
-    updateBulkDownloadProgress(bulkId, chapterTaskId, status) {
+    updateBulkDownloadProgress(
+      bulkId,
+      chapterTaskId,
+      status,
+      progress = null,
+      completedChapters = null,
+    ) {
       const bulkDownload = this.bulkDownloads.get(bulkId);
       if (!bulkDownload) return;
 
-      // Add chapter download to tracking
-      bulkDownload.chapter_downloads.add(chapterTaskId);
+      // Add chapter download to tracking if provided
+      if (chapterTaskId) {
+        bulkDownload.chapter_downloads.add(chapterTaskId);
+      }
 
-      // Update counters based on status
-      if (status === "completed") {
+      // Update status
+      bulkDownload.status = status;
+
+      // Update progress if provided
+      if (progress !== null) {
+        bulkDownload.progress = progress;
+      }
+
+      // Update completed chapters if provided
+      if (completedChapters !== null) {
+        bulkDownload.completed_chapters = completedChapters;
+      }
+
+      // Update counters based on status (legacy support)
+      if (status === "completed" && completedChapters === null) {
         bulkDownload.completed_chapters++;
       } else if (status === "failed") {
-        bulkDownload.failed_chapters++;
+        bulkDownload.failed_chapters = (bulkDownload.failed_chapters || 0) + 1;
       }
 
       // Check if bulk download is complete
-      const totalProcessed =
-        bulkDownload.completed_chapters + bulkDownload.failed_chapters;
-      if (totalProcessed >= bulkDownload.total_chapters) {
+      if (status === "completed" || bulkDownload.progress >= 100) {
         bulkDownload.status = "completed";
         bulkDownload.completed_at = new Date().toISOString();
+        bulkDownload.progress = 100;
+        bulkDownload.completed_chapters = bulkDownload.total_chapters;
       }
     },
 
@@ -145,7 +218,7 @@ export const useDownloadsStore = defineStore("downloads", {
       }
 
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws/downloads`;
+      const wsUrl = `${protocol}//${window.location.host}/api/v1/progress/ws`;
 
       try {
         this.websocket = new WebSocket(wsUrl);
@@ -296,14 +369,69 @@ export const useDownloadsStore = defineStore("downloads", {
       this.downloadHistory = [];
     },
 
+    async pauseDownload(taskId) {
+      try {
+        await api.post(`/v1/library/downloads/${taskId}/pause`);
+        const download = this.activeDownloads.get(taskId);
+        if (download) {
+          download.status = "paused";
+        }
+      } catch (error) {
+        console.error("Error pausing download:", error);
+        throw error;
+      }
+    },
+
+    async resumeDownload(taskId) {
+      try {
+        await api.post(`/v1/library/downloads/${taskId}/resume`);
+        const download = this.activeDownloads.get(taskId);
+        if (download) {
+          download.status = "downloading";
+        }
+      } catch (error) {
+        console.error("Error resuming download:", error);
+        throw error;
+      }
+    },
+
+    async retryDownload(downloadData) {
+      try {
+        // Re-add the failed download to the queue
+        // This would typically call the same API endpoint that started the original download
+        console.log("Retrying download:", downloadData);
+        // Implementation depends on your backend API structure
+      } catch (error) {
+        console.error("Error retrying download:", error);
+        throw error;
+      }
+    },
+
+    // Start polling for download updates
+    startPolling() {
+      // Poll every 2 seconds for download updates
+      this.pollingInterval = setInterval(() => {
+        this.fetchActiveDownloads();
+      }, 2000);
+    },
+
+    stopPolling() {
+      if (this.pollingInterval) {
+        clearInterval(this.pollingInterval);
+        this.pollingInterval = null;
+      }
+    },
+
     // Initialize the store
     init() {
       this.fetchActiveDownloads();
       this.connectWebSocket();
+      this.startPolling(); // Start polling for real download updates
     },
 
     // Cleanup when store is no longer needed
     cleanup() {
+      this.stopPolling();
       this.disconnectWebSocket();
     },
   },

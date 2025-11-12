@@ -1,8 +1,10 @@
 import logging
+import time
+from datetime import datetime
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-from app.core.services.download import download_manga
+from app.core.services.download import download_chapter_with_fallback, download_manga
 from app.db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
@@ -13,10 +15,11 @@ download_tasks: Dict[str, Dict[str, Any]] = {}
 
 
 async def download_manga_task(
-    manga_id: UUID,
-    user_id: UUID,
+    manga_id,
+    user_id,
     provider_name: str,
     external_id: str,
+    task_id: Optional[str] = None,
 ) -> None:
     """
     Background task to download a manga.
@@ -27,17 +30,48 @@ async def download_manga_task(
         provider_name: The name of the provider
         external_id: The external ID of the manga
     """
-    # Create a unique task ID
-    task_id = f"{user_id}_{manga_id}"
+    # Ensure IDs are UUIDs
+    if isinstance(manga_id, str):
+        manga_id = UUID(manga_id)
+    if isinstance(user_id, str):
+        user_id = UUID(user_id)
+
+    # Use provided task ID or create a unique one
+    if task_id is None:
+        task_id = f"{user_id}_{manga_id}_{int(time.time())}"
+
+    # Get manga details for better task info
+    manga_title = "Unknown Manga"
+    total_chapters = 0
+
+    try:
+        # Create a new database session to get manga details
+        async with AsyncSessionLocal() as db:
+            from app.models.manga import Manga
+
+            manga = await db.get(Manga, manga_id)
+            if manga:
+                manga_title = manga.title
+                # Get chapter count if available
+                if hasattr(manga, "chapters") and manga.chapters:
+                    total_chapters = len(manga.chapters)
+    except Exception as e:
+        logger.warning(f"Could not get manga details for task: {e}")
 
     # Update task status
     download_tasks[task_id] = {
+        "task_id": task_id,
         "manga_id": str(manga_id),
+        "manga_title": manga_title,
         "user_id": str(user_id),
         "provider": provider_name,
         "external_id": external_id,
-        "status": "running",
+        "type": "bulk",
+        "status": "downloading",
         "progress": 0,
+        "total_chapters": total_chapters,
+        "completed_chapters": 0,
+        "started_at": datetime.now().isoformat(),
         "error": None,
     }
 
@@ -65,6 +99,141 @@ async def download_manga_task(
         download_tasks[task_id]["error"] = str(e)
 
 
+async def download_chapter_task(
+    manga_id,
+    chapter_id,
+    provider_name: str,
+    external_manga_id: str,
+    external_chapter_id: str,
+    user_id,
+) -> str:
+    """
+    Background task to download a single chapter.
+
+    Args:
+        manga_id: The ID of the manga
+        chapter_id: The ID of the chapter
+        provider_name: The name of the provider
+        external_manga_id: The external ID of the manga
+        external_chapter_id: The external ID of the chapter
+        user_id: The ID of the user
+
+    Returns:
+        The task ID
+    """
+    # Ensure IDs are UUIDs
+    if isinstance(manga_id, str):
+        manga_id = UUID(manga_id)
+    if isinstance(chapter_id, str):
+        chapter_id = UUID(chapter_id)
+    if isinstance(user_id, str):
+        user_id = UUID(user_id)
+
+    # Create a unique task ID
+    task_id = f"{user_id}_{manga_id}_{chapter_id}_{int(time.time())}"
+
+    # Get manga and chapter details for better task info
+    manga_title = "Unknown Manga"
+    chapter_number = "Unknown"
+    chapter_title = ""
+
+    try:
+        # Create a new database session to get details
+        async with AsyncSessionLocal() as db:
+            from app.models.manga import Chapter, Manga
+
+            logger.info(f"Looking up manga {manga_id} and chapter {chapter_id}")
+
+            manga = await db.get(Manga, manga_id)
+            if manga:
+                manga_title = manga.title
+                logger.info(f"Found manga: {manga_title}")
+            else:
+                logger.warning(f"Manga not found: {manga_id}")
+
+            chapter = await db.get(Chapter, chapter_id)
+            if chapter:
+                chapter_number = str(chapter.number)
+                chapter_title = chapter.title or ""
+                logger.info(f"Found chapter: {chapter_number} - {chapter_title}")
+            else:
+                logger.warning(f"Chapter not found: {chapter_id}")
+    except Exception as e:
+        logger.error(f"Could not get chapter details for task: {e}", exc_info=True)
+
+    # Update task status
+    download_tasks[task_id] = {
+        "task_id": task_id,
+        "manga_id": str(manga_id),
+        "manga_title": manga_title,
+        "chapter_id": str(chapter_id),
+        "chapter_number": chapter_number,
+        "chapter_title": chapter_title,
+        "user_id": str(user_id),
+        "provider": provider_name,
+        "external_manga_id": external_manga_id,
+        "external_chapter_id": external_chapter_id,
+        "type": "chapter",
+        "status": "downloading",
+        "progress": 0,
+        "total_pages": 0,
+        "downloaded_pages": 0,
+        "started_at": datetime.now().isoformat(),
+        "error": None,
+    }
+
+    try:
+        # Create a new database session
+        async with AsyncSessionLocal() as db:
+            # Get chapter to check for fallback providers
+            from app.models.manga import Chapter
+
+            chapter = await db.get(Chapter, chapter_id)
+            fallback_providers = None
+
+            if chapter and chapter.fallback_providers:
+                fallback_providers = chapter.fallback_providers
+
+            # Download chapter with fallback support
+            await download_chapter_with_fallback(
+                manga_id=manga_id,
+                chapter_id=chapter_id,
+                primary_provider=provider_name,
+                external_manga_id=external_manga_id,
+                external_chapter_id=external_chapter_id,
+                db=db,
+                fallback_providers=fallback_providers,
+                auto_discover_alternatives=True,
+                task_id=task_id,
+            )
+
+            # Update task status
+            download_tasks[task_id]["status"] = "completed"
+            download_tasks[task_id]["progress"] = 100
+    except Exception as e:
+        # Log error
+        logger.error(f"Error downloading chapter: {e}")
+
+        # Update task status
+        download_tasks[task_id]["status"] = "failed"
+        download_tasks[task_id]["error"] = str(e)
+
+        # Send download failed event
+        try:
+            from app.core.services.download import send_download_progress_update
+
+            await send_download_progress_update(
+                task_id=task_id,
+                event_type="download_failed",
+                progress=0,
+                error=str(e),
+            )
+        except Exception as ws_error:
+            logger.error(f"Error sending download failed event: {ws_error}")
+
+    return task_id
+
+
 def get_download_task(task_id: str) -> Optional[Dict[str, Any]]:
     """
     Get a download task by ID.
@@ -78,7 +247,7 @@ def get_download_task(task_id: str) -> Optional[Dict[str, Any]]:
     return download_tasks.get(task_id)
 
 
-def get_user_download_tasks(user_id: UUID) -> Dict[str, Dict[str, Any]]:
+def get_user_download_tasks(user_id) -> Dict[str, Dict[str, Any]]:
     """
     Get all download tasks for a user.
 
@@ -96,19 +265,192 @@ def get_user_download_tasks(user_id: UUID) -> Dict[str, Dict[str, Any]]:
     return user_tasks
 
 
-def cancel_download_task(task_id: str) -> bool:
+def cancel_download_task(task_id: str, user_id: UUID = None) -> bool:
     """
     Cancel a download task.
 
     Args:
         task_id: The ID of the task
+        user_id: The ID of the user (for security check)
 
     Returns:
         True if the task was cancelled, False otherwise
     """
     if task_id in download_tasks:
+        task = download_tasks[task_id]
+
+        # Security check: ensure user owns the task
+        if user_id and task["user_id"] != str(user_id):
+            return False
+
         # Update task status
         download_tasks[task_id]["status"] = "cancelled"
         return True
 
     return False
+
+
+def cancel_all_user_downloads(user_id: UUID) -> int:
+    """
+    Cancel all download tasks for a specific user.
+
+    Args:
+        user_id: The ID of the user
+
+    Returns:
+        Number of tasks cancelled
+    """
+    cancelled_count = 0
+    user_id_str = str(user_id)
+
+    for task_id, task in download_tasks.items():
+        if task["user_id"] == user_id_str and task["status"] in [
+            "queued",
+            "downloading",
+            "starting",
+        ]:
+            download_tasks[task_id]["status"] = "cancelled"
+            cancelled_count += 1
+
+    return cancelled_count
+
+
+def clear_user_download_history(user_id: UUID) -> int:
+    """
+    Clear completed/failed download tasks for a specific user.
+
+    Args:
+        user_id: The ID of the user
+
+    Returns:
+        Number of tasks cleared
+    """
+    cleared_count = 0
+    user_id_str = str(user_id)
+    tasks_to_remove = []
+
+    for task_id, task in download_tasks.items():
+        if task["user_id"] == user_id_str and task["status"] in [
+            "completed",
+            "failed",
+            "cancelled",
+        ]:
+            tasks_to_remove.append(task_id)
+            cleared_count += 1
+
+    # Remove tasks from the dictionary
+    for task_id in tasks_to_remove:
+        del download_tasks[task_id]
+
+    return cleared_count
+
+
+def update_download_task_status(task_id: str, status: str) -> bool:
+    """
+    Update the status of a download task.
+
+    Args:
+        task_id: The ID of the task
+        status: The new status
+
+    Returns:
+        True if the task was updated, False otherwise
+    """
+    if task_id in download_tasks:
+        download_tasks[task_id]["status"] = status
+        return True
+
+    return False
+
+
+async def discover_alternatives_task(
+    manga_id: UUID,
+    manga_title: str,
+    provider: str,
+) -> None:
+    """
+    Background task to discover alternative sources for all chapters in a manga.
+
+    Args:
+        manga_id: The ID of the manga
+        manga_title: The title of the manga
+        provider: The original provider name
+    """
+    from app.core.services.provider_matching import provider_matching_service
+    from app.models.manga import Chapter
+
+    logger.info(f"Starting alternative discovery for manga {manga_id} ({manga_title})")
+
+    try:
+        # Create a new database session
+        async with AsyncSessionLocal() as db:
+            # Get all chapters
+            from sqlalchemy import select
+
+            result = await db.execute(
+                select(Chapter).where(Chapter.manga_id == manga_id)
+            )
+            chapters = result.scalars().all()
+
+            discovered_count = 0
+            total_chapters = len(chapters)
+
+            logger.info(f"Discovering alternatives for {total_chapters} chapters")
+
+            for idx, chapter in enumerate(chapters, 1):
+                try:
+                    logger.info(
+                        f"Processing chapter {idx}/{total_chapters}: {chapter.number}"
+                    )
+
+                    # Find alternatives for this chapter with optimized settings
+                    alternatives = (
+                        await provider_matching_service.find_chapter_alternatives(
+                            manga_title=manga_title,
+                            chapter_number=chapter.number,
+                            original_provider=provider,
+                            max_alternatives=2,  # Reduced for speed
+                            timeout_per_provider=5,  # 5 second timeout per provider
+                            max_providers_to_search=4,  # Only search top 4 providers
+                        )
+                    )
+
+                    if alternatives:
+                        # Store provider external IDs
+                        if not chapter.provider_external_ids:
+                            chapter.provider_external_ids = {}
+
+                        # Store fallback providers
+                        fallback_providers = []
+
+                        for alt in alternatives:
+                            chapter.provider_external_ids[alt.provider_name.lower()] = (
+                                alt.external_chapter_id
+                            )
+                            fallback_providers.append(alt.provider_name)
+
+                        chapter.fallback_providers = fallback_providers
+                        discovered_count += 1
+
+                        logger.info(
+                            f"Found {len(alternatives)} alternatives for chapter {chapter.number}"
+                        )
+                    else:
+                        logger.info(
+                            f"No alternatives found for chapter {chapter.number}"
+                        )
+
+                except Exception as e:
+                    logger.warning(
+                        f"Error discovering alternatives for chapter {chapter.id}: {e}"
+                    )
+                    continue
+
+            await db.commit()
+
+            logger.info(
+                f"Alternative discovery completed: {discovered_count}/{total_chapters} chapters"
+            )
+
+    except Exception as e:
+        logger.error(f"Error in discover_alternatives_task: {e}", exc_info=True)

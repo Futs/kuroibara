@@ -1,8 +1,10 @@
 <template>
   <div
+    ref="readerContainer"
     class="manga-reader"
     :class="{ dark: true }"
     @keydown="handleKeydown"
+    @wheel="handleWheel"
     tabindex="0"
   >
     <!-- Reader Controls -->
@@ -151,6 +153,120 @@
               />
             </svg>
           </button>
+
+          <!-- Divider -->
+          <div class="h-6 w-px bg-gray-300 dark:bg-dark-600"></div>
+
+          <!-- Zoom Out -->
+          <button
+            @click="zoomOut"
+            class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-800"
+            title="Zoom Out (-)"
+          >
+            <svg
+              class="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
+              />
+            </svg>
+          </button>
+
+          <!-- Zoom Level Display -->
+          <span
+            class="text-sm font-medium text-gray-700 dark:text-gray-200 min-w-[4rem] text-center"
+          >
+            {{ Math.round(zoomLevel * 100) }}%
+          </span>
+
+          <!-- Zoom In -->
+          <button
+            @click="zoomIn"
+            class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-800"
+            title="Zoom In (+)"
+          >
+            <svg
+              class="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"
+              />
+            </svg>
+          </button>
+
+          <!-- Reset Zoom -->
+          <button
+            @click="resetZoom"
+            class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-800"
+            title="Reset Zoom (0)"
+          >
+            <svg
+              class="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button>
+
+          <!-- Fullscreen -->
+          <button
+            @click="toggleFullscreen"
+            class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-800"
+            :title="isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'"
+          >
+            <svg
+              v-if="!isFullscreen"
+              class="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              />
+            </svg>
+            <svg
+              v-else
+              class="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -253,6 +369,61 @@
           <span class="text-sm text-gray-700 dark:text-gray-200">
             {{ currentPage }} / {{ totalPages }}
           </span>
+
+          <!-- Divider -->
+          <div class="h-6 w-px bg-gray-300 dark:bg-dark-600 ml-2"></div>
+
+          <!-- Fit Mode Buttons -->
+          <div class="flex items-center space-x-1 ml-2">
+            <button
+              @click="setFitMode('width')"
+              :class="{
+                'bg-primary-500 text-white': settings.fitMode === 'width',
+                'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-700':
+                  settings.fitMode !== 'width',
+              }"
+              class="px-2 py-1 rounded text-xs font-medium transition-colors"
+              title="Fit to Width (Q)"
+            >
+              Width
+            </button>
+            <button
+              @click="setFitMode('height')"
+              :class="{
+                'bg-primary-500 text-white': settings.fitMode === 'height',
+                'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-700':
+                  settings.fitMode !== 'height',
+              }"
+              class="px-2 py-1 rounded text-xs font-medium transition-colors"
+              title="Fit to Height (W)"
+            >
+              Height
+            </button>
+            <button
+              @click="setFitMode('both')"
+              :class="{
+                'bg-primary-500 text-white': settings.fitMode === 'both',
+                'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-700':
+                  settings.fitMode !== 'both',
+              }"
+              class="px-2 py-1 rounded text-xs font-medium transition-colors"
+              title="Fit Both (E)"
+            >
+              Both
+            </button>
+            <button
+              @click="setFitMode('original')"
+              :class="{
+                'bg-primary-500 text-white': settings.fitMode === 'original',
+                'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-700':
+                  settings.fitMode !== 'original',
+              }"
+              class="px-2 py-1 rounded text-xs font-medium transition-colors"
+              title="Original Size (R)"
+            >
+              Original
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -265,13 +436,22 @@
     >
       <div
         class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        @click.self="showSettings = false"
       >
         <div
           class="fixed inset-0 bg-gray-500 dark:bg-dark-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
+          @click="showSettings = false"
         ></div>
 
+        <!-- Spacer element to trick the browser into centering the modal contents. -->
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
         <div
-          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+          class="relative inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
         >
           <div>
             <div class="mt-3 text-center sm:mt-0 sm:text-left">
@@ -717,13 +897,22 @@
     >
       <div
         class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        @click.self="showKeyboardHelp = false"
       >
         <div
           class="fixed inset-0 bg-gray-500 dark:bg-dark-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
+          @click="showKeyboardHelp = false"
         ></div>
 
+        <!-- Spacer element to trick the browser into centering the modal contents. -->
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
         <div
-          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6"
+          class="relative inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6"
         >
           <div>
             <div class="mt-3 text-center sm:mt-0 sm:text-left">
@@ -857,13 +1046,22 @@
     >
       <div
         class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        @click.self="showBookmarkDialog = false"
       >
         <div
           class="fixed inset-0 bg-gray-500 dark:bg-dark-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
+          @click="showBookmarkDialog = false"
         ></div>
 
+        <!-- Spacer element to trick the browser into centering the modal contents. -->
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
         <div
-          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+          class="relative inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
         >
           <div>
             <div class="mt-3 text-center sm:mt-0 sm:text-left">
@@ -915,13 +1113,22 @@
     >
       <div
         class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        @click.self="showBookmarks = false"
       >
         <div
           class="fixed inset-0 bg-gray-500 dark:bg-dark-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
+          @click="showBookmarks = false"
         ></div>
 
+        <!-- Spacer element to trick the browser into centering the modal contents. -->
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
         <div
-          class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6"
+          class="relative inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6"
         >
           <div>
             <div class="mt-3 text-center sm:mt-0 sm:text-left">
@@ -1102,26 +1309,29 @@
       <!-- Single Page Mode -->
       <div
         v-else-if="currentPageUrl && settings.pageLayout === 'single'"
-        class="reader-page-container max-h-screen overflow-auto"
+        class="reader-page-container"
         :class="{
-          'flex justify-center': true,
           'reader-fit-width': settings.fitMode === 'width',
           'reader-fit-height': settings.fitMode === 'height',
           'reader-fit-both': settings.fitMode === 'both',
+          'reader-fit-original': settings.fitMode === 'original',
         }"
       >
-        <img
-          :src="currentPageUrl"
-          :alt="`Page ${currentPage}`"
-          class="reader-page"
-          :class="{
-            'max-w-full':
-              settings.fitMode === 'width' || settings.fitMode === 'both',
-            'max-h-screen':
-              settings.fitMode === 'height' || settings.fitMode === 'both',
-            'w-auto h-auto': settings.fitMode === 'original',
+        <!-- Zoom wrapper that expands with the scaled content -->
+        <div
+          class="reader-zoom-wrapper"
+          :style="{
+            width: settings.fitMode === 'width' ? `${100 * zoomLevel}%` : 'auto',
+            height: settings.fitMode === 'height' ? `${100 * zoomLevel}vh` : 'auto',
           }"
-        />
+        >
+          <img
+            :src="currentPageUrl"
+            :alt="`Page ${currentPage}`"
+            class="reader-page"
+            :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }"
+          />
+        </div>
 
         <div
           v-if="settings.showPageNumbers"
@@ -1134,17 +1344,18 @@
       <!-- Double Page Mode -->
       <div
         v-else-if="currentPagePair.length && settings.pageLayout === 'double'"
-        class="reader-page-container max-h-screen overflow-auto"
+        class="reader-page-container reader-double-page"
         :class="{
-          'flex justify-center items-center': true,
           'reader-fit-width': settings.fitMode === 'width',
           'reader-fit-height': settings.fitMode === 'height',
           'reader-fit-both': settings.fitMode === 'both',
+          'reader-fit-original': settings.fitMode === 'original',
         }"
       >
         <div
           class="flex gap-1"
           :class="{ 'flex-row-reverse': settings.readingDirection === 'rtl' }"
+          :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }"
         >
           <img
             v-for="(page, index) in currentPagePair"
@@ -1152,13 +1363,6 @@
             :src="page.url"
             :alt="`Page ${page.number || currentPage + index}`"
             class="reader-page"
-            :class="{
-              'max-w-[50vw]':
-                settings.fitMode === 'width' || settings.fitMode === 'both',
-              'max-h-screen':
-                settings.fitMode === 'height' || settings.fitMode === 'both',
-              'w-auto h-auto': settings.fitMode === 'original',
-            }"
           />
         </div>
 
@@ -1181,7 +1385,10 @@
         }"
         @scroll="handleListScroll"
       >
-        <div class="flex flex-col items-center space-y-2 py-4">
+        <div
+          class="flex flex-col items-center space-y-2 py-4"
+          :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }"
+        >
           <img
             v-for="(page, index) in pages"
             :key="page.id || index"
@@ -1209,25 +1416,19 @@
       <!-- Adaptive Mode (fallback to single page while analyzing) -->
       <div
         v-else-if="currentPageUrl && settings.pageLayout === 'adaptive'"
-        class="reader-page-container max-h-screen overflow-auto"
+        class="reader-page-container"
         :class="{
-          'flex justify-center': true,
           'reader-fit-width': settings.fitMode === 'width',
           'reader-fit-height': settings.fitMode === 'height',
           'reader-fit-both': settings.fitMode === 'both',
+          'reader-fit-original': settings.fitMode === 'original',
         }"
       >
         <img
           :src="currentPageUrl"
           :alt="`Page ${currentPage}`"
           class="reader-page"
-          :class="{
-            'max-w-full':
-              settings.fitMode === 'width' || settings.fitMode === 'both',
-            'max-h-screen':
-              settings.fitMode === 'height' || settings.fitMode === 'both',
-            'w-auto h-auto': settings.fitMode === 'original',
-          }"
+          :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }"
         />
 
         <div
@@ -1278,27 +1479,27 @@
       </div>
     </div>
 
-    <!-- Navigation Buttons -->
+    <!-- Navigation Buttons - Narrower to allow scrolling in center -->
     <button
       v-if="settings.readingDirection === 'rtl'"
       @click="nextPage"
-      class="fixed top-0 bottom-0 right-0 w-1/3 h-full opacity-0 cursor-pointer z-0"
+      class="nav-button-right"
     ></button>
     <button
       v-if="settings.readingDirection === 'rtl'"
       @click="prevPage"
-      class="fixed top-0 bottom-0 left-0 w-1/3 h-full opacity-0 cursor-pointer z-0"
+      class="nav-button-left"
     ></button>
 
     <button
       v-if="settings.readingDirection === 'ltr'"
       @click="prevPage"
-      class="fixed top-0 bottom-0 left-0 w-1/3 h-full opacity-0 cursor-pointer z-0"
+      class="nav-button-left"
     ></button>
     <button
       v-if="settings.readingDirection === 'ltr'"
       @click="nextPage"
-      class="fixed top-0 bottom-0 right-0 w-1/3 h-full opacity-0 cursor-pointer z-0"
+      class="nav-button-right"
     ></button>
   </div>
 </template>
@@ -1347,11 +1548,13 @@ const currentPage = computed(() => readerStore.getCurrentPage);
 const settings = computed(() => readerStore.getSettings);
 const loading = computed(() => readerStore.loading);
 const error = computed(() => readerStore.error);
+const zoomLevel = computed(() => readerStore.zoomLevel);
+const isFullscreen = computed(() => readerStore.isFullscreen);
 
 // Theme and UI
 const currentTheme = computed(
   () =>
-    readerStore.getCurrentTheme || {
+    readerStore.getCurrentTheme() || {
       ui: {
         toolbarBg: "#1f2937",
         shadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
@@ -1385,14 +1588,90 @@ const currentPagePair = computed(() => {
   return readerStore.getCurrentPagePair || [];
 });
 
+const currentPageDisplay = computed(() => {
+  if (settings.value.pageLayout === "double" && currentPagePair.value.length > 1) {
+    const pages = currentPagePair.value.map((p) => p.number || p.page).join(", ");
+    return `${pages} / ${totalPages.value}`;
+  }
+  return `${currentPage.value} / ${totalPages.value}`;
+});
+
 // Missing computed properties for theme and layout definitions
 const themeDefinitions = computed(() => readerStore.themes || {});
 const uiLayoutDefinitions = computed(() => readerStore.uiLayouts || {});
+
+// Bookmarks computed property
+const bookmarks = computed(() => readerStore.bookmarks || []);
+
+// Helper function to format bookmark dates
+const formatBookmarkDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+  if (diffHours < 24)
+    return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+
+  return date.toLocaleDateString();
+};
+
+// Helper function to dismiss achievement notifications
+const dismissNotification = (notificationId) => {
+  const index = achievementNotifications.value.findIndex(
+    (n) => n.id === notificationId,
+  );
+  if (index !== -1) {
+    achievementNotifications.value.splice(index, 1);
+  }
+};
+
+// List view scroll handler
+const handleListScroll = (event) => {
+  // Update current page based on scroll position
+  const container = event.target;
+  const scrollTop = container.scrollTop;
+  const containerHeight = container.clientHeight;
+  const scrollCenter = scrollTop + containerHeight / 2;
+
+  // Find which page is in the center of the viewport
+  const images = container.querySelectorAll(".list-page");
+  images.forEach((img, index) => {
+    const rect = img.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const imgCenter = rect.top - containerRect.top + rect.height / 2;
+
+    if (Math.abs(imgCenter - containerHeight / 2) < containerHeight / 3) {
+      const pageNumber = index + 1;
+      if (currentPageInView.value !== pageNumber) {
+        currentPageInView.value = pageNumber;
+        readerStore.setCurrentPage(pageNumber);
+      }
+    }
+  });
+};
+
+// Image load handler
+const handleImageLoad = (pageNumber) => {
+  // Optional: Track loaded images for preloading logic
+  console.log(`Page ${pageNumber} loaded`);
+};
 
 // Missing method for image quality URL generation
 const getQualityImageUrl = (page) => {
   const baseUrl = page?.url || page || "";
   if (!baseUrl) return "";
+
+  // If it's a blob URL, return it directly (can't add quality parameters)
+  if (baseUrl.startsWith("blob:")) {
+    return baseUrl;
+  }
 
   const quality = settings.value.imageQuality || "medium";
 
@@ -1408,14 +1687,19 @@ const getQualityImageUrl = (page) => {
   };
 
   const params = qualityMap[quality] || qualityMap.medium;
-  const url = new URL(baseUrl, window.location.origin);
 
-  url.searchParams.set("quality", params.quality.toString());
-  if (params.width) {
-    url.searchParams.set("width", params.width.toString());
+  try {
+    const url = new URL(baseUrl, window.location.origin);
+    url.searchParams.set("quality", params.quality.toString());
+    if (params.width) {
+      url.searchParams.set("width", params.width.toString());
+    }
+    return url.toString();
+  } catch (error) {
+    // If URL parsing fails, return original URL
+    console.error("Failed to parse URL:", baseUrl, error);
+    return baseUrl;
   }
-
-  return url.toString();
 };
 
 // Keyboard event handlers
@@ -1430,6 +1714,25 @@ const handleKeydown = (event) => {
     case "escape":
       showSettings.value = false;
       showKeyboardHelp.value = false;
+      break;
+    case "f":
+    case "f11":
+      event.preventDefault();
+      toggleFullscreen();
+      break;
+    case "+":
+    case "=":
+      event.preventDefault();
+      zoomIn();
+      break;
+    case "-":
+    case "_":
+      event.preventDefault();
+      zoomOut();
+      break;
+    case "0":
+      event.preventDefault();
+      resetZoom();
       break;
     case "1":
       readerStore.updateSettings({ pageLayout: "single" });
@@ -1512,7 +1815,7 @@ const getToolbarClasses = () => {
 
 // Add other essential computed properties and methods
 const currentUILayout = computed(() => {
-  const layout = readerStore.getCurrentUILayout;
+  const layout = readerStore.getCurrentUILayout();
   // Provide default layout if none exists
   if (!layout) {
     return {
@@ -1525,21 +1828,181 @@ const currentUILayout = computed(() => {
   return layout;
 });
 
+// Helper function to reset scroll position
+const resetScrollPosition = () => {
+  setTimeout(() => {
+    const container = document.querySelector('.reader-page-container');
+    if (container) {
+      container.scrollTop = 0;
+      container.scrollLeft = 0;
+    }
+  }, 50);
+};
+
 // Basic navigation methods
-const nextPage = () => readerStore.nextPage();
-const prevPage = () => readerStore.prevPage();
-const nextChapter = () => readerStore.nextChapter();
-const prevChapter = () => readerStore.prevChapter();
+const nextPage = () => {
+  readerStore.nextPage();
+  resetScrollPosition();
+};
+
+const prevPage = () => {
+  readerStore.prevPage();
+  resetScrollPosition();
+};
+
+const nextChapter = () => {
+  readerStore.loadNextChapter();
+  resetScrollPosition();
+};
+
+const prevChapter = () => {
+  readerStore.loadPrevChapter();
+  resetScrollPosition();
+};
+
+// Chapter selection
+const selectChapter = async (chapterId) => {
+  showChapterSelector.value = false;
+  await readerStore.fetchChapter(mangaId.value, chapterId);
+  await readerStore.fetchPages(mangaId.value, chapterId);
+  readerStore.setCurrentPage(1);
+  // Update URL
+  router.push({
+    name: "manga-reader",
+    params: { id: mangaId.value, chapter: chapterId, page: 1 },
+  });
+  resetScrollPosition();
+};
 
 // UI methods
 const toggleSettings = () => {
   showSettings.value = !showSettings.value;
 };
 
+// Bookmark methods
+const toggleBookmark = () => {
+  if (hasBookmarkOnCurrentPage.value) {
+    // Find and remove the bookmark
+    const bookmark = readerStore.bookmarks.find(
+      (b) =>
+        b.mangaId === manga.value?.id &&
+        b.chapterId === chapter.value?.id &&
+        b.page === currentPage.value,
+    );
+    if (bookmark) {
+      readerStore.removeBookmark(bookmark.id);
+    }
+  } else {
+    // Show dialog to add bookmark
+    showBookmarkDialog.value = true;
+  }
+};
+
+const addBookmark = () => {
+  readerStore.addBookmark(bookmarkNote.value);
+  bookmarkNote.value = "";
+  showBookmarkDialog.value = false;
+};
+
+const removeBookmark = (bookmarkId) => {
+  readerStore.removeBookmark(bookmarkId);
+};
+
+const goToBookmark = (bookmark) => {
+  router.push({
+    name: "manga-reader",
+    params: {
+      id: bookmark.mangaId,
+      chapter: bookmark.chapterId,
+      page: bookmark.page,
+    },
+  });
+  showBookmarks.value = false;
+};
+
+// Settings methods
+const updateSettings = (updates) => {
+  readerStore.updateSettings(updates);
+};
+
+const updateTheme = (themeId) => {
+  readerStore.updateTheme(themeId);
+};
+
+const updateUILayout = (layoutId) => {
+  readerStore.updateUILayout(layoutId);
+};
+
+const updateDisplayOptions = (updates) => {
+  readerStore.updateDisplayOptions(updates);
+};
+
+// Zoom controls
+const zoomIn = () => readerStore.zoomIn();
+const zoomOut = () => readerStore.zoomOut();
+const resetZoom = () => readerStore.resetZoom();
+
+// Fit mode controls
+const setFitMode = (mode) => {
+  readerStore.updateSettings({ fitMode: mode });
+  // Reset scroll position when changing fit mode
+  setTimeout(() => {
+    const container = document.querySelector('.reader-page-container');
+    if (container) {
+      container.scrollTop = 0;
+      container.scrollLeft = 0;
+    }
+  }, 50);
+};
+
+// Fullscreen controls
+const readerContainer = ref(null);
+
+const toggleFullscreen = async () => {
+  if (!document.fullscreenElement) {
+    try {
+      await readerContainer.value?.requestFullscreen();
+      readerStore.setFullscreen(true);
+    } catch (error) {
+      console.error("Failed to enter fullscreen:", error);
+    }
+  } else {
+    try {
+      await document.exitFullscreen();
+      readerStore.setFullscreen(false);
+    } catch (error) {
+      console.error("Failed to exit fullscreen:", error);
+    }
+  }
+};
+
+// Handle fullscreen change events
+const handleFullscreenChange = () => {
+  readerStore.setFullscreen(!!document.fullscreenElement);
+};
+
+// Mouse wheel zoom
+const handleWheel = (event) => {
+  if (event.ctrlKey || event.metaKey) {
+    event.preventDefault();
+    if (event.deltaY < 0) {
+      zoomIn();
+    } else {
+      zoomOut();
+    }
+  }
+};
+
 // Load content on mount
 const loadContent = async () => {
   try {
+    // Load manga details
     await readerStore.fetchManga(mangaId.value);
+
+    // Load all chapters for navigation
+    await readerStore.fetchChapters(mangaId.value);
+
+    // Load current chapter and pages
     if (chapterId.value) {
       await readerStore.fetchChapter(mangaId.value, chapterId.value);
       await readerStore.fetchPages(mangaId.value, chapterId.value);
@@ -1554,12 +2017,159 @@ const loadContent = async () => {
 
 onMounted(() => {
   loadContent();
+  // Add fullscreen change listener
+  document.addEventListener("fullscreenchange", handleFullscreenChange);
 });
 
 onBeforeUnmount(() => {
+  // Clean up blob URLs to prevent memory leaks
+  readerStore.cleanupBlobUrls();
+
+  // Remove fullscreen listener
+  document.removeEventListener("fullscreenchange", handleFullscreenChange);
+
   // Clean up any global state or event listeners
   // Reset reader store state to prevent interference with other pages
   readerStore.error = null;
   readerStore.loading = false;
 });
 </script>
+
+<style scoped>
+.manga-reader {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.reader-page-container {
+  width: 100%;
+  height: 100vh;
+  background-color: #1a1a1a;
+  overflow: auto; /* Allow scrolling when zoomed */
+  position: relative;
+  /* Use a wrapper approach for proper centering and scrolling */
+  display: flex;
+  align-items: flex-start; /* Start from top, not center */
+  justify-content: center; /* Center horizontally */
+}
+
+.reader-zoom-wrapper {
+  /* This wrapper expands to accommodate the zoomed image */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 100%;
+  min-height: 100vh;
+}
+
+.reader-page {
+  display: block;
+  object-fit: contain;
+  transition: transform 0.2s ease-out;
+  /* The image will be positioned by the container */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Fit mode: width */
+.reader-fit-width .reader-page {
+  width: 100%;
+  height: auto;
+  max-height: none; /* Remove max-height to allow scrolling when zoomed */
+}
+
+/* Fit mode: height */
+.reader-fit-height .reader-page {
+  width: auto;
+  height: 100vh;
+  max-width: none; /* Remove max-width to allow scrolling when zoomed */
+  /* When zoomed, the image will expand beyond 100vh and become scrollable */
+  min-height: 100vh; /* Ensure it's at least viewport height */
+}
+
+/* Fit mode: both */
+.reader-fit-both .reader-page {
+  max-width: 100%;
+  max-height: 100vh;
+  width: auto;
+  height: auto;
+}
+
+/* Fit mode: original */
+.reader-fit-original .reader-page {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+}
+
+/* Double page mode specific */
+.reader-double-page.reader-fit-width .reader-page {
+  max-width: 50vw;
+  height: auto;
+}
+
+.reader-double-page.reader-fit-height .reader-page {
+  width: auto;
+  height: 100vh;
+}
+
+.reader-double-page.reader-fit-both .reader-page {
+  max-width: 50vw;
+  max-height: 100vh;
+  width: auto;
+  height: auto;
+}
+
+.reader-double-page.reader-fit-original .reader-page {
+  width: auto;
+  height: auto;
+}
+
+/* List view container */
+.reader-list-container {
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: #1a1a1a;
+}
+
+.reader-list-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Navigation buttons - narrower to allow center scrolling */
+.nav-button-left,
+.nav-button-right {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 15%; /* Narrower than before (was 33%) */
+  max-width: 150px; /* Cap the width on large screens */
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 0;
+  pointer-events: auto;
+}
+
+.nav-button-left {
+  left: 0;
+}
+
+.nav-button-right {
+  right: 0;
+}
+
+/* On hover, show a subtle indicator */
+.nav-button-left:hover,
+.nav-button-right:hover {
+  opacity: 0.05;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.nav-button-right:hover {
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.1), transparent);
+}
+</style>

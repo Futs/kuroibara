@@ -262,13 +262,40 @@ class MangaUpdatesService:
             raise ValueError(f"API returned error or invalid response: {api_data}")
 
         # Safely extract nested values with proper fallbacks
+        # Type can be a string or dict
         type_info = api_data.get("type", {})
-        type_value = type_info.get("type") if isinstance(type_info, dict) else None
+        if isinstance(type_info, dict):
+            type_value = type_info.get("type")
+        elif isinstance(type_info, str):
+            type_value = type_info
+        else:
+            type_value = None
 
+        # Status can be a string or dict - parse to enum value
         status_info = api_data.get("status", {})
-        status_value = (
-            status_info.get("status") if isinstance(status_info, dict) else None
-        )
+        if isinstance(status_info, dict):
+            status_raw = status_info.get("status")
+        elif isinstance(status_info, str):
+            status_raw = status_info
+        else:
+            status_raw = None
+
+        # Map MangaUpdates status string to our enum
+        status_value = self._parse_status(status_raw)
+
+        # Rating can be in different fields
+        rating_value = None
+        rating_count_value = None
+
+        # Try bayesian_rating first (more accurate)
+        if "bayesian_rating" in api_data:
+            rating_value = api_data.get("bayesian_rating")
+            # rating_votes is a separate field
+            rating_count_value = api_data.get("rating_votes")
+        # Fall back to rating dict
+        elif "rating" in api_data and isinstance(api_data["rating"], dict):
+            rating_value = api_data["rating"].get("average")
+            rating_count_value = api_data["rating"].get("votes")
 
         return {
             "mu_series_id": str(api_data.get("series_id", "")),
@@ -286,8 +313,8 @@ class MangaUpdatesService:
             "genres": self._extract_genres(api_data),
             "authors": self._extract_authors(api_data),
             "publishers": self._extract_publishers(api_data),
-            "rating": api_data.get("rating", {}).get("average"),
-            "rating_count": api_data.get("rating", {}).get("votes"),
+            "rating": rating_value,
+            "rating_count": rating_count_value,
             "latest_chapter": self._extract_latest_chapter(api_data),
             "total_chapters": self._extract_total_chapters(api_data),
             "raw_data": api_data,
@@ -312,6 +339,29 @@ class MangaUpdatesService:
             return image.get("url", {}).get("original")
         return None
 
+    def _parse_status(self, status_str: Optional[str]) -> Optional[str]:
+        """Parse MangaUpdates status string to our enum value."""
+        if not status_str:
+            return None
+
+        status_lower = status_str.lower()
+
+        # Map common status strings to our enum values
+        if "ongoing" in status_lower or "publishing" in status_lower:
+            return "ongoing"
+        elif "complete" in status_lower or "finished" in status_lower:
+            return "completed"
+        elif "hiatus" in status_lower or "on hold" in status_lower:
+            return "hiatus"
+        elif (
+            "cancelled" in status_lower
+            or "canceled" in status_lower
+            or "discontinued" in status_lower
+        ):
+            return "cancelled"
+        else:
+            return None  # Will default to UNKNOWN in the model
+
     def _extract_year(self, data: Dict) -> Optional[int]:
         """Extract publication year."""
         year_data = data.get("year")
@@ -319,6 +369,12 @@ class MangaUpdatesService:
             return year_data.get("year")
         elif isinstance(year_data, int):
             return year_data
+        elif isinstance(year_data, str):
+            # Handle string year like '1997'
+            try:
+                return int(year_data)
+            except (ValueError, TypeError):
+                return None
         return None
 
     def _extract_completed_year(self, data: Dict) -> Optional[int]:

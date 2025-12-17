@@ -60,6 +60,8 @@ class SearchResult(BaseModel):
     provider: str
     url: str
     in_library: bool = False
+    source_indexer: Optional[str] = None  # Source indexer (e.g., "mangaupdates")
+    source_id: Optional[str] = None  # Source-specific ID
     extra: Optional[Dict[str, Any]] = None
 
 

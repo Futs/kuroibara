@@ -152,38 +152,43 @@ async def enhanced_search(
                                     f"Created MangaUpdates entry: {mu_entry.title}"
                                 )
                             else:
-                                print(f"[DEBUG] Failed to create MU entry")
+                                print("[DEBUG] Failed to create MU entry")
                                 logger.warning(
-                                    f"Failed to create MangaUpdates entry for series {series_id}"
+                                    f"Failed to create MangaUpdates entry "
+                                    f"for series {series_id}"
                                 )
                         except Exception as e:
                             print(f"[DEBUG] Exception creating MU entry: {e}")
                             logger.error(f"Failed to create MangaUpdates entry: {e}")
 
                     print(
-                        f"[DEBUG] About to check if mu_entry exists: {mu_entry is not None}"
+                        f"[DEBUG] About to check if mu_entry exists: "
+                        f"{mu_entry is not None}"
                     )
                     if mu_entry:
-                        print(f"[DEBUG] MU entry exists, starting provider matching")
+                        print("[DEBUG] MU entry exists, starting provider matching")
                         # Find provider matches
                         from app.core.services.enhanced_search import ProviderMatcher
 
                         matcher = ProviderMatcher()
                         print(
-                            f"[DEBUG] Created ProviderMatcher, calling find_provider_matches"
+                            "[DEBUG] Created ProviderMatcher, "
+                            "calling find_provider_matches"
                         )
                         provider_matches = await matcher.find_provider_matches(
                             mu_entry, max_providers=5
                         )
                         print(
-                            f"[DEBUG] Provider matching returned {len(provider_matches)} matches"
+                            f"[DEBUG] Provider matching returned "
+                            f"{len(provider_matches)} matches"
                         )
                         search_result["provider_matches"] = provider_matches
                         logger.info(
-                            f"Found {len(provider_matches)} provider matches for {result.title}"
+                            f"Found {len(provider_matches)} provider matches "
+                            f"for {result.title}"
                         )
                     else:
-                        print(f"[DEBUG] MU entry is None, skipping provider matching")
+                        print("[DEBUG] MU entry is None, skipping provider matching")
 
                 except Exception as e:
                     logger.warning(

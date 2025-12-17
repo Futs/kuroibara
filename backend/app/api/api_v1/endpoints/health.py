@@ -21,6 +21,20 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _sanitize_error_message(error: Exception) -> str:
+    """
+    Sanitize error messages to prevent information disclosure.
+
+    Logs the full error for debugging but returns a generic message
+    to external users to prevent exposing sensitive system information.
+    """
+    # Log the full error for debugging
+    logger.error(f"Health check error: {error}", exc_info=True)
+
+    # Return generic message to prevent information disclosure
+    return "Service temporarily unavailable"
+
+
 @router.get("/")
 async def system_health(
     db: AsyncSession = Depends(get_db),
@@ -66,7 +80,7 @@ async def system_health(
             health_data["components"]["database"] = {
                 "status": "unhealthy",
                 "response_time_ms": None,
-                "message": f"Database connection failed: {str(e)}",
+                "message": f"Database connection failed: {_sanitize_error_message(e)}",
             }
             health_data["status"] = "degraded"
 
@@ -119,7 +133,7 @@ async def system_health(
             health_data["components"]["indexers"] = {
                 "status": "unhealthy",
                 "response_time_ms": None,
-                "message": f"Indexer health check failed: {str(e)}",
+                "message": f"Indexer health check failed: {_sanitize_error_message(e)}",
             }
             health_data["status"] = "degraded"
 
@@ -166,7 +180,7 @@ async def system_health(
                     "response_time_ms": round(provider_response_time, 2),
                     "enabled_count": len(providers),
                     "total_count": len(providers),
-                    "message": f"Provider status check failed, using registry: {str(e)}",
+                    "message": f"Provider status check failed, using registry: {_sanitize_error_message(e)}",
                 }
                 if health_data["status"] == "healthy":
                     health_data["status"] = "degraded"
@@ -175,7 +189,7 @@ async def system_health(
             health_data["components"]["providers"] = {
                 "status": "unhealthy",
                 "response_time_ms": None,
-                "message": f"Provider registry check failed: {str(e)}",
+                "message": f"Provider registry check failed: {_sanitize_error_message(e)}",
             }
             health_data["status"] = "degraded"
 
@@ -204,7 +218,6 @@ async def system_health(
         return health_data
 
     except Exception as e:
-        logger.error(f"System health check failed: {e}")
         return {
             "status": "unhealthy",
             "timestamp": time.time(),
@@ -216,7 +229,7 @@ async def system_health(
                 "health_percentage": 0,
                 "total_response_time_ms": round((time.time() - start_time) * 1000, 2),
             },
-            "message": f"Health check failed: {str(e)}",
+            "message": f"Health check failed: {_sanitize_error_message(e)}",
         }
 
 
@@ -234,11 +247,10 @@ async def quick_health() -> Dict[str, Any]:
             "message": "Service is running",
         }
     except Exception as e:
-        logger.error(f"Quick health check failed: {e}")
         return {
             "status": "unhealthy",
             "timestamp": time.time(),
-            "message": f"Service error: {str(e)}",
+            "message": f"Service error: {_sanitize_error_message(e)}",
         }
 
 
@@ -292,9 +304,8 @@ async def indexers_health() -> Dict[str, Any]:
         }
 
     except Exception as e:
-        logger.error(f"Indexer health check failed: {e}")
         return {
             "status": "unhealthy",
             "timestamp": time.time(),
-            "message": f"Indexer health check failed: {str(e)}",
+            "message": f"Indexer health check failed: {_sanitize_error_message(e)}",
         }

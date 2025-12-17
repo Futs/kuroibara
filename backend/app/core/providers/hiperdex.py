@@ -15,7 +15,7 @@ Features:
 import logging
 import re
 from typing import Any, Dict, List
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -364,9 +364,19 @@ class HiperDexProvider(JavaScriptProvider):
                     if not img_url.startswith("http"):
                         img_url = urljoin(self.url, img_url)
 
-                    # Filter for HiperDEX CDN images
-                    if "mdg.hiperdex.com" in img_url or "hiperdex.com" in img_url:
-                        page_urls.append(img_url)
+                    # Filter for HiperDEX CDN images - use proper URL parsing
+                    # to prevent URL injection attacks
+                    try:
+                        parsed = urlparse(img_url)
+                        # Check if hostname ends with hiperdex.com (includes subdomains)
+                        if parsed.hostname and (
+                            parsed.hostname == "hiperdex.com"
+                            or parsed.hostname.endswith(".hiperdex.com")
+                        ):
+                            page_urls.append(img_url)
+                    except Exception:
+                        # Skip malformed URLs
+                        continue
 
             # Remove duplicates while preserving order
             seen = set()

@@ -115,26 +115,11 @@ class MangaUpdatesAPI:
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None
 
-    async def get_series_chapters(self, series_id: int) -> List[Dict]:
-        """Get chapter list for a series."""
-        if not self.session:
-            raise RuntimeError("MangaUpdatesAPI must be used as async context manager")
-
-        url = f"{self.BASE_URL}/series/{series_id}/chapters"
-
-        try:
-            async with self.session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return data.get("chapters", [])
-                else:
-                    logger.error(
-                        f"Failed to get chapters for series {series_id}: {response.status}"
-                    )
-                    return []
-        except Exception as e:
-            logger.error(f"Error getting series chapters: {e}")
-            return []
+    # NOTE: MangaUpdates API does NOT provide a chapters endpoint
+    # Chapter metadata must be fetched from providers instead
+    # MangaUpdates only provides:
+    # - latest_chapter: The latest chapter number (e.g., "1168")
+    # - But NO chapter list, titles, volumes, or individual chapter metadata
 
 
 class MangaUpdatesService:

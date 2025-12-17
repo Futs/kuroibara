@@ -24,6 +24,9 @@ async def enhanced_search(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Results per page"),
+    include_provider_matches: bool = Query(
+        True, description="Include provider matches for download sources"
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
@@ -32,14 +35,28 @@ async def enhanced_search(
 
     This endpoint uses the tiered indexing system with MangaUpdates as primary,
     MadaraDex as secondary, and MangaDex as tertiary sources.
+
+    If include_provider_matches=True, will also search providers to find download sources.
     """
     try:
         # Use the tiered search service
         results = await tiered_search_service.search(query, limit=limit)
+        print(
+            f"[DEBUG] Tiered search returned {len(results)} results for query '{query}'"
+        )
+        logger.info(
+            f"Tiered search returned {len(results)} results for query '{query}'"
+        )
 
         # Convert results to the expected format
         search_results = []
         for result in results:
+            print(
+                f"[DEBUG] Processing result: {result.title} from {result.source_indexer}"
+            )
+            logger.info(
+                f"Processing result: {result.title} from {result.source_indexer}"
+            )
             # Normalize type field to match enum values
             manga_type = "unknown"
             if result.type:
@@ -79,7 +96,101 @@ async def enhanced_search(
                 "url": result.source_url or "",
                 "confidence_score": result.confidence_score,
                 "in_library": False,  # TODO: Implement library checking
+                "provider_matches": [],  # Will be populated if requested
             }
+
+            # Add provider matches for MangaUpdates results
+            print(
+                f"[DEBUG] Checking provider matches: include={include_provider_matches}, indexer={result.source_indexer}"
+            )
+            logger.info(
+                f"Checking provider matches: include={include_provider_matches}, indexer={result.source_indexer}"
+            )
+            if (
+                include_provider_matches
+                and result.source_indexer
+                and result.source_indexer.lower() == "mangaupdates"
+            ):
+                print(f"[DEBUG] Starting provider match search for {result.title}")
+                logger.info(f"Starting provider match search for {result.title}")
+                try:
+                    # Get or create the MangaUpdates entry in DB
+                    from sqlalchemy import select
+
+                    from app.models.mangaupdates import MangaUpdatesEntry
+
+                    mu_result = await db.execute(
+                        select(MangaUpdatesEntry).where(
+                            MangaUpdatesEntry.mu_series_id == result.source_id
+                        )
+                    )
+                    mu_entry = mu_result.scalars().first()
+                    print(
+                        f"[DEBUG] MU entry from DB: {mu_entry.title if mu_entry else 'None'}"
+                    )
+
+                    # If not in DB, create it from the search result
+                    if not mu_entry:
+                        print(f"[DEBUG] Creating MangaUpdates entry for {result.title}")
+                        logger.info(
+                            f"Creating MangaUpdates entry for {result.title} (ID: {result.source_id})"
+                        )
+
+                        # Create entry using the service method
+                        try:
+                            series_id = int(result.source_id)
+                            async with mangaupdates_service.api as api:
+                                mu_entry = (
+                                    await mangaupdates_service._create_entry_from_api(
+                                        series_id, api, db
+                                    )
+                                )
+
+                            if mu_entry:
+                                print(f"[DEBUG] Created MU entry: {mu_entry.title}")
+                                logger.info(
+                                    f"Created MangaUpdates entry: {mu_entry.title}"
+                                )
+                            else:
+                                print(f"[DEBUG] Failed to create MU entry")
+                                logger.warning(
+                                    f"Failed to create MangaUpdates entry for series {series_id}"
+                                )
+                        except Exception as e:
+                            print(f"[DEBUG] Exception creating MU entry: {e}")
+                            logger.error(f"Failed to create MangaUpdates entry: {e}")
+
+                    print(
+                        f"[DEBUG] About to check if mu_entry exists: {mu_entry is not None}"
+                    )
+                    if mu_entry:
+                        print(f"[DEBUG] MU entry exists, starting provider matching")
+                        # Find provider matches
+                        from app.core.services.enhanced_search import ProviderMatcher
+
+                        matcher = ProviderMatcher()
+                        print(
+                            f"[DEBUG] Created ProviderMatcher, calling find_provider_matches"
+                        )
+                        provider_matches = await matcher.find_provider_matches(
+                            mu_entry, max_providers=5
+                        )
+                        print(
+                            f"[DEBUG] Provider matching returned {len(provider_matches)} matches"
+                        )
+                        search_result["provider_matches"] = provider_matches
+                        logger.info(
+                            f"Found {len(provider_matches)} provider matches for {result.title}"
+                        )
+                    else:
+                        print(f"[DEBUG] MU entry is None, skipping provider matching")
+
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to get provider matches for {result.title}: {e}",
+                        exc_info=True,
+                    )
+
             search_results.append(search_result)
 
         # Calculate pagination

@@ -164,7 +164,19 @@ class MangaPillProvider(BaseProvider):
         if not title or title == "Unknown Title":
             return "Unknown Title"
 
+        # Remove common prefixes/suffixes
         title = title.replace("Manga", "").replace("Read", "").strip()
+
+        # Fix duplicate titles (e.g., "One Piece One Piece" -> "One Piece")
+        words = title.split()
+        if len(words) >= 2:
+            # Check if title is duplicated (first half == second half)
+            mid = len(words) // 2
+            first_half = " ".join(words[:mid])
+            second_half = " ".join(words[mid : mid * 2])
+            if first_half == second_half:
+                title = first_half
+
         return title if len(title) >= 2 else "Unknown Title"
 
     def _create_search_result(self, manga_id, title, cover_url, manga_url):

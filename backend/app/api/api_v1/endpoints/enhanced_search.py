@@ -94,9 +94,14 @@ async def enhanced_search(
                 ],
                 "provider": provider_name,
                 "url": result.source_url or "",
+                "source_indexer": result.source_indexer,  # Add source indexer
+                "source_id": result.source_id,  # Add source ID
                 "confidence_score": result.confidence_score,
                 "in_library": False,  # TODO: Implement library checking
-                "provider_matches": [],  # Will be populated if requested
+                "extra": {
+                    "provider_matches": [],  # Will be populated if requested
+                    "confidence_score": result.confidence_score,
+                },
             }
 
             # Add provider matches for MangaUpdates results
@@ -182,7 +187,7 @@ async def enhanced_search(
                             f"[DEBUG] Provider matching returned "
                             f"{len(provider_matches)} matches"
                         )
-                        search_result["provider_matches"] = provider_matches
+                        search_result["extra"]["provider_matches"] = provider_matches
                         logger.info(
                             f"Found {len(provider_matches)} provider matches "
                             f"for {result.title}"

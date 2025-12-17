@@ -108,7 +108,8 @@ class MangaSailProvider(BaseProvider):
                 return [], 0, False
 
             results = []
-            for item in manga_items[:limit]:
+            seen_ids = set()  # Track seen manga IDs to avoid duplicates
+            for item in manga_items:
                 try:
                     # Extract title from link text
                     raw_title = item.get_text(strip=True)
@@ -134,6 +135,11 @@ class MangaSailProvider(BaseProvider):
                     )
                     if not manga_id:
                         continue
+
+                    # Skip if we've already seen this manga ID
+                    if manga_id in seen_ids:
+                        continue
+                    seen_ids.add(manga_id)
 
                     # Look for cover image (might be in parent or sibling elements)
                     cover_url = ""
@@ -169,6 +175,10 @@ class MangaSailProvider(BaseProvider):
                         extra=None,
                     )
                     results.append(result)
+
+                    # Stop if we've reached the limit
+                    if len(results) >= limit:
+                        break
 
                 except Exception as e:
                     logger.error(f"Error parsing manga item on MangaSail: {e}")

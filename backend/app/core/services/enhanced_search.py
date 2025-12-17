@@ -29,10 +29,20 @@ class EnhancedSearchResult:
 
     def to_search_result(self) -> SearchResult:
         """Convert to standard SearchResult schema."""
+        # Handle alternative_titles - convert list format to dict if needed
+        alt_titles = self.mu_entry.alternative_titles or {}
+        if isinstance(alt_titles, list):
+            # Convert list of dicts to single dict
+            alt_titles_dict = {}
+            for item in alt_titles:
+                if isinstance(item, dict):
+                    alt_titles_dict.update(item)
+            alt_titles = alt_titles_dict
+
         return SearchResult(
             id=str(self.mu_entry.id),
             title=self.mu_entry.title,
-            alternative_titles=self.mu_entry.alternative_titles or {},
+            alternative_titles=alt_titles,
             description=self.mu_entry.description,
             cover_image=self.mu_entry.cover_image_url,
             type=self.mu_entry.type or "unknown",
@@ -46,6 +56,8 @@ class EnhancedSearchResult:
             provider="enhanced_mangaupdates",
             url=self.mu_entry.mu_url or "",
             in_library=self.in_library,
+            source_indexer="mangaupdates",  # Identify this as a MangaUpdates result
+            source_id=self.mu_entry.mu_series_id,  # MangaUpdates series ID
             extra={
                 "mu_series_id": self.mu_entry.mu_series_id,
                 "rating": self.mu_entry.rating,

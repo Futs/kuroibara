@@ -21,7 +21,7 @@ describe("Reader Store", () => {
 
       expect(store.settings.readingDirection).toBe("rtl");
       expect(store.settings.pageLayout).toBe("single");
-      expect(store.settings.fitMode).toBe("width");
+      expect(store.settings.fitMode).toBe("height");
       expect(store.settings.preloadDistance).toBe(3);
       expect(store.settings.imageQuality).toBe("high");
     });

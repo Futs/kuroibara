@@ -9,6 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
+from app.core.providers.base import (
+    AntiBotError,
+    ContentError,
+    NetworkError,
+    ProviderError,
+    RateLimitError,
+)
 from app.core.providers.registry import provider_registry
 from app.core.services.provider_monitor import provider_monitor
 from app.db.session import AsyncSessionLocal
@@ -433,6 +440,38 @@ async def get_provider_manga(
             },
         }
 
+    except AntiBotError as e:
+        logger.warning(f"Anti-bot protection detected for {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=e.to_dict(),
+        )
+    except RateLimitError as e:
+        logger.warning(f"Rate limited by {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=e.to_dict(),
+        )
+    except ContentError as e:
+        logger.warning(f"Content error from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.to_dict(),
+        )
+    except NetworkError as e:
+        logger.error(f"Network error from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=e.to_dict(),
+        )
+    except ProviderError as e:
+        logger.error(f"Provider error from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=e.to_dict(),
+        )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching manga from provider {provider_id}: {e}")
         raise HTTPException(
@@ -476,6 +515,38 @@ async def get_provider_manga_details(
             "has_more_chapters": has_more_chapters,
         }
 
+    except AntiBotError as e:
+        logger.warning(f"Anti-bot protection detected for {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=e.to_dict(),
+        )
+    except RateLimitError as e:
+        logger.warning(f"Rate limited by {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=e.to_dict(),
+        )
+    except ContentError as e:
+        logger.warning(f"Content error from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.to_dict(),
+        )
+    except NetworkError as e:
+        logger.error(f"Network error from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=e.to_dict(),
+        )
+    except ProviderError as e:
+        logger.error(f"Provider error from {provider_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=e.to_dict(),
+        )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching manga details from provider {provider_id}: {e}")
         raise HTTPException(

@@ -589,10 +589,28 @@ class MangaPillProvider(BaseProvider):
             print(f"Error getting pages: {e}")
             return []
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page image."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page image with proper headers.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+        """
         try:
-            async with httpx.AsyncClient(headers=self._headers, timeout=30.0) as client:
+            # Use provided referer or fall back to base URL
+            headers = dict(self._headers)
+            if referer:
+                headers["Referer"] = referer
+            else:
+                headers["Referer"] = self._base_url
+
+            async with httpx.AsyncClient(headers=headers, timeout=30.0) as client:
                 response = await client.get(page_url)
                 response.raise_for_status()
                 return response.content

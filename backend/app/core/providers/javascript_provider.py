@@ -324,8 +324,19 @@ class JavaScriptProvider(BaseProvider):
         # with site-specific page extraction logic
         raise NotImplementedError("Subclasses must implement get_pages method")
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page with JavaScript support."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page with JavaScript support.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (not used for JavaScript provider)
+
+        Returns:
+            The page content as bytes
+        """
         try:
             content = await self._make_request(page_url)
             if content:

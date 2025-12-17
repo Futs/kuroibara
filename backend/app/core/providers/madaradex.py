@@ -436,11 +436,29 @@ class MadaraDexProvider(BaseProvider):
             )
             return []
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page image."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page image with proper headers.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+        """
         try:
+            # Use provided referer or fall back to base URL
+            headers = dict(self._headers)
+            if referer:
+                headers["Referer"] = referer
+            else:
+                headers["Referer"] = self._base_url
+
             async with aiohttp.ClientSession(
-                headers=self._headers, timeout=aiohttp.ClientTimeout(total=60)
+                headers=headers, timeout=aiohttp.ClientTimeout(total=60)
             ) as session:
                 async with session.get(page_url) as response:
                     if response.status == 200:

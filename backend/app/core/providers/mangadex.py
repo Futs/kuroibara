@@ -1,11 +1,18 @@
 import asyncio
 import logging
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 
-from app.core.providers.base import BaseProvider
+from app.core.providers.base import (
+    AntiBotError,
+    BaseProvider,
+    ContentError,
+    NetworkError,
+    ProviderError,
+    RateLimitError,
+)
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
 
@@ -599,8 +606,19 @@ class MangaDexProvider(BaseProvider):
         logger.warning(f"All fallback servers failed for chapter {chapter_id}")
         return []
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page from MangaDex with retry logic."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page from MangaDex with retry logic.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (not used for MangaDex API)
+
+        Returns:
+            The page content as bytes
+        """
         try:
             async with httpx.AsyncClient() as client:
                 response = await self._make_request_with_retry(client, "GET", page_url)

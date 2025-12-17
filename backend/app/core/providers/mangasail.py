@@ -3,7 +3,7 @@ MangaSail provider implementation.
 """
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import aiohttp
@@ -438,10 +438,28 @@ class MangaSailProvider(BaseProvider):
             logger.error(f"Error getting pages for chapter {chapter_id}: {e}")
             return []
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page image."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page image with proper headers.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+        """
         try:
-            async with aiohttp.ClientSession() as session:
+            # Build headers with referer
+            headers = {}
+            if referer:
+                headers["Referer"] = referer
+            else:
+                headers["Referer"] = self._base_url
+
+            async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(page_url) as response:
                     if response.status == 200:
                         return await response.read()

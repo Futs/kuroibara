@@ -38,6 +38,7 @@ async def setup_ci_db():
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -46,4 +47,3 @@ if __name__ == "__main__":
     success = asyncio.run(setup_ci_db())
     if not success:
         sys.exit(1)
-

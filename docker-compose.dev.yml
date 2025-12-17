@@ -5,6 +5,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"  # Run as current user to avoid permission issues
     volumes:
       - ./backend:/app
       - manga_storage:/app/storage

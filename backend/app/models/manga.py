@@ -88,6 +88,15 @@ class Manga(BaseModel):
     chapters = relationship(
         "Chapter", back_populates="manga", cascade="all, delete-orphan"
     )
+    universal_mapping = relationship(
+        "UniversalMangaMapping", back_populates="manga", uselist=False
+    )
+    mangaupdates_mapping = relationship(
+        "MangaUpdatesMapping", back_populates="manga", uselist=False
+    )
+    downloads = relationship(
+        "Download", back_populates="manga", cascade="all, delete-orphan"
+    )
     manga_metadata = relationship(
         "MangaMetadata",
         back_populates="manga",
@@ -155,10 +164,19 @@ class Chapter(BaseModel):
     external_id = Column(
         String(255), nullable=True, index=True
     )  # External ID from the provider
+    provider_external_ids = Column(
+        JSONB, nullable=True
+    )  # External IDs from multiple providers {"mangadex": "abc123", "mangapill": "def456"}
+    fallback_providers = Column(
+        JSONB, nullable=True
+    )  # List of fallback providers to try ["mangapill", "mangasee", "mangakakalot"]
 
     # Relationships
     manga = relationship("Manga", back_populates="chapters")
     pages = relationship("Page", back_populates="chapter", cascade="all, delete-orphan")
+    downloads = relationship(
+        "Download", back_populates="chapter", cascade="all, delete-orphan"
+    )
     reading_progress = relationship(
         "ReadingProgress", back_populates="chapter", cascade="all, delete-orphan"
     )

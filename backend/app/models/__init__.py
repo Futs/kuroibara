@@ -10,6 +10,11 @@ from app.models.library import (
     ReadingProgress,
 )
 from app.models.manga import Chapter, Manga
+from app.models.mangaupdates import (
+    CrossIndexerReference,
+    UniversalMangaEntry,
+    UniversalMangaMapping,
+)
 from app.models.organization import (
     ChapterMetadata,
     MangaMetadata,
@@ -38,4 +43,7 @@ __all__ = [
     "OrganizationJob",
     "ExternalIntegration",
     "ExternalMangaMapping",
+    "UniversalMangaEntry",
+    "UniversalMangaMapping",
+    "CrossIndexerReference",
 ]

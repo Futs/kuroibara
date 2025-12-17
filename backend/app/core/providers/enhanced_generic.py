@@ -313,11 +313,11 @@ class EnhancedGenericProvider(BaseProvider):
             return True
 
         # NSFW keywords to look for (comprehensive list)
+        # Note: "mature" is NOT NSFW - it's for teen+ content with violence/action
         nsfw_keywords = {
             "hentai",
             "ecchi",
             "adult",
-            "mature",
             "smut",
             "pornographic",
             "erotic",
@@ -461,14 +461,16 @@ class EnhancedGenericProvider(BaseProvider):
                     # Single word - check exact match or word boundary
                     if keyword == genre or keyword in genre_words:
                         logger.debug(
-                            f"NSFW detected in genre '{genre}' (keyword: '{keyword}') for '{title}' from provider {self.name}"
+                            f"NSFW detected in genre '{genre}' (keyword: '{keyword}') "
+                            f"for '{title}' from provider {self.name}"
                         )
                         return True
                 else:
                     # Multi-word - check substring
                     if keyword in genre:
                         logger.debug(
-                            f"NSFW detected in genre '{genre}' (phrase: '{keyword}') for '{title}' from provider {self.name}"
+                            f"NSFW detected in genre '{genre}' (phrase: '{keyword}') "
+                            f"for '{title}' from provider {self.name}"
                         )
                         return True
 
@@ -505,7 +507,9 @@ class EnhancedGenericProvider(BaseProvider):
                 ]
             ):
                 logger.debug(
-                    f"NSFW detected in description for '{title}' (score: {nsfw_score}, keywords: {found_keywords}) from provider {self.name}"
+                    f"NSFW detected in description for '{title}' "
+                    f"(score: {nsfw_score}, keywords: {found_keywords}) "
+                    f"from provider {self.name}"
                 )
                 return True
 

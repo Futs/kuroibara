@@ -1,11 +1,14 @@
 import logging
 import os
+from datetime import datetime
+from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.providers.registry import provider_registry
+from app.core.services.provider_matching import provider_matching_service
 from app.core.utils import (
     create_cbz_from_directory,
     get_chapter_storage_path,
@@ -17,6 +20,94 @@ from app.models.library import MangaUserLibrary
 from app.models.manga import Chapter, Manga, Page
 
 logger = logging.getLogger(__name__)
+
+
+async def send_download_progress_update(
+    task_id: str,
+    event_type: str,
+    progress: float = 0,
+    total_pages: int = 0,
+    downloaded_pages: int = 0,
+    downloaded_bytes: int = 0,
+    manga_id: Optional[str] = None,
+    chapter_id: Optional[str] = None,
+    error: Optional[str] = None,
+) -> None:
+    """
+    Send download progress update via WebSocket.
+
+    Args:
+        task_id: The download task ID
+        event_type: Type of event (download_started, download_progress, download_completed, download_failed)
+        progress: Progress percentage (0-100)
+        total_pages: Total number of pages
+        downloaded_pages: Number of pages downloaded
+        downloaded_bytes: Total bytes downloaded
+        manga_id: Manga ID (for started events)
+        chapter_id: Chapter ID (for started events)
+        error: Error message (for failed events)
+    """
+    try:
+        # Import here to avoid circular imports
+        from app.core.progress.websocket import websocket_manager
+        from app.core.services.background import download_tasks
+
+        # Update background task if it exists
+        if task_id in download_tasks:
+            download_tasks[task_id].update(
+                {
+                    "progress": progress,
+                    "total_pages": total_pages,
+                    "downloaded_pages": downloaded_pages,
+                    "status": (
+                        "downloading"
+                        if event_type == "download_progress"
+                        else (
+                            "completed"
+                            if event_type == "download_completed"
+                            else (
+                                "failed"
+                                if event_type == "download_failed"
+                                else download_tasks[task_id].get(
+                                    "status", "downloading"
+                                )
+                            )
+                        )
+                    ),
+                }
+            )
+
+            if downloaded_bytes > 0:
+                download_tasks[task_id]["downloaded_bytes"] = downloaded_bytes
+
+            if error:
+                download_tasks[task_id]["error"] = error
+
+        # Prepare WebSocket message
+        message = {
+            "type": event_type,
+            "task_id": task_id,
+            "progress": progress,
+            "total_pages": total_pages,
+            "downloaded_pages": downloaded_pages,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        if manga_id:
+            message["manga_id"] = manga_id
+        if chapter_id:
+            message["chapter_id"] = chapter_id
+        if downloaded_bytes > 0:
+            message["downloaded_bytes"] = downloaded_bytes
+        if error:
+            message["error"] = error
+
+        # Send via WebSocket
+        await websocket_manager.broadcast_event(message)
+
+    except Exception as e:
+        logger.error(f"Error sending download progress update: {e}")
+        # Don't raise the error as it shouldn't stop the download
 
 
 async def download_manga_cover(
@@ -70,9 +161,11 @@ async def download_chapter(
     external_manga_id: str,
     external_chapter_id: str,
     db: AsyncSession,
+    task_id: Optional[str] = None,
+    progress_callback: Optional[callable] = None,
 ) -> str:
     """
-    Download a chapter.
+    Download a chapter with progress tracking.
 
     Args:
         manga_id: The ID of the manga
@@ -81,6 +174,8 @@ async def download_chapter(
         external_manga_id: The external ID of the manga
         external_chapter_id: The external ID of the chapter
         db: The database session
+        task_id: Optional task ID for progress tracking
+        progress_callback: Optional callback function for progress updates
 
     Returns:
         The path to the downloaded chapter
@@ -96,35 +191,113 @@ async def download_chapter(
 
     # Get pages
     page_urls = await provider.get_pages(external_manga_id, external_chapter_id)
+    total_pages = len(page_urls)
 
-    # Download pages
-    pages = []
-    for i, page_url in enumerate(page_urls):
-        # Download page
-        page_data = await provider.download_page(page_url)
-
-        # Save page
-        page_number = i + 1
-        # Determine file extension from URL or default to .jpg
-        file_ext = ".jpg"
-        if "." in page_url:
-            url_ext = page_url.split(".")[-1].lower()
-            if url_ext in ["jpg", "jpeg", "png", "gif", "webp"]:
-                file_ext = f".{url_ext}"
-
-        page_path = get_page_storage_path(manga_id, chapter_id, page_number, file_ext)
-        with open(page_path, "wb") as f:
-            f.write(page_data)
-
-        # Create page object
-        page = Page(
-            chapter_id=chapter_id,
-            number=page_number,
-            file_path=page_path,
+    # Send download started event if we have a task_id
+    if task_id and total_pages > 0:
+        await send_download_progress_update(
+            task_id=task_id,
+            event_type="download_started",
+            progress=0,
+            total_pages=total_pages,
+            downloaded_pages=0,
+            manga_id=str(manga_id),
+            chapter_id=str(chapter_id),
         )
 
-        # Add page to list
-        pages.append(page)
+    # Download pages with optimized rate limiting for page downloads
+    import asyncio
+
+    # Provider-specific page download delays (much faster than API calls)
+    page_delays = {
+        "MangaDx": 0.5,  # 500ms for MangaDx pages (vs 5s for API)
+        "MangaPill": 0.3,  # 300ms for MangaPill pages
+        "Toonily": 0.4,  # 400ms for Toonily pages
+        "MangaTown": 0.5,  # 500ms for MangaTown pages
+        "ManhuaFast": 0.6,  # 600ms for ManhuaFast pages
+        "ArcaneScans": 0.5,  # 500ms for ArcaneScans pages
+        "Manga18FX": 0.7,  # 700ms for NSFW providers
+        "MangaFreak": 0.5,  # 500ms for MangaFreak pages
+        "MangaSail": 0.4,  # 400ms for MangaSail pages
+        "MangaKakalotFun": 0.3,  # 300ms for MangaKakalotFun pages
+        "MangaDNA": 0.5,  # 500ms for MangaDNA pages
+    }
+
+    page_delay = page_delays.get(provider_name, 0.5)  # Default 500ms
+
+    pages = []
+    downloaded_bytes = 0
+
+    for i, page_url in enumerate(page_urls):
+        # Add delay between page downloads (much shorter than API delays)
+        if i > 0:
+            await asyncio.sleep(page_delay)
+
+        try:
+            # Download page
+            page_data = await provider.download_page(page_url)
+
+            # Save page
+            page_number = i + 1
+            # Determine file extension from URL or default to .jpg
+            file_ext = ".jpg"
+            if "." in page_url:
+                url_ext = page_url.split(".")[-1].lower()
+                if url_ext in ["jpg", "jpeg", "png", "gif", "webp"]:
+                    file_ext = f".{url_ext}"
+
+            page_path = get_page_storage_path(
+                manga_id, chapter_id, page_number, file_ext
+            )
+
+            # Only save if we got actual data
+            if page_data and len(page_data) > 0:
+                os.makedirs(os.path.dirname(page_path), exist_ok=True)
+                with open(page_path, "wb") as f:
+                    f.write(page_data)
+                downloaded_bytes += len(page_data)
+            else:
+                # Create empty file to track failed download
+                os.makedirs(os.path.dirname(page_path), exist_ok=True)
+                with open(page_path, "wb") as f:
+                    f.write(b"")
+
+            # Create page object
+            page = Page(
+                chapter_id=chapter_id,
+                number=page_number,
+                file_path=page_path,
+            )
+
+            # Add page to list
+            pages.append(page)
+
+            # Send progress update
+            downloaded_pages = i + 1
+            progress_percentage = (
+                (downloaded_pages / total_pages) * 100 if total_pages > 0 else 0
+            )
+
+            if task_id:
+                await send_download_progress_update(
+                    task_id=task_id,
+                    event_type="download_progress",
+                    progress=progress_percentage,
+                    total_pages=total_pages,
+                    downloaded_pages=downloaded_pages,
+                    downloaded_bytes=downloaded_bytes,
+                )
+
+            # Call progress callback if provided
+            if progress_callback:
+                await progress_callback(
+                    downloaded_pages, total_pages, progress_percentage
+                )
+
+        except Exception as e:
+            logger.error(f"Error downloading page {i + 1}: {e}")
+            # Continue with next page instead of failing entire download
+            continue
 
     # Update chapter in database
     chapter = await db.get(Chapter, chapter_id)
@@ -143,7 +316,208 @@ async def download_chapter(
     cbz_path = f"{chapter_path}.cbz"
     create_cbz_from_directory(chapter_path, cbz_path)
 
+    # Send download completed event
+    if task_id:
+        await send_download_progress_update(
+            task_id=task_id,
+            event_type="download_completed",
+            progress=100,
+            total_pages=total_pages,
+            downloaded_pages=len(pages),
+            downloaded_bytes=downloaded_bytes,
+        )
+
     return cbz_path
+
+
+async def download_chapter_with_fallback(
+    manga_id: UUID,
+    chapter_id: UUID,
+    primary_provider: str,
+    external_manga_id: str,
+    external_chapter_id: str,
+    db: AsyncSession,
+    fallback_providers: Optional[List[str]] = None,
+    auto_discover_alternatives: bool = True,
+    task_id: Optional[str] = None,
+) -> str:
+    """
+    Download a chapter with automatic fallback to alternative providers.
+
+    Args:
+        manga_id: The ID of the manga
+        chapter_id: The ID of the chapter
+        primary_provider: The primary provider to try first
+        external_manga_id: The external ID of the manga on primary provider
+        external_chapter_id: The external ID of the chapter on primary provider
+        db: The database session
+        fallback_providers: List of fallback providers to try
+        auto_discover_alternatives: Whether to auto-discover alternatives if fallback fails
+
+    Returns:
+        The path to the downloaded chapter
+
+    Raises:
+        Exception: If all providers fail to download the chapter
+    """
+    # Get manga and chapter info for fallback discovery
+    manga = await db.get(Manga, manga_id)
+    chapter = await db.get(Chapter, chapter_id)
+
+    if not manga or not chapter:
+        raise ValueError(f"Manga or chapter not found: {manga_id}, {chapter_id}")
+
+    # Try primary provider first
+    try:
+        logger.info(f"Attempting download from primary provider: {primary_provider}")
+        result = await download_chapter(
+            manga_id,
+            chapter_id,
+            primary_provider,
+            external_manga_id,
+            external_chapter_id,
+            db,
+            task_id=task_id,
+        )
+
+        # Update chapter with successful provider info
+        chapter.source = primary_provider
+        if not chapter.provider_external_ids:
+            chapter.provider_external_ids = {}
+        chapter.provider_external_ids[primary_provider.lower()] = external_chapter_id
+        await db.commit()
+
+        logger.info(
+            f"Successfully downloaded chapter from primary provider: {primary_provider}"
+        )
+        return result
+
+    except Exception as e:
+        logger.warning(f"Primary provider {primary_provider} failed: {e}")
+
+        # Update chapter with error info
+        chapter.download_error = f"Primary provider failed: {str(e)}"
+        await db.commit()
+
+        # Try fallback providers
+        if fallback_providers:
+            for fallback_provider in fallback_providers:
+                try:
+                    logger.info(f"Trying fallback provider: {fallback_provider}")
+
+                    # Check if we have external IDs for this provider
+                    fallback_external_manga_id = external_manga_id
+                    fallback_external_chapter_id = external_chapter_id
+
+                    # If we have provider-specific external IDs, use them
+                    if (
+                        chapter.provider_external_ids
+                        and fallback_provider.lower() in chapter.provider_external_ids
+                    ):
+                        fallback_external_chapter_id = chapter.provider_external_ids[
+                            fallback_provider.lower()
+                        ]
+
+                    result = await download_chapter(
+                        manga_id,
+                        chapter_id,
+                        fallback_provider,
+                        fallback_external_manga_id,
+                        fallback_external_chapter_id,
+                        db,
+                        task_id=task_id,
+                    )
+
+                    # Update chapter with successful fallback provider info
+                    chapter.source = fallback_provider
+                    chapter.download_error = None
+                    if not chapter.provider_external_ids:
+                        chapter.provider_external_ids = {}
+                    chapter.provider_external_ids[fallback_provider.lower()] = (
+                        fallback_external_chapter_id
+                    )
+                    await db.commit()
+
+                    logger.info(
+                        f"Successfully downloaded chapter from fallback provider: {fallback_provider}"
+                    )
+                    return result
+
+                except Exception as fallback_error:
+                    logger.warning(
+                        f"Fallback provider {fallback_provider} failed: {fallback_error}"
+                    )
+                    continue
+
+        # Try auto-discovery of alternatives if enabled
+        if auto_discover_alternatives:
+            try:
+                logger.info("Attempting auto-discovery of alternative sources")
+                alternatives = (
+                    await provider_matching_service.find_chapter_alternatives(
+                        manga_title=manga.title,
+                        chapter_number=chapter.number,
+                        original_provider=primary_provider,
+                        exclude_providers=fallback_providers or [],
+                        max_alternatives=3,
+                    )
+                )
+
+                for alternative in alternatives:
+                    try:
+                        logger.info(
+                            f"Trying auto-discovered alternative: {alternative.provider_name} (confidence: {alternative.confidence:.2f})"
+                        )
+
+                        result = await download_chapter(
+                            manga_id,
+                            chapter_id,
+                            alternative.provider_name,
+                            alternative.external_manga_id,
+                            alternative.external_chapter_id,
+                            db,
+                            task_id=task_id,
+                        )
+
+                        # Update chapter with successful alternative provider info
+                        chapter.source = alternative.provider_name
+                        chapter.download_error = None
+                        if not chapter.provider_external_ids:
+                            chapter.provider_external_ids = {}
+                        chapter.provider_external_ids[
+                            alternative.provider_name.lower()
+                        ] = alternative.external_chapter_id
+                        await db.commit()
+
+                        logger.info(
+                            f"Successfully downloaded chapter from auto-discovered provider: {alternative.provider_name}"
+                        )
+                        return result
+
+                    except Exception as alt_error:
+                        logger.warning(
+                            f"Auto-discovered provider {alternative.provider_name} failed: {alt_error}"
+                        )
+                        continue
+
+            except Exception as discovery_error:
+                logger.warning(f"Auto-discovery failed: {discovery_error}")
+
+        # All providers failed
+        error_msg = f"All providers failed to download chapter {chapter_id}. Primary: {primary_provider}, Fallbacks: {fallback_providers}"
+        chapter.download_error = error_msg
+        await db.commit()
+
+        # Send download failed event
+        if task_id:
+            await send_download_progress_update(
+                task_id=task_id,
+                event_type="download_failed",
+                progress=0,
+                error=error_msg,
+            )
+
+        raise Exception(error_msg)
 
 
 async def download_manga(
@@ -205,7 +579,7 @@ async def download_manga(
             db.add(chapter)
             await db.flush()
 
-        # Download chapter
+        # Download chapter (no task_id for bulk downloads to avoid conflicts)
         await download_chapter(
             manga_id=manga_id,
             chapter_id=chapter.id,

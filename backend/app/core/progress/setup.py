@@ -6,7 +6,6 @@ tracking system including connecting persistence and WebSocket services.
 """
 
 import logging
-from typing import Optional
 
 from .persistence import persistence_service
 from .tracker import progress_tracker

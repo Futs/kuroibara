@@ -9,7 +9,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from .events import JobEventType
 from .models import BaseJob, DownloadJob, HealthCheckJob, OrganizationJob

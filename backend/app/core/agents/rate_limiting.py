@@ -8,8 +8,8 @@ adaptive limits, and provider-specific configurations.
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -367,10 +367,10 @@ class RateLimiterManager:
         return {
             # High-performance providers
             "MangaDex": RateLimitConfig(
-                max_concurrent=3,
-                min_time_ms=800,
-                max_requests_per_minute=60,
-                burst_limit=5,
+                max_concurrent=2,
+                min_time_ms=5000,  # 5 seconds between API requests (user reports)
+                max_requests_per_minute=12,  # Reduced due to longer delays
+                burst_limit=2,  # Reduced burst limit
                 adaptive_adjustment=True,
             ),
             "MangaPill": RateLimitConfig(

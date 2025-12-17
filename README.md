@@ -12,6 +12,7 @@ A modern manga management platform for discovering, organizing, and reading mang
 [![GitHub Release](https://img.shields.io/github/v/release/Futs/kuroibara?label=version)](https://github.com/Futs/kuroibara/releases)
 
 > **📦 Latest Release**: v0.7.0 with Enhanced Architecture & Job System
+> **🚧 Development Branch**: `index/download` - Advanced Reader Features & UI Improvements
 
 
 ## ✨ Features
@@ -21,17 +22,31 @@ A modern manga management platform for discovering, organizing, and reading mang
 ![Authentication](https://img.shields.io/badge/Auth-Role--based-orange)
 ![Themes](https://img.shields.io/badge/Themes-Dark%2FLight-purple)
 
+### Core Features
 - **Personal Library** - Organize your manga collection with automatic metadata
-- **Built-in Reader** - Read manga with bookmarks and progress tracking
 - **Multi-Provider Search** - Search across 11+ manga sources simultaneously
 - **Batch Downloads** - Download entire series with progress tracking and retry logic
 - **Modern Interface** - Clean, responsive design with dark/light themes
 - **User Management** - Secure authentication with role-based access
-- **Reading History** - Track your reading progress and statistics
 - **Advanced Filtering** - Filter by genre, status, year, and content rating
 - **Cloudflare Support** - Optional FlareSolverr integration for protected sites
 - **Background Tasks** - Automated health checks and maintenance
 - **Real-time Updates** - Live progress notifications via WebSocket
+
+### 📖 Advanced Reader Features (New!)
+- **Professional Reading Experience** - Feature-rich manga reader with multiple viewing modes
+- **Flexible Zoom Controls** - Zoom in/out (25%-500%), mouse wheel zoom, keyboard shortcuts
+- **Multiple Fit Modes** - Width, Height, Both, Original size with instant switching
+- **Reading Modes** - Single page, double page, list view, adaptive, and webtoon modes
+- **Fullscreen Support** - Immersive reading with F11 or dedicated button
+- **Smart Navigation** - Keyboard shortcuts, click zones, chapter selector
+- **Bookmarks & Progress** - Save favorite pages with notes, automatic progress tracking
+- **Reading Statistics** - Track reading time, pages read, streaks, and achievements
+- **Customizable Themes** - Dark, light, sepia, and custom color schemes
+- **UI Layouts** - Default, minimal, and immersive layouts
+- **Display Options** - Adjustable margins, border radius, and opacity
+- **Perfect Scrolling** - Smooth scroll behavior with proper zoom support
+- **Keyboard Shortcuts** - Comprehensive keyboard controls for power users
 
 
 ## 🛠️ Tech Stack

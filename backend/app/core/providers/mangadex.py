@@ -1,3 +1,6 @@
+import asyncio
+import logging
+import time
 from typing import Any, Dict, List, Tuple
 
 import httpx
@@ -6,21 +9,131 @@ from app.core.providers.base import BaseProvider
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
 
+logger = logging.getLogger(__name__)
+
 
 class MangaDexProvider(BaseProvider):
-    """MangaDex provider."""
+    """MangaDex provider with improved rate limiting and error handling."""
+
+    def __init__(self, **kwargs):
+        self._base_url = "https://api.mangadex.org"
+        self._timeout = httpx.Timeout(30.0)
+        self._data_saver = kwargs.get(
+            "data_saver", False
+        )  # Option for compressed images
+        self._max_retries = 4
+        self._retry_delay = 1.0  # 1 second base delay (more conservative)
+        self._request_delay = 0.5  # Minimum delay between requests
+        self._provider_id = "mangadex"  # Provider ID for API calls
+        self._last_rate_limit = None  # Track last rate limit time
+        self._rate_limit_reset = None  # Track when rate limit resets
 
     @property
     def name(self) -> str:
         return "MangaDex"
 
     @property
+    def provider_id(self) -> str:
+        return self._provider_id
+
+    @property
     def url(self) -> str:
-        return "https://api.mangadex.org"
+        return self._base_url
 
     @property
     def supports_nsfw(self) -> bool:
         return True
+
+    def get_rate_limit_status(self) -> dict:
+        """Get current rate limit status."""
+        import time
+
+        if not self._last_rate_limit:
+            return {
+                "is_rate_limited": False,
+                "reset_time": None,
+                "seconds_remaining": 0,
+            }
+
+        current_time = time.time()
+        if self._rate_limit_reset and current_time < self._rate_limit_reset:
+            return {
+                "is_rate_limited": True,
+                "reset_time": self._rate_limit_reset,
+                "seconds_remaining": int(self._rate_limit_reset - current_time),
+            }
+        else:
+            # Rate limit has expired
+            self._last_rate_limit = None
+            self._rate_limit_reset = None
+            return {
+                "is_rate_limited": False,
+                "reset_time": None,
+                "seconds_remaining": 0,
+            }
+
+    async def _make_request_with_retry(
+        self, client: httpx.AsyncClient, method: str, url: str, **kwargs
+    ) -> httpx.Response:
+        """Make HTTP request with rate limiting and retry logic."""
+        # Add delay before each request to respect rate limits
+        await asyncio.sleep(self._request_delay)
+
+        for attempt in range(self._max_retries):
+            try:
+                response = await client.request(
+                    method, url, timeout=self._timeout, **kwargs
+                )
+
+                # Handle rate limiting (429 Too Many Requests)
+                if response.status_code == 429:
+                    self._last_rate_limit = time.time()
+
+                    # Get retry-after header or use default
+                    retry_after = response.headers.get("X-Ratelimit-Retry-After")
+                    if retry_after:
+                        try:
+                            wait_time = int(retry_after)
+                            self._rate_limit_reset = time.time() + wait_time
+                            logger.warning(
+                                f"Rate limited. Waiting {wait_time} seconds..."
+                            )
+                            await asyncio.sleep(wait_time)
+                        except ValueError:
+                            # Fallback to longer wait for rate limits
+                            wait_time = 60  # Wait 1 minute on rate limit
+                            self._rate_limit_reset = time.time() + wait_time
+                            logger.warning(
+                                f"Rate limited. Waiting {wait_time} seconds..."
+                            )
+                            await asyncio.sleep(wait_time)
+                    else:
+                        # Wait longer for rate limits
+                        wait_time = 60  # Wait 1 minute on rate limit
+                        self._rate_limit_reset = time.time() + wait_time
+                        logger.warning(f"Rate limited. Waiting {wait_time} seconds...")
+                        await asyncio.sleep(wait_time)
+                    continue
+
+                # For other errors, raise immediately
+                response.raise_for_status()
+                return response
+
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    continue  # Retry on rate limit
+                raise  # Re-raise other HTTP errors
+            except Exception as e:
+                if attempt == self._max_retries - 1:
+                    logger.error(
+                        f"Request failed after {self._max_retries} attempts: {e}"
+                    )
+                    raise
+                # Wait before retry
+                wait_time = self._retry_delay * (2**attempt)
+                await asyncio.sleep(wait_time)
+
+        raise Exception(f"Request failed after {self._max_retries} attempts")
 
     async def search(
         self, query: str, page: int = 1, limit: int = 20
@@ -38,15 +151,11 @@ class MangaDexProvider(BaseProvider):
             "contentRating[]": ["safe", "suggestive", "erotica", "pornographic"],
         }
 
-        # Make request
+        # Make request with retry logic
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/manga",
-                params=params,
+            response = await self._make_request_with_retry(
+                client, "GET", f"{self.url}/manga", params=params
             )
-
-            # Check if request was successful
-            response.raise_for_status()
             data = response.json()
 
             # Parse results
@@ -158,7 +267,7 @@ class MangaDexProvider(BaseProvider):
                     is_nsfw=is_nsfw,
                     genres=genres,
                     authors=authors,
-                    provider=self.name,
+                    provider=self.provider_id,
                     url=f"https://mangadex.org/title/{manga['id']}",
                 )
 
@@ -172,15 +281,14 @@ class MangaDexProvider(BaseProvider):
 
     async def get_manga_details(self, manga_id: str) -> Dict[str, Any]:
         """Get details for a manga on MangaDex."""
-        # Make request
+        # Make request with retry logic
         async with httpx.AsyncClient() as client:
-            response = await client.get(
+            response = await self._make_request_with_retry(
+                client,
+                "GET",
                 f"{self.url}/manga/{manga_id}",
                 params={"includes[]": ["cover_art", "author", "artist", "tag"]},
             )
-
-            # Check if request was successful
-            response.raise_for_status()
             data = response.json()
 
             # Parse manga details
@@ -303,22 +411,17 @@ class MangaDexProvider(BaseProvider):
 
         # Build query parameters
         params = {
-            "manga": manga_id,
             "limit": limit,
             "offset": offset,
             "translatedLanguage[]": ["en"],
             "order[chapter]": "asc",
         }
 
-        # Make request
+        # Make request with retry logic
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/chapter",
-                params=params,
+            response = await self._make_request_with_retry(
+                client, "GET", f"{self.url}/manga/{manga_id}/feed", params=params
             )
-
-            # Check if request was successful
-            response.raise_for_status()
             data = response.json()
 
             # Parse chapters
@@ -365,49 +468,161 @@ class MangaDexProvider(BaseProvider):
             return chapters, total, has_next
 
     async def get_pages(self, manga_id: str, chapter_id: str) -> List[str]:
-        """Get pages for a chapter on MangaDex."""
-        # Make request to get chapter data
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.url}/at-home/server/{chapter_id}",
-            )
+        """Get pages for a chapter on MangaDex with improved error handling."""
+        try:
+            async with httpx.AsyncClient() as client:
+                # First check if this is an external chapter
+                external_url = await self._check_external_chapter(client, chapter_id)
+                if external_url:
+                    logger.warning(
+                        f"Chapter {chapter_id} is external-only: {external_url}"
+                    )
+                    raise ValueError(
+                        f"Chapter is external-only and redirects to: {external_url}"
+                    )
 
-            # Check if request was successful
-            response.raise_for_status()
+                # Make request to get chapter data with retry logic
+                logger.info(f"Fetching at-home server data for chapter {chapter_id}")
+                response = await self._make_request_with_retry(
+                    client, "GET", f"{self.url}/at-home/server/{chapter_id}"
+                )
+                data = response.json()
+
+                # Validate response structure
+                if "result" in data and data["result"] != "ok":
+                    error_msg = data.get("errors", [{}])[0].get(
+                        "detail", "Unknown error"
+                    )
+                    logger.error(
+                        f"MangaDex API error for chapter {chapter_id}: {error_msg}"
+                    )
+                    raise ValueError(f"MangaDex API error: {error_msg}")
+
+                # Get base URL
+                base_url = data.get("baseUrl")
+                if not base_url:
+                    logger.error(f"No baseUrl in response for chapter {chapter_id}")
+                    raise ValueError("No baseUrl in MangaDex response")
+
+                # Get chapter data
+                chapter_data = data.get("chapter", {})
+                chapter_hash = chapter_data.get("hash")
+                if not chapter_hash:
+                    logger.error(
+                        f"No chapter hash in response for chapter {chapter_id}"
+                    )
+                    raise ValueError("No chapter hash in MangaDex response")
+
+                # Get page filenames - use data saver if configured
+                if self._data_saver and "dataSaver" in chapter_data:
+                    page_filenames = chapter_data["dataSaver"]
+                    quality = "data-saver"
+                    logger.info(f"Using data saver quality for chapter {chapter_id}")
+                else:
+                    page_filenames = chapter_data.get("data", [])
+                    quality = "data"
+
+                # Check if chapter has no pages (external-only)
+                if not page_filenames:
+                    logger.warning(
+                        f"Chapter {chapter_id} has 0 pages - trying fallback servers"
+                    )
+                    return await self._try_fallback_servers(
+                        client, chapter_hash, chapter_id
+                    )
+
+                # Build page URLs
+                page_urls = []
+                for i, filename in enumerate(page_filenames):
+                    page_url = f"{base_url}/{quality}/{chapter_hash}/{filename}"
+                    page_urls.append(page_url)
+
+                logger.info(
+                    f"Successfully extracted {len(page_urls)} pages for chapter {chapter_id}"
+                )
+                return page_urls
+
+        except Exception as e:
+            logger.error(f"Error getting pages for chapter {chapter_id}: {e}")
+            raise
+
+    async def _check_external_chapter(
+        self, client: httpx.AsyncClient, chapter_id: str
+    ) -> str:
+        """Check if a chapter is external-only and return the external URL if so."""
+        try:
+            response = await self._make_request_with_retry(
+                client, "GET", f"{self.url}/chapter/{chapter_id}"
+            )
             data = response.json()
 
-            # Get base URL
-            base_url = data["baseUrl"]
+            chapter_data = data.get("data", {})
+            attributes = chapter_data.get("attributes", {})
+            external_url = attributes.get("externalUrl")
 
-            # Get chapter hash
-            chapter_hash = data["chapter"]["hash"]
+            return external_url
+        except Exception as e:
+            logger.debug(f"Could not check external URL for chapter {chapter_id}: {e}")
+            return None
 
-            # Get page filenames
-            page_filenames = data["chapter"]["data"]
+    async def _try_fallback_servers(
+        self, client: httpx.AsyncClient, chapter_hash: str, chapter_id: str
+    ) -> List[str]:
+        """Try fallback servers when official at-home server has no pages (like HakuNeko does)."""
+        fallback_servers = [
+            "https://uploads.mangadex.org/data/",  # MangaDx upload server
+            "https://cache.ayaya.red/mdah/data/",  # Third-party cache server
+        ]
 
-            # Build page URLs
-            page_urls = []
-            for filename in page_filenames:
-                page_url = f"{base_url}/data/{chapter_hash}/{filename}"
-                page_urls.append(page_url)
+        logger.info(f"Trying fallback servers for chapter {chapter_id}")
 
-            return page_urls
+        for server in fallback_servers:
+            try:
+                # Try to access the chapter directory on fallback server
+                test_url = f"{server}{chapter_hash}/"
+                response = await client.get(test_url, timeout=10)
+
+                if response.status_code == 200:
+                    logger.info(f"Fallback server accessible: {server}")
+                    # For now, return empty list since we don't have page filenames
+                    # In a full implementation, we'd need to parse the directory listing
+                    # or get page filenames from another source
+                    logger.warning(
+                        "Fallback server found but page enumeration not implemented"
+                    )
+                    return []
+
+            except Exception as e:
+                logger.debug(f"Fallback server {server} failed: {e}")
+                continue
+
+        logger.warning(f"All fallback servers failed for chapter {chapter_id}")
+        return []
 
     async def download_page(self, page_url: str) -> bytes:
-        """Download a page from MangaDex."""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(page_url)
-            response.raise_for_status()
-            return response.content
+        """Download a page from MangaDex with retry logic."""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await self._make_request_with_retry(client, "GET", page_url)
+                return response.content
+        except Exception as e:
+            logger.error(f"Error downloading page {page_url}: {e}")
+            raise
 
     async def download_cover(self, manga_id: str) -> bytes:
-        """Download a manga cover from MangaDex."""
-        # Get manga details to get cover URL
-        manga_details = await self.get_manga_details(manga_id)
-        cover_url = manga_details["cover_image"]
+        """Download a manga cover from MangaDex with retry logic."""
+        try:
+            # Get manga details to get cover URL
+            manga_details = await self.get_manga_details(manga_id)
+            cover_url = manga_details["cover_image"]
 
-        # Download cover
-        async with httpx.AsyncClient() as client:
-            response = await client.get(cover_url)
-            response.raise_for_status()
-            return response.content
+            if not cover_url:
+                raise ValueError(f"No cover image found for manga {manga_id}")
+
+            # Download cover
+            async with httpx.AsyncClient() as client:
+                response = await self._make_request_with_retry(client, "GET", cover_url)
+                return response.content
+        except Exception as e:
+            logger.error(f"Error downloading cover for manga {manga_id}: {e}")
+            raise

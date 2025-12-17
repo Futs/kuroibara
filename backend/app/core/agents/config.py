@@ -8,7 +8,7 @@ hot-swapping, enable/disable functionality, and runtime configuration updates.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from .base import AgentStatus
 from .registry import agent_registry

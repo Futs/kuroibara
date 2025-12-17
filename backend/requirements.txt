@@ -1,23 +1,23 @@
 # Web Framework
-fastapi>=0.116.1
-starlette>=0.47.2
-uvicorn[standard]>=0.35.0
-pydantic>=2.11.7
-pydantic-settings>=2.10.1
+fastapi>=0.124.4
+starlette>=0.50.0
+uvicorn[standard]>=0.38.0
+pydantic>=2.12.5
+pydantic-settings>=2.12.0
 python-multipart>=0.0.20
-email-validator>=2.2.0
+email-validator>=2.3.0
 
 # Database
-sqlalchemy>=2.0.42
-alembic>=1.16.4
-psycopg2-binary>=2.9.10
-asyncpg>=0.30.0
-aiosqlite>=0.21.0
-greenlet>=3.2.4
+sqlalchemy>=2.0.45
+alembic>=1.17.2
+psycopg2-binary>=2.9.11
+asyncpg>=0.31.0
+aiosqlite>=0.22.0
+greenlet>=3.3.0
 
 # Authentication & Security
 python-jose[cryptography]>=3.5.0
-passlib[bcrypt]>=1.7.4
+libpass[bcrypt]>=1.9.0
 pyotp>=2.9.0
 qrcode>=8.2
 pillow>=11.3.0
@@ -27,9 +27,10 @@ redis>=6.4.0
 
 # HTTP Client
 httpx>=0.28.1
-requests>=2.32.4
+requests>=2.32.5
 aiohttp>=3.12.15
-beautifulsoup4>=4.13.4
+beautifulsoup4>=4.13.5
+lxml>=5.0.0
 
 # File Processing
 python-magic>=0.4.27

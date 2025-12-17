@@ -6,8 +6,9 @@
     "supports_nsfw": true,
     "priority": 1,
     "params": {
-      "base_url": "https://api.mangadx.org",
-      "supports_nsfw": true
+      "base_url": "https://api.mangadex.org",
+      "supports_nsfw": true,
+      "data_saver": false
     }
   },
   {
@@ -16,6 +17,14 @@
     "class_name": "MangaPillProvider",
     "supports_nsfw": true,
     "priority": 20,
+    "params": {}
+  },
+  {
+    "id": "madaradex",
+    "name": "MadaraDex",
+    "class_name": "MadaraDexProvider",
+    "supports_nsfw": true,
+    "priority": 5,
     "params": {}
   },
   {
@@ -186,20 +195,64 @@
           "div.home-item"
         ],
         "title": [
+          ".manga-title",
+          ".post-title",
+          ".entry-title",
+          "h1.title",
+          "h1",
+          "h2.title",
+          "h2",
           "h3.htitle",
           ".htitle",
-          "h3",
-          "h2"
+          "h3"
         ],
         "cover": [
+          ".manga-cover img",
+          ".post-thumb img",
+          ".entry-thumb img",
+          ".thumbnail img",
+          "img[src*='cover']",
           "img"
         ],
         "link": [
           "a"
         ],
         "description": [
+          ".manga-description",
+          ".post-content",
+          ".entry-content",
+          ".summary",
           ".description",
-          ".summary"
+          ".synopsis"
+        ],
+        "status": [
+          ".manga-status",
+          ".post-status",
+          ".status",
+          ".info-status",
+          ".meta-status"
+        ],
+        "genres": [
+          ".manga-genres a",
+          ".post-genres a",
+          ".genres a",
+          ".tags a",
+          ".categories a"
+        ],
+        "authors": [
+          ".manga-author",
+          ".post-author",
+          ".author",
+          ".artist",
+          ".writer"
+        ],
+        "chapters": [
+          "a[href*='chapter']",
+          ".chapter-list a",
+          ".chapters a",
+          ".wp-manga-chapter a",
+          ".listing-chapters_wrap a",
+          "li a[href*='chapter']"
         ],
         "pages": [
           "img[src*='mangadna.com']",
@@ -229,20 +282,64 @@
           "div.bsx-item"
         ],
         "title": [
+          ".manga-title",
+          ".post-title",
+          ".entry-title",
+          "h1.title",
+          "h1",
+          "h2.title",
+          "h2",
           "h3.tt",
           ".tt",
-          "h3",
-          "h2"
+          "h3"
         ],
         "cover": [
+          ".manga-cover img",
+          ".post-thumb img",
+          ".entry-thumb img",
+          ".thumbnail img",
+          "img[src*='cover']",
           "img"
         ],
         "link": [
           "a"
         ],
         "description": [
+          ".manga-description",
+          ".post-content",
+          ".entry-content",
+          ".summary",
           ".description",
-          ".summary"
+          ".synopsis"
+        ],
+        "status": [
+          ".manga-status",
+          ".post-status",
+          ".status",
+          ".info-status",
+          ".meta-status"
+        ],
+        "genres": [
+          ".manga-genres a",
+          ".post-genres a",
+          ".genres a",
+          ".tags a",
+          ".categories a"
+        ],
+        "authors": [
+          ".manga-author",
+          ".post-author",
+          ".author",
+          ".artist",
+          ".writer"
+        ],
+        "chapters": [
+          "a[href*='chapter']",
+          ".chapter-list a",
+          ".chapters a",
+          ".wp-manga-chapter a",
+          ".listing-chapters_wrap a",
+          "li a[href*='chapter']"
         ],
         "pages": [
           "img[src*='manga18fx.com']",
@@ -294,6 +391,19 @@
       "supports_nsfw": true,
       "chapter_selector": "li.list-group-item",
       "page_selector": "img[src*='mghcdn.com']"
+    }
+  },
+  {
+    "id": "hiperdex",
+    "name": "HiperDEX",
+    "class_name": "HiperDexProvider",
+    "supports_nsfw": true,
+    "priority": 10,
+    "use_flaresolverr": true,
+    "requires_flaresolverr": false,
+    "params": {
+      "supports_nsfw": true,
+      "use_flaresolverr": true
     }
   }
 ]

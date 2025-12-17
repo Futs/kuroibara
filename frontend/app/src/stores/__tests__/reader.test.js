@@ -21,7 +21,7 @@ describe("Reader Store", () => {
 
       expect(store.settings.readingDirection).toBe("rtl");
       expect(store.settings.pageLayout).toBe("single");
-      expect(store.settings.fitMode).toBe("width");
+      expect(store.settings.fitMode).toBe("height");
       expect(store.settings.preloadDistance).toBe(3);
       expect(store.settings.imageQuality).toBe("high");
     });
@@ -306,7 +306,7 @@ describe("Reader Store", () => {
 
     it("should get current theme", () => {
       const store = useReaderStore();
-      const theme = store.getCurrentTheme;
+      const theme = store.getCurrentTheme();
 
       expect(theme).toHaveProperty("colors");
       expect(theme).toHaveProperty("ui");
@@ -409,7 +409,7 @@ describe("Reader Store", () => {
 
     it("should get current UI layout", () => {
       const store = useReaderStore();
-      const layout = store.getCurrentUILayout;
+      const layout = store.getCurrentUILayout();
 
       expect(layout).toHaveProperty("toolbar");
     });

@@ -33,7 +33,7 @@ async def search_all_providers(query: str):
             results, total, has_more = await provider.search(query, limit=5)
 
             if not results:
-                print(f"  ❌ No results found")
+                print("  ❌ No results found")
                 results_summary.append(
                     {"provider": provider.name, "count": 0, "status": "no_results"}
                 )
@@ -79,9 +79,7 @@ async def search_all_providers(query: str):
 
     success_count = sum(1 for r in results_summary if r["status"] == "success")
     no_results_count = sum(1 for r in results_summary if r["status"] == "no_results")
-    error_count = sum(
-        1 for r in results_summary if r["status"].startswith("error")
-    )
+    error_count = sum(1 for r in results_summary if r["status"].startswith("error"))
 
     print(f"✅ Successful: {success_count}")
     print(f"❌ No Results: {no_results_count}")
@@ -101,4 +99,3 @@ async def search_all_providers(query: str):
 if __name__ == "__main__":
     query = sys.argv[1] if len(sys.argv) > 1 else "One Piece"
     asyncio.run(search_all_providers(query))
-

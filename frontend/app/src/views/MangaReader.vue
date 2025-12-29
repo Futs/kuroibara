@@ -1321,15 +1321,20 @@
         <div
           class="reader-zoom-wrapper"
           :style="{
-            width: settings.fitMode === 'width' ? `${100 * zoomLevel}%` : 'auto',
-            height: settings.fitMode === 'height' ? `${100 * zoomLevel}vh` : 'auto',
+            width:
+              settings.fitMode === 'width' ? `${100 * zoomLevel}%` : 'auto',
+            height:
+              settings.fitMode === 'height' ? `${100 * zoomLevel}vh` : 'auto',
           }"
         >
           <img
             :src="currentPageUrl"
             :alt="`Page ${currentPage}`"
             class="reader-page"
-            :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }"
+            :style="{
+              transform: `scale(${zoomLevel})`,
+              transformOrigin: 'top center',
+            }"
           />
         </div>
 
@@ -1355,7 +1360,10 @@
         <div
           class="flex gap-1"
           :class="{ 'flex-row-reverse': settings.readingDirection === 'rtl' }"
-          :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }"
+          :style="{
+            transform: `scale(${zoomLevel})`,
+            transformOrigin: 'center center',
+          }"
         >
           <img
             v-for="(page, index) in currentPagePair"
@@ -1387,7 +1395,10 @@
       >
         <div
           class="flex flex-col items-center space-y-2 py-4"
-          :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }"
+          :style="{
+            transform: `scale(${zoomLevel})`,
+            transformOrigin: 'top center',
+          }"
         >
           <img
             v-for="(page, index) in pages"
@@ -1428,7 +1439,10 @@
           :src="currentPageUrl"
           :alt="`Page ${currentPage}`"
           class="reader-page"
-          :style="{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }"
+          :style="{
+            transform: `scale(${zoomLevel})`,
+            transformOrigin: 'center center',
+          }"
         />
 
         <div
@@ -1589,8 +1603,13 @@ const currentPagePair = computed(() => {
 });
 
 const currentPageDisplay = computed(() => {
-  if (settings.value.pageLayout === "double" && currentPagePair.value.length > 1) {
-    const pages = currentPagePair.value.map((p) => p.number || p.page).join(", ");
+  if (
+    settings.value.pageLayout === "double" &&
+    currentPagePair.value.length > 1
+  ) {
+    const pages = currentPagePair.value
+      .map((p) => p.number || p.page)
+      .join(", ");
     return `${pages} / ${totalPages.value}`;
   }
   return `${currentPage.value} / ${totalPages.value}`;
@@ -1615,8 +1634,7 @@ const formatBookmarkDate = (dateString) => {
 
   if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-  if (diffHours < 24)
-    return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 
   return date.toLocaleDateString();
@@ -1831,7 +1849,7 @@ const currentUILayout = computed(() => {
 // Helper function to reset scroll position
 const resetScrollPosition = () => {
   setTimeout(() => {
-    const container = document.querySelector('.reader-page-container');
+    const container = document.querySelector(".reader-page-container");
     if (container) {
       container.scrollTop = 0;
       container.scrollLeft = 0;
@@ -1947,7 +1965,7 @@ const setFitMode = (mode) => {
   readerStore.updateSettings({ fitMode: mode });
   // Reset scroll position when changing fit mode
   setTimeout(() => {
-    const container = document.querySelector('.reader-page-container');
+    const container = document.querySelector(".reader-page-container");
     if (container) {
       container.scrollTop = 0;
       container.scrollLeft = 0;

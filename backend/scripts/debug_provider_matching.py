@@ -100,7 +100,9 @@ async def debug_provider_matching():
                     print(f"\n   Result #{i}:")
                     print(f"      Title: {result.title}")
                     print(f"      ID: {result.id}")
-                    print(f"      URL: {result.url if hasattr(result, 'url') else 'N/A'}")
+                    print(
+                        f"      URL: {result.url if hasattr(result, 'url') else 'N/A'}"
+                    )
                     print(
                         f"      Year: {result.year if hasattr(result, 'year') else 'N/A'}"
                     )
@@ -122,4 +124,3 @@ async def debug_provider_matching():
 
 if __name__ == "__main__":
     asyncio.run(debug_provider_matching())
-

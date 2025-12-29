@@ -157,4 +157,3 @@ class TestHeaderMethods:
         assert "User-Agent" in headers
         assert "Accept" in headers
         assert "application/json" in headers["Accept"]
-

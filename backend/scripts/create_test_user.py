@@ -6,9 +6,9 @@ import sys
 
 sys.path.insert(0, "/app")
 
+from app.core.security import get_password_hash
 from app.db.session import AsyncSessionLocal
 from app.models.user import User
-from app.core.security import get_password_hash
 
 
 async def create_test_user():
@@ -55,4 +55,3 @@ async def create_test_user():
 
 if __name__ == "__main__":
     asyncio.run(create_test_user())
-

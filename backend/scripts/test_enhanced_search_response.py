@@ -2,6 +2,7 @@
 """Test what the enhanced search endpoint returns."""
 
 import asyncio
+
 import httpx
 
 
@@ -64,4 +65,3 @@ async def test_enhanced_search():
 
 if __name__ == "__main__":
     asyncio.run(test_enhanced_search())
-

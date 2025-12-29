@@ -476,7 +476,7 @@ export const useReaderStore = defineStore("reader", {
                 error: true,
               };
             }
-          })
+          }),
         );
 
         this.pages = pagesWithBlobUrls;

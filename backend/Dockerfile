@@ -29,8 +29,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create storage directory
-RUN mkdir -p /app/storage
+# Create non-root user with UID 1000
+RUN groupadd -g 1000 appuser && \
+    useradd -r -u 1000 -g appuser appuser
+
+# Create storage directory and set permissions
+RUN mkdir -p /app/storage && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8000

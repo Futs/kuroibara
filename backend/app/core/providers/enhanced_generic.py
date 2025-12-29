@@ -1308,11 +1308,29 @@ class EnhancedGenericProvider(BaseProvider):
             logger.error(f"Error getting pages for {manga_id}/{chapter_id}: {e}")
             return []
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page with proper headers.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+        """
         try:
+            # Use provided referer or fall back to base URL
+            headers = dict(self._headers)
+            if referer:
+                headers["Referer"] = referer
+            else:
+                headers["Referer"] = self._base_url
+
             async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.get(page_url, headers=self._headers)
+                response = await client.get(page_url, headers=headers)
                 response.raise_for_status()
                 return response.content
         except Exception as e:

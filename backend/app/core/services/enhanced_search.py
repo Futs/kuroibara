@@ -29,10 +29,20 @@ class EnhancedSearchResult:
 
     def to_search_result(self) -> SearchResult:
         """Convert to standard SearchResult schema."""
+        # Handle alternative_titles - convert list format to dict if needed
+        alt_titles = self.mu_entry.alternative_titles or {}
+        if isinstance(alt_titles, list):
+            # Convert list of dicts to single dict
+            alt_titles_dict = {}
+            for item in alt_titles:
+                if isinstance(item, dict):
+                    alt_titles_dict.update(item)
+            alt_titles = alt_titles_dict
+
         return SearchResult(
             id=str(self.mu_entry.id),
             title=self.mu_entry.title,
-            alternative_titles=self.mu_entry.alternative_titles or {},
+            alternative_titles=alt_titles,
             description=self.mu_entry.description,
             cover_image=self.mu_entry.cover_image_url,
             type=self.mu_entry.type or "unknown",
@@ -46,6 +56,8 @@ class EnhancedSearchResult:
             provider="enhanced_mangaupdates",
             url=self.mu_entry.mu_url or "",
             in_library=self.in_library,
+            source_indexer="mangaupdates",  # Identify this as a MangaUpdates result
+            source_id=self.mu_entry.mu_series_id,  # MangaUpdates series ID
             extra={
                 "mu_series_id": self.mu_entry.mu_series_id,
                 "rating": self.mu_entry.rating,
@@ -70,22 +82,45 @@ class ProviderMatcher:
         self, mu_entry: MangaUpdatesEntry, max_providers: int = 5
     ) -> List[Dict]:
         """Find matching content across providers for a MangaUpdates entry."""
+        logger.info(f"[PROVIDER_MATCH] Starting provider matching for {mu_entry.title}")
         matches = []
 
         # Get available providers
         providers = provider_registry.get_all_providers()
+        max_search = min(max_providers, len(providers))
+        logger.info(
+            f"[PROVIDER_MATCH] Found {len(providers)} total providers, "
+            f"will search {max_search}"
+        )
 
         # Search each provider
-        for provider in providers[:max_providers]:
+        for i, provider in enumerate(providers[:max_providers]):
             try:
+                logger.info(
+                    f"[PROVIDER_MATCH] Searching provider {i + 1}/{max_search}: "
+                    f"{provider.name}"
+                )
                 provider_matches = await self._search_provider(provider, mu_entry)
                 if provider_matches:
+                    logger.info(
+                        f"[PROVIDER_MATCH] Found {len(provider_matches)} "
+                        f"matches from {provider.name}"
+                    )
                     matches.extend(provider_matches)
+                else:
+                    logger.info(f"[PROVIDER_MATCH] No matches from {provider.name}")
             except Exception as e:
-                logger.warning(f"Error searching provider {provider.name}: {e}")
+                logger.warning(
+                    f"[PROVIDER_MATCH] Error searching provider "
+                    f"{provider.name}: {e}"
+                )
 
         # Sort by confidence score
         matches.sort(key=lambda x: x["confidence"], reverse=True)
+        logger.info(
+            f"[PROVIDER_MATCH] Completed provider matching, "
+            f"found {len(matches)} total matches"
+        )
         return matches[:10]  # Return top 10 matches
 
     async def _search_provider(
@@ -455,6 +490,126 @@ class EnhancedSearchService:
 
         library_item = MangaUserLibrary(user_id=user_id, manga_id=manga.id)
         db.add(library_item)
+
+        # Fetch chapters from provider if one was selected
+        if selected_provider_match:
+            from app.core.providers.registry import provider_registry
+            from app.models.manga import Chapter
+
+            try:
+                provider_name = selected_provider_match["provider"]
+                external_id = selected_provider_match["external_id"]
+
+                logger.info(
+                    f"Fetching chapters from provider {provider_name} for manga {external_id}"
+                )
+
+                # Get the provider
+                provider = provider_registry.get_provider(provider_name)
+                if provider:
+                    # Fetch all chapters from provider (handle pagination)
+                    all_chapters = []
+                    page = 1
+                    limit = 100
+
+                    while True:
+                        chapters, total, has_next = await provider.get_chapters(
+                            external_id, page=page, limit=limit
+                        )
+                        if not chapters:
+                            break
+
+                        all_chapters.extend(chapters)
+
+                        if not has_next:
+                            break
+
+                        page += 1
+
+                        # Safety check to prevent infinite loops
+                        if page > 50:  # Max 5000 chapters
+                            logger.warning(
+                                f"Reached maximum page limit (50) for manga {external_id}"
+                            )
+                            break
+
+                    logger.info(
+                        f"Fetched {len(all_chapters)} chapters from provider {provider_name}"
+                    )
+
+                    # Create chapter records
+                    for chapter_data in all_chapters:
+                        try:
+                            chapter_number = str(chapter_data.get("number", "0"))
+
+                            # Check if chapter already exists
+                            existing_chapter = await db.execute(
+                                select(Chapter).where(
+                                    (Chapter.manga_id == manga.id)
+                                    & (Chapter.number == chapter_number)
+                                )
+                            )
+                            if existing_chapter.scalars().first():
+                                continue  # Skip duplicate chapters
+
+                            # Parse dates
+                            publish_at = None
+                            readable_at = None
+                            if chapter_data.get("publish_at"):
+                                try:
+                                    from datetime import datetime
+
+                                    publish_at = datetime.fromisoformat(
+                                        str(chapter_data["publish_at"]).replace(
+                                            "Z", "+00:00"
+                                        )
+                                    )
+                                except Exception:
+                                    pass
+
+                            if chapter_data.get("readable_at"):
+                                try:
+                                    from datetime import datetime
+
+                                    readable_at = datetime.fromisoformat(
+                                        str(chapter_data["readable_at"]).replace(
+                                            "Z", "+00:00"
+                                        )
+                                    )
+                                except Exception:
+                                    pass
+
+                            chapter = Chapter(
+                                manga_id=manga.id,
+                                title=chapter_data.get(
+                                    "title", f"Chapter {chapter_number}"
+                                ),
+                                number=chapter_number,
+                                volume=chapter_data.get("volume"),
+                                language=chapter_data.get("language", "en"),
+                                pages_count=chapter_data.get("pages_count", 0),
+                                external_id=chapter_data.get("id"),
+                                source=chapter_data.get("source", provider_name),
+                                publish_at=publish_at,
+                                readable_at=readable_at,
+                                download_status="not_downloaded",
+                            )
+
+                            db.add(chapter)
+
+                        except Exception as e:
+                            chapter_num = chapter_data.get("number", "unknown")
+                            logger.error(f"Error creating chapter {chapter_num}: {e}")
+                            continue
+
+                    logger.info(f"Successfully created chapters for manga {manga.id}")
+                else:
+                    logger.warning(f"Provider '{provider_name}' not found")
+
+            except Exception as e:
+                logger.error(f"Error fetching chapters from provider: {e}")
+                # Don't fail the entire operation if chapter fetch fails
+                pass
 
         await db.commit()
         await db.refresh(manga)

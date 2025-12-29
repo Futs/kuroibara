@@ -9,7 +9,14 @@ from urllib.parse import quote
 import httpx
 from bs4 import BeautifulSoup
 
-from app.core.providers.base import BaseProvider
+from app.core.providers.base import (
+    AntiBotError,
+    BaseProvider,
+    ContentError,
+    NetworkError,
+    ProviderError,
+    RateLimitError,
+)
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
 
@@ -232,6 +239,8 @@ class GenericProvider(BaseProvider):
         self, url: str, max_retries: int = 3
     ) -> Optional[str]:
         """Make HTTP request with retry logic and anti-bot protection."""
+        last_error = None
+
         for attempt in range(max_retries):
             try:
                 # Add random delay to avoid rate limiting
@@ -276,31 +285,133 @@ class GenericProvider(BaseProvider):
                         url, headers=headers, follow_redirects=True, timeout=30.0
                     )
 
+                    # Check for Cloudflare or anti-bot protection
+                    if response.status_code in [403, 503, 521]:
+                        response_text = response.text.lower()
+                        if (
+                            "cloudflare" in response_text
+                            or "checking your browser" in response_text
+                            or "just a moment" in response_text
+                        ):
+                            raise AntiBotError(
+                                f"Cloudflare protection detected on {url}",
+                                self._name,
+                                protection_type="cloudflare",
+                                context={
+                                    "url": url,
+                                    "status_code": response.status_code,
+                                },
+                            )
+
                     response.raise_for_status()
                     return response.text
 
             except httpx.HTTPStatusError as e:
-                if e.response.status_code == 403:
+                if e.response.status_code == 429:
+                    # Rate limiting
+                    retry_after = e.response.headers.get("Retry-After", "60")
+                    try:
+                        retry_seconds = int(retry_after)
+                    except ValueError:
+                        retry_seconds = 60
+
+                    last_error = RateLimitError(
+                        f"Rate limited by {self._name}",
+                        self._name,
+                        retry_after=retry_seconds,
+                        context={"url": url, "attempt": attempt + 1},
+                    )
+                    logger.warning(
+                        f"Rate limited for {url} (attempt {attempt + 1}/{max_retries}), "
+                        f"retry after {retry_seconds}s"
+                    )
+
+                    if attempt < max_retries - 1:
+                        await asyncio.sleep(retry_seconds)
+                        continue
+
+                elif e.response.status_code == 403:
+                    last_error = AntiBotError(
+                        f"Access forbidden for {url}",
+                        self._name,
+                        protection_type="unknown",
+                        context={"url": url, "status_code": 403},
+                    )
                     logger.warning(
                         f"Access forbidden for {url} (attempt {attempt + 1}/{max_retries})"
                     )
-                    if attempt == max_retries - 1:
-                        logger.error(
-                            f"All attempts failed for {url}. Site may require FlareSolverr."
-                        )
+
                 elif e.response.status_code == 404:
-                    logger.error(f"URL not found: {url}")
-                    break
-                else:
-                    logger.warning(
-                        f"HTTP error {e.response.status_code} for {url} (attempt {attempt + 1}/{max_retries})"
+                    raise ContentError(
+                        f"Content not found: {url}",
+                        self._name,
+                        error_type="not_found",
+                        context={"url": url},
                     )
+
+                else:
+                    last_error = ProviderError(
+                        f"HTTP {e.response.status_code} error for {url}",
+                        self._name,
+                        recoverable=True,
+                        context={"url": url, "status_code": e.response.status_code},
+                    )
+                    logger.warning(
+                        f"HTTP error {e.response.status_code} for {url} "
+                        f"(attempt {attempt + 1}/{max_retries})"
+                    )
+
+            except httpx.TimeoutException:
+                last_error = NetworkError(
+                    f"Request timeout for {url}",
+                    self._name,
+                    error_type="timeout",
+                    context={"url": url, "attempt": attempt + 1},
+                )
+                logger.warning(
+                    f"Request timeout for {url} (attempt {attempt + 1}/{max_retries})"
+                )
+
+            except httpx.ConnectError as e:
+                last_error = NetworkError(
+                    f"Connection failed for {url}",
+                    self._name,
+                    error_type="connection_refused",
+                    context={"url": url, "error": str(e)},
+                )
+                logger.warning(
+                    f"Connection failed for {url} (attempt {attempt + 1}/{max_retries}): {e}"
+                )
+
+            except AntiBotError:
+                # Re-raise anti-bot errors immediately
+                raise
+
+            except ContentError:
+                # Re-raise content errors immediately (not recoverable)
+                raise
+
             except Exception as e:
+                last_error = ProviderError(
+                    f"Request failed for {url}: {str(e)}",
+                    self._name,
+                    recoverable=True,
+                    context={"url": url, "error": str(e), "attempt": attempt + 1},
+                )
                 logger.warning(
                     f"Request failed for {url} (attempt {attempt + 1}/{max_retries}): {e}"
                 )
 
-        return None
+        # All retries exhausted, raise the last error
+        if last_error:
+            raise last_error
+        else:
+            raise ProviderError(
+                f"Request failed for {url} after {max_retries} attempts",
+                self._name,
+                recoverable=False,
+                context={"url": url, "max_retries": max_retries},
+            )
 
     @property
     def name(self) -> str:
@@ -1002,22 +1113,168 @@ class GenericProvider(BaseProvider):
 
         return None
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page."""
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    page_url,
-                    headers={
-                        **self._headers,
-                        "Referer": self._base_url,
-                    },
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page with proper headers and error handling.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+
+        Raises:
+            NetworkError: On network-related errors
+            AntiBotError: On anti-bot protection detection
+            ContentError: On 404 or content not found
+            ProviderError: On other errors
+        """
+        # Use provided referer or fall back to base URL
+        referer_url = referer or self._base_url
+
+        # Get proper headers for page downloads
+        headers = self.get_page_headers(referer_url)
+
+        max_retries = 3
+        last_error = None
+
+        for attempt in range(max_retries):
+            try:
+                # Add delay between retries
+                if attempt > 0:
+                    delay = random.uniform(1, 2)
+                    await asyncio.sleep(delay)
+
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(
+                        page_url,
+                        headers=headers,
+                        follow_redirects=True,
+                        timeout=30.0,
+                    )
+
+                    # Check for anti-bot protection
+                    if response.status_code in [403, 503, 521]:
+                        response_text = response.text.lower()
+                        if (
+                            "cloudflare" in response_text
+                            or "checking your browser" in response_text
+                            or "just a moment" in response_text
+                        ):
+                            raise AntiBotError(
+                                f"Cloudflare protection detected downloading page: {page_url}",
+                                self._name,
+                                protection_type="cloudflare",
+                                context={"url": page_url, "referer": referer_url},
+                            )
+
+                    response.raise_for_status()
+
+                    # Check if we got actual image data (not empty or error page)
+                    content = response.content
+                    if len(content) == 0:
+                        raise ContentError(
+                            f"Empty content received for page: {page_url}",
+                            self._name,
+                            error_type="empty_content",
+                            context={"url": page_url, "size": 0},
+                        )
+
+                    # Check content type to ensure it's an image
+                    content_type = response.headers.get("content-type", "").lower()
+                    if content_type and not any(
+                        img_type in content_type
+                        for img_type in ["image/", "application/octet-stream"]
+                    ):
+                        logger.warning(
+                            f"Unexpected content type '{content_type}' for page: {page_url}"
+                        )
+
+                    return content
+
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    retry_after = e.response.headers.get("Retry-After", "60")
+                    try:
+                        retry_seconds = int(retry_after)
+                    except ValueError:
+                        retry_seconds = 60
+
+                    last_error = RateLimitError(
+                        f"Rate limited downloading page: {page_url}",
+                        self._name,
+                        retry_after=retry_seconds,
+                        context={"url": page_url},
+                    )
+
+                    if attempt < max_retries - 1:
+                        await asyncio.sleep(retry_seconds)
+                        continue
+
+                elif e.response.status_code == 404:
+                    raise ContentError(
+                        f"Page not found: {page_url}",
+                        self._name,
+                        error_type="not_found",
+                        context={"url": page_url},
+                    )
+
+                elif e.response.status_code == 403:
+                    last_error = AntiBotError(
+                        f"Access forbidden for page: {page_url}",
+                        self._name,
+                        protection_type="unknown",
+                        context={"url": page_url, "referer": referer_url},
+                    )
+
+                else:
+                    last_error = ProviderError(
+                        f"HTTP {e.response.status_code} downloading page: {page_url}",
+                        self._name,
+                        recoverable=True,
+                        context={
+                            "url": page_url,
+                            "status_code": e.response.status_code,
+                        },
+                    )
+
+            except httpx.TimeoutException:
+                last_error = NetworkError(
+                    f"Timeout downloading page: {page_url}",
+                    self._name,
+                    error_type="timeout",
+                    context={"url": page_url, "attempt": attempt + 1},
                 )
-                response.raise_for_status()
-                return response.content
-        except Exception as e:
-            logger.error(f"Error downloading page: {e}")
-            return b""
+
+            except (AntiBotError, ContentError):
+                # Re-raise these immediately
+                raise
+
+            except Exception as e:
+                last_error = ProviderError(
+                    f"Error downloading page {page_url}: {str(e)}",
+                    self._name,
+                    recoverable=True,
+                    context={"url": page_url, "error": str(e)},
+                )
+
+            logger.warning(
+                f"Download attempt {attempt + 1}/{max_retries} failed for {page_url}"
+            )
+
+        # All retries exhausted
+        if last_error:
+            raise last_error
+        else:
+            raise ProviderError(
+                f"Failed to download page after {max_retries} attempts: {page_url}",
+                self._name,
+                recoverable=False,
+                context={"url": page_url},
+            )
 
     async def download_cover(self, manga_id: str) -> bytes:
         """Download a manga cover."""

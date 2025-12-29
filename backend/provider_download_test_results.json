@@ -1,0 +1,99 @@
+{
+  "total_providers_tested": 10,
+  "successful_downloads": 8,
+  "failed_downloads": 2,
+  "success_rate": "80.0%",
+  "results": [
+    {
+      "provider": "MangaPill",
+      "is_nsfw": true,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "5 results for 'Romance'",
+      "error": null,
+      "timestamp": 1765982444.0893157
+    },
+    {
+      "provider": "ArcaneScans",
+      "is_nsfw": false,
+      "search_success": false,
+      "download_success": false,
+      "manga_found": null,
+      "error": null,
+      "timestamp": 1765982479.2731812
+    },
+    {
+      "provider": "ManhuaFast",
+      "is_nsfw": true,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "5 results for 'Cultivation'",
+      "error": null,
+      "timestamp": 1765982481.293188
+    },
+    {
+      "provider": "Toonily",
+      "is_nsfw": true,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "5 results for 'Adult'",
+      "error": null,
+      "timestamp": 1765982520.948186
+    },
+    {
+      "provider": "MangaTown",
+      "is_nsfw": false,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "2 results for 'Shounen'",
+      "error": null,
+      "timestamp": 1765982560.0431406
+    },
+    {
+      "provider": "MangaDNA",
+      "is_nsfw": true,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "5 results for 'Ecchi'",
+      "error": null,
+      "timestamp": 1765982604.5952187
+    },
+    {
+      "provider": "Manga18FX",
+      "is_nsfw": true,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "2 results for '18+'",
+      "error": null,
+      "timestamp": 1765982643.5044498
+    },
+    {
+      "provider": "MangaFreak",
+      "is_nsfw": true,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "4 results for 'Seinen'",
+      "error": null,
+      "timestamp": 1765982680.1706338
+    },
+    {
+      "provider": "MangaSail",
+      "is_nsfw": false,
+      "search_success": true,
+      "download_success": true,
+      "manga_found": "5 results for 'Slice of Life'",
+      "error": null,
+      "timestamp": 1765982719.5441933
+    },
+    {
+      "provider": "MangaKakalotFun",
+      "is_nsfw": true,
+      "search_success": true,
+      "download_success": false,
+      "manga_found": "79 results for 'Isekai'",
+      "error": null,
+      "timestamp": 1765982754.6922119
+    }
+  ],
+  "timestamp": 1765982781.5771587
+}

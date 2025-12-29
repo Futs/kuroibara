@@ -164,7 +164,19 @@ class MangaPillProvider(BaseProvider):
         if not title or title == "Unknown Title":
             return "Unknown Title"
 
+        # Remove common prefixes/suffixes
         title = title.replace("Manga", "").replace("Read", "").strip()
+
+        # Fix duplicate titles (e.g., "One Piece One Piece" -> "One Piece")
+        words = title.split()
+        if len(words) >= 2:
+            # Check if title is duplicated (first half == second half)
+            mid = len(words) // 2
+            first_half = " ".join(words[:mid])
+            second_half = " ".join(words[mid : mid * 2])
+            if first_half == second_half:
+                title = first_half
+
         return title if len(title) >= 2 else "Unknown Title"
 
     def _create_search_result(self, manga_id, title, cover_url, manga_url):
@@ -589,10 +601,28 @@ class MangaPillProvider(BaseProvider):
             print(f"Error getting pages: {e}")
             return []
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page image."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page image with proper headers.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+        """
         try:
-            async with httpx.AsyncClient(headers=self._headers, timeout=30.0) as client:
+            # Use provided referer or fall back to base URL
+            headers = dict(self._headers)
+            if referer:
+                headers["Referer"] = referer
+            else:
+                headers["Referer"] = self._base_url
+
+            async with httpx.AsyncClient(headers=headers, timeout=30.0) as client:
                 response = await client.get(page_url)
                 response.raise_for_status()
                 return response.content

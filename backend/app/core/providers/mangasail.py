@@ -3,7 +3,7 @@ MangaSail provider implementation.
 """
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import aiohttp
@@ -108,7 +108,8 @@ class MangaSailProvider(BaseProvider):
                 return [], 0, False
 
             results = []
-            for item in manga_items[:limit]:
+            seen_ids = set()  # Track seen manga IDs to avoid duplicates
+            for item in manga_items:
                 try:
                     # Extract title from link text
                     raw_title = item.get_text(strip=True)
@@ -134,6 +135,11 @@ class MangaSailProvider(BaseProvider):
                     )
                     if not manga_id:
                         continue
+
+                    # Skip if we've already seen this manga ID
+                    if manga_id in seen_ids:
+                        continue
+                    seen_ids.add(manga_id)
 
                     # Look for cover image (might be in parent or sibling elements)
                     cover_url = ""
@@ -169,6 +175,10 @@ class MangaSailProvider(BaseProvider):
                         extra=None,
                     )
                     results.append(result)
+
+                    # Stop if we've reached the limit
+                    if len(results) >= limit:
+                        break
 
                 except Exception as e:
                     logger.error(f"Error parsing manga item on MangaSail: {e}")
@@ -438,10 +448,28 @@ class MangaSailProvider(BaseProvider):
             logger.error(f"Error getting pages for chapter {chapter_id}: {e}")
             return []
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download a page image."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download a page image with proper headers.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+        """
         try:
-            async with aiohttp.ClientSession() as session:
+            # Build headers with referer
+            headers = {}
+            if referer:
+                headers["Referer"] = referer
+            else:
+                headers["Referer"] = self._base_url
+
+            async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(page_url) as response:
                     if response.status == 200:
                         return await response.read()

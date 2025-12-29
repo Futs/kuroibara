@@ -105,10 +105,21 @@ class ProviderAgent(BaseAgent):
             "get_pages", self.provider.get_pages, manga_id, chapter_id
         )
 
-    async def download_page(self, page_url: str) -> bytes:
-        """Download page using the wrapped provider with agent error handling."""
+    async def download_page(
+        self, page_url: str, referer: Optional[str] = None
+    ) -> bytes:
+        """
+        Download page using the wrapped provider with agent error handling.
+
+        Args:
+            page_url: The URL of the page to download
+            referer: Optional referer URL (chapter page URL)
+
+        Returns:
+            The page content as bytes
+        """
         return await self._execute_with_error_handling(
-            "download_page", self.provider.download_page, page_url
+            "download_page", self.provider.download_page, page_url, referer=referer
         )
 
     async def download_cover(self, manga_id: str) -> bytes:

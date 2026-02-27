@@ -7,7 +7,7 @@ language-settings:
     # Skip dev dependencies in Python
     skip-unresolved: true
     # Use specific Python version
-    python-version: "3.11"
+    python-version: "3.12"
 
   javascript:
     # Skip dev dependencies in production scans
@@ -16,33 +16,33 @@ language-settings:
 # Exclude specific paths from scanning
 exclude:
   global:
-  - "**/*.pyc"
-  - "**/node_modules/**"
-  - "**/.git/**"
-  - "**/dist/**"
-  - "**/build/**"
-  - "**/__pycache__/**"
-  - "**/venv/**"
-  - "**/.venv/**"
-  - "**/htmlcov/**"
-  - "**/coverage/**"
-  - "**/.pytest_cache/**"
-  - "**/.mypy_cache/**"
-  - "**/alembic/versions/**"
-  - "**/migrations/**"
-  - "**/.github/**"
-  - "**/docs/**"
-  - "**/*.md"
-  - "**/*.txt"
-  - "**/*.log"
+    - "**/*.pyc"
+    - "**/node_modules/**"
+    - "**/.git/**"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/__pycache__/**"
+    - "**/venv/**"
+    - "**/.venv/**"
+    - "**/htmlcov/**"
+    - "**/coverage/**"
+    - "**/.pytest_cache/**"
+    - "**/.mypy_cache/**"
+    - "**/alembic/versions/**"
+    - "**/migrations/**"
+    - "**/.github/**"
+    - "**/docs/**"
+    - "**/*.md"
+    - "**/*.txt"
+    - "**/*.log"
 
 # Severity threshold - only report issues of this severity or higher
 severity-threshold: medium
 
 # Fail the build on these severity levels
 fail-on:
-- high
-- critical
+  - high
+  - critical
 
 # Snyk Code specific settings
 code:
@@ -64,21 +64,21 @@ container:
 license-policy:
   # Allow these license types
   allow:
-  - MIT
-  - Apache-2.0
-  - BSD-2-Clause
-  - BSD-3-Clause
-  - ISC
-  - GPL-2.0-with-classpath-exception
+    - MIT
+    - Apache-2.0
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - ISC
+    - GPL-2.0-with-classpath-exception
   # Deny these license types
   deny:
-  - GPL-2.0
-  - GPL-3.0
-  - AGPL-1.0
-  - AGPL-3.0
-  - LGPL-2.0
-  - LGPL-2.1
-  - LGPL-3.0
+    - GPL-2.0
+    - GPL-3.0
+    - AGPL-1.0
+    - AGPL-3.0
+    - LGPL-2.0
+    - LGPL-2.1
+    - LGPL-3.0
 
 # Custom patches (if any)
 patches: {}

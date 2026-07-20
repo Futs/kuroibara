@@ -22,7 +22,9 @@ class ProviderStatus(BaseModel):
 
     provider_id = Column(String(100), unique=True, index=True, nullable=False)
     provider_name = Column(String(100), nullable=False)
-    provider_url = Column(String(255), nullable=False)
+    provider_url = Column(
+        String(255), nullable=False
+    )
     status = Column(
         String(20), default=ProviderStatusEnum.UNKNOWN.value, nullable=False
     )

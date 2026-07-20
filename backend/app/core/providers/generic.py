@@ -670,7 +670,7 @@ class GenericProvider(BaseProvider):
                 if year_elem:
                     try:
                         year = int(year_elem.text.strip())
-                    except (ValueError, TypeError):
+                    except ValueError, TypeError:
                         pass
 
                 # Detect NSFW based on content
@@ -1249,7 +1249,7 @@ class GenericProvider(BaseProvider):
                     context={"url": page_url, "attempt": attempt + 1},
                 )
 
-            except (AntiBotError, ContentError):
+            except AntiBotError, ContentError:
                 # Re-raise these immediately
                 raise
 

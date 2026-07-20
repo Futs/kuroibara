@@ -340,5 +340,5 @@ class AnilistClient(BaseIntegrationClient):
         try:
             date = datetime(date_obj["year"], date_obj["month"], date_obj["day"])
             return date.isoformat()
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None

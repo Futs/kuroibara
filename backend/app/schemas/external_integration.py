@@ -64,7 +64,8 @@ class ExternalIntegration(ExternalIntegrationBase, BaseSchema):
 
     # Don't expose sensitive tokens and secrets in responses
     model_config = ConfigDict(
-        from_attributes=True, exclude={"access_token", "refresh_token", "client_secret"}
+        from_attributes=True,
+        exclude={"access_token", "refresh_token", "client_secret"}
     )
 
 
@@ -149,7 +150,10 @@ class SyncRequest(BaseModel):
     force_full_sync: bool = False
     sync_direction: str = Field(
         default="bidirectional",
-        description="Sync direction: 'to_external', 'from_external', or 'bidirectional'",
+        description=(
+            "Sync direction: 'to_external', 'from_external', "
+            "or 'bidirectional'"
+        ),
     )
 
 

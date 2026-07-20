@@ -76,14 +76,18 @@ class ChapterMetadata(BaseModel):
     is_organized = Column(
         Boolean, default=False, nullable=False
     )  # Whether chapter is organized
-    organized_path = Column(String(500), nullable=True)  # Path after organization
+    organized_path = Column(
+        String(500), nullable=True
+    )  # Path after organization
     original_path = Column(
         String(500), nullable=True
     )  # Original file path (if preserved)
     cbz_path = Column(String(500), nullable=True)  # Path to CBZ file
 
     # Reading progress
-    current_page = Column(Integer, default=1, nullable=False)  # Current reading page
+    current_page = Column(
+        Integer, default=1, nullable=False
+    )  # Current reading page
     total_pages = Column(Integer, nullable=True)  # Total pages in chapter
     reading_progress = Column(
         Integer, default=0, nullable=False
@@ -108,27 +112,45 @@ class OrganizationHistory(BaseModel):
 
     __tablename__ = "organization_history"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    manga_id = Column(UUID(as_uuid=True), ForeignKey("manga.id"), nullable=True)
-    chapter_id = Column(UUID(as_uuid=True), ForeignKey("chapter.id"), nullable=True)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    manga_id = Column(
+        UUID(as_uuid=True), ForeignKey("manga.id"), nullable=True
+    )
+    chapter_id = Column(
+        UUID(as_uuid=True), ForeignKey("chapter.id"), nullable=False
+    )
 
     # Operation details
     operation_type = Column(
         String(50), nullable=False
     )  # organize, rename, convert_cbz, etc.
-    operation_status = Column(String(20), nullable=False)  # success, failed, partial
+    operation_status = Column(
+        String(20), nullable=False
+    )  # success, failed, partial
 
     # File operations
-    source_path = Column(String(500), nullable=True)  # Original file/directory path
-    destination_path = Column(String(500), nullable=True)  # New file/directory path
-    backup_path = Column(String(500), nullable=True)  # Backup location (if preserved)
+    source_path = Column(
+        String(500), nullable=True
+    )  # Original file/directory path
+    destination_path = Column(
+        String(500), nullable=True
+    )  # New file/directory path
+    backup_path = Column(
+        String(500), nullable=True
+    )  # Backup location (if preserved)
 
     # Operation metadata
-    naming_format_used = Column(String(500), nullable=True)  # Naming format used
+    naming_format_used = Column(
+        String(500), nullable=True
+    )  # Naming format used
     files_processed = Column(
         Integer, default=0, nullable=False
     )  # Number of files processed
-    errors_encountered = Column(JSONB, nullable=True)  # List of errors during operation
+    errors_encountered = Column(
+        JSONB, nullable=True
+    )  # List of errors during operation
     warnings_encountered = Column(
         JSONB, nullable=True
     )  # List of warnings during operation
@@ -136,7 +158,9 @@ class OrganizationHistory(BaseModel):
     # Timing
     started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)
-    duration_seconds = Column(Integer, nullable=True)  # Operation duration
+    duration_seconds = Column(
+        Integer, nullable=True
+    )  # Operation duration
 
     # Additional details
     operation_details = Column(

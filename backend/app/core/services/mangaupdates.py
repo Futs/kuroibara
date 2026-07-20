@@ -373,7 +373,7 @@ class MangaUpdatesService:
             # Handle string year like '1997'
             try:
                 return int(year_data)
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 return None
         return None
 

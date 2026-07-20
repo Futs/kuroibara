@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.api_v1.api import api_router
 from app.core.config import settings
-from app.core.events import shutdown_event_handler, startup_event_handler
+from app.core.events import lifespan
 
 # Import provider registry to ensure it's initialized
 
@@ -14,6 +14,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    lifespan=lifespan,
 )
 
 # Set up CORS
@@ -25,10 +26,6 @@ if settings.CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-# Add event handlers
-app.add_event_handler("startup", startup_event_handler(app))
-app.add_event_handler("shutdown", shutdown_event_handler(app))
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")

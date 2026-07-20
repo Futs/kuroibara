@@ -188,7 +188,9 @@ class CrossIndexerReference(BaseModel):
     verification_date = Column(DateTime(timezone=True), nullable=True)
 
     # Additional metadata from this reference
-    additional_metadata = Column(JSONB, nullable=True)  # Extra data not in main entry
+    additional_metadata = Column(
+        JSONB, nullable=True
+    )  # Extra data not in main entry
 
     # Relationships
     universal_entry = relationship(

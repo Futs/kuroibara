@@ -34,7 +34,9 @@ class User(BaseModel):
     )  # minutes: 30, 60, 120, 1440 (daily), 10080 (weekly), 43200 (monthly)
 
     # User settings
-    theme = Column(String(20), default="light", nullable=False)  # light, dark, system
+    theme = Column(
+        String(20), default="light", nullable=False
+    )  # light, dark, system
     nsfw_blur = Column(Boolean, default=True, nullable=False)
     download_quality = Column(
         String(20), default="high", nullable=False
@@ -48,39 +50,61 @@ class User(BaseModel):
         nullable=False,
     )  # Template for manga folder structure
     naming_format_chapter = Column(
-        String(500), default="{Chapter Number} - {Chapter Name}", nullable=False
+        String(500),
+        default="{Chapter Number} - {Chapter Name}",
+        nullable=False
     )  # Template for chapter file naming
     preferred_structure_pattern = Column(
-        String(50), default="auto_detect", nullable=False
+        String(50),
+        default="auto_detect",
+        nullable=False
     )  # Preferred structure: "volume_based", "chapter_based", "auto_detect"
     auto_organize_imports = Column(
-        Boolean, default=True, nullable=False
+        Boolean,
+        default=True,
+        nullable=False
     )  # Auto-organize on import
     create_cbz_files = Column(
-        Boolean, default=True, nullable=False
+        Boolean,
+        default=True,
+        nullable=False
     )  # Create CBZ files for chapters
     preserve_original_files = Column(
-        Boolean, default=False, nullable=False
+        Boolean,
+        default=False,
+        nullable=False
     )  # Keep original files after organization
 
     # Chapter update settings
     chapter_auto_refresh_interval = Column(
-        Integer, default=300, nullable=False
+        Integer,
+        default=300,
+        nullable=False
     )  # Auto-refresh interval in seconds (5 minutes default)
     chapter_check_on_tab_focus = Column(
-        Boolean, default=True, nullable=False
+        Boolean,
+        default=True,
+        nullable=False
     )  # Check for updates when tab becomes active
     chapter_show_update_notifications = Column(
-        Boolean, default=True, nullable=False
+        Boolean,
+        default=True,
+        nullable=False
     )  # Show notifications when new chapters are found
     chapter_enable_manual_refresh = Column(
-        Boolean, default=True, nullable=False
+        Boolean,
+        default=True,
+        nullable=False
     )  # Enable manual refresh button
     storage_type = Column(
-        String(20), default="local", nullable=False
+        String(20),
+        default="local",
+        nullable=False
     )  # Storage type (local, s3, etc.)
     max_upload_size = Column(
-        String(10), default="100MB", nullable=False
+        String(10),
+        default="100MB",
+        nullable=False
     )  # Maximum upload size
 
     # Relationships

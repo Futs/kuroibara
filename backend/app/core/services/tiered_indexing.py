@@ -610,7 +610,7 @@ class MadaraDexIndexer(BaseIndexer):
                 rating_text = rating_elem.get_text(strip=True)
                 try:
                     rating = float(rating_text)
-                except (ValueError, TypeError):
+                except ValueError, TypeError:
                     pass
 
             # Check for NSFW indicators

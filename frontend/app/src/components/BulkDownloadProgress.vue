@@ -101,7 +101,7 @@ const downloadsStore = useDownloadsStore();
 
 const bulkDownloads = computed(() => {
   return downloadsStore.getBulkDownloads.filter(
-    (bulk) => bulk.status !== "dismissed",
+    (bulk) => bulk.status !== "dismissed"
   );
 });
 

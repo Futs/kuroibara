@@ -225,7 +225,6 @@ export const useLibraryStore = defineStore("library", {
     },
 
     async fetchLibrary() {
-      // Ensure rate limits are initialized
       this.initializeRateLimits();
       this.loading = true;
       this.error = null;
@@ -234,21 +233,17 @@ export const useLibraryStore = defineStore("library", {
         const { page, limit } = this.pagination;
         const { category, status } = this.filters;
 
-        // Calculate skip from page
         const skip = (page - 1) * limit;
 
-        // Prepare params for backend API
         const params = {
           skip,
           limit,
         };
 
-        // Add category filter if specified
         if (category) {
           params.category_id = category;
         }
 
-        // Add favorite filter if status is 'favorite'
         if (status === "favorite") {
           params.is_favorite = true;
         } else if (status === "not_favorite") {
@@ -257,14 +252,12 @@ export const useLibraryStore = defineStore("library", {
 
         const response = await api.get("/v1/library", { params });
 
-        // Handle paginated response
         if (response.data.items) {
           this.manga = response.data.items || [];
           this.pagination.total = response.data.pagination?.total || 0;
           this.pagination.pages = response.data.pagination?.pages || 1;
           this.pagination.page = response.data.pagination?.page || 1;
         } else {
-          // Fallback for non-paginated response
           this.manga = response.data || [];
           this.pagination.total = response.data.length || 0;
         }
@@ -303,7 +296,6 @@ export const useLibraryStore = defineStore("library", {
       } catch (error) {
         const errorDetail = error.response?.data?.detail;
 
-        // Handle detailed duplicate error response
         if (typeof errorDetail === "object" && errorDetail.message) {
           this.error = `${errorDetail.message} ${errorDetail.suggestion}`;
           console.error("Duplicate manga in library:", errorDetail);
@@ -312,7 +304,7 @@ export const useLibraryStore = defineStore("library", {
           console.error("Add to library error:", error);
         }
 
-        throw error; // Re-throw so calling code can handle it
+        throw error;
       } finally {
         this.loading = false;
       }
@@ -329,16 +321,15 @@ export const useLibraryStore = defineStore("library", {
         this.error =
           error.response?.data?.detail || "Failed to remove manga from library";
         console.error("Remove from library error:", error);
-        throw error; // Re-throw so calling code can handle it
+        throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    // Enhanced filtering methods
     setFilters(filters) {
       this.filters = { ...this.filters, ...filters };
-      this.pagination.page = 1; // Reset to first page when filters change
+      this.pagination.page = 1;
       this.fetchLibrary();
     },
 
@@ -442,7 +433,6 @@ export const useLibraryStore = defineStore("library", {
       externalChapterId,
     ) {
       try {
-        // Apply rate limiting for the provider
         const response = await makeRateLimitedRequest(
           rateLimiter,
           provider,
@@ -457,10 +447,9 @@ export const useLibraryStore = defineStore("library", {
               },
             );
           },
-          { priority: 1 }, // Normal priority for individual downloads
+          { priority: 1 },
         );
 
-        // Add download to downloads store for immediate UI feedback
         const { useDownloadsStore } = await import("./downloads");
         const downloadsStore = useDownloadsStore();
 
@@ -652,29 +641,22 @@ export const useLibraryStore = defineStore("library", {
       };
 
       this.manga.forEach((item) => {
-        // Count by read status
         const status = item.read_status || "unread";
         stats[status] = (stats[status] || 0) + 1;
 
-        // Count favorites
         if (item.is_favorite) stats.favorites++;
-
-        // Count downloaded
         if (item.is_downloaded) stats.downloaded++;
 
-        // Genre distribution
         item.manga.genres?.forEach((genre) => {
           stats.genreDistribution[genre.name] =
             (stats.genreDistribution[genre.name] || 0) + 1;
         });
 
-        // Author distribution
         item.manga.authors?.forEach((author) => {
           stats.authorDistribution[author.name] =
             (stats.authorDistribution[author.name] || 0) + 1;
         });
 
-        // Language distribution
         item.manga.chapters?.forEach((chapter) => {
           if (chapter.language) {
             stats.languageDistribution[chapter.language] =
@@ -758,11 +740,9 @@ export const useLibraryStore = defineStore("library", {
       let score = 0;
       let factors = 0;
 
-      // Title similarity (already matched)
       score += 40;
       factors += 40;
 
-      // Author similarity
       if (manga1.authors && manga2.authors) {
         const authors1 = manga1.authors.map((a) => a.name.toLowerCase());
         const authors2 = manga2.authors.map((a) => a.name.toLowerCase());
@@ -773,7 +753,6 @@ export const useLibraryStore = defineStore("library", {
       }
       factors += 30;
 
-      // Genre similarity
       if (manga1.genres && manga2.genres) {
         const genres1 = manga1.genres.map((g) => g.name.toLowerCase());
         const genres2 = manga2.genres.map((g) => g.name.toLowerCase());
@@ -783,7 +762,6 @@ export const useLibraryStore = defineStore("library", {
       }
       factors += 20;
 
-      // Description similarity
       if (manga1.description && manga2.description) {
         const desc1 = manga1.description.toLowerCase();
         const desc2 = manga2.description.toLowerCase();
@@ -808,7 +786,6 @@ export const useLibraryStore = defineStore("library", {
           metadata,
         );
 
-        // Update local manga data
         const index = this.manga.findIndex((item) => item.id === mangaId);
         if (index !== -1) {
           this.manga[index] = { ...this.manga[index], ...response.data };
@@ -828,7 +805,6 @@ export const useLibraryStore = defineStore("library", {
           metadata,
         });
 
-        // Refresh library to get updated data
         await this.fetchLibrary();
       } catch (error) {
         console.error("Error bulk updating metadata:", error);
@@ -840,11 +816,9 @@ export const useLibraryStore = defineStore("library", {
       try {
         await api.delete(`/v1/library/${libraryItemId}`);
 
-        // Remove from local state
         this.manga = this.manga.filter((item) => item.id !== libraryItemId);
         this.selectedManga.delete(libraryItemId);
 
-        // Update statistics
         this.calculateLocalStatistics();
       } catch (error) {
         console.error("Error deleting manga:", error);
@@ -853,11 +827,9 @@ export const useLibraryStore = defineStore("library", {
     },
 
     async downloadManga(libraryItemId) {
+      this.loading = true;
       try {
-        this.loading = true;
         await api.post(`/v1/library/${libraryItemId}/download`);
-
-        // Refresh library to get updated download status
         await this.fetchLibrary();
       } catch (error) {
         console.error("Error downloading manga:", error);
@@ -881,7 +853,6 @@ export const useLibraryStore = defineStore("library", {
         JSON.parse(localStorage.getItem("savedSearches")) || [];
       savedSearches.unshift(savedSearch);
 
-      // Keep only last 20 searches
       if (savedSearches.length > 20) {
         savedSearches.splice(20);
       }
@@ -931,11 +902,9 @@ export const useLibraryStore = defineStore("library", {
           localStorage.setItem("customTags", JSON.stringify(this.customTags));
         }
 
-        // Import would typically involve API calls to add manga
-        // For now, we'll just merge the data locally
         if (data.manga) {
           console.log(`Importing ${data.manga.length} manga items`);
-          // This would be handled by the backend
+          // Backend handling would go here
         }
 
         return true;

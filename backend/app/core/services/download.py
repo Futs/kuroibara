@@ -1,7 +1,8 @@
+import asyncio
 import logging
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Callable, List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -169,7 +170,8 @@ async def download_chapter(
     external_chapter_id: str,
     db: AsyncSession,
     task_id: Optional[str] = None,
-    progress_callback: Optional[callable] = None,
+    progress_callback: Optional[Callable[[int, int, float], Any]] = None,
+    auto_export_cbz: bool = False,
 ) -> str:
     """
     Download a chapter with progress tracking.
@@ -213,11 +215,10 @@ async def download_chapter(
         )
 
     # Download pages with optimized rate limiting for page downloads
-    import asyncio
 
     # Provider-specific page download delays (much faster than API calls)
     page_delays = {
-        "MangaDx": 0.5,  # 500ms for MangaDx pages (vs 5s for API)
+        "MangaDex": 0.5,  # 500ms for MangaDex pages (vs 5s for API)
         "MangaPill": 0.3,  # 300ms for MangaPill pages
         "Toonily": 0.4,  # 400ms for Toonily pages
         "MangaTown": 0.5,  # 500ms for MangaTown pages
@@ -227,7 +228,7 @@ async def download_chapter(
         "MangaFreak": 0.5,  # 500ms for MangaFreak pages
         "MangaSail": 0.4,  # 400ms for MangaSail pages
         "MangaKakalotFun": 0.3,  # 300ms for MangaKakalotFun pages
-        "MangaDNA": 0.5,  # 500ms for MangaDNA pages
+        "MangaDNA": 0.5,  # 500ms for MangaDNA pages,
     }
 
     page_delay = page_delays.get(provider_name, 0.5)  # Default 500ms
@@ -244,6 +245,10 @@ async def download_chapter(
     downloaded_bytes = 0
     failed_pages = []
 
+    # Retry configuration
+    max_retries = 3
+    backoff_base = 1.0
+
     for i, page_url in enumerate(page_urls):
         # Add delay between page downloads (much shorter than API delays)
         if i > 0:
@@ -251,195 +256,214 @@ async def download_chapter(
 
         page_number = i + 1
 
-        try:
-            # Download page with proper referer
-            page_data = await provider.download_page(page_url, referer=chapter_url)
+        success = False
+        for attempt in range(max_retries):
+            try:
+                # Download page with proper referer
+                page_data = await provider.download_page(page_url, referer=chapter_url)
 
-            # Save page
-            # Determine file extension from URL or default to .jpg
-            file_ext = ".jpg"
-            if "." in page_url:
-                url_ext = page_url.split(".")[-1].lower()
-                if url_ext in ["jpg", "jpeg", "png", "gif", "webp"]:
-                    file_ext = f".{url_ext}"
+                # Save page
+                # Determine file extension from URL or default to .jpg
+                file_ext = ".jpg"
+                if "." in page_url:
+                    url_ext = page_url.split(".")[-1].lower()
+                    if url_ext in ["jpg", "jpeg", "png", "gif", "webp"]:
+                        file_ext = f".{url_ext}"
 
-            page_path = get_page_storage_path(
-                manga_id, chapter_id, page_number, file_ext
-            )
-
-            # Only save if we got actual data
-            if page_data and len(page_data) > 0:
-                os.makedirs(os.path.dirname(page_path), exist_ok=True)
-                with open(page_path, "wb") as f:
-                    f.write(page_data)
-                downloaded_bytes += len(page_data)
-
-                # Create page object
-                page = Page(
-                    chapter_id=chapter_id,
-                    number=page_number,
-                    file_path=page_path,
+                page_path = get_page_storage_path(
+                    manga_id, chapter_id, page_number, file_ext
                 )
-                pages.append(page)
 
-            else:
-                # Empty content - log and track as failed
-                logger.warning(f"Empty content for page {page_number}: {page_url}")
+                # Only save if we got actual data
+                if page_data and len(page_data) > 0:
+                    os.makedirs(os.path.dirname(page_path), exist_ok=True)
+                    with open(page_path, "wb") as f:
+                        f.write(page_data)
+                    downloaded_bytes += len(page_data)
+
+                    # Create page object
+                    page = Page(
+                        chapter_id=chapter_id,
+                        number=page_number,
+                        file_path=page_path,
+                    )
+                    pages.append(page)
+                    success = True
+                    break
+                else:
+                    # Empty content - log and track as failed
+                    logger.warning(f"Empty content for page {page_number}: {page_url}")
+                    failed_pages.append(
+                        {"page": page_number, "url": page_url, "error": "Empty content"}
+                    )
+                    break
+
+                # Send progress update
+                downloaded_pages = i + 1
+                progress_percentage = (
+                    (downloaded_pages / total_pages) * 100 if total_pages > 0 else 0
+                )
+
+                if task_id:
+                    await send_download_progress_update(
+                        task_id=task_id,
+                        event_type="download_progress",
+                        progress=progress_percentage,
+                        total_pages=total_pages,
+                        downloaded_pages=downloaded_pages,
+                        downloaded_bytes=downloaded_bytes,
+                    )
+
+                # Call progress callback if provided
+                if progress_callback:
+                    await progress_callback(
+                        downloaded_pages, total_pages, progress_percentage
+                    )
+
+                break
+
+            except AntiBotError as e:
+                error_msg = (
+                    f"Anti-bot protection detected on page {page_number}: {e.message}"
+                )
+                logger.error(error_msg)
                 failed_pages.append(
-                    {"page": page_number, "url": page_url, "error": "Empty content"}
+                    {
+                        "page": page_number,
+                        "url": page_url,
+                        "error": error_msg,
+                        "type": "anti_bot",
+                        "protection_type": e.protection_type,
+                    }
                 )
-
-            # Send progress update
-            downloaded_pages = i + 1
-            progress_percentage = (
-                (downloaded_pages / total_pages) * 100 if total_pages > 0 else 0
-            )
-
-            if task_id:
-                await send_download_progress_update(
-                    task_id=task_id,
-                    event_type="download_progress",
-                    progress=progress_percentage,
-                    total_pages=total_pages,
-                    downloaded_pages=downloaded_pages,
-                    downloaded_bytes=downloaded_bytes,
+                break
+            except RateLimitError as e:
+                error_msg = f"Rate limited on page {page_number}: {e.message}"
+                logger.warning(error_msg)
+                if attempt < max_retries - 1:
+                    wait_time = e.retry_after or (backoff_base * (2**attempt))
+                    await asyncio.sleep(wait_time)
+                else:
+                    failed_pages.append(
+                        {
+                            "page": page_number,
+                            "url": page_url,
+                            "error": error_msg,
+                            "type": "rate_limit",
+                            "retry_after": e.retry_after,
+                        }
+                    )
+                    break
+            except ContentError as e:
+                error_msg = f"Content error on page {page_number}: {e.message}"
+                logger.error(error_msg)
+                failed_pages.append(
+                    {
+                        "page": page_number,
+                        "url": page_url,
+                        "error": error_msg,
+                        "type": "content_error",
+                        "error_type": e.error_type,
+                    }
                 )
-
-            # Call progress callback if provided
-            if progress_callback:
-                await progress_callback(
-                    downloaded_pages, total_pages, progress_percentage
+                break
+            except NetworkError as e:
+                error_msg = f"Network error on page {page_number}: {e.message}"
+                logger.warning(error_msg)
+                if attempt < max_retries - 1:
+                    wait_time = backoff_base * (2**attempt)
+                    await asyncio.sleep(wait_time)
+                else:
+                    failed_pages.append(
+                        {
+                            "page": page_number,
+                            "url": page_url,
+                            "error": error_msg,
+                            "type": "network_error",
+                            "error_type": e.error_type,
+                        }
+                    )
+                    break
+            except ProviderError as e:
+                error_msg = f"Provider error on page {page_number}: {e.message}"
+                logger.error(error_msg)
+                failed_pages.append(
+                    {
+                        "page": page_number,
+                        "url": page_url,
+                        "error": error_msg,
+                        "type": "provider_error",
+                        "recoverable": e.recoverable,
+                    }
                 )
+                break
+            except Exception as e:
+                error_msg = f"Unexpected error downloading page {page_number}: {str(e)}"
+                logger.error(error_msg)
+                failed_pages.append(
+                    {
+                        "page": page_number,
+                        "url": page_url,
+                        "error": error_msg,
+                        "type": "unknown",
+                    }
+                )
+                break
 
-        except AntiBotError as e:
-            error_msg = (
-                f"Anti-bot protection detected on page {page_number}: {e.message}"
+            if not success:
+                if attempt < max_retries - 1:
+                    wait_time = backoff_base * (2**attempt)
+                    await asyncio.sleep(wait_time)
+                else:
+                    # Log summary of failed pages
+                    if failed_pages:
+                        logger.warning(
+                            f"Chapter download completed with {len(failed_pages)} failed pages out of {total_pages}"
+                        )
+                        for failed in failed_pages:
+                            logger.warning(
+                                f"  - Page {failed['page']}: {failed['error']}"
+                            )
+
+        # Update chapter in database
+        chapter = await db.get(Chapter, chapter_id)
+        if chapter:
+            # Update chapter
+            chapter.pages_count = len(pages)
+            chapter.file_path = chapter_path
+
+            # Add pages to database
+            db.add_all(pages)
+
+            # Commit changes
+            await db.commit()
+
+        # Create CBZ file if requested
+        final_path = chapter_path
+        if auto_export_cbz:
+            cbz_path = f"{chapter_path}.cbz"
+            create_cbz_from_directory(chapter_path, cbz_path)
+            final_path = cbz_path
+
+        return final_path
+
+        # Auto-export logic:
+        # If the chapter was downloaded as part of a manga download or manually,
+        # we might want to check if it should be converted to CBZ.
+        # For now, we'll just ensure the CBZ is created.
+
+        # Send download completed event
+        if task_id:
+            await send_download_progress_update(
+                task_id=task_id,
+                event_type="download_completed",
+                progress=100,
+                total_pages=total_pages,
+                downloaded_pages=len(pages),
+                downloaded_bytes=downloaded_bytes,
             )
-            logger.error(error_msg)
-            failed_pages.append(
-                {
-                    "page": page_number,
-                    "url": page_url,
-                    "error": error_msg,
-                    "type": "anti_bot",
-                    "protection_type": e.protection_type,
-                }
-            )
-            # Continue with next page
-            continue
 
-        except RateLimitError as e:
-            error_msg = f"Rate limited on page {page_number}: {e.message}"
-            logger.warning(error_msg)
-            failed_pages.append(
-                {
-                    "page": page_number,
-                    "url": page_url,
-                    "error": error_msg,
-                    "type": "rate_limit",
-                    "retry_after": e.retry_after,
-                }
-            )
-            # Wait and continue
-            await asyncio.sleep(e.retry_after)
-            continue
-
-        except ContentError as e:
-            error_msg = f"Content error on page {page_number}: {e.message}"
-            logger.error(error_msg)
-            failed_pages.append(
-                {
-                    "page": page_number,
-                    "url": page_url,
-                    "error": error_msg,
-                    "type": "content_error",
-                    "error_type": e.error_type,
-                }
-            )
-            # Continue with next page
-            continue
-
-        except NetworkError as e:
-            error_msg = f"Network error on page {page_number}: {e.message}"
-            logger.warning(error_msg)
-            failed_pages.append(
-                {
-                    "page": page_number,
-                    "url": page_url,
-                    "error": error_msg,
-                    "type": "network_error",
-                    "error_type": e.error_type,
-                }
-            )
-            # Continue with next page
-            continue
-
-        except ProviderError as e:
-            error_msg = f"Provider error on page {page_number}: {e.message}"
-            logger.error(error_msg)
-            failed_pages.append(
-                {
-                    "page": page_number,
-                    "url": page_url,
-                    "error": error_msg,
-                    "type": "provider_error",
-                    "recoverable": e.recoverable,
-                }
-            )
-            # Continue with next page
-            continue
-
-        except Exception as e:
-            error_msg = f"Unexpected error downloading page {page_number}: {str(e)}"
-            logger.error(error_msg)
-            failed_pages.append(
-                {
-                    "page": page_number,
-                    "url": page_url,
-                    "error": error_msg,
-                    "type": "unknown",
-                }
-            )
-            # Continue with next page instead of failing entire download
-            continue
-
-    # Log summary of failed pages
-    if failed_pages:
-        logger.warning(
-            f"Chapter download completed with {len(failed_pages)} failed pages out of {total_pages}"
-        )
-        for failed in failed_pages:
-            logger.warning(f"  - Page {failed['page']}: {failed['error']}")
-
-    # Update chapter in database
-    chapter = await db.get(Chapter, chapter_id)
-    if chapter:
-        # Update chapter
-        chapter.pages_count = len(pages)
-        chapter.file_path = chapter_path
-
-        # Add pages to database
-        db.add_all(pages)
-
-        # Commit changes
-        await db.commit()
-
-    # Create CBZ file
-    cbz_path = f"{chapter_path}.cbz"
-    create_cbz_from_directory(chapter_path, cbz_path)
-
-    # Send download completed event
-    if task_id:
-        await send_download_progress_update(
-            task_id=task_id,
-            event_type="download_completed",
-            progress=100,
-            total_pages=total_pages,
-            downloaded_pages=len(pages),
-            downloaded_bytes=downloaded_bytes,
-        )
-
-    return cbz_path
+        return cbz_path
 
 
 async def download_chapter_with_fallback(
@@ -452,6 +476,7 @@ async def download_chapter_with_fallback(
     fallback_providers: Optional[List[str]] = None,
     auto_discover_alternatives: bool = True,
     task_id: Optional[str] = None,
+    auto_export_cbz: bool = False,
 ) -> str:
     """
     Download a chapter with automatic fallback to alternative providers.
@@ -538,6 +563,7 @@ async def download_chapter_with_fallback(
                         fallback_external_chapter_id,
                         db,
                         task_id=task_id,
+                        auto_export_cbz=auto_export_cbz,
                     )
 
                     # Update chapter with successful fallback provider info
@@ -589,6 +615,7 @@ async def download_chapter_with_fallback(
                             alternative.external_chapter_id,
                             db,
                             task_id=task_id,
+                            auto_export_cbz=auto_export_cbz,
                         )
 
                         # Update chapter with successful alternative provider info
@@ -629,7 +656,7 @@ async def download_chapter_with_fallback(
                 error=error_msg,
             )
 
-        raise Exception(error_msg)
+        raise Exception(error_msg) from e
 
 
 async def download_manga(

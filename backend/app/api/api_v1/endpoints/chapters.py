@@ -1,167 +1,140 @@
-"""
-Chapter management endpoints.
-"""
-
+import logging
 import os
-import shutil
-import uuid
-from typing import Any
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.core.config import settings
-from app.core.deps import get_current_user, get_db
-from app.models.library import MangaUserLibrary
+from app.core.services.download import download_chapter_with_fallback
+from app.db.session import get_db
 from app.models.manga import Chapter, Manga
-from app.models.user import User
-from app.schemas.manga import ChapterSummary
+from app.schemas.export import BulkExportRequest, ExportRequest
 
-router = APIRouter()
+logger = logging.getLogger(__name__)
 
-
-def get_chapter_storage_path(manga_id: uuid.UUID, chapter_id: uuid.UUID) -> str:
-    """Get the storage path for a chapter."""
-    return os.path.join(
-        settings.STORAGE_PATH, "manga", str(manga_id), "chapters", str(chapter_id)
-    )
+router = APIRouter(prefix="/chapters", tags=["Chapters"])
 
 
-@router.delete("/{chapter_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_chapter(
-    chapter_id: str,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> None:
+class ExportRequest(BaseModel):
+    manga_id: UUID
+    chapter_id: UUID
+    auto_export_cbz: bool = True
+
+
+@router.post("/export")
+async def export_chapter_cbz(
+    request: ExportRequest, db: AsyncSession = Depends(get_db)
+):
     """
-    Delete a chapter and its associated files.
+    Export a specific chapter as a CBZ file.
     """
-    # Get the chapter with eager loading
-    result = await db.execute(
-        select(Chapter)
-        .options(selectinload(Chapter.pages))
-        .where(Chapter.id == uuid.UUID(chapter_id))
-    )
-    chapter = result.scalars().first()
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Chapter not found",
-        )
-
-    # Check if user has access to the manga
-    result = await db.execute(
-        select(MangaUserLibrary).where(
-            (MangaUserLibrary.user_id == current_user.id)
-            & (MangaUserLibrary.manga_id == chapter.manga_id)
-        )
-    )
-    library_item = result.scalars().first()
-    if not library_item:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
-        )
-
-    try:
-        # Delete chapter files
-        chapter_path = get_chapter_storage_path(chapter.manga_id, chapter.id)
-        if os.path.exists(chapter_path):
-            shutil.rmtree(chapter_path)
-
-        # Delete chapter from database
-        await db.delete(chapter)
-        await db.commit()
-
-    except Exception as e:
-        await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete chapter: {str(e)}",
-        )
-
-
-@router.post("/{chapter_id}/redownload", response_model=ChapterSummary)
-async def redownload_chapter(
-    chapter_id: str,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> Any:
-    """
-    Re-download a chapter (for downloaded chapters only).
-    """
-    # Get the chapter with eager loading
-    result = await db.execute(
-        select(Chapter)
-        .options(selectinload(Chapter.pages))
-        .where(Chapter.id == uuid.UUID(chapter_id))
-    )
-    chapter = result.scalars().first()
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Chapter not found",
-        )
-
-    # Check if user has access to the manga
-    result = await db.execute(
-        select(MangaUserLibrary).where(
-            (MangaUserLibrary.user_id == current_user.id)
-            & (MangaUserLibrary.manga_id == chapter.manga_id)
-        )
-    )
-    library_item = result.scalars().first()
-    if not library_item:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
-        )
-
-    # Check if chapter is from import (can't re-download imported chapters)
-    if chapter.source == "import":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot re-download imported chapters. Use the import function instead.",
-        )
-
-    # Get the manga to check for external source info
-    manga = await db.get(Manga, chapter.manga_id)
+    manga = await db.get(Manga, request.manga_id)
     if not manga:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Manga not found",
-        )
+        raise HTTPException(status_code=404, detail="Manga not found")
 
-    if not manga.external_id or not manga.provider:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot re-download chapter: missing external source information",
-        )
+    chapter = await db.get(Chapter, request.chapter_id)
+    if not chapter:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+
+    if not chapter.file_path or not os.path.exists(chapter.file_path):
+        raise HTTPException(status_code=404, detail="Chapter file not found on server")
+
+    primary_provider = chapter.source if chapter.source else "MangaDx"
+
+    external_manga_id = str(request.manga_id)
+    external_chapter_id = str(request.chapter_id)
 
     try:
-        # Delete existing chapter files
-        chapter_path = get_chapter_storage_path(chapter.manga_id, chapter.id)
-        if os.path.exists(chapter_path):
-            shutil.rmtree(chapter_path)
-
-        # Reset chapter status to trigger re-download
-        chapter.download_status = "not_downloaded"
-        chapter.download_error = None
-
-        await db.commit()
-        await db.refresh(chapter)
-
-        # TODO: Trigger actual re-download through download service
-        # This would typically involve queuing the chapter for download
-        # For now, we just mark it as pending
-
-        return chapter
-
-    except Exception as e:
-        await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initiate re-download: {str(e)}",
+        cbz_path = await download_chapter_with_fallback(
+            manga_id=request.manga_id,
+            chapter_id=request.chapter_id,
+            primary_provider=primary_provider,
+            external_manga_id=external_manga_id,
+            external_chapter_id=external_chapter_id,
+            db=db,
+            auto_export_cbz=request.auto_export_cbz,
         )
+
+        return {"message": "Chapter exported successfully", "cbz_path": cbz_path}
+    except Exception as e:
+        logger.error(f"Export failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+@router.post("/bulk/export")
+async def bulk_export_chapters(
+    request: BulkExportRequest, db: AsyncSession = Depends(get_db)
+):
+    """
+    Export multiple chapters as CBZ files in bulk.
+    """
+    results = []
+    for item in request.items:
+        try:
+            manga = await db.get(Manga, item.manga_id)
+            if not manga:
+                results.append(
+                    {
+                        "chapter_id": str(item.chapter_id),
+                        "status": "failed",
+                        "error": "Manga not found",
+                    }
+                )
+                continue
+
+            chapter = await db.get(Chapter, item.chapter_id)
+            if not chapter:
+                results.append(
+                    {
+                        "chapter_id": str(item.chapter_id),
+                        "status": "failed",
+                        "error": "Chapter not found",
+                    }
+                )
+                continue
+
+            if not chapter.file_path or not os.path.exists(chapter.file_path):
+                results.append(
+                    {
+                        "chapter_id": str(item.chapter_id),
+                        "status": "failed",
+                        "error": "Chapter file not found on server",
+                    }
+                )
+                continue
+
+            primary_provider = chapter.source if chapter.source else "MangaDx"
+            external_manga_id = str(item.manga_id)
+            external_chapter_id = str(item.chapter_id)
+
+            cbz_path = await download_chapter_with_fallback(
+                manga_id=item.manga_id,
+                chapter_id=item.chapter_id,
+                primary_provider=primary_provider,
+                external_manga_id=external_manga_id,
+                external_chapter_id=external_chapter_id,
+                db=db,
+                auto_export_cbz=item.auto_export_cbz,
+            )
+
+            results.append(
+                {
+                    "chapter_id": str(item.chapter_id),
+                    "status": "success",
+                    "cbz_path": cbz_path,
+                }
+            )
+        except Exception as e:
+            logger.error(
+                f"Bulk export failed for manga_id={item.manga_id}, chapter_id={item.chapter_id}: {e}"
+            )
+            results.append(
+                {
+                    "chapter_id": str(item.chapter_id),
+                    "status": "failed",
+                    "error": str(e),
+                }
+            )
+
+    return {"results": results}

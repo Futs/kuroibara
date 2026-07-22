@@ -66,8 +66,13 @@ class WebSocketConnection:
         ):
             return False
 
+        # Extract event data if it's wrapped in an "event" key (e.g. from broadcast_event)
+        data = event
+        if "event" in event and isinstance(event["event"], dict):
+            data = event["event"]
+
         # Check operation subscription
-        operation_id = event.get("operation_id")
+        operation_id = data.get("operation_id")
         if (
             self.subscribed_operations
             and operation_id not in self.subscribed_operations
@@ -75,7 +80,7 @@ class WebSocketConnection:
             return False
 
         # Check operation type subscription
-        operation_type = event.get("operation_type")
+        operation_type = data.get("operation_type")
         if (
             self.subscribed_operation_types
             and operation_type not in self.subscribed_operation_types

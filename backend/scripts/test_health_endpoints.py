@@ -2,7 +2,6 @@
 """Test script for system health endpoints."""
 
 import asyncio
-import json
 import sys
 from typing import Any, Dict
 
@@ -42,7 +41,9 @@ def print_health_summary(data: Dict[str, Any], endpoint_name: str):
 
     health_data = data["data"]
     status = health_data.get("status", "unknown")
-    status_icon = "✅" if status == "healthy" else "⚠️" if status == "degraded" else "❌"
+    status_icon = (
+        "✅" if status == "healthy" else "⚠️" if status == "degraded" else "❌"
+    )
 
     print(f"{status_icon} Overall Status: {status}")
 

@@ -195,9 +195,7 @@ class Bookmark(BookmarkBase, BaseSchema):
 class DownloadChapterRequest(BaseModel):
     """Schema for downloading a chapter."""
 
-    chapter_id: Optional[str] = Field(
-        None, description="Local chapter ID (if exists)"
-    )
+    chapter_id: Optional[str] = Field(None, description="Local chapter ID (if exists)")
     provider: str = Field(..., description="Provider name")
     external_manga_id: str = Field(..., description="External manga ID")
     external_chapter_id: str = Field(..., description="External chapter ID")
@@ -207,9 +205,7 @@ class DownloadChapterRequest(BaseModel):
 class BulkOperationRequest(BaseModel):
     """Base schema for bulk operations."""
 
-    manga_ids: List[UUID] = Field(
-        ..., description="List of library item IDs"
-    )
+    manga_ids: List[UUID] = Field(..., description="List of library item IDs")
 
 
 class BulkMarkReadRequest(BulkOperationRequest):

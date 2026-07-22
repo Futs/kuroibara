@@ -36,30 +36,22 @@ class ProgressOperationModel(Base):
     id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
 
     # Operation identification
-    operation_type = Column(
-        String(50), nullable=False, index=True
-    )
+    operation_type = Column(String(50), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     description = Column(Text)
 
     # Status and progress
-    status = Column(
-        String(20), nullable=False, default="pending", index=True
-    )
+    status = Column(String(20), nullable=False, default="pending", index=True)
     progress_percentage = Column(Float, default=0.0)
     current_step = Column(String(255))
     total_steps = Column(Integer)
     current_step_number = Column(Integer)
 
     # Timing information
-    started_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    started_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
     completed_at = Column(DateTime, index=True)
     estimated_completion = Column(DateTime)
-    last_update = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    last_update = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
 
     # Error and warning information
     error_message = Column(Text)
@@ -72,8 +64,7 @@ class ProgressOperationModel(Base):
 
     # Hierarchical operations
     parent_operation_id = Column(
-        PostgresUUID(as_uuid=True), ForeignKey("progress_operations.id"),
-        index=True
+        PostgresUUID(as_uuid=True), ForeignKey("progress_operations.id"), index=True
     )
 
     # Performance metrics

@@ -5,14 +5,10 @@ Provider matching service for finding chapters across multiple providers.
 import logging
 import re
 from difflib import SequenceMatcher
-from typing import Dict, List, Optional, Tuple
-from uuid import UUID
-
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
 from app.core.providers.registry import provider_registry
-from app.models.manga import Chapter, Manga
+from app.models.manga import Manga
 
 logger = logging.getLogger(__name__)
 

@@ -136,29 +136,34 @@ fi
 ### **🔧 Essential Automation Tools**
 
 #### **1. Commitizen (Interactive Commits)**
+
 - **Purpose**: Interactive commit message creation
 - **Installation**: `npm install -g commitizen cz-conventional-changelog`
 - **Usage**: `git cz` instead of `git commit`
 - **Benefits**: Enforces conventional commit format, prevents typos
 
 #### **2. Husky (Git Hooks Manager)**
+
 - **Purpose**: Manage git hooks easily
 - **Installation**: `npm install --save-dev husky`
 - **Setup**: Automatically runs linters, tests, and validations
 - **Benefits**: Prevents bad commits from being pushed
 
 #### **3. Lint-staged (Pre-commit Linting)**
+
 - **Purpose**: Run linters only on staged files
 - **Installation**: `npm install --save-dev lint-staged`
 - **Benefits**: Fast linting, only checks changed files
 - **Integration**: Works with Husky for pre-commit hooks
 
 #### **4. Conventional Changelog**
+
 - **Purpose**: Generate changelogs from commit messages
 - **Installation**: `npm install --save-dev conventional-changelog-cli`
 - **Benefits**: Automatic changelog generation, semantic versioning
 
 #### **5. Semantic Release**
+
 - **Purpose**: Fully automated version management and package publishing
 - **Installation**: `npm install --save-dev semantic-release`
 - **Benefits**: Automated versioning, tagging, and releases

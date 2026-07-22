@@ -5,7 +5,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    user: "${UID:-1000}:${GID:-1000}"  # Run as current user to avoid permission issues
+    user: "${UID:-1000}:${GID:-1000}" # Run as current user to avoid permission issues
     volumes:
       - ./backend:/app
       - manga_storage:/app/storage
@@ -94,8 +94,8 @@ services:
     image: mailhog/mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025"  # SMTP port
-      - "8025:8025"  # Web UI port
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
     networks:
       - kuroibara-network
 

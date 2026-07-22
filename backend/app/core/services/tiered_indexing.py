@@ -8,8 +8,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

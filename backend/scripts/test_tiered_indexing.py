@@ -2,7 +2,6 @@
 """Test script for the complete tiered indexing system."""
 
 import asyncio
-import os
 import sys
 from pathlib import Path
 
@@ -55,9 +54,9 @@ async def test_individual_indexers():
                         if first_result.source_id:
                             details = await idx.get_details(first_result.source_id)
                             if details:
-                                print(f"    Details: ✅ Retrieved")
+                                print("    Details: ✅ Retrieved"d")
                             else:
-                                print(f"    Details: ❌ Failed")
+                                print("    Details: ❌ Failed"d")
 
                 except Exception as e:
                     print(f"  Search Error: {e}")

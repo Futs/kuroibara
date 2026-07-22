@@ -116,7 +116,7 @@ class StorageRecoveryService:
         """Calculate total size of directory in bytes."""
         total_size = 0
         try:
-            for dirpath, dirnames, filenames in os.walk(directory_path):
+            for dirpath, _dirnames, filenames in os.walk(directory_path):
                 for filename in filenames:
                     filepath = os.path.join(dirpath, filename)
                     try:

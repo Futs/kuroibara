@@ -18,24 +18,26 @@ The organizer system consists of several key components:
 
 The naming system supports the following template variables:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `{Manga Title}` | Sanitized manga title | `Naruto` |
-| `{Volume}` | Volume number (with fallback) | `1`, `2`, `Special` |
-| `{Chapter Number}` | Chapter number (supports decimals) | `1`, `12.5`, `Extra` |
-| `{Chapter Name}` | Chapter title | `Enter Sasuke!` |
-| `{Language}` | Language code | `en`, `jp`, `es` |
-| `{Year}` | Publication year | `2023` |
-| `{Source}` | Source provider | `mangadex`, `mangaplus` |
+| Variable           | Description                        | Example                 |
+| ------------------ | ---------------------------------- | ----------------------- |
+| `{Manga Title}`    | Sanitized manga title              | `Naruto`                |
+| `{Volume}`         | Volume number (with fallback)      | `1`, `2`, `Special`     |
+| `{Chapter Number}` | Chapter number (supports decimals) | `1`, `12.5`, `Extra`    |
+| `{Chapter Name}`   | Chapter title                      | `Enter Sasuke!`         |
+| `{Language}`       | Language code                      | `en`, `jp`, `es`        |
+| `{Year}`           | Publication year                   | `2023`                  |
+| `{Source}`         | Source provider                    | `mangadex`, `mangaplus` |
 
 ### Default Templates
 
 **Manga Folder Structure:**
+
 ```
 {Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}
 ```
 
 **Chapter File Naming:**
+
 ```
 {Chapter Number} - {Chapter Name}
 ```
@@ -43,6 +45,7 @@ The naming system supports the following template variables:
 ### Example Output
 
 With the default templates, a chapter would be organized as:
+
 ```
 /app/storage/manga/{manga-uuid}/organized/
 ├── Naruto/
@@ -81,11 +84,13 @@ With the default templates, a chapter would be organized as:
 ### Naming Settings
 
 #### Get Naming Settings
+
 ```http
 GET /api/v1/organizer/naming-settings
 ```
 
 #### Update Naming Settings
+
 ```http
 PUT /api/v1/organizer/naming-settings
 Content-Type: application/json
@@ -100,6 +105,7 @@ Content-Type: application/json
 ```
 
 #### Validate Naming Format
+
 ```http
 POST /api/v1/organizer/validate-naming-format
 Content-Type: application/json
@@ -112,6 +118,7 @@ Content-Type: application/json
 ### Organization Operations
 
 #### Organize Single Chapter
+
 ```http
 POST /api/v1/organizer/organize/chapter
 Content-Type: application/json
@@ -124,6 +131,7 @@ Content-Type: application/json
 ```
 
 #### Organize Manga
+
 ```http
 POST /api/v1/organizer/organize/manga
 Content-Type: application/json
@@ -136,6 +144,7 @@ Content-Type: application/json
 ```
 
 #### Batch Organization
+
 ```http
 POST /api/v1/organizer/organize/batch
 Content-Type: application/json
@@ -152,11 +161,13 @@ Content-Type: application/json
 ### Job Management
 
 #### Get Organization Jobs
+
 ```http
 GET /api/v1/organizer/jobs
 ```
 
 #### Get Specific Job
+
 ```http
 GET /api/v1/organizer/jobs/{job_id}
 ```
@@ -164,16 +175,19 @@ GET /api/v1/organizer/jobs/{job_id}
 ### Migration & Validation
 
 #### Scan Unorganized Manga
+
 ```http
 GET /api/v1/organizer/migration/scan
 ```
 
 #### Get Migration Plan
+
 ```http
 GET /api/v1/organizer/migration/plan/{manga_id}
 ```
 
 #### Validate Organization
+
 ```http
 GET /api/v1/organizer/validation/{manga_id}
 ```
@@ -195,6 +209,7 @@ preserve_original_files BOOLEAN DEFAULT FALSE
 ### Metadata Tracking
 
 #### MangaMetadata
+
 - `display_name`: Custom display name override
 - `custom_cover_url`: Custom cover image URL
 - `is_organized`: Whether manga is organized
@@ -203,6 +218,7 @@ preserve_original_files BOOLEAN DEFAULT FALSE
 - `reading_status`: Reading status (unread, reading, completed, dropped)
 
 #### ChapterMetadata
+
 - `display_name`: Custom chapter name override
 - `is_organized`: Whether chapter is organized
 - `organized_path`: Path after organization
@@ -212,6 +228,7 @@ preserve_original_files BOOLEAN DEFAULT FALSE
 - `reading_progress`: Progress percentage (0-100)
 
 #### OrganizationHistory
+
 - `operation_type`: Type of operation (organize, rename, convert_cbz)
 - `operation_status`: Status (success, failed, partial)
 - `source_path`: Original file/directory path
@@ -220,6 +237,7 @@ preserve_original_files BOOLEAN DEFAULT FALSE
 - `files_processed`: Number of files processed
 
 #### OrganizationJob
+
 - `job_type`: Type of job (organize_manga, organize_library, etc.)
 - `job_status`: Status (pending, running, completed, failed, cancelled)
 - `total_items`: Total items to process
@@ -241,6 +259,7 @@ The naming settings are integrated into the main Settings page with:
 ### Preview System
 
 The frontend provides live previews of naming formats using sample data:
+
 - Manga: "Naruto"
 - Volume: "1"
 - Chapter: "1 - Enter Sasuke!"
@@ -299,6 +318,7 @@ The storage recovery system helps recover manga when the database is lost but st
 #### Recovery Process
 
 1. **Scan Storage**: Automatically detect organized manga in storage
+
    ```http
    GET /api/v1/organizer/recovery/scan-storage
    ```
@@ -317,6 +337,7 @@ The storage recovery system helps recover manga when the database is lost but st
 #### What Gets Recovered
 
 ✅ **Preserved:**
+
 - Manga titles and basic metadata
 - Chapter organization and files
 - Volume structure
@@ -324,6 +345,7 @@ The storage recovery system helps recover manga when the database is lost but st
 - Organized file structure
 
 ❌ **Lost:**
+
 - Reading progress and bookmarks
 - Custom descriptions and tags
 - User ratings and reviews
@@ -334,6 +356,7 @@ The storage recovery system helps recover manga when the database is lost but st
 Access via: **Settings → Backup & Recovery → Storage Recovery**
 
 The recovery interface provides:
+
 - **Storage Scanning**: One-click scan for recoverable manga
 - **Detailed Preview**: View extracted metadata before recovery
 - **Individual Recovery**: Recover specific manga
@@ -347,16 +370,19 @@ The recovery interface provides:
 Kuroibara includes a comprehensive backup system with scheduled backups:
 
 **Scheduled Backups:**
+
 - **Daily**: Database-only backups at 2 AM (fast, metadata only)
 - **Weekly**: Full backups on Sunday at 3 AM (includes storage files)
 - **Monthly**: Archive backups on 1st day at 4 AM (long-term retention)
 
 **Manual Backups:**
+
 - Create on-demand backups via the web interface
 - Choose database-only or full backup with storage
 - Download backups directly from the browser
 
 **Backup Contents:**
+
 ```
 kuroibara_backup_20230710_140000.tar.gz
 ├── database.sql          # PostgreSQL dump
@@ -365,6 +391,7 @@ kuroibara_backup_20230710_140000.tar.gz
 ```
 
 **API Endpoints:**
+
 ```bash
 # List backups
 GET /api/v1/backup/list

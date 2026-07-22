@@ -5,10 +5,9 @@ This module tests all aspects of progress tracking including events,
 operations, WebSocket management, persistence, and bulk operations.
 """
 
-import asyncio
 import json
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -370,7 +369,7 @@ class TestWebSocketManager:
         mock_websocket = AsyncMock()
 
         # Connect WebSocket
-        connection_id = await websocket_manager.connect(mock_websocket, "user123")
+        await websocket_manager.connect(mock_websocket, "user123")
 
         # Broadcast event
         test_event = {
@@ -395,7 +394,6 @@ class TestWebSocketManager:
 
 if __name__ == "__main__":
     # Run basic tests if executed directly
-    import sys
 
     print("Running progress tracking tests...")
 

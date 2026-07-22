@@ -457,7 +457,7 @@ async def get_all_provider_health():
         all_health = health_monitor.get_all_provider_health()
 
         response = []
-        for provider_name, metrics in all_health.items():
+        for _provider_name, metrics in all_health.items():
             response.append(
                 ProviderHealthResponse(
                     provider_name=metrics.provider_name,

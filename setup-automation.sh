@@ -16,17 +16,17 @@ echo -e "${BLUE}🚀 Kuroibara Automation Setup${NC}"
 echo -e "${BLUE}================================${NC}"
 
 # Check if we're in a git repository
-if [ ! -d ".git" ]; then
-    echo -e "${RED}❌ Error: Not in a git repository${NC}"
-    exit 1
+if [[ ! -d ".git" ]]; then
+	echo -e "${RED}❌ Error: Not in a git repository${NC}"
+	exit 1
 fi
 
 # Check if package.json exists (for frontend tools)
-if [ ! -f "frontend/app/package.json" ]; then
-    echo -e "${YELLOW}⚠️  Frontend package.json not found, skipping npm tools${NC}"
-    SKIP_NPM=true
+if [[ ! -f "frontend/app/package.json" ]]; then
+	echo -e "${YELLOW}⚠️  Frontend package.json not found, skipping npm tools${NC}"
+	SKIP_NPM=true
 else
-    SKIP_NPM=false
+	SKIP_NPM=false
 fi
 
 echo -e "${GREEN}📋 Setting up automation tools...${NC}"
@@ -36,21 +36,21 @@ echo -e "${BLUE}Phase 1: Essential Tools${NC}"
 
 # 1. Setup Commitizen globally
 echo -e "${YELLOW}Installing Commitizen...${NC}"
-if command -v npm &> /dev/null; then
-    npm install -g commitizen cz-conventional-changelog
-    echo '{ "path": "cz-conventional-changelog" }' > ~/.czrc
-    echo -e "${GREEN}✅ Commitizen installed globally${NC}"
+if command -v npm &>/dev/null; then
+	npm install -g commitizen cz-conventional-changelog
+	echo '{ "path": "cz-conventional-changelog" }' >~/.czrc
+	echo -e "${GREEN}✅ Commitizen installed globally${NC}"
 else
-    echo -e "${RED}❌ npm not found, skipping Commitizen${NC}"
+	echo -e "${RED}❌ npm not found, skipping Commitizen${NC}"
 fi
 
 # 2. Setup pre-commit (Python version)
 echo -e "${YELLOW}Setting up pre-commit hooks...${NC}"
-if command -v pip &> /dev/null; then
-    pip install pre-commit
-    
-    # Create .pre-commit-config.yaml
-    cat > .pre-commit-config.yaml << 'EOF'
+if command -v pip &>/dev/null; then
+	pip install pre-commit
+
+	# Create .pre-commit-config.yaml
+	cat >.pre-commit-config.yaml <<'EOF'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -81,18 +81,18 @@ repos:
         stages: [commit-msg]
 EOF
 
-    # Install hooks
-    pre-commit install
-    pre-commit install --hook-type commit-msg
-    
-    echo -e "${GREEN}✅ Pre-commit hooks installed${NC}"
+	# Install hooks
+	pre-commit install
+	pre-commit install --hook-type commit-msg
+
+	echo -e "${GREEN}✅ Pre-commit hooks installed${NC}"
 else
-    echo -e "${RED}❌ pip not found, skipping pre-commit${NC}"
+	echo -e "${RED}❌ pip not found, skipping pre-commit${NC}"
 fi
 
 # 3. Setup commit message template
 echo -e "${YELLOW}Creating commit message template...${NC}"
-cat > .gitmessage << 'EOF'
+cat >.gitmessage <<'EOF'
 # <type>[optional scope]: <description>
 # |<----  Using a Maximum Of 50 Characters  ---->|
 
@@ -146,7 +146,7 @@ echo -e "${YELLOW}Creating GitHub templates...${NC}"
 mkdir -p .github
 
 # Pull request template
-cat > .github/pull_request_template.md << 'EOF'
+cat >.github/pull_request_template.md <<'EOF'
 ## 📝 Description
 Brief description of changes
 
@@ -183,7 +183,7 @@ EOF
 
 # Issue template
 mkdir -p .github/ISSUE_TEMPLATE
-cat > .github/ISSUE_TEMPLATE/bug_report.md << 'EOF'
+cat >.github/ISSUE_TEMPLATE/bug_report.md <<'EOF'
 ---
 name: Bug Report
 about: Create a report to help us improve
@@ -216,7 +216,7 @@ If applicable, add screenshots to help explain your problem.
 Add any other context about the problem here.
 EOF
 
-cat > .github/ISSUE_TEMPLATE/feature_request.md << 'EOF'
+cat >.github/ISSUE_TEMPLATE/feature_request.md <<'EOF'
 ---
 name: Feature Request
 about: Suggest an idea for this project
@@ -243,36 +243,36 @@ echo -e "${GREEN}✅ GitHub templates created${NC}"
 # Phase 2: Optional Advanced Tools
 echo -e "${BLUE}Phase 2: Optional Tools${NC}"
 
-if [ "$SKIP_NPM" = false ]; then
-    echo -e "${YELLOW}Do you want to install advanced automation tools? (y/n)${NC}"
-    read -r response
-    
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-        cd frontend/app
-        
-        # Install development dependencies
-        npm install --save-dev husky lint-staged conventional-changelog-cli
-        
-        # Setup husky
-        npx husky install
-        npm pkg set scripts.prepare="husky install"
-        
-        # Create hooks
-        npx husky add .husky/pre-commit 'npx lint-staged'
-        npx husky add .husky/commit-msg 'npx commitizen --hook || true'
-        
-        # Setup lint-staged
-        npm pkg set lint-staged.'"*.{js,ts,vue}"'='eslint --fix'
-        npm pkg set lint-staged.'"*.{css,scss,vue}"'='stylelint --fix'
-        
-        # Add changelog script
-        npm pkg set scripts.changelog='conventional-changelog -p angular -i CHANGELOG.md -s'
-        
-        cd ../..
-        echo -e "${GREEN}✅ Advanced tools installed${NC}"
-    else
-        echo -e "${YELLOW}⏭️  Skipping advanced tools${NC}"
-    fi
+if [[ ${SKIP_NPM} == false ]]; then
+	echo -e "${YELLOW}Do you want to install advanced automation tools? (y/n)${NC}"
+	read -r response
+
+	if [[ ${response} =~ ^[Yy]$ ]]; then
+		cd frontend/app
+
+		# Install development dependencies
+		npm install --save-dev husky lint-staged conventional-changelog-cli
+
+		# Setup husky
+		npx husky install
+		npm pkg set scripts.prepare="husky install"
+
+		# Create hooks
+		npx husky add .husky/pre-commit 'npx lint-staged'
+		npx husky add .husky/commit-msg 'npx commitizen --hook || true'
+
+		# Setup lint-staged
+		npm pkg set lint-staged.'"*.{js,ts,vue}"'='eslint --fix'
+		npm pkg set lint-staged.'"*.{css,scss,vue}"'='stylelint --fix'
+
+		# Add changelog script
+		npm pkg set scripts.changelog='conventional-changelog -p angular -i CHANGELOG.md -s'
+
+		cd ../..
+		echo -e "${GREEN}✅ Advanced tools installed${NC}"
+	else
+		echo -e "${YELLOW}⏭️  Skipping advanced tools${NC}"
+	fi
 fi
 
 echo -e "${GREEN}🎉 Setup Complete!${NC}"

@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New version (e.g., 0.8.0)'
+        description: "New version (e.g., 0.8.0)"
         required: true
         type: string
       bump_type:
-        description: 'Type of version bump'
+        description: "Type of version bump"
         required: true
-        default: 'minor'
+        default: "minor"
         type: choice
         options:
           - patch
@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
@@ -51,7 +51,7 @@ jobs:
         id: new_version
         run: |
           CURRENT="${{ steps.current.outputs.version }}"
-          
+
           if [[ "${{ inputs.bump_type }}" == "custom" ]]; then
             NEW_VERSION="${{ inputs.version }}"
           else
@@ -78,36 +78,36 @@ jobs:
             
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           fi
-          
+
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
       - name: Update version files
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.version }}"
-          
+
           echo "🔄 Updating version to $NEW_VERSION..."
-          
+
           # Update VERSION file
           echo "$NEW_VERSION" > VERSION
-          
+
           # Update backend files
           sed -i "s/__version__ = \".*\"/__version__ = \"$NEW_VERSION\"/" backend/app/__init__.py
           sed -i "s/version=\".*\"/version=\"$NEW_VERSION\"/" backend/app/main.py
           sed -i "s/version = \".*\"/version = \"$NEW_VERSION\"/" backend/pyproject.toml
-          
+
           # Update frontend files
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" frontend/app/package.json
-          
+
           # Update docker-compose files if they exist
           if [ -f "docker-compose.yml" ]; then
             sed -i "s/:v[0-9]\+\.[0-9]\+\.[0-9]\+/:v$NEW_VERSION/g" docker-compose.yml
           fi
-          
+
           if [ -f "docker-compose.dev.yml" ]; then
             sed -i "s/:v[0-9]\+\.[0-9]\+\.[0-9]\+/:v$NEW_VERSION/g" docker-compose.dev.yml
           fi
-          
+
           echo "✅ Version files updated"
 
       - name: Verify changes
@@ -122,10 +122,10 @@ jobs:
       - name: Commit changes
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.version }}"
-          
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           git add .
           git commit -m "bump: version $NEW_VERSION
 
@@ -133,38 +133,38 @@ jobs:
           - Backend: __init__.py, main.py, pyproject.toml
           - Frontend: package.json
           - Root: VERSION file
-          
+
           Bump type: ${{ inputs.bump_type }}
           Previous version: ${{ steps.current.outputs.version }}"
 
       - name: Create and push tag
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.version }}"
-          
+
           git tag "v$NEW_VERSION"
           git push origin main
           git push origin "v$NEW_VERSION"
-          
+
           echo "🏷️ Created and pushed tag v$NEW_VERSION"
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15        uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.new_version.outputs.version }}
           name: Release v${{ steps.new_version.outputs.version }}
           body: |
             ## 🚀 Release v${{ steps.new_version.outputs.version }}
-            
+
             **Bump Type:** ${{ inputs.bump_type }}
             **Previous Version:** ${{ steps.current.outputs.version }}
-            
+
             ### 📦 Docker Images
-            
+
             - Backend: `futs/kuroibara-backend:v${{ steps.new_version.outputs.version }}`
             - Frontend: `futs/kuroibara-frontend:v${{ steps.new_version.outputs.version }}`
-            
+
             ### 🔄 Automated Version Bump
-            
+
             This release was created automatically using the Version Bump workflow.
             All version references have been updated consistently across the codebase.
           draft: false

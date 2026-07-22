@@ -3,7 +3,7 @@ name: Docker Hub Release
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
   release:
     types: [published]
 
@@ -17,21 +17,21 @@ jobs:
     name: Wait for Tests
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+
     steps:
       - name: Wait for CI tests
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc # v1.3.4        uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.sha }}
-          check-name: 'Backend Tests'
+          check-name: "Backend Tests"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30
-          
+
       - name: Wait for Code Quality
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: lewagon/wait-on-check-action@ccfb013c15c8afb7bf2b7c028fb74dc5a068cccc # v1.3.4        uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.sha }}
-          check-name: 'Code Quality'
+          check-name: "Code Quality"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30
 
@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -78,7 +78,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -110,7 +110,6 @@ jobs:
           echo "Generated version: $VERSION"
           echo "Docker tags: $DOCKER_TAGS"
 
-
   # Build and push backend image
   build-backend:
     name: Build Backend Image
@@ -121,10 +120,10 @@ jobs:
     # environment:
     #   name: ${{ needs.versioning.outputs.is_release == 'true' && 'production' || 'staging' }}
     #   url: https://hub.docker.com/r/futs/kuroibara-backend
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0        uses: actions/checkout@v4
 
       - name: Determine version
         id: version
@@ -143,17 +142,17 @@ jobs:
           fi
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0        uses: docker/login-action@v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_USERNAME }}/kuroibara-backend
           tags: |
@@ -169,7 +168,7 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
       - name: Build and push Backend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0        uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/Dockerfile
@@ -193,10 +192,10 @@ jobs:
     # environment:
     #   name: ${{ needs.versioning.outputs.is_release == 'true' && 'production' || 'staging' }}
     #   url: https://hub.docker.com/r/futs/kuroibara-frontend
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0        uses: actions/checkout@v4
 
       - name: Determine version
         id: version
@@ -215,17 +214,17 @@ jobs:
           fi
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0        uses: docker/login-action@v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_USERNAME }}/kuroibara-frontend
           tags: |
@@ -241,7 +240,7 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
       - name: Build and push Frontend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0        uses: docker/build-push-action@v5
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
@@ -261,7 +260,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [versioning-main, versioning-tags, build-backend, build-frontend]
     if: always()
-    
+
     steps:
       - name: Determine version for notification
         id: version
@@ -284,7 +283,7 @@ jobs:
           echo "📦 Backend: ${{ env.DOCKER_USERNAME }}/kuroibara-backend:${{ steps.version.outputs.version }}"
           echo "📦 Frontend: ${{ env.DOCKER_USERNAME }}/kuroibara-frontend:${{ steps.version.outputs.version }}"
           echo "🏷️  Tags: ${{ steps.version.outputs.docker_tags }}"
-          
+
       - name: Failure notification
         if: needs.build-backend.result == 'failure' || needs.build-frontend.result == 'failure'
         run: |

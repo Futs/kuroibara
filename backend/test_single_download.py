@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Quick test to verify downloads work with new error handling."""
+
 import asyncio
-import time
 
 import httpx
 
@@ -84,7 +84,7 @@ async def main():
             else:
                 error = response.json()
                 if "already in your library" in str(error):
-                    print(f"   ⚠️  Already in library, skipping...")
+                    print("   ⚠️  Already in library, skipping..."...")
                 else:
                     print(f"   ❌ Failed: {error}")
 

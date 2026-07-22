@@ -78,9 +78,7 @@ class BackupScheduleInfo(BaseModel):
     monthly_enabled: bool = Field(
         ..., description="Whether monthly backups are enabled"
     )
-    next_daily_backup: Optional[str] = Field(
-        None, description="Next daily backup time"
-    )
+    next_daily_backup: Optional[str] = Field(None, description="Next daily backup time")
     next_weekly_backup: Optional[str] = Field(
         None, description="Next weekly backup time"
     )
@@ -139,12 +137,8 @@ class BackupValidationResult(BaseModel):
     """Schema for backup file validation results."""
 
     is_valid: bool = Field(..., description="Whether the backup file is valid")
-    errors: List[str] = Field(
-        default_factory=list, description="Validation errors"
-    )
-    warnings: List[str] = Field(
-        default_factory=list, description="Validation warnings"
-    )
+    errors: List[str] = Field(default_factory=list, description="Validation errors")
+    warnings: List[str] = Field(default_factory=list, description="Validation warnings")
     metadata: Optional[BackupMetadata] = Field(
         None, description="Extracted backup metadata"
     )
@@ -192,9 +186,7 @@ class BackupJobStatus(BaseModel):
     job_id: str = Field(..., description="Unique job identifier")
     job_type: str = Field(..., description="Type of backup job")
     status: str = Field(..., description="Current status")
-    progress_percentage: float = Field(
-        ..., description="Progress percentage (0-100)"
-    )
+    progress_percentage: float = Field(..., description="Progress percentage (0-100)")
     started_at: Optional[str] = Field(None, description="Job start time")
     estimated_completion: Optional[str] = Field(
         None, description="Estimated completion time"
@@ -218,9 +210,7 @@ class BackupStatistics(BaseModel):
     weekly_backups: int = Field(..., description="Number of weekly backups")
     monthly_backups: int = Field(..., description="Number of monthly backups")
     manual_backups: int = Field(..., description="Number of manual backups")
-    average_backup_size: float = Field(
-        ..., description="Average backup size in bytes"
-    )
+    average_backup_size: float = Field(..., description="Average backup size in bytes")
 
     @property
     def total_size_gb(self) -> float:

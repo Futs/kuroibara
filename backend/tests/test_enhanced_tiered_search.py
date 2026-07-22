@@ -1,7 +1,7 @@
 """Test suite for the enhanced tiered search service with database integration."""
 
 from datetime import datetime
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -22,7 +22,7 @@ from app.models.mangaupdates import (
     UniversalMangaEntry,
     UniversalMangaMapping,
 )
-from app.schemas.search import SearchResponse, SearchResult
+from app.schemas.search import SearchResponse
 
 
 class TestEnhancedTieredSearchService:
@@ -412,7 +412,7 @@ class TestErrorHandling:
             entry = service._create_entry_from_metadata(None)
             # If it doesn't raise an exception, that's fine
             assert entry is None
-        except (AttributeError, TypeError):
+        except AttributeError, TypeError:
             # If it raises an exception for None input, that's also acceptable
             pass
 

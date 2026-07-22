@@ -74,11 +74,11 @@ async def debug_provider_matching():
                 print(f"   ✅ Search returned {len(results)} results (total: {total})")
 
                 if not results:
-                    print(f"   ⚠️  No results found")
+                    print("   ⚠️  No results found"und")
                     continue
 
                 # Analyze each result
-                print(f"\n   📊 Analyzing results:")
+                print("\n   📊 Analyzing results:"s:")
                 for i, result in enumerate(results, 1):
                     # Calculate confidence
                     title_similarity = SequenceMatcher(
@@ -95,7 +95,6 @@ async def debug_provider_matching():
                         and abs(mu_entry.year - result.year) <= 1
                     ):
                         confidence += 0.1
-                        year_match = True
 
                     print(f"\n   Result #{i}:")
                     print(f"      Title: {result.title}")

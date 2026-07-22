@@ -23,7 +23,7 @@ async def test_enhanced_search():
         if not token:
             print(f"❌ No token in response: {login_data}")
             return
-        print(f"✅ Logged in")
+        print("✅ Logged in"n")
 
         # Search
         print("\n2️⃣  Searching for 'One Piece' with provider matching...")
@@ -56,7 +56,7 @@ async def test_enhanced_search():
                         print(f"      Title: {match.get('title')}")
                         print(f"      Confidence: {match.get('confidence'):.3f}")
                 else:
-                    print(f"    ⚠️  No provider matches")
+                    print("    ⚠️  No provider matches"hes")
                 print()
         else:
             print(f"❌ Search failed: {search_resp.status_code}")

@@ -5,12 +5,14 @@ This document describes the advanced reading modes and image handling features i
 ## Reading Modes
 
 ### 1. Single Page Mode
+
 - **Description**: Traditional single-page reading experience
 - **Use Case**: Standard manga reading
 - **Keyboard Shortcut**: `1`
 - **Navigation**: Arrow keys for page-by-page navigation
 
 ### 2. Double-Page Spread Mode
+
 - **Description**: Displays two pages side-by-side for manga designed for two-page layouts
 - **Use Case**: Manga with double-page spreads, wide panels
 - **Keyboard Shortcut**: `2`
@@ -21,6 +23,7 @@ This document describes the advanced reading modes and image handling features i
   - Proper page numbering display
 
 ### 3. List View Mode
+
 - **Description**: Continuous vertical scrolling for long-strip content
 - **Use Case**: Webtoons, vertical manga, long-strip comics
 - **Keyboard Shortcut**: `3`
@@ -31,6 +34,7 @@ This document describes the advanced reading modes and image handling features i
   - Page boundaries with visual separation
 
 ### 4. Adaptive Mode
+
 - **Description**: Automatically detects content type and switches to optimal reading mode
 - **Use Case**: Mixed content, unknown manga formats
 - **Keyboard Shortcut**: `4`
@@ -43,17 +47,20 @@ This document describes the advanced reading modes and image handling features i
 ## Image Handling
 
 ### Fit Modes
+
 - **Fit Width** (`Q`): Scale image to fit screen width
 - **Fit Height** (`W`): Scale image to fit screen height
 - **Fit Both** (`E`): Scale image to fit both dimensions
 - **Original Size** (`R`): Display image at original resolution
 
 ### Image Quality Settings
+
 - **High**: Original quality, no compression
 - **Medium**: 75% quality, max width 1200px
 - **Low**: 60% quality, max width 800px
 
 ### Image Preloading
+
 - **Configurable Distance**: Preload 1-10 pages ahead
 - **Memory Management**: Automatic cleanup of distant images
 - **Performance**: Improves reading experience by reducing loading times
@@ -61,23 +68,27 @@ This document describes the advanced reading modes and image handling features i
 ## Keyboard Shortcuts
 
 ### Navigation
+
 - `←` `→`: Previous/Next page (respects reading direction)
 - `↑` `↓`: Previous/Next chapter (or scroll in list view)
 - `D`: Toggle reading direction (RTL ↔ LTR)
 
 ### Reading Modes
+
 - `1`: Single Page Mode
 - `2`: Double-Page Spread Mode
 - `3`: List View Mode
 - `4`: Adaptive Mode
 
 ### Fit Modes
+
 - `Q`: Fit Width
 - `W`: Fit Height
 - `E`: Fit Both
 - `R`: Original Size
 
 ### Controls
+
 - `S`: Open Settings
 - `F`: Toggle Fullscreen
 - `H` or `?`: Show Keyboard Shortcuts Help
@@ -103,19 +114,23 @@ All settings are automatically saved to localStorage and persist between session
 ## Implementation Details
 
 ### Store Structure
+
 The reader store manages:
+
 - Current page and navigation state
 - Settings persistence
 - Image preloading queue
 - Adaptive mode analysis
 
 ### Component Architecture
+
 - **MangaReader.vue**: Main reader component with mode switching
 - **Reader Store**: Centralized state management
 - **Quality Management**: Dynamic URL parameter injection
 - **Preloading System**: Background image loading with cleanup
 
 ### Performance Optimizations
+
 - Intersection Observer for list view page detection
 - Image preloading with configurable distance
 - Memory cleanup for distant images
@@ -131,12 +146,14 @@ The reader store manages:
 ## Reading Progress & Sync Features
 
 ### Reading Statistics
+
 - **Time Tracking**: Automatic tracking of reading time per session and total
 - **Page Counting**: Track pages read per session, daily, weekly, and total
 - **Session History**: Detailed history of all reading sessions with timestamps
 - **Weekly Analytics**: Summary of reading activity for the current week
 
 ### Bookmarking System
+
 - **Page Bookmarks**: Bookmark specific pages within chapters
 - **Notes**: Add optional notes to bookmarks for context
 - **Quick Access**: Easy navigation to bookmarked pages
@@ -146,12 +163,14 @@ The reader store manages:
   - `B`: View bookmarks panel
 
 ### Resume Reading
+
 - **Automatic Position Saving**: Remembers exact reading position (page and reading mode)
 - **Smart Resume**: Automatically resumes from last position when opening manga
 - **Cross-Session**: Maintains position across browser sessions
 - **Reading Mode Persistence**: Remembers preferred reading mode per manga
 
 ### Reading Streaks & Achievements
+
 - **Daily Streaks**: Track consecutive days of reading
 - **Achievement System**: Unlock achievements for various milestones:
   - **Page Milestones**: 1, 100, 1000, 10000 pages read
@@ -163,6 +182,7 @@ The reader store manages:
 - **Notifications**: Real-time achievement unlock notifications
 
 ### Analytics Dashboard
+
 - **Overview Cards**: Quick stats for pages read, time spent, current streak, achievements
 - **Weekly Progress**: Detailed breakdown of current week's reading activity
 - **Achievement Gallery**: Visual display of all achievements with progress
@@ -172,23 +192,27 @@ The reader store manages:
 ## Keyboard Shortcuts (Updated)
 
 ### Navigation
+
 - `←` `→`: Previous/Next page (respects reading direction)
 - `↑` `↓`: Previous/Next chapter (or scroll in list view)
 - `D`: Toggle reading direction (RTL ↔ LTR)
 
 ### Reading Modes
+
 - `1`: Single Page Mode
 - `2`: Double-Page Spread Mode
 - `3`: List View Mode
 - `4`: Adaptive Mode
 
 ### Fit Modes
+
 - `Q`: Fit Width
 - `W`: Fit Height
 - `E`: Fit Both
 - `R`: Original Size
 
 ### Controls
+
 - `S`: Open Settings
 - `F`: Toggle Fullscreen
 - `H` or `?`: Show Keyboard Shortcuts Help
@@ -241,6 +265,7 @@ usedReadingModes: string[]
 ## Interface & Customization Features
 
 ### Custom Color Themes
+
 - **Predefined Themes**: Dark, Light, Sepia, Night modes with carefully crafted color palettes
 - **Custom Theme Creation**: Full color customization with real-time preview
 - **Theme Components**:
@@ -251,6 +276,7 @@ usedReadingModes: string[]
 - **Theme Export/Import**: Save and share custom themes as JSON files
 
 ### Typography Settings
+
 - **Font Family**: System UI, Serif, Sans-serif, Monospace, and popular web fonts
 - **Font Size**: Adjustable from 12px to 24px with live preview
 - **Line Height**: Configurable spacing from 1.2 to 2.0 for optimal readability
@@ -258,6 +284,7 @@ usedReadingModes: string[]
 - **Text Color**: Custom text color selection for enhanced contrast
 
 ### UI Element Positioning
+
 - **Layout Presets**:
   - **Default**: Standard top toolbar layout
   - **Minimal**: Clean layout with auto-hiding elements
@@ -271,6 +298,7 @@ usedReadingModes: string[]
   - Bookmark button location
 
 ### Advanced Display Options
+
 - **Page Margins**: Adjustable spacing around content (0-100px)
 - **Page Padding**: Internal content padding (0-50px)
 - **Border Radius**: Rounded corners for images (0-20px)
@@ -279,6 +307,7 @@ usedReadingModes: string[]
 - **Transition Duration**: Smooth animations and transitions
 
 ### Theme Management System
+
 - **Real-time Preview**: See changes instantly as you customize
 - **Theme Persistence**: All customizations saved locally
 - **Reset Options**: Quick reset to default settings

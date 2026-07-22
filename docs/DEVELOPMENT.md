@@ -3,6 +3,7 @@
 ## Getting Started
 
 ### Prerequisites
+
 - **Python 3.13+** - Backend development
 - **Node.js 22+** - Frontend development
 - **Docker & Docker Compose** - Containerized development
@@ -13,12 +14,14 @@
 ### Development Environment Setup
 
 #### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/Futs/kuroibara.git
 cd kuroibara
 ```
 
 #### 2. Environment Configuration
+
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -31,6 +34,7 @@ VALKEY_HOST=localhost  # or valkey for Docker
 ```
 
 #### 3. Docker Development Setup (Recommended)
+
 ```bash
 # Start development environment
 docker compose -f docker-compose.dev.yml up -d
@@ -43,6 +47,7 @@ docker compose -f docker-compose.dev.yml logs -f
 ```
 
 #### 4. Local Development Setup
+
 ```bash
 # Backend setup
 cd backend
@@ -95,6 +100,7 @@ kuroibara/
 ## Backend Development
 
 ### Code Style and Formatting
+
 ```bash
 # Install development tools
 pip install black isort flake8 mypy pytest
@@ -112,6 +118,7 @@ mypy app/
 ```
 
 ### Database Migrations
+
 ```bash
 # Create new migration
 alembic revision --autogenerate -m "Add new feature"
@@ -127,6 +134,7 @@ alembic history
 ```
 
 ### Adding New API Endpoints
+
 ```python
 # app/api/v1/endpoints/example.py
 from fastapi import APIRouter, Depends
@@ -144,6 +152,7 @@ async def create_example(
 ```
 
 ### Database Models
+
 ```python
 # app/models/example.py
 from sqlalchemy import Column, Integer, String, DateTime
@@ -151,13 +160,14 @@ from app.core.database import Base
 
 class Example(Base):
     __tablename__ = "examples"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 ```
 
 ### Pydantic Schemas
+
 ```python
 # app/schemas/example.py
 from pydantic import BaseModel
@@ -172,7 +182,7 @@ class ExampleCreate(ExampleBase):
 class ExampleResponse(ExampleBase):
     id: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 ```
@@ -180,6 +190,7 @@ class ExampleResponse(ExampleBase):
 ## Frontend Development
 
 ### Code Style and Formatting
+
 ```bash
 # Install development tools
 npm install -D eslint prettier @typescript-eslint/parser
@@ -195,6 +206,7 @@ npm run type-check
 ```
 
 ### Vue Component Structure
+
 ```vue
 <!-- src/components/ExampleComponent.vue -->
 <template>
@@ -205,18 +217,18 @@ npm run type-check
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from "vue";
 
 interface Props {
-  title: string
+  title: string;
 }
 
-const props = defineProps<Props>()
-const count = ref(0)
+const props = defineProps<Props>();
+const count = ref(0);
 
 const handleClick = () => {
-  count.value++
-}
+  count.value++;
+};
 </script>
 
 <style scoped>
@@ -227,36 +239,38 @@ const handleClick = () => {
 ```
 
 ### Pinia Store
+
 ```typescript
 // src/stores/example.ts
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export const useExampleStore = defineStore('example', () => {
-  const items = ref<Item[]>([])
-  const loading = ref(false)
+export const useExampleStore = defineStore("example", () => {
+  const items = ref<Item[]>([]);
+  const loading = ref(false);
 
   const fetchItems = async () => {
-    loading.value = true
+    loading.value = true;
     try {
-      const response = await api.getItems()
-      items.value = response.data
+      const response = await api.getItems();
+      items.value = response.data;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   return {
     items,
     loading,
-    fetchItems
-  }
-})
+    fetchItems,
+  };
+});
 ```
 
 ## Testing
 
 ### Backend Testing
+
 ```bash
 # Run all tests
 pytest
@@ -272,6 +286,7 @@ pytest tests/test_api.py::test_create_user
 ```
 
 ### Test Structure
+
 ```python
 # tests/test_example.py
 import pytest
@@ -294,6 +309,7 @@ def example_data():
 ```
 
 ### Frontend Testing
+
 ```bash
 # Run unit tests
 npm test
@@ -309,34 +325,36 @@ npm run test:watch
 ```
 
 ### Vue Component Testing
+
 ```typescript
 // tests/components/ExampleComponent.test.ts
-import { mount } from '@vue/test-utils'
-import ExampleComponent from '@/components/ExampleComponent.vue'
+import { mount } from "@vue/test-utils";
+import ExampleComponent from "@/components/ExampleComponent.vue";
 
-describe('ExampleComponent', () => {
-  it('renders title correctly', () => {
+describe("ExampleComponent", () => {
+  it("renders title correctly", () => {
     const wrapper = mount(ExampleComponent, {
-      props: { title: 'Test Title' }
-    })
-    
-    expect(wrapper.text()).toContain('Test Title')
-  })
+      props: { title: "Test Title" },
+    });
 
-  it('handles click events', async () => {
+    expect(wrapper.text()).toContain("Test Title");
+  });
+
+  it("handles click events", async () => {
     const wrapper = mount(ExampleComponent, {
-      props: { title: 'Test' }
-    })
-    
-    await wrapper.find('button').trigger('click')
+      props: { title: "Test" },
+    });
+
+    await wrapper.find("button").trigger("click");
     // Add assertions for click behavior
-  })
-})
+  });
+});
 ```
 
 ## Contributing Guidelines
 
 ### Git Workflow
+
 ```bash
 # Create feature branch
 git checkout -b feature/amazing-feature
@@ -352,6 +370,7 @@ git push origin feature/amazing-feature
 ```
 
 ### Commit Message Convention
+
 ```
 type(scope): description
 
@@ -371,6 +390,7 @@ docs(readme): update installation instructions
 ```
 
 ### Code Review Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Tests are included and passing
 - [ ] Documentation is updated
@@ -379,22 +399,27 @@ docs(readme): update installation instructions
 - [ ] Performance impact considered
 
 ### Pull Request Template
+
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests pass
 - [ ] Integration tests pass
 - [ ] Manual testing completed
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -404,6 +429,7 @@ Brief description of changes
 ## Debugging
 
 ### Backend Debugging
+
 ```python
 # Add debug logging
 import logging
@@ -421,10 +447,11 @@ import ipdb; ipdb.set_trace()
 ```
 
 ### Frontend Debugging
+
 ```typescript
 // Console debugging
-console.log('Debug info:', data)
-console.error('Error:', error)
+console.log("Debug info:", data);
+console.error("Error:", error);
 
 // Vue DevTools
 // Install Vue DevTools browser extension
@@ -434,6 +461,7 @@ console.error('Error:', error)
 ```
 
 ### Docker Debugging
+
 ```bash
 # View container logs
 docker compose logs -f app
@@ -448,6 +476,7 @@ docker compose up app --build
 ## Performance Optimization
 
 ### Backend Optimization
+
 - Use async/await for I/O operations
 - Implement database query optimization
 - Add caching with Valkey/Redis
@@ -455,6 +484,7 @@ docker compose up app --build
 - Profile with cProfile or py-spy
 
 ### Frontend Optimization
+
 - Implement lazy loading for routes
 - Use virtual scrolling for large lists
 - Optimize bundle size with tree shaking
@@ -464,6 +494,7 @@ docker compose up app --build
 ## Deployment
 
 ### Development Deployment
+
 ```bash
 # Build and start all services
 docker compose -f docker-compose.dev.yml up --build
@@ -473,6 +504,7 @@ docker compose -f docker-compose.dev.yml up --scale app=2
 ```
 
 ### Production Deployment
+
 ```bash
 # Build production images
 docker compose build
@@ -490,6 +522,7 @@ docker compose logs -f
 ### Common Issues
 
 #### Database Connection Issues
+
 ```bash
 # Check database status
 docker compose ps postgres
@@ -502,6 +535,7 @@ docker compose exec postgres psql -U kuroibara -d kuroibara
 ```
 
 #### Frontend Build Issues
+
 ```bash
 # Clear node modules and reinstall
 rm -rf node_modules package-lock.json
@@ -512,6 +546,7 @@ rm -rf node_modules/.vite
 ```
 
 #### Permission Issues
+
 ```bash
 # Fix file permissions
 sudo chown -R $USER:$USER .
@@ -521,6 +556,7 @@ sudo usermod -aG docker $USER
 ```
 
 ### Getting Help
+
 - Check the [GitHub Issues](https://github.com/Futs/kuroibara/issues)
 - Review the [API Documentation](API_REFERENCE.md)
 - Join the community discussions

@@ -5,13 +5,15 @@ Revises: 014
 Create Date: 2025-08-23 13:00:00.000000
 
 """
-from alembic import op
+
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
-revision = '015'
-down_revision = '014'
+revision = "015"
+down_revision = "014"
 branch_labels = None
 depends_on = None
 
@@ -23,7 +25,10 @@ def upgrade() -> None:
 
     # Add provider_external_ids JSONB column
     try:
-        op.add_column('chapter', sa.Column('provider_external_ids', postgresql.JSONB(), nullable=True))
+        op.add_column(
+            "chapter",
+            sa.Column("provider_external_ids", postgresql.JSONB(), nullable=True),
+        )
         print("✅ Added provider_external_ids column")
     except ProgrammingError as e:
         if "already exists" in str(e).lower():
@@ -36,7 +41,10 @@ def upgrade() -> None:
 
     # Add fallback_providers JSONB column
     try:
-        op.add_column('chapter', sa.Column('fallback_providers', postgresql.JSONB(), nullable=True))
+        op.add_column(
+            "chapter",
+            sa.Column("fallback_providers", postgresql.JSONB(), nullable=True),
+        )
         print("✅ Added fallback_providers column")
     except ProgrammingError as e:
         if "already exists" in str(e).lower():
@@ -49,7 +57,12 @@ def upgrade() -> None:
 
     # Create index on provider_external_ids
     try:
-        op.create_index('ix_chapter_provider_external_ids', 'chapter', ['provider_external_ids'], postgresql_using='gin')
+        op.create_index(
+            "ix_chapter_provider_external_ids",
+            "chapter",
+            ["provider_external_ids"],
+            postgresql_using="gin",
+        )
         print("✅ Created index ix_chapter_provider_external_ids")
     except ProgrammingError as e:
         if "already exists" in str(e).lower():
@@ -65,19 +78,19 @@ def downgrade() -> None:
     """Remove multi-provider support fields from chapter table."""
     # Use try-catch to handle cases where columns/indexes don't exist
     try:
-        op.drop_index('ix_chapter_provider_external_ids', table_name='chapter')
+        op.drop_index("ix_chapter_provider_external_ids", table_name="chapter")
     except Exception:
         # Index doesn't exist, skip
         pass
 
     try:
-        op.drop_column('chapter', 'fallback_providers')
+        op.drop_column("chapter", "fallback_providers")
     except Exception:
         # Column doesn't exist, skip
         pass
 
     try:
-        op.drop_column('chapter', 'provider_external_ids')
+        op.drop_column("chapter", "provider_external_ids")
     except Exception:
         # Column doesn't exist, skip
         pass

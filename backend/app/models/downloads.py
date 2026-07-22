@@ -6,21 +6,18 @@ tracking progress, retries, and metadata for manga and chapter downloads.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import uuid4
 
 from sqlalchemy import (
     Column,
     DateTime,
     Float,
-    ForeignKey,
     Index,
     Integer,
     String,
     Text,
 )
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
-from sqlalchemy.orm import relationship
 
 from app.db.session import Base
 

@@ -41,27 +41,12 @@
       "name": "ArcaneScans",
       "supports_nsfw": false,
       "selectors": {
-        "search_items": [
-          ".imgseries"
-        ],
-        "title": [
-          ".series",
-          "a",
-          "img"
-        ],
-        "cover": [
-          "img"
-        ],
-        "link": [
-          ".series",
-          "a"
-        ],
+        "search_items": [".imgseries"],
+        "title": [".series", "a", "img"],
+        "cover": ["img"],
+        "link": [".series", "a"],
         "description": [],
-        "pages": [
-          "img[src*='wp-content/uploads']",
-          ".entry-content img",
-          "img"
-        ]
+        "pages": ["img[src*='wp-content/uploads']", ".entry-content img", "img"]
       }
     }
   },
@@ -80,32 +65,11 @@
       "supports_nsfw": true,
       "use_flaresolverr": true,
       "selectors": {
-        "search_items": [
-          ".c-tabs-item__content",
-          ".tab-thumb",
-          ".manga-item"
-        ],
-        "title": [
-          ".post-title h3 a",
-          ".post-title a",
-          "h3 a",
-          ".manga-title"
-        ],
-        "cover": [
-          ".tab-thumb img",
-          "img",
-          ".cover img"
-        ],
-        "link": [
-          ".post-title h3 a",
-          ".post-title a",
-          "a[href*='/manga/']"
-        ],
-        "description": [
-          ".tab-summary",
-          ".summary",
-          ".description"
-        ]
+        "search_items": [".c-tabs-item__content", ".tab-thumb", ".manga-item"],
+        "title": [".post-title h3 a", ".post-title a", "h3 a", ".manga-title"],
+        "cover": [".tab-thumb img", "img", ".cover img"],
+        "link": [".post-title h3 a", ".post-title a", "a[href*='/manga/']"],
+        "description": [".tab-summary", ".summary", ".description"]
       }
     }
   },
@@ -122,36 +86,12 @@
       "chapter_url_pattern": "https://toonily.com/serie/{manga_id}/{chapter_id}",
       "name": "Toonily",
       "selectors": {
-        "search_items": [
-          ".page-item-detail",
-          ".manga",
-          ".item"
-        ],
-        "title": [
-          ".post-title h1 a",
-          ".post-title a",
-          "h1",
-          "h2",
-          "h3"
-        ],
-        "cover": [
-          "img"
-        ],
-        "link": [
-          ".post-title h1 a",
-          ".post-title a",
-          "a"
-        ],
-        "description": [
-          ".summary__content",
-          ".description",
-          ".summary"
-        ],
-        "pages": [
-          "img[src*='toonily.com']",
-          ".wp-manga-chapter-img",
-          "img"
-        ]
+        "search_items": [".page-item-detail", ".manga", ".item"],
+        "title": [".post-title h1 a", ".post-title a", "h1", "h2", "h3"],
+        "cover": ["img"],
+        "link": [".post-title h1 a", ".post-title a", "a"],
+        "description": [".summary__content", ".description", ".summary"],
+        "pages": ["img[src*='toonily.com']", ".wp-manga-chapter-img", "img"]
       },
       "supports_nsfw": true
     }
@@ -189,11 +129,7 @@
       "chapter_url_pattern": "https://mangadna.com/manga/{manga_id}/{chapter_id}",
       "name": "MangaDNA",
       "selectors": {
-        "search_items": [
-          "div.hinner",
-          ".hinner",
-          "div.home-item"
-        ],
+        "search_items": ["div.hinner", ".hinner", "div.home-item"],
         "title": [
           ".manga-title",
           ".post-title",
@@ -214,9 +150,7 @@
           "img[src*='cover']",
           "img"
         ],
-        "link": [
-          "a"
-        ],
+        "link": ["a"],
         "description": [
           ".manga-description",
           ".post-content",
@@ -254,11 +188,7 @@
           ".listing-chapters_wrap a",
           "li a[href*='chapter']"
         ],
-        "pages": [
-          "img[src*='mangadna.com']",
-          ".chapter-image",
-          "img"
-        ]
+        "pages": ["img[src*='mangadna.com']", ".chapter-image", "img"]
       },
       "supports_nsfw": true
     }
@@ -276,11 +206,7 @@
       "chapter_url_pattern": "https://manga18fx.com/manga/{manga_id}/{chapter_id}",
       "name": "Manga18FX",
       "selectors": {
-        "search_items": [
-          "div.page-item",
-          ".page-item",
-          "div.bsx-item"
-        ],
+        "search_items": ["div.page-item", ".page-item", "div.bsx-item"],
         "title": [
           ".manga-title",
           ".post-title",
@@ -301,9 +227,7 @@
           "img[src*='cover']",
           "img"
         ],
-        "link": [
-          "a"
-        ],
+        "link": ["a"],
         "description": [
           ".manga-description",
           ".post-content",
@@ -341,11 +265,7 @@
           ".listing-chapters_wrap a",
           "li a[href*='chapter']"
         ],
-        "pages": [
-          "img[src*='manga18fx.com']",
-          ".chapter-image",
-          "img"
-        ]
+        "pages": ["img[src*='manga18fx.com']", ".chapter-image", "img"]
       },
       "supports_nsfw": true
     }

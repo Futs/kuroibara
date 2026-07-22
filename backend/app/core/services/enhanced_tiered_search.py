@@ -1,6 +1,5 @@
 """Enhanced search service using tiered indexing system."""
 
-import asyncio
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -10,7 +9,6 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.services.tiered_indexing import (
-    IndexerTier,
     UniversalMetadata,
     tiered_search_service,
 )

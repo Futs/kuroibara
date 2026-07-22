@@ -19,7 +19,7 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
       - id: check-merge-conflict
-  
+
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.2.0
     hooks:
@@ -54,9 +54,11 @@ Create `.github/pull_request_template.md`:
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] 🐛 Bug fix
 - [ ] ✨ New feature
 - [ ] 📚 Documentation update
@@ -66,11 +68,13 @@ Brief description of changes
 - [ ] 🧪 Tests
 
 ## Testing
+
 - [ ] Tests pass locally
 - [ ] New tests added (if applicable)
 - [ ] Manual testing completed
 
 ## Checklist
+
 - [ ] Code follows project guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -94,7 +98,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Generate Changelog
         uses: conventional-changelog-action@v3
         with:

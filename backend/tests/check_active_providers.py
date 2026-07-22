@@ -136,7 +136,7 @@ def main():
         simulate_provider_loading()
     )
 
-    print(f"\n=== SUMMARY ===")
+    print("\n=== SUMMARY ===")
     print(f"Active providers: {len(active_providers)}")
     print(f"Disabled providers: {len(disabled_providers)}")
     print(f"Cloudflare-skipped providers: {len(cloudflare_skipped)}")
@@ -170,7 +170,7 @@ def main():
             print(f"  {provider['name']} - {provider['reason']}")
 
     # Integration status breakdown
-    print(f"\n=== INTEGRATION STATUS BREAKDOWN ===")
+    print("\n=== INTEGRATION STATUS BREAKDOWN ===")
     fully_integrated = sum(
         1 for p in active_providers.values() if p["class_name"] in ["MangaDexProvider"]
     )

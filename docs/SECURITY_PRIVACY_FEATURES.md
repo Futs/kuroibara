@@ -13,6 +13,7 @@ The security and privacy system transforms Kuroibara into an enterprise-grade pl
 **Location**: `stores/security.js`
 
 #### Hierarchical Role System
+
 - **Super Administrator**: Full system access with all privileges
 - **Administrator**: User and content management capabilities
 - **Moderator**: Content moderation and user oversight
@@ -21,30 +22,32 @@ The security and privacy system transforms Kuroibara into an enterprise-grade pl
 - **Guest**: Minimal browsing capabilities
 
 #### Permission Management
+
 - **Granular Permissions**: Fine-grained control over specific actions
 - **Permission Inheritance**: Hierarchical permission system
 - **Dynamic Checking**: Real-time permission validation
 - **Context-Aware**: Permissions adapt to content and user context
 
 #### Role Configuration
+
 ```javascript
 const ROLES = {
   SUPER_ADMIN: {
-    id: 'super_admin',
+    id: "super_admin",
     level: 100,
-    permissions: ['*'], // All permissions
-    description: 'Full system access'
+    permissions: ["*"], // All permissions
+    description: "Full system access",
   },
   ADMIN: {
-    id: 'admin',
+    id: "admin",
     level: 80,
     permissions: [
-      'users.manage',
-      'content.manage',
-      'system.configure',
-      'security.monitor'
-    ]
-  }
+      "users.manage",
+      "content.manage",
+      "system.configure",
+      "security.monitor",
+    ],
+  },
   // ... other roles
 };
 ```
@@ -54,6 +57,7 @@ const ROLES = {
 **Location**: `stores/security.js`
 
 #### Multi-Layer Filtering
+
 - **Age Rating System**: G, PG, PG-13, R, NC-17, NSFW content ratings
 - **Tag-Based Filtering**: Block specific content tags and categories
 - **Language Filtering**: Control content by language preferences
@@ -61,19 +65,21 @@ const ROLES = {
 - **Custom Filters**: User-defined filtering rules
 
 #### Dynamic Content Control
+
 - **Role-Based Defaults**: Automatic filtering based on user role
 - **User Customization**: Personal filter overrides for qualified users
 - **Real-Time Filtering**: Live content filtering during browsing
 - **Preview Restrictions**: Limited preview for restricted content
 
 #### Usage Example
+
 ```javascript
 // Check if user can view content
 const canView = securityStore.canViewContent({
-  rating: 'PG-13',
+  rating: "PG-13",
   isNSFW: false,
-  tags: ['action', 'adventure'],
-  language: 'en'
+  tags: ["action", "adventure"],
+  language: "en",
 });
 
 // Filter content list
@@ -85,12 +91,14 @@ const filteredContent = securityStore.filterContent(contentList);
 **Location**: `stores/security.js`
 
 #### Event Tracking
+
 - **User Actions**: Login, logout, content access, settings changes
 - **Administrative Actions**: User management, system configuration
 - **Security Events**: Failed logins, permission changes, suspicious activity
 - **System Events**: Errors, performance issues, maintenance activities
 
 #### Audit Data Structure
+
 ```javascript
 {
   id: 'unique-event-id',
@@ -108,6 +116,7 @@ const filteredContent = securityStore.filterContent(contentList);
 ```
 
 #### Audit Features
+
 - **Searchable Logs**: Full-text search across all audit events
 - **Filtering**: Filter by user, action type, date range, severity
 - **Export Capability**: Export audit logs for compliance reporting
@@ -119,6 +128,7 @@ const filteredContent = securityStore.filterContent(contentList);
 **Location**: `stores/security.js`
 
 #### Session Security
+
 - **Device Tracking**: Monitor sessions across different devices
 - **Concurrent Session Limits**: Configurable maximum active sessions
 - **Session Timeout**: Automatic logout after inactivity
@@ -126,12 +136,14 @@ const filteredContent = securityStore.filterContent(contentList);
 - **Geographic Monitoring**: Track session locations
 
 #### Session Features
+
 - **Session Termination**: Remote session termination capability
 - **Device Management**: View and manage trusted devices
 - **Login Notifications**: Alerts for new device logins
 - **Session Analytics**: Detailed session usage statistics
 
 #### Session Data Structure
+
 ```javascript
 {
   id: 'session-123',
@@ -151,21 +163,25 @@ const filteredContent = securityStore.filterContent(contentList);
 **Location**: `components/TwoFactorAuth.vue`
 
 #### Multiple 2FA Methods
+
 - **TOTP (Time-based One-Time Password)**: Google Authenticator, Authy, 1Password
 - **SMS Verification**: Text message codes to mobile devices
 - **Email Verification**: Email-based verification codes
 - **Backup Codes**: Single-use recovery codes
 
 #### 2FA Features
+
 - **QR Code Setup**: Easy authenticator app configuration
 - **Backup Code Management**: Generate and manage recovery codes
 - **Method Management**: Add, remove, and switch between 2FA methods
 - **Recovery Options**: Account recovery without 2FA device
 
 #### Setup Process
+
 ```javascript
 // Enable TOTP 2FA
-const { secret, qrCode, backupCodes } = await securityStore.enableTwoFactor('totp');
+const { secret, qrCode, backupCodes } =
+  await securityStore.enableTwoFactor("totp");
 
 // Verify setup
 const isValid = await securityStore.verifyTwoFactor(userCode);
@@ -179,6 +195,7 @@ const newBackupCodes = await securityStore.generateBackupCodes();
 **Location**: `stores/security.js`
 
 #### Privacy Settings
+
 - **Data Collection Control**: Opt-in/out of usage data collection
 - **Analytics Preferences**: Control analytics and tracking
 - **Personalization Settings**: Manage personalized content features
@@ -186,6 +203,7 @@ const newBackupCodes = await securityStore.generateBackupCodes();
 - **Cookie Management**: Granular cookie and tracking preferences
 
 #### GDPR Compliance
+
 - **Data Export**: Complete user data export in machine-readable format
 - **Data Deletion**: Right to be forgotten implementation
 - **Consent Management**: Granular consent tracking and management
@@ -193,6 +211,7 @@ const newBackupCodes = await securityStore.generateBackupCodes();
 - **Privacy by Design**: Privacy-first architecture and defaults
 
 #### Data Management
+
 ```javascript
 // Export user data
 const userData = await securityStore.exportUserData();
@@ -201,7 +220,7 @@ const userData = await securityStore.exportUserData();
 await securityStore.updatePrivacySettings({
   dataCollection: false,
   analytics: false,
-  personalizedContent: true
+  personalizedContent: true,
 });
 
 // Delete user data
@@ -213,6 +232,7 @@ await securityStore.deleteUserData();
 **Location**: `stores/security.js`
 
 #### Request Security
+
 - **Rate Limiting**: Per-endpoint and per-user rate limiting
 - **Request Validation**: Input sanitization and validation
 - **Authentication Middleware**: Token-based authentication
@@ -220,21 +240,23 @@ await securityStore.deleteUserData();
 - **Security Headers**: CORS, CSP, and other security headers
 
 #### Abuse Prevention
+
 - **IP Blocking**: Automatic blocking of malicious IPs
 - **Suspicious Activity Detection**: Pattern recognition for abuse
 - **Request Throttling**: Adaptive throttling based on behavior
 - **Captcha Integration**: Human verification for suspicious requests
 
 #### Rate Limiting Example
+
 ```javascript
 // Check rate limit
-const allowed = securityStore.checkRateLimit('/api/search');
+const allowed = securityStore.checkRateLimit("/api/search");
 
 // Record API request
-securityStore.recordAPIRequest('/api/search');
+securityStore.recordAPIRequest("/api/search");
 
 // Get rate limit status
-const status = securityStore.getRateLimitStatus('/api/search');
+const status = securityStore.getRateLimitStatus("/api/search");
 ```
 
 ### 8. Security Dashboard
@@ -242,18 +264,21 @@ const status = securityStore.getRateLimitStatus('/api/search');
 **Location**: `components/SecurityDashboard.vue`
 
 #### Real-Time Monitoring
+
 - **Security Score**: Overall security posture assessment
 - **Active Sessions**: Live session monitoring and management
 - **Security Alerts**: Real-time threat and incident alerts
 - **Audit Log Viewer**: Searchable audit event interface
 
 #### Security Metrics
+
 - **Login Analytics**: Success rates, failure patterns, geographic distribution
 - **Session Statistics**: Device usage, session duration, concurrent sessions
 - **Security Events**: Event frequency, severity distribution, trend analysis
 - **Performance Metrics**: Response times, error rates, system health
 
 #### Dashboard Features
+
 - **Interactive Charts**: Visual representation of security data
 - **Alert Management**: Acknowledge and manage security alerts
 - **Export Capabilities**: Export security reports and data
@@ -264,24 +289,26 @@ const status = securityStore.getRateLimitStatus('/api/search');
 **Location**: `components/SecurityDashboard.vue`
 
 #### Intelligent Recommendations
+
 - **2FA Enablement**: Prompt users to enable two-factor authentication
 - **Session Management**: Recommend session timeout adjustments
 - **Privacy Settings**: Suggest privacy-enhancing configurations
 - **Password Policy**: Recommend stronger password requirements
 
 #### Recommendation System
+
 ```javascript
 const recommendations = computed(() => {
   const recs = [];
-  
+
   if (!securityStore.twoFactorEnabled) {
     recs.push({
-      title: 'Enable Two-Factor Authentication',
-      priority: 'high',
-      action: 'enable2FA'
+      title: "Enable Two-Factor Authentication",
+      priority: "high",
+      action: "enable2FA",
     });
   }
-  
+
   return recs;
 });
 ```
@@ -296,7 +323,7 @@ export const useSecurityStore = defineStore('security', {
     // Role and permissions
     currentRole: null,
     permissions: new Set(),
-    
+
     // Content filtering
     contentFilter: {
       maxRating: 'PG-13',
@@ -304,7 +331,7 @@ export const useSecurityStore = defineStore('security', {
       blockedTags: [],
       allowedLanguages: ['en']
     },
-    
+
     // Session management
     sessions: [],
     securitySettings: {
@@ -312,33 +339,33 @@ export const useSecurityStore = defineStore('security', {
       maxConcurrentSessions: 5,
       requireTwoFactor: false
     },
-    
+
     // Privacy settings
     privacySettings: {
       dataCollection: true,
       analytics: true,
       personalizedContent: true
     },
-    
+
     // Audit and security
     auditLog: [],
     securityEvents: []
   }),
-  
+
   getters: {
     hasPermission: (state) => (permission) => {
       return state.permissions.has('*') || state.permissions.has(permission);
     },
-    
+
     getSecurityScore: (state) => {
       // Calculate security score based on enabled features
     },
-    
+
     canViewContent: (state) => (content) => {
       // Content filtering logic
     }
   },
-  
+
   actions: {
     async setUserRole(roleId),
     async updateContentFilter(filter),
@@ -354,17 +381,17 @@ export const useSecurityStore = defineStore('security', {
 ```javascript
 const PERMISSION_CATEGORIES = {
   USERS: {
-    'users.manage': 'Create, edit, and delete users',
-    'users.view': 'View user profiles and information'
+    "users.manage": "Create, edit, and delete users",
+    "users.view": "View user profiles and information",
   },
   CONTENT: {
-    'content.manage': 'Full content management access',
-    'content.moderate': 'Moderate content and handle reports'
+    "content.manage": "Full content management access",
+    "content.moderate": "Moderate content and handle reports",
   },
   SYSTEM: {
-    'system.configure': 'Configure system settings',
-    'security.monitor': 'Monitor security events'
-  }
+    "system.configure": "Configure system settings",
+    "security.monitor": "Monitor security events",
+  },
 };
 ```
 
@@ -372,12 +399,24 @@ const PERMISSION_CATEGORIES = {
 
 ```javascript
 export const CONTENT_RATINGS = {
-  G: { level: 0, name: 'General', description: 'Suitable for all ages' },
-  PG: { level: 1, name: 'Parental Guidance', description: 'Parental guidance suggested' },
-  'PG-13': { level: 2, name: 'PG-13', description: 'Parents strongly cautioned' },
-  R: { level: 3, name: 'Restricted', description: 'Restricted content' },
-  'NC-17': { level: 4, name: 'Adults Only', description: 'No one 17 and under admitted' },
-  NSFW: { level: 5, name: 'Not Safe for Work', description: 'Adult content' }
+  G: { level: 0, name: "General", description: "Suitable for all ages" },
+  PG: {
+    level: 1,
+    name: "Parental Guidance",
+    description: "Parental guidance suggested",
+  },
+  "PG-13": {
+    level: 2,
+    name: "PG-13",
+    description: "Parents strongly cautioned",
+  },
+  R: { level: 3, name: "Restricted", description: "Restricted content" },
+  "NC-17": {
+    level: 4,
+    name: "Adults Only",
+    description: "No one 17 and under admitted",
+  },
+  NSFW: { level: 5, name: "Not Safe for Work", description: "Adult content" },
 };
 ```
 
@@ -386,32 +425,32 @@ export const CONTENT_RATINGS = {
 ### Comprehensive Test Coverage
 
 ```javascript
-describe('Security Store', () => {
-  describe('Role Management', () => {
-    it('should set user role correctly', async () => {
-      await securityStore.setUserRole('admin');
+describe("Security Store", () => {
+  describe("Role Management", () => {
+    it("should set user role correctly", async () => {
+      await securityStore.setUserRole("admin");
       expect(securityStore.currentRole).toEqual(ROLES.ADMIN);
-      expect(securityStore.permissions.has('users.manage')).toBe(true);
+      expect(securityStore.permissions.has("users.manage")).toBe(true);
     });
-    
-    it('should check permissions correctly', () => {
-      securityStore.permissions = new Set(['library.read']);
-      expect(securityStore.hasPermission('library.read')).toBe(true);
-      expect(securityStore.hasPermission('users.manage')).toBe(false);
+
+    it("should check permissions correctly", () => {
+      securityStore.permissions = new Set(["library.read"]);
+      expect(securityStore.hasPermission("library.read")).toBe(true);
+      expect(securityStore.hasPermission("users.manage")).toBe(false);
     });
   });
-  
-  describe('Content Filtering', () => {
-    it('should filter content based on rating', () => {
-      const content = { rating: 'R', isNSFW: false };
-      securityStore.contentFilter.maxRating = 'PG-13';
+
+  describe("Content Filtering", () => {
+    it("should filter content based on rating", () => {
+      const content = { rating: "R", isNSFW: false };
+      securityStore.contentFilter.maxRating = "PG-13";
       expect(securityStore.canViewContent(content)).toBe(false);
     });
   });
-  
-  describe('Audit Logging', () => {
-    it('should log audit events', () => {
-      securityStore.logAuditEvent('test_action', { key: 'value' });
+
+  describe("Audit Logging", () => {
+    it("should log audit events", () => {
+      securityStore.logAuditEvent("test_action", { key: "value" });
       expect(securityStore.auditLog).toHaveLength(1);
     });
   });

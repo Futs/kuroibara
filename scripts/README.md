@@ -5,9 +5,11 @@ This directory contains utility scripts for testing, configuration, and maintena
 ## Provider Testing Scripts
 
 ### `test_providers.py`
+
 **Comprehensive Provider Testing Suite**
 
 A complete testing framework that systematically tests all manga providers for:
+
 - Search functionality
 - Manga details retrieval
 - Chapter listing
@@ -15,11 +17,13 @@ A complete testing framework that systematically tests all manga providers for:
 - Library integration
 
 **Usage:**
+
 ```bash
 docker compose -f docker-compose.dev.yml exec backend python scripts/test_providers.py
 ```
 
 **Features:**
+
 - Tests 19+ providers (skips problematic ones)
 - Timeout handling for slow providers
 - Detailed error reporting
@@ -27,26 +31,31 @@ docker compose -f docker-compose.dev.yml exec backend python scripts/test_provid
 - Automatic manga addition to library for testing
 
 **Output:**
+
 - Detailed test results for each provider
 - Summary report with working/partially working/broken providers
 - Success rate statistics
 
 ### `quick_provider_test.py`
+
 **Fast Provider Testing**
 
 A lightweight script for quick testing of priority providers without full workflow testing.
 
 **Usage:**
+
 ```bash
 docker compose -f docker-compose.dev.yml exec backend python scripts/quick_provider_test.py
 ```
 
 **Features:**
+
 - Tests priority providers first
 - Faster execution (no library integration)
 - Basic functionality verification
 
 ### `test_provider.py`
+
 **Single Provider Testing**
 
 Script for testing individual providers in detail.
@@ -54,11 +63,13 @@ Script for testing individual providers in detail.
 ## Configuration Scripts
 
 ### `generate_provider_config.py`
+
 **Provider Configuration Generator**
 
 Generates configuration files for manga providers.
 
 ### `test_template_system.py`
+
 **Template System Testing**
 
 Tests the provider template system functionality.
@@ -79,6 +90,7 @@ docker compose -f docker-compose.dev.yml exec backend python scripts/quick_provi
 ## Script Dependencies
 
 Scripts require:
+
 - Active Docker environment
 - Database connection
 - Provider registry
@@ -87,11 +99,13 @@ Scripts require:
 ## Test Results Interpretation
 
 ### Provider Status Levels:
+
 - **✅ Fully Working**: Search, details, chapters, and pages all work
 - **⚠️ Partially Working**: Some functionality works (usually search + details)
 - **❌ Not Working**: Basic search functionality fails
 
 ### Common Issues:
+
 - **Cloudflare Protection**: Sites blocking automated access
 - **Selector Issues**: Outdated CSS selectors for scraping
 - **404/403 Errors**: Changed URLs or access restrictions
@@ -100,6 +114,7 @@ Scripts require:
 ## Maintenance
 
 Scripts should be updated when:
+
 - New providers are added
 - Provider configurations change
 - Testing requirements evolve
@@ -108,6 +123,7 @@ Scripts should be updated when:
 ## Contributing
 
 When adding new scripts:
+
 1. Follow the existing naming convention
 2. Add documentation to this README
 3. Include usage examples

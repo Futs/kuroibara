@@ -101,7 +101,7 @@ class DownloadQueueManager:
         self._is_running = False
 
         # Cancel all active workers
-        for worker_id, task in list(self._active_workers.items()):
+        for _worker_id, task in list(self._active_workers.items()):
             task.cancel()
             try:
                 await task
@@ -350,7 +350,7 @@ class DownloadQueueManager:
     def _update_job_tracking(self, job: BaseJob) -> None:
         """Update job tracking indices."""
         # Remove from old status
-        for status, job_set in self._jobs_by_status.items():
+        for _status, job_set in self._jobs_by_status.items():
             job_set.discard(job.id)
 
         # Add to new status

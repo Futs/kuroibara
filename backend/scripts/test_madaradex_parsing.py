@@ -2,7 +2,6 @@
 """Test script for MadaraDex HTML parsing functionality."""
 
 import asyncio
-import os
 import sys
 from pathlib import Path
 

@@ -2,6 +2,7 @@
 """
 Script to initialize the database with tables and initial data.
 """
+
 import asyncio
 import logging
 import sys

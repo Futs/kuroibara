@@ -54,7 +54,7 @@ line_length = 88
 skip_glob = ["alembic/versions/*"]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "0.7.2"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -62,7 +62,7 @@ ignore_missing_imports = true
 exclude = ["alembic/versions/", "tests/"]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "0.7.2"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]

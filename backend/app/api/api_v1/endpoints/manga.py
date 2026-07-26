@@ -14,7 +14,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from sqlalchemy import Float, case, cast, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -273,7 +273,7 @@ async def upload_manga_cover(
 async def read_manga_chapters(
     manga_id: str,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 5000,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
@@ -288,11 +288,18 @@ async def read_manga_chapters(
             detail="Manga not found",
         )
 
+    # Chapter.number is a string (to support "12.5", "Extra", etc.), so a plain
+    # ORDER BY sorts lexicographically ("2" and "200.5" both sort after every
+    # "1xx" chapter). Cast numeric-looking values to float for proper ordering,
+    # and fall back to string order for anything else (e.g. "Extra").
+    is_numeric = Chapter.number.op("~")(r"^\d+(\.\d+)?$")
+    numeric_sort_key = case((is_numeric, cast(Chapter.number, Float)), else_=None)
+
     result = await db.execute(
         select(Chapter)
         .options(selectinload(Chapter.pages))
         .where(Chapter.manga_id == uuid.UUID(manga_id))
-        .order_by(Chapter.number)
+        .order_by(numeric_sort_key.nulls_last(), Chapter.number)
         .offset(skip)
         .limit(limit)
     )

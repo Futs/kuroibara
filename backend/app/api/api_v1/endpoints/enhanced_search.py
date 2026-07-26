@@ -39,8 +39,14 @@ async def enhanced_search(
     If include_provider_matches=True, will also search providers to find download sources.
     """
     try:
-        # Use the tiered search service
-        results = await tiered_search_service.search(query, limit=limit)
+        # Use the tiered search service. use_fallback=False so MadaraDex/MangaDex
+        # are only queried when MangaUpdates doesn't have enough results on its
+        # own - otherwise every search fans out to all three indexers, mixing in
+        # unrelated catalog entries (doujinshi, novels, etc.) and multiplying
+        # request latency.
+        results = await tiered_search_service.search(
+            query, limit=limit, use_fallback=False
+        )
         print(
             f"[DEBUG] Tiered search returned {len(results)} results for query '{query}'"
         )

@@ -1053,7 +1053,9 @@ class MangaDexIndexer(BaseIndexer):
 
             return UniversalMetadata(
                 title=self._get_title(attributes),
-                alternative_titles=attributes.get("altTitles", []),
+                alternative_titles=self._flatten_alt_titles(
+                    attributes.get("altTitles", [])
+                ),
                 description=self._get_description(attributes),
                 cover_image_url=self._get_cover_url(item),
                 type="manga",  # MangaDex is primarily manga
@@ -1093,6 +1095,18 @@ class MangaDexIndexer(BaseIndexer):
             return list(title_obj.values())[0]
 
         return "Unknown Title"
+
+    def _flatten_alt_titles(self, alt_titles: Any) -> Dict[str, str]:
+        """Flatten MangaDex's altTitles (a list of single-key {lang: title}
+        dicts) into a single dict, matching the UniversalMetadata schema."""
+        flattened: Dict[str, str] = {}
+        if isinstance(alt_titles, list):
+            for entry in alt_titles:
+                if isinstance(entry, dict):
+                    flattened.update(entry)
+        elif isinstance(alt_titles, dict):
+            flattened = alt_titles
+        return flattened
 
     def _get_description(self, attributes: Dict) -> Optional[str]:
         """Get description from MangaDex attributes."""

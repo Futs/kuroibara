@@ -18,6 +18,9 @@ on:
           - major
           - custom
 
+permissions:
+  contents: read
+
 jobs:
   bump-version:
     name: Bump Version
@@ -27,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
@@ -148,7 +151,7 @@ jobs:
           echo "🏷️ Created and pushed tag v$NEW_VERSION"
 
       - name: Create release
-        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
         with:
           tag_name: v${{ steps.new_version.outputs.version }}
           name: Release v${{ steps.new_version.outputs.version }}

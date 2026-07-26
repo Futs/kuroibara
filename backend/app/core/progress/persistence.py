@@ -321,7 +321,9 @@ class ProgressPersistenceService:
             operation_cutoff = datetime.now(timezone.utc) - timedelta(
                 days=self._max_operation_age_days
             )
-            event_cutoff = datetime.now(timezone.utc) - timedelta(days=self._max_event_age_days)
+            event_cutoff = datetime.now(timezone.utc) - timedelta(
+                days=self._max_event_age_days
+            )
 
             # Delete old completed operations
             old_operations_result = await db.execute(

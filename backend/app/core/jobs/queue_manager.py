@@ -508,7 +508,9 @@ class DownloadQueueManager:
 
     async def _cleanup_old_jobs(self) -> None:
         """Remove old completed jobs to prevent memory bloat."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)  # Keep jobs for 24 hours
+        cutoff_time = datetime.now(timezone.utc) - timedelta(
+            hours=24
+        )  # Keep jobs for 24 hours
 
         jobs_to_remove = []
         for job_id, job in self._jobs.items():

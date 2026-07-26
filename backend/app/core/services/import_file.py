@@ -613,7 +613,7 @@ async def _fetch_and_create_chapters(
         db: Database session
     """
     import logging
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     from app.core.providers.registry import provider_registry
     from app.models.manga import Chapter

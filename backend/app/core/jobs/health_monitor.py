@@ -158,9 +158,9 @@ class HealthMetrics:
         score -= failure_penalty
 
         # Bonus for recent success
-        if self.last_success and datetime.now(timezone.utc) - self.last_success < timedelta(
-            hours=1
-        ):
+        if self.last_success and datetime.now(
+            timezone.utc
+        ) - self.last_success < timedelta(hours=1):
             score += 10
 
         # Response time factor

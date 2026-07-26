@@ -141,7 +141,9 @@ class BaseAgent(ABC):
             return True
 
         # Check if timeout has passed
-        time_since_open = (datetime.now(timezone.utc) - self._circuit_opened_at).total_seconds()
+        time_since_open = (
+            datetime.now(timezone.utc) - self._circuit_opened_at
+        ).total_seconds()
         if time_since_open > self._circuit_breaker_timeout:
             logger.info(
                 f"Circuit breaker timeout passed for {self.name}, attempting recovery"

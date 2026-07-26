@@ -223,7 +223,9 @@ class AgentIsolationManager:
         quarantine_duration = config["quarantine_duration"]
 
         # Check if quarantine period has expired
-        if datetime.now(timezone.utc) - quarantine_time > timedelta(seconds=quarantine_duration):
+        if datetime.now(timezone.utc) - quarantine_time > timedelta(
+            seconds=quarantine_duration
+        ):
             del self._quarantined_agents[agent_name]
             logger.info(f"Agent {agent_name} quarantine period expired")
             return False

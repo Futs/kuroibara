@@ -252,7 +252,7 @@ class EnhancedSearchService:
                 # Get or create MangaUpdates entry
                 series_id = mu_result["record"]["series_id"]
                 mu_entry = await self._get_or_create_mu_entry(series_id, db)
-                
+
                 if not mu_entry:
                     continue
 
@@ -281,9 +281,11 @@ class EnhancedSearchService:
                         )
 
                 enhanced_results.append(enhanced_result)
-                
+
                 duration = time.perf_counter() - start_time
-                logger.info(f"[DEBUG] Processed result {i+1}/{len(mu_results['results'])} ({mu_result['record']['series_id']}) in {duration:.2f}s")
+                logger.info(
+                    f"[DEBUG] Processed result {i+1}/{len(mu_results['results'])} ({mu_result['record']['series_id']}) in {duration:.2f}s"
+                )
 
             except Exception as e:
                 logger.error(f"Error processing MangaUpdates result {mu_result}: {e}")

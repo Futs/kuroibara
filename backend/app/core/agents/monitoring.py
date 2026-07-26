@@ -229,7 +229,9 @@ class AgentMonitor:
 
     async def _cleanup_old_metrics(self) -> None:
         """Clean up old metrics to prevent memory bloat."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=self._metrics_retention_hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(
+            hours=self._metrics_retention_hours
+        )
 
         for agent_name in self._historical_metrics:
             self._historical_metrics[agent_name] = [

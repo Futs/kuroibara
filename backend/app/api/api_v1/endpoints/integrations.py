@@ -359,9 +359,9 @@ async def connect_kitsu(
             existing_integration.refresh_token = auth_data.get("refresh_token")
             existing_integration.external_user_id = user_info["id"]
             existing_integration.external_username = user_info["username"]
-            existing_integration.token_expires_at = datetime.now(timezone.utc) + timedelta(
-                seconds=auth_data.get("expires_in", 3600)
-            )
+            existing_integration.token_expires_at = datetime.now(
+                timezone.utc
+            ) + timedelta(seconds=auth_data.get("expires_in", 3600))
             existing_integration.last_sync_status = SyncStatus.SUCCESS
             existing_integration.last_sync_at = datetime.now(timezone.utc)
 

@@ -226,7 +226,10 @@ class WebSocketManager:
 
             elif message_type == "ping":
                 await connection.send_message(
-                    {"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()}
+                    {
+                        "type": "pong",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
                 )
 
             else:

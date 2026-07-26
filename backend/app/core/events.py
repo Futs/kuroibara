@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
@@ -12,9 +13,6 @@ from app.db.init_db import init_db
 from app.db.session import engine
 
 logger = logging.getLogger(__name__)
-
-
-from contextlib import asynccontextmanager
 
 
 @asynccontextmanager

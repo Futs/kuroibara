@@ -12,9 +12,11 @@ allow-licenses:
   - Python-2.0
   - Python-2.0.1
   - PSF-2.0
+  - CC0-1.0
   - "MIT AND Python-2.0.1"
   - "MIT AND PSF-2.0 AND Python-2.0"
   - "BSD-2-Clause AND BSD-3-Clause AND Beerware AND ISC AND LicenseRef-scancode-warranty-disclaimer AND UnixCrypt"
+  - "CC0-1.0 AND MIT"
   - Unlicense
   - GPL-3.0
   - LGPL-2.1

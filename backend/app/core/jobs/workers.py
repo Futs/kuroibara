@@ -8,7 +8,7 @@ and other background tasks with proper error handling and progress tracking.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from .events import JobEventType
@@ -300,7 +300,7 @@ class HealthCheckWorker(BaseWorker):
 
         health_results = {
             "provider": job.provider_name,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "tests": {},
         }
 

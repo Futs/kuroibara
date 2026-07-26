@@ -8,7 +8,7 @@ provider system with better error isolation, monitoring, and modularity.
 import logging
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -73,7 +73,7 @@ class AgentMetrics:
     ):
         """Record a request and its outcome."""
         self.total_requests += 1
-        self.last_request_time = datetime.utcnow()
+        self.last_request_time = datetime.now(timezone.utc)
 
         if success:
             self.successful_requests += 1
@@ -81,7 +81,7 @@ class AgentMetrics:
             self.failed_requests += 1
             if error:
                 self.last_error = error
-                self.last_error_time = datetime.utcnow()
+                self.last_error_time = datetime.now(timezone.utc)
 
         # Update average response time
         if self.total_requests == 1:
@@ -141,7 +141,7 @@ class BaseAgent(ABC):
             return True
 
         # Check if timeout has passed
-        time_since_open = (datetime.utcnow() - self._circuit_opened_at).total_seconds()
+        time_since_open = (datetime.now(timezone.utc) - self._circuit_opened_at).total_seconds()
         if time_since_open > self._circuit_breaker_timeout:
             logger.info(
                 f"Circuit breaker timeout passed for {self.name}, attempting recovery"
@@ -154,7 +154,7 @@ class BaseAgent(ABC):
     def _open_circuit_breaker(self):
         """Open the circuit breaker due to too many failures."""
         self.status = AgentStatus.CIRCUIT_OPEN
-        self._circuit_opened_at = datetime.utcnow()
+        self._circuit_opened_at = datetime.now(timezone.utc)
         self.metrics.circuit_breaker_count += 1
         logger.warning(f"Circuit breaker opened for agent {self.name}")
 

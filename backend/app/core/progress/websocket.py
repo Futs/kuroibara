@@ -8,7 +8,7 @@ updates to connected clients.
 import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 from uuid import uuid4
 
@@ -150,7 +150,7 @@ class WebSocketManager:
             {
                 "type": "connection_established",
                 "connection_id": connection.id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 
@@ -226,7 +226,7 @@ class WebSocketManager:
 
             elif message_type == "ping":
                 await connection.send_message(
-                    {"type": "pong", "timestamp": datetime.utcnow().isoformat()}
+                    {"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()}
                 )
 
             else:
@@ -376,7 +376,7 @@ class WebSocketManager:
                         success = await connection.send_message(
                             {
                                 "type": "heartbeat",
-                                "timestamp": datetime.utcnow().isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                             }
                         )
                         if not success:

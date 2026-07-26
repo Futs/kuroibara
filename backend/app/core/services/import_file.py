@@ -676,28 +676,28 @@ async def _fetch_and_create_chapters(
                 if existing_chapter:
                     continue  # Skip if chapter already exists
 
-                # Parse datetime fields (convert to naive UTC)
+                # Parse datetime fields (timezone-aware UTC)
                 publish_at = chapter_data.get("publish_at")
                 if publish_at and isinstance(publish_at, str):
-                    # Parse ISO format datetime string and convert to naive UTC
                     try:
-                        dt = datetime.fromisoformat(publish_at.replace("Z", "+00:00"))
-                        publish_at = dt.replace(tzinfo=None)  # Remove timezone info
+                        publish_at = datetime.fromisoformat(
+                            publish_at.replace("Z", "+00:00")
+                        )
                     except ValueError:
-                        publish_at = datetime.utcnow()
+                        publish_at = datetime.now(timezone.utc)
                 elif not publish_at:
-                    publish_at = datetime.utcnow()
+                    publish_at = datetime.now(timezone.utc)
 
                 readable_at = chapter_data.get("readable_at")
                 if readable_at and isinstance(readable_at, str):
-                    # Parse ISO format datetime string and convert to naive UTC
                     try:
-                        dt = datetime.fromisoformat(readable_at.replace("Z", "+00:00"))
-                        readable_at = dt.replace(tzinfo=None)  # Remove timezone info
+                        readable_at = datetime.fromisoformat(
+                            readable_at.replace("Z", "+00:00")
+                        )
                     except ValueError:
-                        readable_at = datetime.utcnow()
+                        readable_at = datetime.now(timezone.utc)
                 elif not readable_at:
-                    readable_at = datetime.utcnow()
+                    readable_at = datetime.now(timezone.utc)
 
                 # Create new chapter
                 # Convert number to string to match database schema

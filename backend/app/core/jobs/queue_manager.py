@@ -8,7 +8,7 @@ download jobs, health checks, and other background tasks.
 import asyncio
 import logging
 from collections import defaultdict, deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Set
 from uuid import uuid4
 
@@ -508,7 +508,7 @@ class DownloadQueueManager:
 
     async def _cleanup_old_jobs(self) -> None:
         """Remove old completed jobs to prevent memory bloat."""
-        cutoff_time = datetime.utcnow() - timedelta(hours=24)  # Keep jobs for 24 hours
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)  # Keep jobs for 24 hours
 
         jobs_to_remove = []
         for job_id, job in self._jobs.items():

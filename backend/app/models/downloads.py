@@ -5,7 +5,7 @@ This module defines the DownloadTask model for managing the persistent download 
 tracking progress, retries, and metadata for manga and chapter downloads.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -49,10 +49,20 @@ class DownloadTask(Base):
     total_bytes = Column(Integer, default=0)
 
     # Timing and persistence
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-    started_at = Column(DateTime, index=True)
-    completed_at = Column(DateTime, index=True)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
+    started_at = Column(DateTime(timezone=True), index=True)
+    completed_at = Column(DateTime(timezone=True), index=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
 
     # Retry logic
     retry_count = Column(Integer, default=0)

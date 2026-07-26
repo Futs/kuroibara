@@ -1,7 +1,7 @@
 """Anilist API client for manga list integration."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
@@ -67,7 +67,7 @@ class AnilistClient(BaseIntegrationClient):
                 return {
                     "access_token": data["access_token"],
                     "refresh_token": data.get("refresh_token"),
-                    "expires_at": datetime.utcnow()
+                    "expires_at": datetime.now(timezone.utc)
                     + timedelta(seconds=data.get("expires_in", 3600)),
                     "user_info": user_info,
                 }

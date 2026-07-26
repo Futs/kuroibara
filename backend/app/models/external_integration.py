@@ -56,7 +56,7 @@ class ExternalIntegration(BaseModel):
     # Authentication data
     access_token = Column(Text, nullable=True)  # Encrypted access token
     refresh_token = Column(Text, nullable=True)  # Encrypted refresh token
-    token_expires_at = Column(DateTime, nullable=True)
+    token_expires_at = Column(DateTime(timezone=True), nullable=True)
 
     # External account info
     external_user_id = Column(String(100), nullable=True)
@@ -72,7 +72,7 @@ class ExternalIntegration(BaseModel):
     auto_sync = Column(Boolean, default=True, nullable=False)  # Auto sync on changes
 
     # Sync tracking
-    last_sync_at = Column(DateTime, nullable=True)
+    last_sync_at = Column(DateTime(timezone=True), nullable=True)
     last_sync_status = Column(
         SQLEnum(SyncStatus), default=SyncStatus.PENDING, nullable=False
     )
@@ -118,7 +118,7 @@ class ExternalMangaMapping(BaseModel):
     external_url = Column(String(500), nullable=True)
 
     # Sync data
-    last_synced_at = Column(DateTime, nullable=True)
+    last_synced_at = Column(DateTime(timezone=True), nullable=True)
     sync_status = Column(
         SQLEnum(SyncStatus), default=SyncStatus.PENDING, nullable=False
     )

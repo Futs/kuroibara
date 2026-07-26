@@ -153,8 +153,12 @@ class Chapter(BaseModel):
     source = Column(
         String(50), nullable=True
     )  # Source of the chapter (website, scanner, etc.)
-    publish_at = Column(DateTime, nullable=True)  # When the chapter was published
-    readable_at = Column(DateTime, nullable=True)  # When the chapter became readable
+    publish_at = Column(
+        DateTime(timezone=True), nullable=True
+    )  # When the chapter was published
+    readable_at = Column(
+        DateTime(timezone=True), nullable=True
+    )  # When the chapter became readable
 
     # Download tracking fields
     download_status = Column(

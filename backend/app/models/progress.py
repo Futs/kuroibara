@@ -5,7 +5,7 @@ This module defines SQLAlchemy models for persisting progress operations
 and events to the database.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
@@ -48,10 +48,20 @@ class ProgressOperationModel(Base):
     current_step_number = Column(Integer)
 
     # Timing information
-    started_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-    completed_at = Column(DateTime, index=True)
-    estimated_completion = Column(DateTime)
-    last_update = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    started_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
+    completed_at = Column(DateTime(timezone=True), index=True)
+    estimated_completion = Column(DateTime(timezone=True))
+    last_update = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
 
     # Error and warning information
     error_message = Column(Text)
@@ -138,7 +148,7 @@ class ProgressOperationModel(Base):
         if self.completed_at and self.started_at:
             return (self.completed_at - self.started_at).total_seconds()
         elif self.status == "running" and self.started_at:
-            return (datetime.utcnow() - self.started_at).total_seconds()
+            return (datetime.now(timezone.utc) - self.started_at).total_seconds()
         return None
 
 
@@ -172,8 +182,13 @@ class ProgressEventModel(Base):
     event_metadata = Column(JSON)
 
     # Timing information
-    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-    estimated_completion = Column(DateTime)
+    timestamp = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
+    estimated_completion = Column(DateTime(timezone=True))
 
     # Additional context
     user_id = Column(PostgresUUID(as_uuid=True), index=True)
@@ -225,9 +240,17 @@ class ProgressSessionModel(Base):
 
     # Session information
     user_id = Column(PostgresUUID(as_uuid=True), index=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
     last_activity = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
     )
     is_active = Column(Boolean, default=True, index=True)
 

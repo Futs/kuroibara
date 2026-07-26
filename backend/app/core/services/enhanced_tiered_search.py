@@ -1,7 +1,7 @@
 """Enhanced search service using tiered indexing system."""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, cast, or_, select
@@ -283,7 +283,7 @@ class EnhancedTieredSearchService:
             if fresh_data:
                 # Update entry with fresh data
                 self._update_entry_from_metadata(entry, fresh_data)
-                entry.last_refreshed = datetime.utcnow()
+                entry.last_refreshed = datetime.now(timezone.utc)
 
                 await db.commit()
                 logger.info(f"Refreshed entry {entry_id} from {entry.source_indexer}")
@@ -420,7 +420,7 @@ class EnhancedTieredSearchService:
             total_chapters=metadata.total_chapters,
             confidence_score=metadata.confidence_score,
             data_completeness=self._calculate_completeness(metadata),
-            last_refreshed=datetime.utcnow(),
+            last_refreshed=datetime.now(timezone.utc),
             raw_data=metadata.raw_data,
         )
 
@@ -458,7 +458,7 @@ class EnhancedTieredSearchService:
         entry.total_chapters = metadata.total_chapters or entry.total_chapters
         entry.confidence_score = max(metadata.confidence_score, entry.confidence_score)
         entry.data_completeness = self._calculate_completeness_from_entry(entry)
-        entry.last_refreshed = datetime.utcnow()
+        entry.last_refreshed = datetime.now(timezone.utc)
         entry.raw_data = metadata.raw_data or entry.raw_data
 
     def _calculate_completeness(self, metadata: UniversalMetadata) -> float:
@@ -504,7 +504,7 @@ class EnhancedTieredSearchService:
             return True
 
         hours_since_refresh = (
-            datetime.utcnow() - entry.last_refreshed
+            datetime.now(timezone.utc) - entry.last_refreshed
         ).total_seconds() / 3600
         return hours_since_refresh >= entry.refresh_interval_hours
 

@@ -284,7 +284,7 @@ class EnhancedSearchService:
 
                 duration = time.perf_counter() - start_time
                 logger.info(
-                    f"[DEBUG] Processed result {i+1}/{len(mu_results['results'])} ({mu_result['record']['series_id']}) in {duration:.2f}s"
+                    f"[DEBUG] Processed result {i + 1}/{len(mu_results['results'])} ({mu_result['record']['series_id']}) in {duration:.2f}s"
                 )
 
             except Exception as e:

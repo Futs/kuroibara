@@ -254,7 +254,7 @@ class MadaraDexProvider(BaseProvider):
                     rating_match = re.search(r"(\d+(?:\.\d+)?)", rating_text)
                     if rating_match:
                         details["rating"] = float(rating_match.group(1))
-                except ValueError, AttributeError:
+                except (ValueError, AttributeError):
                     pass
 
             return details

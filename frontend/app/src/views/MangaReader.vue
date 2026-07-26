@@ -366,9 +366,53 @@
         </div>
 
         <div class="flex items-center space-x-2">
+          <button
+            @click="prevPage"
+            :disabled="!hasPrevPage"
+            title="Previous page"
+            class="p-1 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              class="h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+
           <span class="text-sm text-gray-700 dark:text-gray-200">
             {{ currentPage }} / {{ totalPages }}
           </span>
+
+          <button
+            @click="nextPage"
+            :disabled="!hasNextPage"
+            title="Next page"
+            class="p-1 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              class="h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
 
           <!-- Divider -->
           <div class="h-6 w-px bg-gray-300 dark:bg-dark-600 ml-2"></div>
@@ -1392,6 +1436,10 @@
           'reader-fit-both': settings.fitMode === 'both',
         }"
         @scroll="handleListScroll"
+        @wheel="handleListOverscroll"
+        @touchstart="handleListTouchStart"
+        @touchmove="handleListTouchMove"
+        @touchend="handleListTouchEnd"
       >
         <div
           class="flex flex-col items-center space-y-2 py-4"
@@ -1422,6 +1470,31 @@
         >
           {{ currentPageInView }} / {{ totalPages }}
         </div>
+
+        <!-- End of Chapter indicator - shown after reaching the bottom of the
+             list; keep scrolling/swiping past it to advance to the next chapter -->
+        <Transition name="fade">
+          <div
+            v-if="showEndOfChapterBanner"
+            class="fixed bottom-0 left-0 right-0 flex flex-col items-center py-6 bg-gradient-to-t from-black/70 to-transparent text-white pointer-events-none"
+          >
+            <p class="text-sm font-medium">
+              {{ hasNextChapter ? "End of Chapter" : "End of Chapter (last chapter)" }}
+            </p>
+            <p v-if="hasNextChapter" class="text-xs opacity-75 mt-1">
+              Keep scrolling for the next chapter
+            </p>
+            <div
+              v-if="hasNextChapter"
+              class="mt-2 h-1 w-24 rounded-full bg-white/20 overflow-hidden"
+            >
+              <div
+                class="h-full bg-white/80 transition-[width] duration-100"
+                :style="{ width: `${overscrollProgress * 100}%` }"
+              ></div>
+            </div>
+          </div>
+        </Transition>
       </div>
 
       <!-- Adaptive Mode (fallback to single page while analyzing) -->
@@ -1546,6 +1619,39 @@ const controlsTimeout = ref(null);
 // List view state
 const currentPageInView = ref(1);
 const pageIntersectionObserver = ref(null);
+
+// End-of-chapter scroll/overscroll state (list/continuous mode)
+const showEndOfChapterBanner = ref(false);
+const overscrollAmount = ref(0);
+const OVERSCROLL_THRESHOLD = 120; // px-equivalent of continued scroll/swipe needed to advance
+let touchStartY = null;
+let advancingChapter = false;
+
+const overscrollProgress = computed(() =>
+  Math.min(overscrollAmount.value / OVERSCROLL_THRESHOLD, 1),
+);
+
+const isAtBottomOfList = (container) => {
+  return (
+    container.scrollTop + container.clientHeight >= container.scrollHeight - 5
+  );
+};
+
+const resetOverscroll = () => {
+  overscrollAmount.value = 0;
+};
+
+const maybeAdvanceChapter = () => {
+  if (advancingChapter || !hasNextChapter.value) return;
+  advancingChapter = true;
+  nextChapter();
+  showEndOfChapterBanner.value = false;
+  resetOverscroll();
+  // Allow re-triggering once the new chapter has loaded and this guard resets
+  setTimeout(() => {
+    advancingChapter = false;
+  }, 1000);
+};
 
 // Bookmark state
 const bookmarkNote = ref("");
@@ -1673,6 +1779,65 @@ const handleListScroll = (event) => {
       }
     }
   });
+
+  if (isAtBottomOfList(container)) {
+    showEndOfChapterBanner.value = true;
+  } else if (showEndOfChapterBanner.value) {
+    showEndOfChapterBanner.value = false;
+    resetOverscroll();
+  }
+};
+
+// Desktop: mouse wheel / trackpad. Once already scrolled to the bottom, the
+// container's scrollTop can't increase further so no `scroll` event fires -
+// track wheel deltaY directly to detect "still trying to scroll down".
+const handleListOverscroll = (event) => {
+  const container = event.currentTarget;
+  if (!isAtBottomOfList(container) || event.deltaY <= 0) {
+    return;
+  }
+
+  overscrollAmount.value += event.deltaY;
+  showEndOfChapterBanner.value = true;
+
+  if (overscrollAmount.value >= OVERSCROLL_THRESHOLD) {
+    maybeAdvanceChapter();
+  }
+};
+
+// Mobile: touch swipe. Same idea as the wheel handler, but based on the
+// upward drag distance once the list is already pinned to the bottom.
+const handleListTouchStart = (event) => {
+  touchStartY = event.touches[0]?.clientY ?? null;
+};
+
+const handleListTouchMove = (event) => {
+  const container = event.currentTarget;
+  if (touchStartY === null || !isAtBottomOfList(container)) {
+    return;
+  }
+
+  const currentY = event.touches[0]?.clientY ?? touchStartY;
+  const draggedUp = touchStartY - currentY; // positive = swiping up (scrolling down)
+
+  if (draggedUp <= 0) {
+    overscrollAmount.value = 0;
+    return;
+  }
+
+  overscrollAmount.value = draggedUp;
+  showEndOfChapterBanner.value = true;
+
+  if (overscrollAmount.value >= OVERSCROLL_THRESHOLD) {
+    maybeAdvanceChapter();
+  }
+};
+
+const handleListTouchEnd = () => {
+  touchStartY = null;
+  if (!advancingChapter) {
+    resetOverscroll();
+  }
 };
 
 // Image load handler
@@ -1848,11 +2013,17 @@ const currentUILayout = computed(() => {
 
 // Helper function to reset scroll position
 const resetScrollPosition = () => {
+  showEndOfChapterBanner.value = false;
+  resetOverscroll();
   setTimeout(() => {
     const container = document.querySelector(".reader-page-container");
     if (container) {
       container.scrollTop = 0;
       container.scrollLeft = 0;
+    }
+    const listContainer = document.querySelector(".reader-list-container");
+    if (listContainer) {
+      listContainer.scrollTop = 0;
     }
   }, 50);
 };
@@ -2189,5 +2360,15 @@ onBeforeUnmount(() => {
 
 .nav-button-right:hover {
   background: linear-gradient(to left, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

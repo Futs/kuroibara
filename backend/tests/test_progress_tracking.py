@@ -6,7 +6,7 @@ operations, WebSocket management, persistence, and bulk operations.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
@@ -72,7 +72,7 @@ class TestProgressEvent:
             "event_type": "progress",
             "progress_percentage": 75.0,
             "message": "Test message",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         event = ProgressEvent.from_dict(event_data)

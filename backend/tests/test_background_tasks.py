@@ -6,7 +6,6 @@ import pytest
 from app.core.services.background import (
     cancel_download_task,
     download_manga_task,
-    get_download_task,
     get_user_download_tasks,
 )
 
@@ -46,7 +45,7 @@ async def test_download_manga_task(mock_download_manga):
 
     # Find the task by checking all tasks for this user/manga combination
     task = None
-    for task_id, task_data in download_tasks.items():
+    for _task_id, task_data in download_tasks.items():
         if (
             task_data["user_id"] == str(user_id)
             and task_data["manga_id"] == str(manga_id)
@@ -92,7 +91,7 @@ async def test_download_manga_task_error(mock_download_manga):
 
     # Find the task by checking all tasks for this user/manga combination
     task = None
-    for task_id, task_data in download_tasks.items():
+    for _task_id, task_data in download_tasks.items():
         if (
             task_data["user_id"] == str(user_id)
             and task_data["manga_id"] == str(manga_id)

@@ -217,9 +217,11 @@ describe("Performance Utilities", () => {
     });
 
     it("should preload images", async () => {
-      // Mock Image constructor - create new mock for each instance
+      // Mock Image constructor - create new mock for each instance. Must be
+      // a real function, not an arrow function, so `new Image()` doesn't
+      // throw "is not a constructor".
       const mockImages = [];
-      global.Image = vi.fn(() => {
+      global.Image = vi.fn(function () {
         const mockImage = {
           onload: null,
           onerror: null,

@@ -9,7 +9,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -136,7 +136,7 @@ class AgentRateLimiter:
 
             # Record request
             self.metrics.total_requests += 1
-            self.metrics.last_request_time = datetime.utcnow()
+            self.metrics.last_request_time = datetime.now(timezone.utc)
 
         except Exception:
             self.semaphore.release()
@@ -262,7 +262,7 @@ class AgentRateLimiter:
             return
 
         # Don't adjust too frequently
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if (
             self.metrics.last_adjustment_time
             and (now - self.metrics.last_adjustment_time).total_seconds() < 30

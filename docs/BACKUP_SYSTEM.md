@@ -15,12 +15,14 @@ The backup system consists of:
 ## Backup Types
 
 ### Database-Only Backups
+
 - **Contents**: User accounts, manga metadata, reading progress, settings
 - **Size**: Small (typically 1-10 MB)
 - **Speed**: Fast (seconds to minutes)
 - **Use Case**: Daily backups, quick metadata protection
 
 ### Full Backups
+
 - **Contents**: Database + all manga files and storage
 - **Size**: Large (depends on library size)
 - **Speed**: Slower (minutes to hours)
@@ -30,11 +32,11 @@ The backup system consists of:
 
 ### Default Schedule
 
-| Type | Frequency | Time | Contents | Retention |
-|------|-----------|------|----------|-----------|
-| Daily | Every day | 2:00 AM | Database only | 7 backups |
-| Weekly | Sunday | 3:00 AM | Full backup | 4 backups |
-| Monthly | 1st day | 4:00 AM | Full backup | 12 backups |
+| Type    | Frequency | Time    | Contents      | Retention  |
+| ------- | --------- | ------- | ------------- | ---------- |
+| Daily   | Every day | 2:00 AM | Database only | 7 backups  |
+| Weekly  | Sunday    | 3:00 AM | Full backup   | 4 backups  |
+| Monthly | 1st day   | 4:00 AM | Full backup   | 12 backups |
 
 ### Configuration
 
@@ -55,18 +57,18 @@ MAX_BACKUPS=30
 
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 services:
   backend:
     volumes:
       - storage_data:/app/storage
-      - backup_data:/app/backups    # Backup volume
+      - backup_data:/app/backups # Backup volume
     environment:
       - BACKUP_PATH=/app/backups
 
 volumes:
   storage_data:
-  backup_data:                      # Persistent backup storage
+  backup_data: # Persistent backup storage
 ```
 
 ## Manual Backup Operations
@@ -76,17 +78,20 @@ volumes:
 Access via: **User Menu → Backup & Restore**
 
 **Create Backup:**
+
 1. Click "Create Backup"
 2. Choose backup name (optional)
 3. Select "Include storage files" for full backup
 4. Click "Create Backup"
 
 **Download Backup:**
+
 1. Find backup in the list
 2. Click "Download" button
 3. File downloads to your browser's download folder
 
 **Upload & Restore:**
+
 1. Click "Upload & Restore"
 2. Select backup file (.tar.gz)
 3. Confirm overwrite warning
@@ -95,6 +100,7 @@ Access via: **User Menu → Backup & Restore**
 ### API Operations
 
 #### Create Backup
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/backup/create" \
   -H "Authorization: Bearer $JWT_TOKEN" \
@@ -106,12 +112,14 @@ curl -X POST "http://localhost:8000/api/v1/backup/create" \
 ```
 
 #### List Backups
+
 ```bash
 curl -X GET "http://localhost:8000/api/v1/backup/list" \
   -H "Authorization: Bearer $JWT_TOKEN"
 ```
 
 #### Download Backup
+
 ```bash
 curl -X GET "http://localhost:8000/api/v1/backup/download/backup_20230710.tar.gz" \
   -H "Authorization: Bearer $JWT_TOKEN" \
@@ -119,6 +127,7 @@ curl -X GET "http://localhost:8000/api/v1/backup/download/backup_20230710.tar.gz
 ```
 
 #### Upload & Restore
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/backup/upload-restore" \
   -H "Authorization: Bearer $JWT_TOKEN" \
@@ -135,6 +144,7 @@ kuroibara_backup_20230710_140000.tar.gz
 ```
 
 ### Metadata Format
+
 ```json
 {
   "backup_name": "weekly_20230710",
@@ -159,16 +169,19 @@ kuroibara_backup_20230710_140000.tar.gz
 ### Restore Scenarios
 
 #### Scenario 1: Complete System Recovery
+
 - **Situation**: Total system failure, new installation
 - **Process**: Upload full backup → Complete restore
 - **Result**: Exact replica of backed-up state
 
 #### Scenario 2: Database Corruption
+
 - **Situation**: Database issues, storage intact
 - **Process**: Upload database-only backup → Database restore
 - **Result**: Metadata restored, existing storage preserved
 
 #### Scenario 3: Storage Loss
+
 - **Situation**: Storage corruption, database intact
 - **Process**: Use storage recovery tools + restore storage from backup
 - **Result**: Files restored, metadata preserved
@@ -178,6 +191,7 @@ kuroibara_backup_20230710_140000.tar.gz
 ### Complete System Loss
 
 1. **Deploy New Instance**
+
    ```bash
    docker-compose up -d
    ```
@@ -256,16 +270,19 @@ kuroibara_backup_20230710_140000.tar.gz
 ### Common Issues
 
 #### Backup Creation Fails
+
 - **Check disk space** in backup directory
 - **Verify database connectivity** for pg_dump
 - **Check permissions** on backup directory
 
 #### Restore Fails
+
 - **Verify backup file integrity** (not corrupted)
 - **Check database connectivity** for restore
 - **Ensure sufficient disk space** for extraction
 
 #### Scheduled Backups Not Running
+
 - **Check scheduler status** in application logs
 - **Verify backup settings** in configuration
 - **Check system time** and timezone settings
@@ -301,17 +318,20 @@ tar -xzf storage.tar.gz -C /app/
 ## Migration Between Instances
 
 ### Export from Source
+
 1. Create full backup on source instance
 2. Download backup file
 3. Verify backup integrity
 
 ### Import to Destination
+
 1. Deploy new Kuroibara instance
 2. Upload backup file
 3. Wait for restore completion
 4. Verify migration success
 
 ### Post-Migration Checklist
+
 - [ ] All manga appear in library
 - [ ] Reading progress preserved
 - [ ] User settings intact
@@ -321,12 +341,14 @@ tar -xzf storage.tar.gz -C /app/
 ## Monitoring and Maintenance
 
 ### Health Checks
+
 - Monitor backup creation success/failure
 - Check backup file sizes and growth
 - Verify scheduled backup execution
 - Test restore procedures periodically
 
 ### Maintenance Tasks
+
 - Clean up old backups regularly
 - Monitor backup storage usage
 - Update backup retention policies

@@ -63,6 +63,10 @@ export const useDownloadsStore = defineStore("downloads", {
               status: download.status || "downloading",
               downloaded_pages: download.downloaded_pages || 0,
               total_pages: download.total_pages || 0,
+              priority: download.priority !== undefined ? download.priority : 3,
+              manga_title: download.manga_title || "Loading...",
+              chapter_title: download.chapter_title || "",
+              type: download.type || "chapter",
             });
           });
         } else {
@@ -395,12 +399,19 @@ export const useDownloadsStore = defineStore("downloads", {
       }
     },
 
-    async retryDownload(downloadData) {
+    async retryDownload(download) {
       try {
-        // Re-add the failed download to the queue
-        // This would typically call the same API endpoint that started the original download
-        console.log("Retrying download:", downloadData);
-        // Implementation depends on your backend API structure
+        console.log(`Retrying download: ${download.id}`);
+        // Re-enqueue the download using the enqueue endpoint
+        await api.post("/v1/downloads/enqueue", {
+          manga_id: download.manga_id,
+          provider_name: download.provider_name,
+          external_id: download.external_id,
+          priority: download.priority || 3,
+        });
+
+        // Remove from active/history and let the new enqueue handle it
+        this.activeDownloads.delete(download.id);
       } catch (error) {
         console.error("Error retrying download:", error);
         throw error;

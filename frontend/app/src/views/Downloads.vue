@@ -353,9 +353,9 @@ const activeDownloads = computed(() => {
 });
 
 const queuedDownloads = computed(() => {
-  return Array.from(downloadsStore.activeDownloads.values()).filter(
-    (download) => download.status === "queued",
-  );
+  return Array.from(downloadsStore.activeDownloads.values())
+    .filter((download) => download.status === "queued")
+    .sort((a, b) => a.priority - b.priority);
 });
 
 const downloadHistory = computed(() => {

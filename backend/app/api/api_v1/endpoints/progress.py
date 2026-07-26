@@ -103,7 +103,7 @@ async def get_progress_summary(
     """Get a summary of all progress operations."""
     try:
         operations = progress_tracker.get_operations(
-            user_id=user_id, session_id=session_id, limit=1000  # Get all for summary
+            user_id=user_id, session_id=session_id
         )
 
         # Calculate summary statistics

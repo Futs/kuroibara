@@ -77,12 +77,16 @@ async def extract_archive(archive_path: str, extract_to: str) -> List[str]:
 
 def get_manga_storage_path(manga_id: uuid.UUID) -> str:
     """Get the storage path for a manga."""
-    return os.path.join(settings.STORAGE_PATH, "manga", str(manga_id))
+    return os.path.join(settings.STORAGE_PATH, "manga", str(uuid.UUID(str(manga_id))))
 
 
 def get_chapter_storage_path(manga_id: uuid.UUID, chapter_id: uuid.UUID) -> str:
     """Get the storage path for a chapter."""
-    return os.path.join(get_manga_storage_path(manga_id), "chapters", str(chapter_id))
+    return os.path.join(
+        get_manga_storage_path(manga_id),
+        "chapters",
+        str(uuid.UUID(str(chapter_id))),
+    )
 
 
 def get_cover_storage_path(manga_id: uuid.UUID) -> str:
@@ -94,8 +98,14 @@ def get_page_storage_path(
     manga_id: uuid.UUID, chapter_id: uuid.UUID, page_number: int, file_ext: str = ".jpg"
 ) -> str:
     """Get the storage path for a page."""
+    # Only allow known-safe image extensions - page_number/file_ext otherwise
+    # end up in a path built from manga_id/chapter_id, which are validated as
+    # UUIDs above but file_ext still originates from a provider-supplied URL.
+    if file_ext not in (".jpg", ".jpeg", ".png", ".gif", ".webp"):
+        file_ext = ".jpg"
     return os.path.join(
-        get_chapter_storage_path(manga_id, chapter_id), f"{page_number:04d}{file_ext}"
+        get_chapter_storage_path(manga_id, chapter_id),
+        f"{int(page_number):04d}{file_ext}",
     )
 
 

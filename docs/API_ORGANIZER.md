@@ -9,6 +9,7 @@ All organizer endpoints are prefixed with `/api/v1/organizer`
 ## Authentication
 
 All endpoints require authentication via JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <jwt_token>
 ```
@@ -22,6 +23,7 @@ Validate a naming format template for syntax and safety.
 **Endpoint:** `POST /validate-naming-format`
 
 **Request Body:**
+
 ```json
 {
   "template": "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}"
@@ -29,6 +31,7 @@ Validate a naming format template for syntax and safety.
 ```
 
 **Response:**
+
 ```json
 {
   "is_valid": true,
@@ -44,6 +47,7 @@ Retrieve current user's naming settings.
 **Endpoint:** `GET /naming-settings`
 
 **Response:**
+
 ```json
 {
   "naming_format_manga": "{Manga Title}/Volume {Volume}/{Chapter Number} - {Chapter Name}",
@@ -61,6 +65,7 @@ Update user's naming settings.
 **Endpoint:** `PUT /naming-settings`
 
 **Request Body:**
+
 ```json
 {
   "naming_format_manga": "{Manga Title}/Volume {Volume}",
@@ -82,6 +87,7 @@ Organize a single chapter according to user's naming preferences.
 **Endpoint:** `POST /organize/chapter`
 
 **Request Body:**
+
 ```json
 {
   "chapter_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -91,10 +97,13 @@ Organize a single chapter according to user's naming preferences.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
-  "organized_files": ["/app/storage/manga/.../organized/Naruto/Volume 1/1 - Enter Sasuke!.cbz"],
+  "organized_files": [
+    "/app/storage/manga/.../organized/Naruto/Volume 1/1 - Enter Sasuke!.cbz"
+  ],
   "created_directories": ["/app/storage/manga/.../organized/Naruto/Volume 1"],
   "errors": [],
   "warnings": []
@@ -108,6 +117,7 @@ Organize all chapters of a manga (background task).
 **Endpoint:** `POST /organize/manga`
 
 **Request Body:**
+
 ```json
 {
   "manga_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -117,6 +127,7 @@ Organize all chapters of a manga (background task).
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Organization job started",
@@ -132,6 +143,7 @@ Organize multiple manga/chapters at once (background task).
 **Endpoint:** `POST /organize/batch`
 
 **Request Body:**
+
 ```json
 {
   "manga_ids": ["550e8400-e29b-41d4-a716-446655440000"],
@@ -143,6 +155,7 @@ Organize multiple manga/chapters at once (background task).
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Batch organization job started",
@@ -161,6 +174,7 @@ Retrieve user's organization jobs with progress information.
 **Endpoint:** `GET /jobs`
 
 **Response:**
+
 ```json
 [
   {
@@ -186,6 +200,7 @@ Retrieve detailed information about a specific organization job.
 **Endpoint:** `GET /jobs/{job_id}`
 
 **Response:**
+
 ```json
 {
   "id": "880e8400-e29b-41d4-a716-446655440000",
@@ -224,6 +239,7 @@ Scan for manga that haven't been organized yet.
 **Endpoint:** `GET /migration/scan`
 
 **Response:**
+
 ```json
 [
   {
@@ -259,6 +275,7 @@ Get a migration plan for organizing a specific manga.
 **Endpoint:** `GET /migration/plan/{manga_id}`
 
 **Response:**
+
 ```json
 {
   "manga_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -291,6 +308,7 @@ Validate that a manga's organized structure is correct.
 **Endpoint:** `GET /validation/{manga_id}`
 
 **Response:**
+
 ```json
 {
   "valid": true,
@@ -313,6 +331,7 @@ All endpoints may return error responses in the following format:
 ```
 
 Common HTTP status codes:
+
 - `400 Bad Request`: Invalid request parameters
 - `401 Unauthorized`: Authentication required
 - `403 Forbidden`: Insufficient permissions
@@ -332,6 +351,7 @@ Scan storage for manga that exist in files but not in database.
 **Endpoint:** `GET /recovery/scan-storage`
 
 **Response:**
+
 ```json
 [
   {
@@ -371,6 +391,7 @@ Recover specific manga from storage into database.
 **Endpoint:** `POST /recovery/recover-manga`
 
 **Request Body:**
+
 ```json
 {
   "storage_uuid": "550e8400-e29b-41d4-a716-446655440000",
@@ -382,6 +403,7 @@ Recover specific manga from storage into database.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -399,6 +421,7 @@ Recover multiple manga from storage in batch.
 **Endpoint:** `POST /recovery/batch-recover`
 
 **Request Body:**
+
 ```json
 {
   "recovery_items": [
@@ -418,6 +441,7 @@ Recover multiple manga from storage in batch.
 ```
 
 **Response:**
+
 ```json
 {
   "total_requested": 2,
@@ -446,6 +470,7 @@ Recover multiple manga from storage in batch.
 ## WebSocket Updates (Future)
 
 For real-time progress updates on organization jobs, WebSocket connections will be available at:
+
 ```
 ws://localhost:8000/ws/organizer/jobs/{job_id}
 ```

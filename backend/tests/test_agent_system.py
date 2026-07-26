@@ -6,14 +6,12 @@ agent registry, error isolation, monitoring, and configuration.
 """
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.core.agents import (
     AgentCapability,
     AgentStatus,
-    BaseAgent,
     agent_config_manager,
     agent_monitor,
     agent_registry,

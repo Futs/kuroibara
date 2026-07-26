@@ -13,6 +13,7 @@ The performance optimization system provides comprehensive improvements for hand
 **Location**: `LazyImage.vue`, `VirtualScroller.vue`
 
 #### Features
+
 - **Intersection Observer**: Efficient viewport detection for image loading
 - **Progressive Loading**: Low-quality placeholder → high-quality image
 - **Retry Mechanism**: Automatic retry with exponential backoff
@@ -20,6 +21,7 @@ The performance optimization system provides comprehensive improvements for hand
 - **Memory Management**: Automatic cleanup of off-screen images
 
 #### Usage Example
+
 ```vue
 <LazyImage
   :src="imageUrl"
@@ -33,6 +35,7 @@ The performance optimization system provides comprehensive improvements for hand
 ```
 
 #### Performance Impact
+
 - **Initial Load Time**: 60% faster for large libraries
 - **Memory Usage**: 40% reduction in image memory
 - **Bandwidth**: 50% reduction in unnecessary image loads
@@ -42,6 +45,7 @@ The performance optimization system provides comprehensive improvements for hand
 **Location**: `VirtualScroller.vue`
 
 #### Features
+
 - **Viewport Rendering**: Only render visible items
 - **Dynamic Heights**: Support for variable item heights
 - **Smooth Scrolling**: GPU-accelerated smooth scrolling
@@ -49,6 +53,7 @@ The performance optimization system provides comprehensive improvements for hand
 - **Memory Efficient**: Constant memory usage regardless of list size
 
 #### Usage Example
+
 ```vue
 <VirtualScroller
   :items="mangaList"
@@ -64,6 +69,7 @@ The performance optimization system provides comprehensive improvements for hand
 ```
 
 #### Performance Impact
+
 - **Rendering**: Handles 10,000+ items smoothly
 - **Memory**: Constant ~50MB regardless of list size
 - **Scroll Performance**: 60fps smooth scrolling
@@ -73,32 +79,35 @@ The performance optimization system provides comprehensive improvements for hand
 **Location**: `cdn.js`
 
 #### Supported Providers
+
 - **Cloudinary**: Advanced image transformations
 - **ImageKit**: Real-time image optimization
 - **Custom CDN**: Flexible custom provider support
 - **Fallback Chain**: Automatic provider failover
 
 #### Features
+
 - **Format Optimization**: WebP/AVIF support with fallbacks
 - **Responsive Images**: Automatic srcset generation
 - **Quality Adaptation**: Connection-aware quality adjustment
 - **Preloading**: Intelligent image preloading
 
 #### Usage Example
+
 ```javascript
-import { cdn } from '../utils/cdn';
+import { cdn } from "../utils/cdn";
 
 // Get optimized image URL
 const optimizedUrl = cdn.optimize(originalUrl, {
   width: 400,
   height: 600,
   quality: 80,
-  format: 'webp'
+  format: "webp",
 });
 
 // Generate responsive srcset
 const srcset = cdn.srcset(originalUrl, {
-  breakpoints: [320, 640, 1024, 1920]
+  breakpoints: [320, 640, 1024, 1920],
 });
 
 // Preload critical images
@@ -106,6 +115,7 @@ await cdn.preload(imageUrls, { quality: 60 });
 ```
 
 #### Performance Impact
+
 - **Load Time**: 70% faster image delivery
 - **Bandwidth**: 60% reduction in image size
 - **Cache Hit Rate**: 85% with CDN caching
@@ -115,38 +125,38 @@ await cdn.preload(imageUrls, { quality: 60 });
 **Location**: `backgroundProcessor.js`, `workers/`
 
 #### Worker Types
+
 - **Metadata Worker**: Metadata processing and enrichment
 - **Image Worker**: Image optimization and processing
 - **Duplicate Worker**: Duplicate detection algorithms
 - **Statistics Worker**: Analytics and statistics calculation
 
 #### Features
+
 - **Non-blocking Operations**: Heavy tasks don't freeze UI
 - **Progress Reporting**: Real-time progress updates
 - **Error Handling**: Robust error recovery
 - **Job Management**: Queue management and cancellation
 
 #### Usage Example
+
 ```javascript
-import backgroundProcessor from '../workers/backgroundProcessor';
+import backgroundProcessor from "../workers/backgroundProcessor";
 
 // Process metadata in background
-const result = await backgroundProcessor.processMetadataUpdates(
-  mangaList,
-  {
-    batchSize: 10,
-    onProgress: (progress) => console.log(`${progress.percentage}% complete`)
-  }
-);
+const result = await backgroundProcessor.processMetadataUpdates(mangaList, {
+  batchSize: 10,
+  onProgress: (progress) => console.log(`${progress.percentage}% complete`),
+});
 
 // Detect duplicates
-const duplicates = await backgroundProcessor.detectDuplicates(
-  mangaList,
-  { threshold: 0.8 }
-);
+const duplicates = await backgroundProcessor.detectDuplicates(mangaList, {
+  threshold: 0.8,
+});
 ```
 
 #### Performance Impact
+
 - **UI Responsiveness**: 0ms blocking time for heavy operations
 - **Throughput**: 10x faster batch processing
 - **User Experience**: Smooth interaction during processing
@@ -156,24 +166,27 @@ const duplicates = await backgroundProcessor.detectDuplicates(
 **Location**: `cache.js`
 
 #### Cache Types
+
 - **Memory Cache**: Fast in-memory storage
 - **Session Storage**: Browser session persistence
 - **Local Storage**: Long-term local persistence
 - **LRU Eviction**: Least Recently Used cleanup
 
 #### Features
+
 - **Multi-level Caching**: Memory → Session → Local → Network
 - **TTL Management**: Time-based cache expiration
 - **Size Limits**: Automatic size management
 - **Hit Rate Tracking**: Performance monitoring
 
 #### Usage Example
+
 ```javascript
-import { cache, apiCache, imageCache } from '../utils/cache';
+import { cache, apiCache, imageCache } from "../utils/cache";
 
 // Cache API response
-const data = await apiCache.getOrSet('manga-list', async () => {
-  const response = await fetch('/api/manga');
+const data = await apiCache.getOrSet("manga-list", async () => {
+  const response = await fetch("/api/manga");
   return response.json();
 });
 
@@ -189,6 +202,7 @@ const image = await imageCache.getOrSet(imageUrl, () => {
 ```
 
 #### Performance Impact
+
 - **API Response Time**: 90% faster for cached responses
 - **Image Loading**: 80% faster for cached images
 - **Network Requests**: 70% reduction in API calls
@@ -198,6 +212,7 @@ const image = await imageCache.getOrSet(imageUrl, () => {
 **Location**: `performance.js`
 
 #### Metrics Tracked
+
 - **Navigation Timing**: Page load performance
 - **Resource Timing**: Asset loading performance
 - **Long Tasks**: JavaScript blocking time
@@ -205,22 +220,24 @@ const image = await imageCache.getOrSet(imageUrl, () => {
 - **Custom Metrics**: Application-specific measurements
 
 #### Features
+
 - **Real-time Monitoring**: Live performance tracking
 - **Budget Alerts**: Performance threshold violations
 - **Export Functionality**: Performance data export
 - **Browser Compatibility**: Graceful degradation
 
 #### Usage Example
+
 ```javascript
-import { perf, memory } from '../utils/performance';
+import { perf, memory } from "../utils/performance";
 
 // Time an operation
-perf.start('manga-load');
+perf.start("manga-load");
 await loadManga();
-perf.end('manga-load');
+perf.end("manga-load");
 
 // Time a function
-const result = perf.time('process-metadata', () => {
+const result = perf.time("process-metadata", () => {
   return processMetadata(data);
 });
 
@@ -232,6 +249,7 @@ if (usage.percentage > 80) {
 ```
 
 #### Performance Impact
+
 - **Monitoring Overhead**: <1% performance impact
 - **Issue Detection**: 95% faster problem identification
 - **Optimization Guidance**: Data-driven optimization decisions
@@ -239,18 +257,21 @@ if (usage.percentage > 80) {
 ### 7. Memory Management
 
 #### Features
+
 - **Automatic Cleanup**: Periodic memory cleanup
 - **Image Recycling**: Reuse image elements
 - **Component Pooling**: Reuse Vue components
 - **Garbage Collection**: Force GC when available
 
 #### Strategies
+
 - **Lazy Component Loading**: Load components on demand
 - **Image Placeholder**: Replace off-screen images with placeholders
 - **Cache Size Limits**: Prevent unlimited cache growth
 - **Event Listener Cleanup**: Automatic cleanup on component destroy
 
 #### Performance Impact
+
 - **Memory Usage**: 50% reduction in peak memory
 - **Memory Leaks**: 99% elimination of memory leaks
 - **Stability**: 10x improvement in long-session stability
@@ -258,12 +279,14 @@ if (usage.percentage > 80) {
 ### 8. Bundle Optimization
 
 #### Techniques
+
 - **Code Splitting**: Route-based and component-based splitting
 - **Tree Shaking**: Remove unused code
 - **Dynamic Imports**: Load modules on demand
 - **Compression**: Gzip/Brotli compression
 
 #### Results
+
 - **Initial Bundle**: 60% size reduction
 - **Load Time**: 70% faster initial load
 - **Cache Efficiency**: Better cache utilization
@@ -271,12 +294,14 @@ if (usage.percentage > 80) {
 ### 9. Database Query Optimization
 
 #### Optimizations
+
 - **Indexing**: Optimized database indexes
 - **Query Batching**: Combine multiple queries
 - **Pagination**: Efficient large dataset handling
 - **Caching**: Query result caching
 
 #### Performance Impact
+
 - **Query Speed**: 80% faster database queries
 - **Throughput**: 5x higher concurrent users
 - **Scalability**: Linear scaling with data size
@@ -284,12 +309,14 @@ if (usage.percentage > 80) {
 ### 10. Progressive Loading
 
 #### Features
+
 - **Skeleton Screens**: Loading state indicators
 - **Progressive Enhancement**: Core functionality first
 - **Critical Path**: Prioritize above-the-fold content
 - **Smooth Transitions**: Animated loading states
 
 #### User Experience Impact
+
 - **Perceived Performance**: 40% improvement in perceived speed
 - **User Engagement**: 25% increase in user retention
 - **Bounce Rate**: 30% reduction in bounce rate
@@ -300,13 +327,13 @@ if (usage.percentage > 80) {
 
 ```javascript
 // Performance service initialization
-import performanceService from '../services/performanceService';
+import performanceService from "../services/performanceService";
 
 // Automatic optimization triggers
 performanceService.init();
 
 // Manual optimization control
-performanceService.toggleOptimization('image-optimization', true);
+performanceService.toggleOptimization("image-optimization", true);
 performanceService.updateThresholds({ memoryUsage: 70 });
 ```
 
@@ -328,19 +355,20 @@ const config = {
   enableBackgroundProcessing: true,
   enableCaching: true,
   enableMonitoring: true,
-  
+
   thresholds: {
     memoryUsage: 80,
     loadTime: 3000,
     imageSize: 500 * 1024,
-    longTask: 50
-  }
+    longTask: 50,
+  },
 };
 ```
 
 ## 📊 Performance Metrics
 
 ### Before Optimization
+
 - **Initial Load**: 8-12 seconds for 1000 manga
 - **Memory Usage**: 200-400MB peak
 - **Image Loading**: 2-5 seconds per image
@@ -348,6 +376,7 @@ const config = {
 - **Bundle Size**: 5MB initial
 
 ### After Optimization
+
 - **Initial Load**: 2-3 seconds for 1000 manga
 - **Memory Usage**: 80-150MB peak
 - **Image Loading**: 0.5-1 second per image
@@ -355,6 +384,7 @@ const config = {
 - **Bundle Size**: 1.5MB initial
 
 ### Performance Improvements
+
 - **70% faster initial load**
 - **60% reduction in memory usage**
 - **80% faster image loading**
@@ -367,21 +397,21 @@ const config = {
 
 ```javascript
 // Performance testing
-describe('Performance Optimizations', () => {
-  it('should load 1000 manga items in under 3 seconds', async () => {
+describe("Performance Optimizations", () => {
+  it("should load 1000 manga items in under 3 seconds", async () => {
     const startTime = performance.now();
     await loadMangaLibrary(1000);
     const loadTime = performance.now() - startTime;
-    
+
     expect(loadTime).toBeLessThan(3000);
   });
 
-  it('should maintain memory usage under 150MB', () => {
+  it("should maintain memory usage under 150MB", () => {
     const usage = memory.getUsage();
     expect(usage.used).toBeLessThan(150 * 1024 * 1024);
   });
 
-  it('should achieve 60fps scroll performance', () => {
+  it("should achieve 60fps scroll performance", () => {
     const fps = measureScrollFPS();
     expect(fps).toBeGreaterThanOrEqual(60);
   });

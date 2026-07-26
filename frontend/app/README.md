@@ -120,6 +120,7 @@ The application uses Vue 3's Composition API with `<script setup>` syntax for be
 ### Tailwind CSS 4.0
 
 Utility-first CSS framework for rapid UI development with:
+
 - Responsive design utilities
 - Dark mode support
 - Custom component styling
@@ -128,6 +129,7 @@ Utility-first CSS framework for rapid UI development with:
 ### Pinia State Management
 
 Modern state management with:
+
 - Intuitive API design
 - TypeScript support
 - DevTools integration
@@ -136,6 +138,7 @@ Modern state management with:
 ### Vite Build Tool
 
 Fast development and optimized production builds with:
+
 - Hot module replacement (HMR)
 - Optimized bundling
 - Plugin ecosystem

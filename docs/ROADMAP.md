@@ -3,6 +3,7 @@
 ## Current Version: 0.1.0 (Alpha)
 
 ### ✅ Completed Features
+
 - **Core API Infrastructure**
   - FastAPI backend with async support
   - PostgreSQL database with SQLAlchemy 2.0
@@ -40,6 +41,7 @@
 ## Version 0.2.0 (Beta) - Q2 2025
 
 ### 🔄 In Progress
+
 - **Enhanced Manga Reader Interface**
   - Improved reading experience with better navigation
   - Customizable reading settings (direction, zoom, etc.)
@@ -62,6 +64,7 @@
   - Gesture-based controls
 
 ### 📋 Planned Features
+
 - **Background Task Optimization**
   - Improved download queue management
   - Parallel chapter downloads
@@ -86,6 +89,7 @@
 ## Version 0.3.0 (Release Candidate) - Q3 2025
 
 ### 📋 Planned Features
+
 - **Advanced User Features**
   - Reading lists and collections
   - Social features (reviews, ratings)
@@ -117,6 +121,7 @@
 ## Version 1.0.0 (Stable) - Q4 2025
 
 ### 📋 Planned Features
+
 - **Production Readiness**
   - Complete test coverage (>95%)
   - Comprehensive error handling
@@ -148,6 +153,7 @@
 ## Future Versions (Post 1.0.0)
 
 ### Version 1.1.0 - Advanced Features
+
 - **AI-Powered Recommendations**
   - Machine learning-based manga suggestions
   - Reading pattern analysis
@@ -163,6 +169,7 @@
   - Community moderation tools
 
 ### Version 1.2.0 - Integration and Ecosystem
+
 - **Third-Party Integrations**
   - MyAnimeList synchronization
   - AniList integration
@@ -178,6 +185,7 @@
   - Community plugin marketplace
 
 ### Version 1.3.0 - Advanced Analytics
+
 - **Analytics and Insights**
   - Reading behavior analytics
   - Content popularity metrics
@@ -195,6 +203,7 @@
 ## Long-Term Vision (2025+)
 
 ### Scalability and Performance
+
 - **Microservices Architecture**
   - Service decomposition
   - Independent scaling
@@ -210,6 +219,7 @@
   - Regional compliance support
 
 ### Advanced Technologies
+
 - **Emerging Technologies**
   - WebAssembly integration
   - Progressive Web App enhancements
@@ -227,6 +237,7 @@
 ## Development Priorities
 
 ### High Priority
+
 1. **User Experience** - Intuitive and responsive interface
 2. **Performance** - Fast loading and smooth interactions
 3. **Reliability** - Stable and consistent functionality
@@ -234,6 +245,7 @@
 5. **Accessibility** - Inclusive design for all users
 
 ### Medium Priority
+
 1. **Scalability** - Support for growing user base
 2. **Extensibility** - Plugin and integration support
 3. **Analytics** - Insights and data-driven improvements
@@ -241,6 +253,7 @@
 5. **Compliance** - Legal and regulatory requirements
 
 ### Low Priority
+
 1. **Experimental Features** - Cutting-edge technology adoption
 2. **Niche Use Cases** - Specialized functionality
 3. **Legacy Support** - Backward compatibility
@@ -250,6 +263,7 @@
 ## Contributing to the Roadmap
 
 ### How to Contribute
+
 - **Feature Requests** - Submit ideas through GitHub Issues
 - **User Feedback** - Share your experience and suggestions
 - **Community Discussions** - Participate in roadmap planning
@@ -257,6 +271,7 @@
 - **Testing and QA** - Help validate new features
 
 ### Roadmap Updates
+
 - **Monthly Reviews** - Regular roadmap assessment
 - **Community Input** - User feedback integration
 - **Priority Adjustments** - Based on user needs and technical constraints
@@ -264,6 +279,7 @@
 - **Feature Scope Changes** - Adjustments based on complexity and resources
 
 ### Success Metrics
+
 - **User Adoption** - Growing user base and engagement
 - **Performance Metrics** - Response times and reliability
 - **Feature Completion** - On-time delivery of planned features
@@ -272,4 +288,4 @@
 
 ---
 
-*This roadmap is subject to change based on user feedback, technical constraints, and community priorities. We welcome your input and contributions to help shape the future of Kuroibara.*
+_This roadmap is subject to change based on user feedback, technical constraints, and community priorities. We welcome your input and contributions to help shape the future of Kuroibara._

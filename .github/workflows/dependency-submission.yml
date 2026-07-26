@@ -4,48 +4,49 @@ on:
   push:
     branches: [main, dev]
     paths:
-      - 'backend/requirements.txt'
-      - 'frontend/app/package.json'
-      - 'frontend/app/package-lock.json'
+      - "backend/requirements.txt"
+      - "frontend/app/package.json"
+      - "frontend/app/package-lock.json"
   pull_request:
     branches: [main, dev]
     paths:
-      - 'backend/requirements.txt'
-      - 'frontend/app/package.json'
-      - 'frontend/app/package-lock.json'
+      - "backend/requirements.txt"
+      - "frontend/app/package.json"
+      - "frontend/app/package-lock.json"
   schedule:
     # Run weekly on Sundays at 2 AM UTC
-    - cron: '0 2 * * 0'
+    - cron: "0 2 * * 0"
   workflow_dispatch:
 
 permissions:
   contents: read
   id-token: write
+  pull-requests: write
 
 jobs:
   dependency-submission:
     name: Submit Dependencies
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: '3.12'
+          python-version: "3.14"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '22'
+          node-version: "22"
 
       # Python dependency submission
       - name: Submit Python dependencies
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
-          config-file: '.github/dependency-review-config.yml'
+          config-file: ".github/dependency-review-config.yml"
         continue-on-error: true
 
       # Alternative Python dependency submission using pip-audit
@@ -68,14 +69,14 @@ jobs:
           npm ci
 
       - name: Submit Node.js dependencies
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
-          config-file: '.github/dependency-review-config.yml'
+          config-file: ".github/dependency-review-config.yml"
         continue-on-error: true
 
       # Upload dependency artifacts for analysis
       - name: Upload dependency artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: dependency-analysis
@@ -86,7 +87,7 @@ jobs:
 
       # Security scanning with Snyk (if token is available)
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/setup@master
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
         continue-on-error: true
 
       - name: Snyk monitor
@@ -94,7 +95,7 @@ jobs:
           # Monitor Python dependencies
           cd backend
           snyk monitor --file=requirements.txt --package-manager=pip || echo "Snyk monitoring failed for Python"
-          
+
           # Monitor Node.js dependencies
           cd ../frontend/app
           snyk monitor --file=package.json || echo "Snyk monitoring failed for Node.js"
@@ -107,20 +108,20 @@ jobs:
     name: GitHub Dependency Submission
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: '3.12'
+          python-version: "3.14"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '22'
+          node-version: "22"
 
       # Manual dependency submission for Python
       - name: Generate Python dependency snapshot
@@ -141,7 +142,7 @@ jobs:
 
       # Upload snapshots as artifacts
       - name: Upload dependency snapshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dependency-snapshots
           path: |

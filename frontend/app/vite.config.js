@@ -1,21 +1,21 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import { resolve } from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
+      "@": resolve(__dirname, "src"),
     },
   },
   server: {
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     port: 3000,
     proxy: {
-      '/api': {
-        target: 'http://backend:8000',
+      "/api": {
+        target: "http://backend:8000",
         changeOrigin: true,
         secure: false,
       },
@@ -26,17 +26,17 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/tests/setup.js'],
+    environment: "jsdom",
+    setupFiles: ["./src/tests/setup.js"],
     coverage: {
-      reporter: ['text', 'json', 'html', 'clover'],
+      reporter: ["text", "json", "html", "clover"],
       exclude: [
-        'node_modules/',
-        'src/tests/',
-        '**/*.d.ts',
-        '**/*.config.js',
-        '**/*.config.ts',
+        "node_modules/",
+        "src/tests/",
+        "**/*.d.ts",
+        "**/*.config.js",
+        "**/*.config.ts",
       ],
     },
   },
-})
+});

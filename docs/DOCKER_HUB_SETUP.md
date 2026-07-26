@@ -24,6 +24,7 @@ The workflow uses GitHub environments for deployment control:
 You need to configure the Docker Hub password in both environments:
 
 #### DOCKER_PASSWORD
+
 Your Docker Hub password or access token (recommended) for the `futs` organization.
 
 **Note**: The Docker Hub username is hardcoded to `futs` in the workflow.
@@ -47,6 +48,7 @@ Your Docker Hub password or access token (recommended) for the `futs` organizati
 3. Create two environments:
 
 #### Create Staging Environment
+
 1. Click **New environment**
 2. Name: `staging`
 3. Add environment secret:
@@ -54,6 +56,7 @@ Your Docker Hub password or access token (recommended) for the `futs` organizati
    - **Value**: Your Docker Hub access token
 
 #### Create Production Environment
+
 1. Click **New environment**
 2. Name: `production`
 3. **Optional**: Add protection rules (require reviews, restrict to main branch)
@@ -66,6 +69,7 @@ Your Docker Hub password or access token (recommended) for the `futs` organizati
 The workflow will create the following Docker images:
 
 ### Backend Image
+
 - **Repository**: `futs/kuroibara-backend`
 - **Tags**:
   - `latest` (from main branch)
@@ -73,6 +77,7 @@ The workflow will create the following Docker images:
   - Git tag (e.g., `v0.6.0`)
 
 ### Frontend Image
+
 - **Repository**: `futs/kuroibara-frontend`
 - **Tags**:
   - `latest` (from main branch)
@@ -82,25 +87,30 @@ The workflow will create the following Docker images:
 ## Workflow Triggers & Environments
 
 ### Main Branch Push (Staging Environment)
+
 ```bash
 git push origin main
 ```
+
 - Waits for CI tests to pass
 - Uses **staging** environment
 - Builds and pushes images with `latest` tag
 - Uses current version from `version.sh`
 
 ### Release Creation (Production Environment)
+
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
+
 - Uses **production** environment
 - May require manual approval (if configured)
 - Builds and pushes images immediately
 - Tags with version number and `latest`
 
 ### GitHub Release (Production Environment)
+
 - Triggered when a release is published through GitHub UI
 - Uses **production** environment
 - Uses release tag for versioning
@@ -108,6 +118,7 @@ git push origin v1.0.0
 ## Usage Examples
 
 ### Pull Images
+
 ```bash
 # Backend
 docker pull futs/kuroibara-backend:latest
@@ -119,8 +130,9 @@ docker pull futs/kuroibara-frontend:0.6.0
 ```
 
 ### Docker Compose
+
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   backend:
     image: futs/kuroibara-backend:latest
@@ -134,16 +146,19 @@ services:
 ## Troubleshooting
 
 ### Authentication Errors
+
 - Verify Docker Hub credentials are correct
 - Ensure access token has write permissions
 - Check if 2FA is enabled (use access token instead of password)
 
 ### Build Failures
+
 - Check Dockerfile syntax in `backend/Dockerfile` and `frontend/app/Dockerfile`
 - Verify build context paths are correct
 - Review GitHub Actions logs for detailed error messages
 
 ### Missing Dependencies
+
 - Ensure all required files are present in build context
 - Check `.dockerignore` files aren't excluding necessary files
 
@@ -177,12 +192,14 @@ Both can run simultaneously, providing multiple distribution channels for your i
 For additional security, you can configure protection rules for the production environment:
 
 ### Recommended Production Environment Rules
+
 1. **Required reviewers**: Require manual approval before deployment
 2. **Deployment branches**: Restrict to `main` branch and release tags
 3. **Wait timer**: Add a delay before deployment
 4. **Environment secrets**: Store sensitive credentials securely
 
 ### Setting Up Protection Rules
+
 1. Go to **Settings** → **Environments** → **production**
 2. Enable **Required reviewers** and add team members
 3. Enable **Deployment branches** and select "Selected branches"

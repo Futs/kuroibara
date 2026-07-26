@@ -24,11 +24,13 @@ Feature Branch → Dev Branch → Main Branch → Production Tag
 The `version.sh` script handles all versioning operations:
 
 ### View Current Version
+
 ```bash
 ./version.sh current
 ```
 
 ### Bump Version (Dev Branch Only)
+
 ```bash
 # Bump patch version (0.1.0 → 0.1.1)
 ./version.sh bump patch
@@ -41,24 +43,28 @@ The `version.sh` script handles all versioning operations:
 ```
 
 ### Generate Development Version
+
 ```bash
 # Creates version like: 0.1.0-dev.27+5f0ea44
 ./version.sh dev
 ```
 
 ### Create Release Candidate
+
 ```bash
 # Creates version like: 0.1.0-rc.1
 ./version.sh rc
 ```
 
 ### Create Release Version (Main Branch Only)
+
 ```bash
 # Creates clean version like: 0.1.0
 ./version.sh release
 ```
 
 ### Create Git Tag
+
 ```bash
 # Creates and tags current version
 ./version.sh tag
@@ -67,6 +73,7 @@ The `version.sh` script handles all versioning operations:
 ## Workflow Examples
 
 ### 1. Feature Development
+
 ```bash
 # On feature branch
 git checkout -b feature/new-manga-reader
@@ -79,6 +86,7 @@ git push origin feature/new-manga-reader
 ```
 
 ### 2. Development Release
+
 ```bash
 # On dev branch
 git checkout dev
@@ -99,6 +107,7 @@ git push origin dev
 ```
 
 ### 3. Production Release
+
 ```bash
 # Promote dev to main
 git checkout main
@@ -136,6 +145,7 @@ Docker images receive these build arguments:
 - `GIT_SHA`: Git commit hash
 
 You can use these in your Dockerfile:
+
 ```dockerfile
 ARG VERSION
 ARG BUILD_DATE
@@ -149,15 +159,17 @@ LABEL version=$VERSION \
 ## Version Information in Applications
 
 ### Backend (Python)
+
 ```python
 from app import __version__
 print(f"Kuroibara Backend v{__version__}")  # v0.1.0
 ```
 
 ### Frontend (JavaScript)
+
 ```javascript
-import { version } from '../package.json';
-console.log(`Kuroibara Frontend v${version}`);  // v0.1.0
+import { version } from "../package.json";
+console.log(`Kuroibara Frontend v${version}`); // v0.1.0
 ```
 
 ## CI/CD Integration
@@ -180,6 +192,7 @@ The GitHub Actions workflow automatically:
 ## Troubleshooting
 
 ### Version script not working?
+
 ```bash
 # Make sure it's executable
 chmod +x version.sh
@@ -189,6 +202,7 @@ git status
 ```
 
 ### Docker build failing?
+
 ```bash
 # Check if version format is valid
 ./version.sh current
@@ -198,6 +212,7 @@ git log --oneline -5
 ```
 
 ### GitHub Actions failing?
+
 - Check if VERSION file exists
 - Verify git history is available (`fetch-depth: 0`)
 - Ensure proper permissions for package registry

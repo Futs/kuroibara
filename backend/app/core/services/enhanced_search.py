@@ -12,6 +12,7 @@ from app.core.providers.registry import provider_registry
 from app.core.services.mangaupdates import mangaupdates_service
 from app.models.manga import Manga
 from app.models.mangaupdates import MangaUpdatesEntry, MangaUpdatesMapping
+from app.models.provider import ProviderStatus
 from app.schemas.search import SearchResponse, SearchResult
 
 logger = logging.getLogger(__name__)
@@ -79,17 +80,33 @@ class ProviderMatcher:
         self.similarity_threshold = 0.7  # Minimum similarity for auto-matching
 
     async def find_provider_matches(
-        self, mu_entry: MangaUpdatesEntry, max_providers: int = 5
+        self,
+        mu_entry: MangaUpdatesEntry,
+        max_providers: int = 5,
+        db: Optional[AsyncSession] = None,
     ) -> List[Dict]:
         """Find matching content across providers for a MangaUpdates entry."""
         logger.info(f"[PROVIDER_MATCH] Starting provider matching for {mu_entry.title}")
         matches = []
 
-        # Get available providers
+        # Get available providers, skipping ones known to be down
         providers = provider_registry.get_all_providers()
+
+        if db is not None:
+            down_result = await db.execute(
+                select(ProviderStatus.provider_id).where(
+                    ProviderStatus.status == "down"
+                )
+            )
+            down_provider_ids = {row[0] for row in down_result.all()}
+            if down_provider_ids:
+                providers = [
+                    p for p in providers if p.name.lower() not in down_provider_ids
+                ]
+
         max_search = min(max_providers, len(providers))
         logger.info(
-            f"[PROVIDER_MATCH] Found {len(providers)} total providers, "
+            f"[PROVIDER_MATCH] Found {len(providers)} available providers, "
             f"will search {max_search}"
         )
 
@@ -227,8 +244,10 @@ class EnhancedSearchService:
 
         # Process results
         enhanced_results = []
+        import time
 
-        for mu_result in mu_results["results"]:
+        for i, mu_result in enumerate(mu_results["results"]):
+            start_time = time.perf_counter()
             try:
                 # Get or create MangaUpdates entry
                 series_id = mu_result["record"]["series_id"]
@@ -250,7 +269,7 @@ class EnhancedSearchService:
                 if include_provider_matches:
                     enhanced_result.provider_matches = (
                         await self.provider_matcher.find_provider_matches(
-                            mu_entry, max_providers=3
+                            mu_entry, max_providers=3, db=db
                         )
                     )
 
@@ -262,6 +281,11 @@ class EnhancedSearchService:
                         )
 
                 enhanced_results.append(enhanced_result)
+
+                duration = time.perf_counter() - start_time
+                logger.info(
+                    f"[DEBUG] Processed result {i + 1}/{len(mu_results['results'])} ({mu_result['record']['series_id']}) in {duration:.2f}s"
+                )
 
             except Exception as e:
                 logger.error(f"Error processing MangaUpdates result {mu_result}: {e}")

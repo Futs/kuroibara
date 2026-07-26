@@ -1,8 +1,6 @@
 """Test suite for the tiered indexing system."""
 
-import asyncio
-from typing import List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

@@ -2,7 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 
@@ -498,12 +498,12 @@ class DownloadClientService:
                     # Update health status
                     client_config.is_healthy = success
                     client_config.error_message = message if not success else None
-                    client_config.last_test = datetime.utcnow()
+                    client_config.last_test = datetime.now(timezone.utc)
             except Exception as e:
                 results[client_config.name] = (False, str(e))
                 client_config.is_healthy = False
                 client_config.error_message = str(e)
-                client_config.last_test = datetime.utcnow()
+                client_config.last_test = datetime.now(timezone.utc)
 
         await db.commit()
         return results

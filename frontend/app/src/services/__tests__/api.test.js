@@ -66,22 +66,29 @@ describe("Axios v1.11.0 Features", () => {
     });
   });
 
-  it("should handle large buffers without RangeError", async () => {
-    // Test the fix for large Buffer handling (one of the v1.11.0 fixes)
-    const largeBuffer = Buffer.alloc(1024 * 1024); // 1MB buffer
-    const mockResponse = { data: { success: true }, status: 200 };
-    const axiosPost = vi.fn().mockResolvedValue(mockResponse);
+  it(
+    "should handle large buffers without RangeError",
+    async () => {
+      // Test the fix for large Buffer handling (one of the v1.11.0 fixes).
+      // Deep-comparing a 1MB buffer in toHaveBeenCalledWith is inherently
+      // slow (multiple seconds even locally) - give this one more headroom
+      // than the default 5s so it doesn't flake on a loaded CI runner.
+      const largeBuffer = Buffer.alloc(1024 * 1024); // 1MB buffer
+      const mockResponse = { data: { success: true }, status: 200 };
+      const axiosPost = vi.fn().mockResolvedValue(mockResponse);
 
-    const testAxios = { post: axiosPost };
+      const testAxios = { post: axiosPost };
 
-    await testAxios.post("/upload-buffer", largeBuffer, {
-      headers: { "Content-Type": "application/octet-stream" },
-    });
+      await testAxios.post("/upload-buffer", largeBuffer, {
+        headers: { "Content-Type": "application/octet-stream" },
+      });
 
-    expect(axiosPost).toHaveBeenCalledWith("/upload-buffer", largeBuffer, {
-      headers: { "Content-Type": "application/octet-stream" },
-    });
-  });
+      expect(axiosPost).toHaveBeenCalledWith("/upload-buffer", largeBuffer, {
+        headers: { "Content-Type": "application/octet-stream" },
+      });
+    },
+    15000,
+  );
 
   it("should handle JSON requests and responses", async () => {
     const requestData = { query: "test", filters: { status: "active" } };

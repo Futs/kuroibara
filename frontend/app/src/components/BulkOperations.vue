@@ -74,12 +74,19 @@
         >
           Add to Favorites
         </button>
-
+        
         <button
           @click="removeFromFavorites"
           class="px-3 py-2 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
         >
           Remove Favorites
+        </button>
+
+        <button
+          @click="bulkExport"
+          class="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+        >
+          Export to CBZ
         </button>
 
         <button
@@ -338,6 +345,17 @@ const removeFromFavorites = async () => {
     await libraryStore.bulkRemoveFromFavorites();
   } catch (error) {
     console.error("Failed to remove from favorites:", error);
+  }
+};
+
+const bulkExport = async () => {
+  try {
+    const results = await libraryStore.bulkExportChapters();
+    console.log("Bulk export results:", results);
+    alert("Bulk export completed successfully.");
+  } catch (error) {
+    console.error("Bulk export error:", error);
+    alert("Bulk export failed.");
   }
 };
 

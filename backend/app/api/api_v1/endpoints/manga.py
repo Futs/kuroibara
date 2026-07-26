@@ -14,7 +14,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from sqlalchemy import Float, case, cast, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -273,7 +273,7 @@ async def upload_manga_cover(
 async def read_manga_chapters(
     manga_id: str,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 5000,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
@@ -288,11 +288,18 @@ async def read_manga_chapters(
             detail="Manga not found",
         )
 
+    # Chapter.number is a string (to support "12.5", "Extra", etc.), so a plain
+    # ORDER BY sorts lexicographically ("2" and "200.5" both sort after every
+    # "1xx" chapter). Cast numeric-looking values to float for proper ordering,
+    # and fall back to string order for anything else (e.g. "Extra").
+    is_numeric = Chapter.number.op("~")(r"^\d+(\.\d+)?$")
+    numeric_sort_key = case((is_numeric, cast(Chapter.number, Float)), else_=None)
+
     result = await db.execute(
         select(Chapter)
         .options(selectinload(Chapter.pages))
         .where(Chapter.manga_id == uuid.UUID(manga_id))
-        .order_by(Chapter.number)
+        .order_by(numeric_sort_key.nulls_last(), Chapter.number)
         .offset(skip)
         .limit(limit)
     )
@@ -417,20 +424,22 @@ async def refresh_manga_chapters(
 
             if not existing_chapter:
                 # Create new chapter
-                # Fix date parsing - convert string dates to timezone-naive datetime objects
+                # Parse string dates to timezone-aware datetime objects
                 publish_at = chapter_data.get("publish_at")
                 if publish_at and isinstance(publish_at, str):
                     from datetime import datetime
 
-                    dt = datetime.fromisoformat(publish_at.replace("Z", "+00:00"))
-                    publish_at = dt.replace(tzinfo=None)  # Remove timezone info
+                    publish_at = datetime.fromisoformat(
+                        publish_at.replace("Z", "+00:00")
+                    )
 
                 readable_at = chapter_data.get("readable_at")
                 if readable_at and isinstance(readable_at, str):
                     from datetime import datetime
 
-                    dt = datetime.fromisoformat(readable_at.replace("Z", "+00:00"))
-                    readable_at = dt.replace(tzinfo=None)  # Remove timezone info
+                    readable_at = datetime.fromisoformat(
+                        readable_at.replace("Z", "+00:00")
+                    )
 
                 chapter = Chapter(
                     manga_id=uuid.UUID(manga_id),
@@ -456,29 +465,23 @@ async def refresh_manga_chapters(
                 existing_chapter.language = chapter_data.get("language", "en")
                 existing_chapter.pages_count = chapter_data.get("pages_count")
                 existing_chapter.source = provider_name
-                # Fix date parsing - convert string dates to timezone-naive datetime objects
+                # Parse string dates to timezone-aware datetime objects
                 if chapter_data.get("publish_at"):
                     from datetime import datetime
 
                     if isinstance(chapter_data.get("publish_at"), str):
-                        dt = datetime.fromisoformat(
+                        existing_chapter.publish_at = datetime.fromisoformat(
                             chapter_data.get("publish_at").replace("Z", "+00:00")
                         )
-                        existing_chapter.publish_at = dt.replace(
-                            tzinfo=None
-                        )  # Remove timezone info
                     else:
                         existing_chapter.publish_at = chapter_data.get("publish_at")
                 if chapter_data.get("readable_at"):
                     from datetime import datetime
 
                     if isinstance(chapter_data.get("readable_at"), str):
-                        dt = datetime.fromisoformat(
+                        existing_chapter.readable_at = datetime.fromisoformat(
                             chapter_data.get("readable_at").replace("Z", "+00:00")
                         )
-                        existing_chapter.readable_at = dt.replace(
-                            tzinfo=None
-                        )  # Remove timezone info
                     else:
                         existing_chapter.readable_at = chapter_data.get("readable_at")
 

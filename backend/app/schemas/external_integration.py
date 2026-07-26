@@ -149,7 +149,9 @@ class SyncRequest(BaseModel):
     force_full_sync: bool = False
     sync_direction: str = Field(
         default="bidirectional",
-        description="Sync direction: 'to_external', 'from_external', or 'bidirectional'",
+        description=(
+            "Sync direction: 'to_external', 'from_external', " "or 'bidirectional'"
+        ),
     )
 
 

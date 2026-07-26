@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 import aiohttp
@@ -204,7 +204,7 @@ class MangaUpdatesService:
             logger.info("_extract_entry_data returned successfully")
 
             entry_data["mu_series_id"] = str(series_id)  # Convert to string for VARCHAR
-            entry_data["last_refreshed"] = datetime.utcnow()
+            entry_data["last_refreshed"] = datetime.now(timezone.utc)
             entry_data["raw_data"] = details
 
             # Create entry
@@ -243,7 +243,7 @@ class MangaUpdatesService:
         for key, value in entry_data.items():
             setattr(entry, key, value)
 
-        entry.last_refreshed = datetime.utcnow()
+        entry.last_refreshed = datetime.now(timezone.utc)
         entry.raw_data = details
 
         await db.commit()
@@ -270,6 +270,8 @@ class MangaUpdatesService:
             type_value = type_info
         else:
             type_value = None
+
+        type_value = self._parse_type(type_value)
 
         # Status can be a string or dict - parse to enum value
         status_info = api_data.get("status", {})
@@ -359,6 +361,24 @@ class MangaUpdatesService:
             or "discontinued" in status_lower
         ):
             return "cancelled"
+        else:
+            return None  # Will default to UNKNOWN in the model
+
+    def _parse_type(self, type_str: Optional[str]) -> Optional[str]:
+        """Parse MangaUpdates type string to our enum value."""
+        if not type_str:
+            return None
+
+        type_lower = type_str.lower()
+
+        if "manhwa" in type_lower:
+            return "manhwa"
+        elif "manhua" in type_lower:
+            return "manhua"
+        elif "manga" in type_lower:
+            return "manga"
+        elif "comic" in type_lower:
+            return "comic"
         else:
             return None  # Will default to UNKNOWN in the model
 
@@ -514,7 +534,7 @@ class MangaUpdatesService:
     ) -> int:
         """Refresh entries that need updating."""
         # Find entries that need refreshing
-        cutoff_time = datetime.utcnow() - timedelta(
+        cutoff_time = datetime.now(timezone.utc) - timedelta(
             hours=24
         )  # Default refresh interval
 

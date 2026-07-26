@@ -2,6 +2,7 @@
 """
 Script to run database migrations.
 """
+
 import os
 import subprocess
 import sys

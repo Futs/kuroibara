@@ -14,6 +14,7 @@ The Kuroibara system provides comprehensive health monitoring endpoints for syst
 **Response Time**: ~2-3 seconds (includes indexer connectivity tests)
 
 **Response Format**:
+
 ```json
 {
   "status": "healthy|degraded|unhealthy",
@@ -74,6 +75,7 @@ The Kuroibara system provides comprehensive health monitoring endpoints for syst
 **Response Time**: <10ms (minimal checks)
 
 **Response Format**:
+
 ```json
 {
   "status": "healthy|unhealthy",
@@ -90,6 +92,7 @@ The Kuroibara system provides comprehensive health monitoring endpoints for syst
 **Response Time**: ~2-3 seconds (indexer connectivity tests)
 
 **Response Format**:
+
 ```json
 {
   "status": "healthy|degraded|unhealthy",
@@ -123,11 +126,13 @@ The Kuroibara system provides comprehensive health monitoring endpoints for syst
 ## Health Status Definitions
 
 ### Overall Status
+
 - **`healthy`**: All components are functioning normally
 - **`degraded`**: Some components have issues but core functionality works
 - **`unhealthy`**: Critical components are failing
 
 ### Component Status
+
 - **`healthy`**: Component is functioning normally
 - **`degraded`**: Component has issues but is partially functional
 - **`unhealthy`**: Component is not functioning
@@ -135,16 +140,19 @@ The Kuroibara system provides comprehensive health monitoring endpoints for syst
 ## Health Check Logic
 
 ### System Health (`/api/v1/health/`)
+
 1. **Database**: Tests connection with `SELECT 1`
 2. **Indexers**: Tests connectivity to all 3 indexers (MangaUpdates, MadaraDex, MangaDex)
 3. **Providers**: Checks provider registry and database status
 
 **Overall Status Logic**:
+
 - `healthy`: All components healthy
 - `degraded`: At least one component healthy
 - `unhealthy`: No components healthy
 
 ### Indexers Health Logic
+
 - `healthy`: Primary indexer (MangaUpdates) is working
 - `degraded`: Primary indexer down but secondary/tertiary working
 - `unhealthy`: All indexers down
@@ -152,18 +160,23 @@ The Kuroibara system provides comprehensive health monitoring endpoints for syst
 ## Monitoring Integration
 
 ### Load Balancer Health Checks
+
 Use the quick health endpoint for fast health checks:
+
 ```bash
 curl -f http://localhost:8000/api/v1/health/quick
 ```
 
 ### Monitoring Systems (Prometheus, etc.)
+
 Use the system health endpoint for comprehensive monitoring:
+
 ```bash
 curl http://localhost:8000/api/v1/health/
 ```
 
 ### Alerting Thresholds
+
 - **Critical**: `status: "unhealthy"`
 - **Warning**: `status: "degraded"`
 - **Info**: `health_percentage < 100`
@@ -171,21 +184,25 @@ curl http://localhost:8000/api/v1/health/
 ## Example Usage
 
 ### Basic Health Check
+
 ```bash
 curl http://localhost:8000/api/v1/health/quick
 ```
 
 ### Comprehensive Health Check
+
 ```bash
 curl http://localhost:8000/api/v1/health/ | jq '.summary'
 ```
 
 ### Indexer-Specific Monitoring
+
 ```bash
 curl http://localhost:8000/api/v1/health/indexers | jq '.indexers'
 ```
 
 ### Health Check Script
+
 ```bash
 #!/bin/bash
 HEALTH_URL="http://localhost:8000/api/v1/health/"
@@ -206,28 +223,33 @@ fi
 ## Performance Characteristics
 
 ### Response Times
+
 - **Quick Health**: <10ms (no external calls)
 - **System Health**: 2-3 seconds (includes indexer tests)
 - **Indexers Health**: 2-3 seconds (indexer connectivity only)
 
 ### Resource Usage
+
 - **CPU**: Minimal impact
 - **Memory**: <1MB per request
 - **Network**: Tests external indexer APIs
 
 ### Caching
+
 - No caching implemented (real-time health status)
 - Consider implementing short-term caching (30-60 seconds) for high-frequency monitoring
 
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Slow Response Times**: Indexer connectivity issues
 2. **Database Unhealthy**: PostgreSQL connection problems
 3. **Indexers Degraded**: External API rate limiting or downtime
 4. **Providers Issues**: Database query problems
 
 ### Debug Information
+
 All endpoints include detailed error messages and response times to help diagnose issues.
 
 ## Security Considerations

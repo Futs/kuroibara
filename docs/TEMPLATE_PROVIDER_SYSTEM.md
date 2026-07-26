@@ -21,17 +21,20 @@ Kuroibara's Template-Based Provider System allows community members to add new m
 ### Step 2: Required Information
 
 **Basic Information:**
+
 - **Provider Name**: Display name (e.g., "MangaReader")
 - **Provider ID**: Unique identifier (e.g., "mangareader")
 - **Base URL**: Main website URL
 - **Search URL**: URL pattern for searches (use `{query}` placeholder)
 
 **Provider Type:**
+
 - **Generic**: Standard HTML scraping
 - **Enhanced Generic**: Requires Cloudflare bypass
 - **API-based**: Needs custom implementation
 
 **CSS Selectors (JSON format):**
+
 ```json
 {
   "search_items": [".manga-item", ".search-result"],
@@ -45,6 +48,7 @@ Kuroibara's Template-Based Provider System allows community members to add new m
 ```
 
 **Test Information:**
+
 - Provide a test manga with title, URL, and expected chapter count
 
 ### Step 3: Validation Process
@@ -69,23 +73,28 @@ Once you submit the issue, our automated system will:
 ### Common Selector Patterns
 
 **Search Results:**
+
 - `.manga-item`, `.search-result`, `.listupd .bs`
 
 **Titles:**
+
 - `.title`, `h3 a`, `.manga-title`, `.tt`
 
 **Cover Images:**
+
 - `.cover img`, `.thumbnail img`, `.limit img`
 
 **Links:**
+
 - `a[href*='manga']`, `a[href*='series']`, `.title-link`
 
 ### Testing Selectors
 
 Use browser console to test selectors:
+
 ```javascript
 // Test if selector finds elements
-document.querySelectorAll('.manga-item').length
+document.querySelectorAll(".manga-item").length;
 ```
 
 ## 📝 Provider Configuration Examples
@@ -134,16 +143,19 @@ Before submitting, ensure:
 ### Common Issues
 
 **Validation Failed:**
+
 - Check CSS selectors work on the website
 - Ensure JSON format is valid
 - Verify URLs are accessible
 
 **No Search Results:**
+
 - Test search URL manually in browser
 - Check if search requires specific parameters
 - Verify selectors match search result elements
 
 **Selectors Don't Work:**
+
 - Use browser dev tools to find correct selectors
 - Test selectors in browser console
 - Try multiple selector options
@@ -183,6 +195,7 @@ Before submitting, ensure:
 ### Custom Headers
 
 Some providers may require custom headers:
+
 ```json
 {
   "headers": {
@@ -195,6 +208,7 @@ Some providers may require custom headers:
 ### Rate Limiting
 
 For providers with strict rate limits:
+
 ```json
 {
   "rate_limit": {
@@ -207,6 +221,7 @@ For providers with strict rate limits:
 ### Language Support
 
 For multi-language providers:
+
 ```json
 {
   "languages": ["en", "es", "fr"],
@@ -217,6 +232,7 @@ For multi-language providers:
 ## 📊 Provider Statistics
 
 Once your provider is added, you can track:
+
 - **Usage statistics** in the admin panel
 - **Success rates** for requests
 - **Popular manga** from your provider
@@ -243,4 +259,4 @@ Need help? Here's how to get support:
 
 ---
 
-*Thank you for contributing to Kuroibara's provider ecosystem! 🎉*
+_Thank you for contributing to Kuroibara's provider ecosystem! 🎉_

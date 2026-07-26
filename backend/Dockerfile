@@ -1,5 +1,5 @@
 # Use a more recent Python image with latest security patches
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim
 
 WORKDIR /app
 
@@ -24,6 +24,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
 
 # Install Python dependencies
 COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code

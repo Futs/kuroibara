@@ -7,6 +7,7 @@ This script should be run from the backend directory:
     cd backend
     python scripts/init_ci_db.py
 """
+
 import asyncio
 import os
 import sys

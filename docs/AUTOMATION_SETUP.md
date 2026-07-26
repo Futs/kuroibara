@@ -19,6 +19,7 @@ git cz  # Instead of git commit
 ```
 
 **Benefits:**
+
 - ✅ Prevents typos like "pipline" → "pipeline"
 - ✅ Enforces conventional commit format
 - ✅ Interactive prompts guide you through proper commits
@@ -41,6 +42,7 @@ npx husky add .husky/commit-msg 'npx --no-install commitizen --hook || true'
 ```
 
 **Benefits:**
+
 - ✅ Automatic validation of commit messages
 - ✅ Prevents bad commits from being made
 - ✅ Easy to manage and share across team
@@ -65,6 +67,7 @@ npx husky add .husky/pre-commit 'npx lint-staged'
 ```
 
 **Benefits:**
+
 - ✅ Automatic code formatting before commits
 - ✅ Only runs on changed files (fast)
 - ✅ Prevents formatting issues in codebase
@@ -86,23 +89,23 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
       - id: check-merge-conflict
-  
+
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
       - id: black
         language_version: python3.12
-  
+
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
-  
+
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
       - id: flake8
-  
+
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.2.0
     hooks:
@@ -116,6 +119,7 @@ pre-commit install --hook-type commit-msg
 ```
 
 **Benefits:**
+
 - ✅ Language-agnostic (Python, JavaScript, etc.)
 - ✅ Extensive hook ecosystem
 - ✅ Automatic formatting and validation
@@ -138,6 +142,7 @@ npm run changelog
 ```
 
 **Benefits:**
+
 - ✅ Automatic changelog generation
 - ✅ Links to commits and PRs
 - ✅ Follows semantic versioning
@@ -163,6 +168,7 @@ jobs:
 ```
 
 **Benefits:**
+
 - ✅ Automatic PRs for releases
 - ✅ Semantic versioning
 - ✅ Changelog generation
@@ -194,6 +200,7 @@ EOF
 ```
 
 **Benefits:**
+
 - ✅ Fully automated releases
 - ✅ Version bumping
 - ✅ Changelog generation
@@ -216,6 +223,7 @@ EOF
 ```
 
 **Benefits:**
+
 - ✅ Automatic dependency updates
 - ✅ Security patches
 - ✅ Automated testing of updates
@@ -225,6 +233,7 @@ EOF
 ## **🔧 Tool-Specific Configurations**
 
 ### **For Backend (Python)**
+
 ```bash
 # pyproject.toml additions
 [tool.black]
@@ -241,6 +250,7 @@ extend-ignore = ["E203", "W503"]
 ```
 
 ### **For Frontend (Vue.js)**
+
 ```bash
 # Add to package.json
 npm pkg set scripts.lint="eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
@@ -248,6 +258,7 @@ npm pkg set scripts.format="prettier --write src/"
 ```
 
 ### **Docker Integration**
+
 ```bash
 # Add to Dockerfile
 ARG VERSION
@@ -264,24 +275,28 @@ LABEL version=$VERSION \
 ## **📋 Implementation Checklist**
 
 ### **Week 1: Foundation**
+
 - [ ] Install and configure Commitizen
 - [ ] Setup Husky for commit-msg validation
 - [ ] Test with a few commits using `git cz`
 - [ ] Update team on new commit process
 
 ### **Week 2: Code Quality**
+
 - [ ] Setup lint-staged for pre-commit formatting
 - [ ] Configure Black for Python formatting
 - [ ] Configure ESLint/Prettier for Vue.js
 - [ ] Add pre-commit hooks for validation
 
 ### **Week 3: Release Automation**
+
 - [ ] Implement conventional changelog
 - [ ] Setup GitHub Actions for release automation
 - [ ] Test release process on dev branch
 - [ ] Document release workflow
 
 ### **Week 4: Advanced Features**
+
 - [ ] Setup semantic release
 - [ ] Configure Renovate for dependency updates
 - [ ] Add automated testing integration
@@ -292,21 +307,25 @@ LABEL version=$VERSION \
 ## **🎯 Expected Outcomes**
 
 **After Phase 1:**
+
 - ✅ Consistent, professional commit messages
 - ✅ No more typos in commit messages
 - ✅ Enforced conventional commit format
 
 **After Phase 2:**
+
 - ✅ Automatic code formatting
 - ✅ Consistent code style across project
 - ✅ Prevented bad code from being committed
 
 **After Phase 3:**
+
 - ✅ Automated changelog generation
 - ✅ Professional release notes
 - ✅ Semantic versioning compliance
 
 **After Phase 4:**
+
 - ✅ Fully automated release process
 - ✅ Automatic dependency updates
 - ✅ Reduced manual release overhead

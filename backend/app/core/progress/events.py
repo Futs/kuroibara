@@ -7,7 +7,7 @@ events, operations, and status types.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -97,7 +97,7 @@ class ProgressEvent:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     # Timing information
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     estimated_completion: Optional[datetime] = None
 
     # Additional context
@@ -146,7 +146,7 @@ class ProgressEvent:
         event.warning_message = data.get("warning_message")
         event.metadata = data.get("metadata", {})
         event.timestamp = datetime.fromisoformat(
-            data.get("timestamp", datetime.utcnow().isoformat())
+            data.get("timestamp", datetime.now(timezone.utc).isoformat())
         )
 
         if data.get("estimated_completion"):
@@ -179,10 +179,10 @@ class ProgressOperation:
     current_step_number: Optional[int] = None
 
     # Timing information
-    started_at: datetime = field(default_factory=datetime.utcnow)
+    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
     estimated_completion: Optional[datetime] = None
-    last_update: datetime = field(default_factory=datetime.utcnow)
+    last_update: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Error and warning information
     error_message: Optional[str] = None
@@ -216,7 +216,7 @@ class ProgressOperation:
     def add_warning(self, warning: str) -> None:
         """Add a warning message to the operation."""
         self.warning_messages.append(warning)
-        self.last_update = datetime.utcnow()
+        self.last_update = datetime.now(timezone.utc)
 
     def update_progress(
         self,
@@ -235,16 +235,16 @@ class ProgressOperation:
         if current_step_number is not None:
             self.current_step_number = current_step_number
 
-        self.last_update = datetime.utcnow()
+        self.last_update = datetime.now(timezone.utc)
 
         # Update estimated completion if we have progress
         if self.progress_percentage > 0 and self.status == ProgressStatus.RUNNING:
-            elapsed = (datetime.utcnow() - self.started_at).total_seconds()
+            elapsed = (datetime.now(timezone.utc) - self.started_at).total_seconds()
             if elapsed > 0:
                 total_estimated = elapsed / (self.progress_percentage / 100.0)
                 remaining = total_estimated - elapsed
                 if remaining > 0:
-                    self.estimated_completion = datetime.utcnow() + timedelta(
+                    self.estimated_completion = datetime.now(timezone.utc) + timedelta(
                         seconds=remaining
                     )
 
@@ -252,8 +252,8 @@ class ProgressOperation:
         """Mark operation as completed."""
         self.status = ProgressStatus.COMPLETED
         self.progress_percentage = 100.0
-        self.completed_at = datetime.utcnow()
-        self.last_update = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
+        self.last_update = datetime.now(timezone.utc)
         if message:
             self.current_step = message
 
@@ -261,14 +261,14 @@ class ProgressOperation:
         """Mark operation as failed."""
         self.status = ProgressStatus.FAILED
         self.error_message = error_message
-        self.completed_at = datetime.utcnow()
-        self.last_update = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
+        self.last_update = datetime.now(timezone.utc)
 
     def mark_cancelled(self) -> None:
         """Mark operation as cancelled."""
         self.status = ProgressStatus.CANCELLED
-        self.completed_at = datetime.utcnow()
-        self.last_update = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
+        self.last_update = datetime.now(timezone.utc)
 
     def is_active(self) -> bool:
         """Check if operation is currently active."""
@@ -291,7 +291,7 @@ class ProgressOperation:
         if self.completed_at:
             return (self.completed_at - self.started_at).total_seconds()
         elif self.status == ProgressStatus.RUNNING:
-            return (datetime.utcnow() - self.started_at).total_seconds()
+            return (datetime.now(timezone.utc) - self.started_at).total_seconds()
         return None
 
     def to_dict(self) -> Dict[str, Any]:

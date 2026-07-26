@@ -8,7 +8,7 @@ cascading failures between agents.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List
 
@@ -160,7 +160,7 @@ class AgentIsolationManager:
             self._failure_patterns[agent_name] = []
 
         failure_record = {
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
             "pattern": pattern,
             "error": error_message,
         }
@@ -168,7 +168,7 @@ class AgentIsolationManager:
         self._failure_patterns[agent_name].append(failure_record)
 
         # Clean old failure records (keep last hour)
-        cutoff_time = datetime.utcnow() - timedelta(hours=1)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=1)
         self._failure_patterns[agent_name] = [
             record
             for record in self._failure_patterns[agent_name]
@@ -202,7 +202,7 @@ class AgentIsolationManager:
             return
 
         # Check failure rate in last 10 minutes
-        recent_cutoff = datetime.utcnow() - timedelta(minutes=10)
+        recent_cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
         recent_failures = [f for f in failures if f["timestamp"] > recent_cutoff]
 
         if len(recent_failures) >= config["circuit_breaker_threshold"]:
@@ -210,7 +210,7 @@ class AgentIsolationManager:
 
     def _quarantine_agent(self, agent_name: str, reason: str) -> None:
         """Quarantine an agent due to repeated failures."""
-        self._quarantined_agents[agent_name] = datetime.utcnow()
+        self._quarantined_agents[agent_name] = datetime.now(timezone.utc)
         logger.warning(f"Quarantined agent {agent_name}: {reason}")
 
     def _is_agent_quarantined(self, agent_name: str) -> bool:
@@ -223,7 +223,9 @@ class AgentIsolationManager:
         quarantine_duration = config["quarantine_duration"]
 
         # Check if quarantine period has expired
-        if datetime.utcnow() - quarantine_time > timedelta(seconds=quarantine_duration):
+        if datetime.now(timezone.utc) - quarantine_time > timedelta(
+            seconds=quarantine_duration
+        ):
             del self._quarantined_agents[agent_name]
             logger.info(f"Agent {agent_name} quarantine period expired")
             return False
@@ -243,7 +245,7 @@ class AgentIsolationManager:
             config = self.get_agent_config(agent_name)
             remaining_time = (
                 config["quarantine_duration"]
-                - (datetime.utcnow() - quarantine_time).total_seconds()
+                - (datetime.now(timezone.utc) - quarantine_time).total_seconds()
             )
             status["quarantined_agents"][agent_name] = {
                 "quarantined_at": quarantine_time.isoformat(),
@@ -260,7 +262,7 @@ class AgentIsolationManager:
                             f
                             for f in failures
                             if f["timestamp"]
-                            > datetime.utcnow() - timedelta(minutes=10)
+                            > datetime.now(timezone.utc) - timedelta(minutes=10)
                         ]
                     ),
                     "last_failure": (

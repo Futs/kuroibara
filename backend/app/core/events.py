@@ -1,5 +1,5 @@
 import logging
-from typing import Callable
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
@@ -15,129 +15,125 @@ from app.db.session import engine
 logger = logging.getLogger(__name__)
 
 
-def startup_event_handler(app: FastAPI) -> Callable:
-    async def start_app() -> None:
-        # Initialize greenlet context for SQLAlchemy async operations
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    # Initialize greenlet context for SQLAlchemy async operations
+    try:
+        import greenlet
+
+        # Ensure greenlet context is properly initialized
+        if not hasattr(greenlet.getcurrent(), "_greenlet_spawn_called"):
+            greenlet.getcurrent()._greenlet_spawn_called = True
+        logger.info("Greenlet context initialized")
+    except ImportError:
+        logger.warning("Greenlet not available - some async operations may fail")
+    except Exception as e:
+        logger.warning(f"Error initializing greenlet context: {e}")
+
+    # Set up Redis connection
+    try:
+        redis_kwargs = {
+            "host": settings.VALKEY_HOST,
+            "port": settings.VALKEY_PORT,
+            "db": settings.VALKEY_DB,
+            "decode_responses": True,
+        }
+
+        # Only add password if it's configured
+        if settings.VALKEY_PASSWORD:
+            redis_kwargs["password"] = settings.VALKEY_PASSWORD
+
+        redis = Redis(**redis_kwargs)
+
+        # Test the connection
+        await redis.ping()
+
+        app.state.redis = redis
+        # Set global Redis client for dependencies
+        set_redis_client(redis)
+        logger.info("Redis connection established successfully")
+
+    except Exception as e:
+        logger.warning(
+            f"Redis connection failed: {e}. Token blacklisting will be disabled."
+        )
+        app.state.redis = None
+        set_redis_client(None)
+
+    # Initialize database if needed (only if enabled)
+    if settings.ENABLE_DB_INIT:
         try:
-            import greenlet
-
-            # Ensure greenlet context is properly initialized
-            if not hasattr(greenlet.getcurrent(), "_greenlet_spawn_called"):
-                greenlet.getcurrent()._greenlet_spawn_called = True
-            logger.info("Greenlet context initialized")
-        except ImportError:
-            logger.warning("Greenlet not available - some async operations may fail")
+            await init_db()
+            logger.info("Database initialized successfully")
         except Exception as e:
-            logger.warning(f"Error initializing greenlet context: {e}")
-        # Set up Redis connection
+            logger.error(f"Error initializing database: {e}")
+            raise
+    else:
+        logger.info("Database initialization disabled by configuration")
+
+    # Initialize and test providers (only if enabled)
+    if settings.ENABLE_PROVIDER_MONITORING:
         try:
-            redis_kwargs = {
-                "host": settings.VALKEY_HOST,
-                "port": settings.VALKEY_PORT,
-                "db": settings.VALKEY_DB,
-                "decode_responses": True,
-            }
-
-            # Only add password if it's configured
-            if settings.VALKEY_PASSWORD:
-                redis_kwargs["password"] = settings.VALKEY_PASSWORD
-
-            redis = Redis(**redis_kwargs)
-
-            # Test the connection
-            await redis.ping()
-
-            app.state.redis = redis
-            # Set global Redis client for dependencies
-            set_redis_client(redis)
-            logger.info("Redis connection established successfully")
-
+            await provider_monitor.test_all_providers_on_startup()
+            await provider_monitor.start_monitoring()
+            logger.info("Provider monitoring initialized successfully")
         except Exception as e:
-            logger.warning(
-                f"Redis connection failed: {e}. Token blacklisting will be disabled."
-            )
-            app.state.redis = None
-            set_redis_client(None)
+            logger.error(f"Error initializing provider monitoring: {e}")
+            # Don't raise here as provider monitoring is not critical for app startup
+    else:
+        logger.info("Provider monitoring disabled by configuration")
 
-        # Initialize database if needed (only if enabled)
-        if settings.ENABLE_DB_INIT:
-            try:
-                await init_db()
-                logger.info("Database initialized successfully")
-            except Exception as e:
-                logger.error(f"Error initializing database: {e}")
-                raise
-        else:
-            logger.info("Database initialization disabled by configuration")
+    # Start backup scheduler
+    try:
+        scheduled_backup_service.start()
+        logger.info("Backup scheduler started successfully")
+    except Exception as e:
+        logger.error(f"Error starting backup scheduler: {e}")
+        # Don't raise here as backup scheduling is not critical for app startup
 
-        # Initialize and test providers (only if enabled)
-        if settings.ENABLE_PROVIDER_MONITORING:
-            try:
-                await provider_monitor.test_all_providers_on_startup()
-                await provider_monitor.start_monitoring()
-                logger.info("Provider monitoring initialized successfully")
-            except Exception as e:
-                logger.error(f"Error initializing provider monitoring: {e}")
-                # Don't raise here as provider monitoring is not critical for app startup
-        else:
-            logger.info("Provider monitoring disabled by configuration")
+    # Start download queue manager
+    try:
+        await queue_manager.start()
+        logger.info("Download queue manager started successfully")
+    except Exception as e:
+        logger.error(f"Error starting download queue manager: {e}")
+        # Don't raise here as download queue is not critical for app startup
 
-        # Start backup scheduler
+    logger.info("Application startup complete")
+    yield
+
+    # Shutdown logic
+    # Stop backup scheduler
+    try:
+        scheduled_backup_service.stop()
+        logger.info("Backup scheduler stopped")
+    except Exception as e:
+        logger.warning(f"Error stopping backup scheduler: {e}")
+
+    # Stop provider monitoring
+    try:
+        await provider_monitor.stop_monitoring()
+        logger.info("Provider monitoring stopped")
+    except Exception as e:
+        logger.warning(f"Error stopping provider monitoring: {e}")
+
+    # Stop download queue manager
+    try:
+        await queue_manager.stop()
+        logger.info("Download queue manager stopped")
+    except Exception as e:
+        logger.warning(f"Error stopping download queue manager: {e}")
+
+    # Close Redis connection
+    if hasattr(app.state, "redis") and app.state.redis:
         try:
-            scheduled_backup_service.start()
-            logger.info("Backup scheduler started successfully")
+            await app.state.redis.close()
+            logger.info("Redis connection closed")
         except Exception as e:
-            logger.error(f"Error starting backup scheduler: {e}")
-            # Don't raise here as backup scheduling is not critical for app startup
+            logger.warning(f"Error closing Redis connection: {e}")
 
-        # Start download queue manager
-        try:
-            await queue_manager.start()
-            logger.info("Download queue manager started successfully")
-        except Exception as e:
-            logger.error(f"Error starting download queue manager: {e}")
-            # Don't raise here as download queue is not critical for app startup
-
-        logger.info("Application startup complete")
-
-    return start_app
-
-
-def shutdown_event_handler(app: FastAPI) -> Callable:
-    async def stop_app() -> None:
-        # Stop backup scheduler
-        try:
-            scheduled_backup_service.stop()
-            logger.info("Backup scheduler stopped")
-        except Exception as e:
-            logger.warning(f"Error stopping backup scheduler: {e}")
-
-        # Stop provider monitoring
-        try:
-            await provider_monitor.stop_monitoring()
-            logger.info("Provider monitoring stopped")
-        except Exception as e:
-            logger.warning(f"Error stopping provider monitoring: {e}")
-
-        # Stop download queue manager
-        try:
-            await queue_manager.stop()
-            logger.info("Download queue manager stopped")
-        except Exception as e:
-            logger.warning(f"Error stopping download queue manager: {e}")
-
-        # Close Redis connection
-        if hasattr(app.state, "redis") and app.state.redis:
-            try:
-                await app.state.redis.close()
-                logger.info("Redis connection closed")
-            except Exception as e:
-                logger.warning(f"Error closing Redis connection: {e}")
-
-        # Close database connections
-        await engine.dispose()
-        logger.info("Database connections closed")
-
-        logger.info("Application shutdown complete")
-
-    return stop_app
+    # Close database connections
+    await engine.dispose()
+    logger.info("Database connections closed")
+    logger.info("Application shutdown complete")

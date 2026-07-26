@@ -46,7 +46,7 @@ async def test_provider_count():
     providers = provider_registry.get_all_providers()
 
     # Print provider details for debugging CI issues
-    print(f"\n=== Provider Count Debug ===")
+    print("\n=== Provider Count Debug ===")
     print(f"Total providers found: {len(providers)}")
     print("Provider list:")
     for i, provider in enumerate(providers, 1):

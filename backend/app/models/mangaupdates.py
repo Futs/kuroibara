@@ -1,7 +1,7 @@
 """MangaUpdates integration models."""
 
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 import sqlalchemy as sa
 from sqlalchemy import (
@@ -126,7 +126,7 @@ class UniversalMangaEntry(BaseModel):
             return True
 
         hours_since_refresh = (
-            datetime.utcnow() - self.last_refreshed
+            datetime.now(timezone.utc) - self.last_refreshed
         ).total_seconds() / 3600
         return hours_since_refresh >= self.refresh_interval_hours
 
@@ -342,10 +342,8 @@ class MangaUpdatesEntry(BaseModel):
         if not self.auto_refresh_enabled or not self.last_refreshed:
             return True
 
-        from datetime import datetime
-
         hours_since_refresh = (
-            datetime.utcnow() - self.last_refreshed
+            datetime.now(timezone.utc) - self.last_refreshed
         ).total_seconds() / 3600
         return hours_since_refresh >= 24  # Default 24 hour refresh interval
 

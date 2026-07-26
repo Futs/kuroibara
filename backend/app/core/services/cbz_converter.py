@@ -10,6 +10,7 @@ import logging
 import os
 import shutil
 import tempfile
+import xml.etree.ElementTree as ET
 import zipfile
 from typing import Dict, List, Tuple
 
@@ -158,6 +159,42 @@ class CBZConverter:
 
         return metadata
 
+    def generate_comic_info_xml(self, manga: Manga, chapter: Chapter) -> str:
+        """
+        Generate ComicInfo.xml content.
+
+        Args:
+            manga: The manga object
+            chapter: The chapter object
+
+        Returns:
+            XML string
+        """
+        root = ET.Element("ComicInfo")
+
+        # Manga info
+        ET.SubElement(root, "Title").text = chapter.title
+        ET.SubElement(root, "Series").text = manga.title
+        ET.SubElement(root, "Number").text = str(chapter.number)
+        ET.SubElement(root, "Summary").text = (
+            chapter.description
+            if hasattr(chapter, "description") and chapter.description
+            else ""
+        )
+        ET.SubElement(root, "Writer").text = "Unknown"
+        ET.SubElement(root, "Penciller").text = "Unknown"
+        ET.SubElement(root, "Genre").text = "Action, Adventure"
+        ET.SubElement(root, "LanguageISO").text = (
+            chapter.language if chapter.language else "en"
+        )
+        ET.SubElement(root, "Manga").text = "Yes"
+
+        # If chapter has specific metadata, we could add it here.
+        # For now, we follow the requested format.
+
+        xml_str = ET.tostring(root, encoding="unicode", method="xml")
+        return f'<?xml version="1.0"?>\n{xml_str}'
+
     def create_cbz_from_images(
         self,
         image_files: List[str],
@@ -201,8 +238,13 @@ class CBZConverter:
                     metadata = self.create_cbz_metadata(manga, chapter, image_files)
                     metadata["created_at"] = None  # Could add timestamp here
 
+                    # Save JSON metadata
                     metadata_json = json.dumps(metadata, indent=2)
                     cbz_file.writestr("metadata.json", metadata_json)
+
+                    # Save ComicInfo.xml
+                    comic_info_xml = self.generate_comic_info_xml(manga, chapter)
+                    cbz_file.writestr("ComicInfo.xml", comic_info_xml)
 
             logger.info(f"Created CBZ file: {output_path}")
             return True

@@ -6,12 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
 from app.core.providers.base import (
-    AntiBotError,
     BaseProvider,
-    ContentError,
-    NetworkError,
-    ProviderError,
-    RateLimitError,
 )
 from app.models.manga import MangaStatus, MangaType
 from app.schemas.search import SearchResult
@@ -540,7 +535,7 @@ class MangaDexProvider(BaseProvider):
 
                 # Build page URLs
                 page_urls = []
-                for i, filename in enumerate(page_filenames):
+                for _i, filename in enumerate(page_filenames):
                     page_url = f"{base_url}/{quality}/{chapter_hash}/{filename}"
                     page_urls.append(page_url)
 

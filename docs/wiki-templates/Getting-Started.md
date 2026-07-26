@@ -5,6 +5,7 @@ Welcome to Kuroibara! This guide will help you get up and running with your mode
 ## 📋 Prerequisites
 
 Before you begin, make sure you have:
+
 - ✅ Kuroibara installed and running ([Installation Guide](Installation))
 - ✅ Access to the web interface (usually `http://localhost:3000`)
 - ✅ A user account created
@@ -23,6 +24,7 @@ Before you begin, make sure you have:
 5. **Log in** with your new credentials
 
 ### 🔐 **Optional: Enable Two-Factor Authentication**
+
 For enhanced security, consider enabling 2FA in your profile settings.
 
 ---
@@ -30,12 +32,14 @@ For enhanced security, consider enabling 2FA in your profile settings.
 ## 🎨 **Step 2: Customize Your Experience**
 
 ### **Set Your Preferences**
+
 1. **Go to Settings** (gear icon in the top navigation)
 2. **Choose your theme**: Light, Dark, or System
 3. **Configure NSFW settings**: Enable blur for adult content if desired
 4. **Set download preferences**: Quality, path, and file formats
 
 ### **Configure Providers**
+
 1. **Navigate to Settings → Provider Preferences**
 2. **Review available providers** (80+ manga sources including MangaDex, MangaPlus, TCBScans)
 3. **Enable/disable providers** based on your preferences
@@ -47,12 +51,14 @@ For enhanced security, consider enabling 2FA in your profile settings.
 ## 🔍 **Step 3: Your First Search**
 
 ### **Search for Manga**
+
 1. **Click the Search tab** in the main navigation
 2. **Enter a manga title** (e.g., "One Piece", "Naruto")
 3. **Select providers** or leave as "All" for comprehensive results
 4. **Browse the results** with cover images and descriptions
 
 ### **Understanding Search Results**
+
 - **Provider badges** show the source of each result
 - **Status badges** indicate if manga is ongoing, completed, etc.
 - **Cover images** provide visual identification
@@ -63,12 +69,14 @@ For enhanced security, consider enabling 2FA in your profile settings.
 ## 📚 **Step 4: Build Your Library**
 
 ### **Add Manga to Your Library**
+
 1. **Find a manga** you want to read
 2. **Click the "+" button** on the search result card
 3. **Choose a category** (optional)
 4. **The manga is now in your library!**
 
 ### **Organize Your Collection**
+
 1. **Visit the Library tab** to see your collection
 2. **Create categories** (e.g., "Currently Reading", "Plan to Read")
 3. **Create reading lists** for specific themes or recommendations
@@ -79,12 +87,14 @@ For enhanced security, consider enabling 2FA in your profile settings.
 ## 📖 **Step 5: Start Reading**
 
 ### **Access Manga Details**
+
 1. **Click on any manga** in your library or search results
 2. **View detailed information**: description, genres, authors, status
 3. **See available chapters** from different providers
 4. **Check reading progress** and bookmarks
 
 ### **Reading Experience**
+
 1. **Click on a chapter** to start reading
 2. **Use navigation controls**: next/previous page, chapter navigation
 3. **Bookmark your progress** automatically
@@ -95,12 +105,14 @@ For enhanced security, consider enabling 2FA in your profile settings.
 ## 📋 **Step 6: Manage Reading Lists**
 
 ### **Create Reading Lists**
+
 1. **Go to Reading Lists** in the main navigation
 2. **Click "Add Reading List"**
 3. **Give it a name** (e.g., "Favorites", "Recommendations")
 4. **Add manga** from your library or search results
 
 ### **Organize with Categories**
+
 1. **Visit Categories** to create custom organization
 2. **Create categories** like "Action", "Romance", "Completed"
 3. **Assign manga** to multiple categories
@@ -111,17 +123,20 @@ For enhanced security, consider enabling 2FA in your profile settings.
 ## 🔧 **Step 7: Advanced Features**
 
 ### **Download for Offline Reading**
+
 1. **Enable downloads** in settings
 2. **Choose download quality** and storage location
 3. **Queue chapters** for background downloading
 4. **Access offline** when internet is unavailable
 
 ### **External Account Integration**
+
 1. **Link AniList account** for sync and recommendations
 2. **Connect MyAnimeList** for cross-platform tracking
 3. **Import existing lists** from external services
 
 ### **Profile Customization**
+
 1. **Upload an avatar** in profile settings
 2. **Write a bio** to personalize your profile
 3. **Set reading preferences** and display options
@@ -131,21 +146,25 @@ For enhanced security, consider enabling 2FA in your profile settings.
 ## 🎯 **Quick Tips for New Users**
 
 ### **🔍 Search Tips**
+
 - Use specific titles for better results
 - Try alternative spellings or romanizations
 - Use the provider filter to find specific sources
 
 ### **📚 Library Management**
+
 - Create categories before adding lots of manga
 - Use reading lists for temporary collections
 - Rate manga to get better recommendations
 
 ### **⚙️ Provider Management**
+
 - Disable slow or unreliable providers
 - Favorite your most trusted sources
 - Check provider status in settings
 
 ### **🚀 Performance Tips**
+
 - Limit concurrent downloads
 - Clear cache periodically
 - Use favorites to reduce search time
@@ -169,6 +188,7 @@ If you run into any issues:
 Congratulations! You now have everything you need to start enjoying Kuroibara. Happy reading! 📖
 
 ### **Next Steps**
+
 - **[📱 User Guide](User-Guide)** - Detailed feature documentation
 - **[🌐 Supported Providers](Supported-Providers)** - Explore all available sources
 - **[💡 Tips & Tricks](Tips-Tricks)** - Community best practices
@@ -185,4 +205,4 @@ Congratulations! You now have everything you need to start enjoying Kuroibara. H
 
 ---
 
-*Need more help? Visit our [Help & Support](Getting-Help) page.*
+_Need more help? Visit our [Help & Support](Getting-Help) page._

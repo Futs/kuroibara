@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/enhanced", response_model=SearchResponse)
+@router.post("", response_model=SearchResponse)
 async def enhanced_search(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -39,8 +39,14 @@ async def enhanced_search(
     If include_provider_matches=True, will also search providers to find download sources.
     """
     try:
-        # Use the tiered search service
-        results = await tiered_search_service.search(query, limit=limit)
+        # Use the tiered search service. use_fallback=False so MadaraDex/MangaDex
+        # are only queried when MangaUpdates doesn't have enough results on its
+        # own - otherwise every search fans out to all three indexers, mixing in
+        # unrelated catalog entries (doujinshi, novels, etc.) and multiplying
+        # request latency.
+        results = await tiered_search_service.search(
+            query, limit=limit, use_fallback=False
+        )
         print(
             f"[DEBUG] Tiered search returned {len(results)} results for query '{query}'"
         )
@@ -267,7 +273,7 @@ async def get_indexer_health(
         raise HTTPException(status_code=500, detail="Health check failed")
 
 
-@router.post("/enhanced/add-from-mangaupdates")
+@router.post("/add-from-mangaupdates")
 async def add_to_library_from_mangaupdates(
     mu_entry_id: str,
     selected_provider_match: Optional[Dict] = None,

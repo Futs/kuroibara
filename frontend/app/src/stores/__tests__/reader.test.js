@@ -154,12 +154,15 @@ describe("Reader Store", () => {
       store.currentPage = 2;
       store.settings.preloadDistance = 2;
 
-      // Mock Image constructor
-      global.Image = vi.fn(() => ({
-        onload: null,
-        onerror: null,
-        src: "",
-      }));
+      // Mock Image constructor (must be a real function, not an arrow
+      // function, so `new Image()` doesn't throw "is not a constructor")
+      global.Image = vi.fn(function () {
+        return {
+          onload: null,
+          onerror: null,
+          src: "",
+        };
+      });
 
       store.preloadImages();
 

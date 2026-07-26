@@ -69,7 +69,7 @@ class JobResponse(BaseModel):
     id: str
     job_type: str
     status: str
-    priority: str
+    priority: int
     title: str
     description: str
     created_at: str

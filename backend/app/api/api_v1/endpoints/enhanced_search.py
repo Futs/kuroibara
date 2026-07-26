@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/enhanced", response_model=SearchResponse)
+@router.post("", response_model=SearchResponse)
 async def enhanced_search(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -267,7 +267,7 @@ async def get_indexer_health(
         raise HTTPException(status_code=500, detail="Health check failed")
 
 
-@router.post("/enhanced/add-from-mangaupdates")
+@router.post("/add-from-mangaupdates")
 async def add_to_library_from_mangaupdates(
     mu_entry_id: str,
     selected_provider_match: Optional[Dict] = None,

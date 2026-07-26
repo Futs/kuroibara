@@ -256,8 +256,8 @@ class JavaScriptProvider(BaseProvider):
                 if isinstance(cookie, dict):
                     self.session_cookies[cookie.get("name")] = cookie.get("value")
         else:
-            # aiohttp format
-            for cookie in cookies:
+            # aiohttp format (SimpleCookie-like mapping of name -> Morsel)
+            for cookie in cookies.values():
                 self.session_cookies[cookie.key] = cookie.value
 
     def _extract_javascript_data(

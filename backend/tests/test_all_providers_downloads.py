@@ -172,7 +172,7 @@ class ProviderDownloadTester:
                 print(f"    ✅ Created local record (UUID: {local_manga_id})")
 
                 # Now add to library using the UUID
-                print("  📚 Adding to library..."..")
+                print("  📚 Adding to library...")
                 add_response = await client.post(
                     f"{self.base_url}/api/v1/library",
                     json={"manga_id": local_manga_id},  # Use the UUID
@@ -182,7 +182,7 @@ class ProviderDownloadTester:
 
                 if add_response.status_code not in [200, 201]:
                     if "already in library" in add_response.text.lower():
-                        print("    ⚠️  Manga already in library, trying next one..."...")
+                        print("    ⚠️  Manga already in library, trying next one...")
                         continue  # Try next manga
                     else:
                         print(f"    ❌ Failed to add to library: {add_response.text}")
@@ -193,7 +193,7 @@ class ProviderDownloadTester:
                 print(f"    ✅ Added to library (ID: {library_item_id})")
 
                 # Start download with required parameters
-                print("  ⬇️  Starting download..."...")
+                print("  ⬇️  Starting download...")
                 download_response = await client.post(
                     f"{self.base_url}/api/v1/library/{library_item_id}/download",
                     params={
@@ -214,7 +214,7 @@ class ProviderDownloadTester:
                 )
 
                 # Monitor download progress for a short time
-                print("  ⏱️  Monitoring download progress..."...")
+                print("  ⏱️  Monitoring download progress...")
                 for j in range(6):  # Check for 30 seconds (6 * 5 seconds)
                     await asyncio.sleep(5)
 
@@ -231,14 +231,14 @@ class ProviderDownloadTester:
                                 print(f"    Check {j+1}: Status = {status}")
 
                                 if status == "completed":
-                                    print("    ✅ DOWNLOAD COMPLETED!"!")
+                                    print("    ✅ DOWNLOAD COMPLETED!")
                                     return True
                                 elif status == "failed":
-                                    print("    ❌ Download failed"d")
+                                    print("    ❌ Download failed")
                                     break  # Try next manga
                                 break
 
-                print("    ⏱️  Download still in progress after monitoring period"iod")
+                print("    ⏱️  Download still in progress after monitoring period")
                 return True  # Consider it successful if it started
 
             except Exception as e:
@@ -348,19 +348,19 @@ class ProviderDownloadTester:
         }
 
         print(f"\n{'='*80}")
-        print("📊 FINAL SUMMARY"RY")
+        print("📊 FINAL SUMMARY")
         print(f"{'='*80}")
         print(f"Total providers tested: {summary['total_providers_tested']}")
         print(f"Successful downloads: {summary['successful_downloads']}")
         print(f"Failed downloads: {summary['failed_downloads']}")
         print(f"Success rate: {summary['success_rate']}")
 
-        print("\n✅ SUCCESSFUL PROVIDERS:":")
+        print("\n✅ SUCCESSFUL PROVIDERS:")
         for result in results:
             if result["download_success"]:
                 print(f"  - {result['provider']}: {result['manga_found']}")
 
-        print("\n❌ FAILED PROVIDERS:":")
+        print("\n❌ FAILED PROVIDERS:")
         for result in results:
             if not result["download_success"]:
                 reason = result.get(
@@ -381,7 +381,7 @@ async def main():
     with open("provider_download_test_results.json", "w") as f:
         json.dump(results, f, indent=2)
 
-    print("\n💾 Results saved to: provider_download_test_results.json"on")
+    print("\n💾 Results saved to: provider_download_test_results.json")
 
 
 if __name__ == "__main__":

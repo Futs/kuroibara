@@ -425,45 +425,70 @@ async def download_chapter(
                                 f"  - Page {failed['page']}: {failed['error']}"
                             )
 
-        # Update chapter in database
-        chapter = await db.get(Chapter, chapter_id)
-        if chapter:
-            # Update chapter
-            chapter.pages_count = len(pages)
-            chapter.file_path = chapter_path
+        # Send progress update after each page
+        downloaded_pages = len(pages)
+        progress_percentage = (
+            (downloaded_pages / total_pages) * 100 if total_pages > 0 else 0
+        )
 
-            # Add pages to database
-            db.add_all(pages)
-
-            # Commit changes
-            await db.commit()
-
-        # Create CBZ file if requested
-        final_path = chapter_path
-        if auto_export_cbz:
-            cbz_path = f"{chapter_path}.cbz"
-            create_cbz_from_directory(chapter_path, cbz_path)
-            final_path = cbz_path
-
-        return final_path
-
-        # Auto-export logic:
-        # If the chapter was downloaded as part of a manga download or manually,
-        # we might want to check if it should be converted to CBZ.
-        # For now, we'll just ensure the CBZ is created.
-
-        # Send download completed event
         if task_id:
             await send_download_progress_update(
                 task_id=task_id,
-                event_type="download_completed",
-                progress=100,
+                event_type="download_progress",
+                progress=progress_percentage,
                 total_pages=total_pages,
-                downloaded_pages=len(pages),
+                downloaded_pages=downloaded_pages,
                 downloaded_bytes=downloaded_bytes,
             )
 
-        return cbz_path
+        if progress_callback:
+            await progress_callback(downloaded_pages, total_pages, progress_percentage)
+
+    # Update chapter in database
+    chapter = await db.get(Chapter, chapter_id)
+    if chapter:
+        # Update chapter
+        chapter.pages_count = len(pages)
+        chapter.file_path = chapter_path
+        chapter.download_status = "downloaded" if pages else "error"
+        chapter.download_error = (
+            f"{len(failed_pages)} of {total_pages} pages failed to download"
+            if failed_pages
+            else None
+        )
+
+        # Add pages to database
+        db.add_all(pages)
+
+        # Commit changes
+        await db.commit()
+
+    if not pages:
+        raise ContentError(
+            message=f"No pages were successfully downloaded (0/{total_pages})",
+            provider=provider_name,
+            error_type="not_found",
+        )
+
+    # Create CBZ file if requested
+    final_path = chapter_path
+    if auto_export_cbz:
+        cbz_path = f"{chapter_path}.cbz"
+        create_cbz_from_directory(chapter_path, cbz_path)
+        final_path = cbz_path
+
+    # Send download completed event
+    if task_id:
+        await send_download_progress_update(
+            task_id=task_id,
+            event_type="download_completed",
+            progress=100,
+            total_pages=total_pages,
+            downloaded_pages=len(pages),
+            downloaded_bytes=downloaded_bytes,
+        )
+
+    return final_path
 
 
 async def download_chapter_with_fallback(

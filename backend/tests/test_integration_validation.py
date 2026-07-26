@@ -225,16 +225,12 @@ async def test_database_tables():
 
         async with AsyncSessionLocal() as session:
             # Check external_integrations table exists
-            result = await session.execute(
-                text(
-                    """
+            result = await session.execute(text("""
                 SELECT column_name, data_type
                 FROM information_schema.columns
                 WHERE table_name = 'external_integrations'
                 ORDER BY ordinal_position
-            """
-                )
-            )
+            """))
             columns = result.fetchall()
 
             if not columns:
@@ -261,15 +257,11 @@ async def test_database_tables():
                     raise Exception(f"Required column {req_col} not found")
 
             # Check external_manga_mappings table
-            result = await session.execute(
-                text(
-                    """
+            result = await session.execute(text("""
                 SELECT column_name
                 FROM information_schema.columns
                 WHERE table_name = 'external_manga_mappings'
-            """
-                )
-            )
+            """))
             mapping_columns = [row[0] for row in result.fetchall()]
 
             if not mapping_columns:

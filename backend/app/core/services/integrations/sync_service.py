@@ -1,7 +1,7 @@
 """Sync service for external integrations."""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from uuid import UUID
 
@@ -148,7 +148,7 @@ class SyncService:
                     sync_results["errors"].extend(to_external_results["errors"])
 
                 # Update sync status
-                integration.last_sync_at = datetime.utcnow()
+                integration.last_sync_at = datetime.now(timezone.utc)
                 integration.last_sync_status = SyncStatus.SUCCESS
                 integration.last_sync_error = None
                 integration.sync_count += 1
@@ -209,7 +209,7 @@ class SyncService:
                                 external_url=external_manga.url,
                                 external_data=external_manga.model_dump(),
                                 sync_status=SyncStatus.SUCCESS,
-                                last_synced_at=datetime.utcnow(),
+                                last_synced_at=datetime.now(timezone.utc),
                             )
                             db.add(mapping)
                             results["created_mappings"] += 1
@@ -237,7 +237,7 @@ class SyncService:
 
                         # Update mapping data
                         mapping.external_data = external_manga.model_dump()
-                        mapping.last_synced_at = datetime.utcnow()
+                        mapping.last_synced_at = datetime.now(timezone.utc)
                         mapping.sync_status = SyncStatus.SUCCESS
 
                         results["synced_count"] += 1
@@ -318,7 +318,7 @@ class SyncService:
                         )
 
                         if success:
-                            mapping.last_synced_at = datetime.utcnow()
+                            mapping.last_synced_at = datetime.now(timezone.utc)
                             mapping.sync_status = SyncStatus.SUCCESS
                             results["updated_count"] += 1
                         else:

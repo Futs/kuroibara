@@ -55,9 +55,9 @@ class AgentProviderAdapter:
         """Get pages using the agent."""
         return await self._agent.get_pages(manga_id, chapter_id)
 
-    async def download_page(self, page_url: str):
+    async def download_page(self, page_url: str, referer: Optional[str] = None):
         """Download page using the agent."""
-        return await self._agent.download_page(page_url)
+        return await self._agent.download_page(page_url, referer=referer)
 
     async def download_cover(self, manga_id: str):
         """Download cover using the agent."""

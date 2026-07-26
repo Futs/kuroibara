@@ -8,7 +8,6 @@ import pytest
 
 from app.core.providers.base import (
     AntiBotError,
-    BaseProvider,
     ContentError,
     NetworkError,
     ParsingError,

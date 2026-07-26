@@ -12,7 +12,6 @@ NOTE: MangaUpdates provides manga-level metadata only (title, description, cover
 """
 
 import asyncio
-import time
 from typing import Dict, Optional
 
 import httpx
@@ -222,7 +221,7 @@ class MangaUpdatesWorkflowTester:
                             progress = download.get("progress", 0)
 
                             if status == "completed":
-                                print(f"    ✅ Download completed! (100%)")
+                                print("    ✅ Download completed! (100%)")
                                 return True
                             elif status == "failed":
                                 error = download.get("error_message", "Unknown error")
@@ -232,6 +231,7 @@ class MangaUpdatesWorkflowTester:
                                 print(
                                     f"    Check {i+1}: Status = {status}, Progress = {progress}%"
                                 )
+                                break
 
             except Exception as e:
                 print(f"    ⚠️  Monitor error: {e}")
@@ -268,10 +268,10 @@ class MangaUpdatesWorkflowTester:
                     f"    📍 Selected provider: {selected_provider.get('provider')} (confidence: {selected_provider.get('confidence', 0):.2f})"
                 )
             else:
-                print(f"    ⚠️  No provider matches found - chapters won't be fetched")
+                print("    ⚠️  No provider matches found - chapters won't be fetched")
 
             # Step 3: Add to library with provider
-            print(f"  2️⃣  Adding to library with provider...")
+            print("  2️⃣  Adding to library with provider...")
             manga_id = await self.add_to_library(
                 client, mu_entry_id, result_title, selected_provider
             )
@@ -281,18 +281,18 @@ class MangaUpdatesWorkflowTester:
                 return False
 
             # Step 4: Get library item ID
-            print(f"  3️⃣  Getting library item...")
+            print("  3️⃣  Getting library item...")
             library_item_id = await self.get_library_item_id(client, manga_id)
 
             if not library_item_id:
-                print(f"    ❌ Failed to get library item ID")
+                print("    ❌ Failed to get library item ID")
                 print(f"⚠️  {title}: LIBRARY ITEM NOT FOUND\n")
                 return False
 
             print(f"    ✅ Library item ID: {library_item_id}")
 
             # Step 5: Get chapters (should be fetched from PROVIDER)
-            print(f"  4️⃣  Getting chapters from library (fetched from provider)...")
+            print("  4️⃣  Getting chapters from library (fetched from provider...")
             chapters = await self.get_chapters(client, manga_id)
 
             if not chapters:
@@ -300,7 +300,7 @@ class MangaUpdatesWorkflowTester:
                 return False
 
             # Step 5: Download chapter
-            print(f"  5️⃣  Downloading chapter...")
+            print("  5️⃣  Downloading chapter...")
             task_id = await self.download_chapter(client, library_item_id, chapters)
 
             if not task_id:
@@ -308,7 +308,7 @@ class MangaUpdatesWorkflowTester:
                 return False
 
             # Step 6: Monitor download
-            print(f"  6️⃣  Monitoring download...")
+            print("  6️⃣  Monitoring download...")
             success = await self.monitor_download(client, task_id)
 
             if success:

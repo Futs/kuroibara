@@ -18,10 +18,6 @@ def run_tests():
     print("=" * 60)
 
     # Test files to run
-    test_files = [
-        "tests/test_tiered_indexing.py",
-        "tests/test_enhanced_tiered_search.py",
-    ]
 
     # Test categories
     test_categories = {

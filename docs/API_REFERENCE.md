@@ -3,11 +3,13 @@
 This document provides a comprehensive reference for all Kuroibara API endpoints, including request/response schemas, authentication requirements, and usage examples.
 
 ## Base URL
+
 ```
 http://localhost:8000/api/v1
 ```
 
 ## Authentication
+
 All endpoints require JWT authentication unless otherwise specified.
 
 ```http
@@ -81,9 +83,11 @@ graph TB
 ## Authentication Endpoints
 
 ### POST /auth/login
+
 Authenticate user and receive JWT token.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -92,6 +96,7 @@ Authenticate user and receive JWT token.
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
@@ -107,9 +112,11 @@ Authenticate user and receive JWT token.
 ```
 
 ### POST /auth/register
+
 Register new user account.
 
 **Request:**
+
 ```json
 {
   "email": "newuser@example.com",
@@ -123,9 +130,11 @@ Register new user account.
 ## Enhanced Search Endpoints
 
 ### POST /search/enhanced
+
 Perform tiered search across multiple providers.
 
 **Request:**
+
 ```json
 {
   "query": "solo leveling",
@@ -136,6 +145,7 @@ Perform tiered search across multiple providers.
 ```
 
 **Response:**
+
 ```json
 {
   "query": "solo leveling",
@@ -160,17 +170,19 @@ Perform tiered search across multiple providers.
     }
   ],
   "provider_stats": {
-    "mangaupdates": {"results": 8, "response_time_ms": 450},
-    "madaradx": {"results": 5, "response_time_ms": 600},
-    "mangadx": {"results": 2, "response_time_ms": 200}
+    "mangaupdates": { "results": 8, "response_time_ms": 450 },
+    "madaradx": { "results": 5, "response_time_ms": 600 },
+    "mangadx": { "results": 2, "response_time_ms": 200 }
   }
 }
 ```
 
 ### POST /search/enhanced/add-from-mangaupdates
+
 Add manga to library from MangaUpdates search result.
 
 **Request:**
+
 ```json
 {
   "mu_entry_id": "54572530979",
@@ -184,9 +196,11 @@ Add manga to library from MangaUpdates search result.
 ## Library Management Endpoints
 
 ### GET /library/
+
 Retrieve user's manga library with filtering and pagination.
 
 **Query Parameters:**
+
 - `page`: Page number (default: 1)
 - `limit`: Results per page (default: 20)
 - `status`: Filter by reading status
@@ -195,6 +209,7 @@ Retrieve user's manga library with filtering and pagination.
 - `order`: Sort order (asc, desc)
 
 **Response:**
+
 ```json
 {
   "total": 150,
@@ -223,9 +238,11 @@ Retrieve user's manga library with filtering and pagination.
 ```
 
 ### POST /library/add
+
 Add manga to user's library.
 
 **Request:**
+
 ```json
 {
   "title": "Solo Leveling",
@@ -244,15 +261,18 @@ Add manga to user's library.
 ## Torrent Operations Endpoints
 
 ### GET /torrents/search
+
 Search for torrents across configured indexers.
 
 **Query Parameters:**
+
 - `query`: Search query (required)
 - `category`: Torrent category (manga, anime, all)
 - `indexer`: Specific indexer to search
 - `limit`: Maximum results per indexer (default: 50)
 
 **Response:**
+
 ```json
 {
   "query": "solo leveling",
@@ -279,9 +299,11 @@ Search for torrents across configured indexers.
 ```
 
 ### POST /torrents/download
+
 Download a torrent using configured download client.
 
 **Request:**
+
 ```json
 {
   "title": "[Yen Press] Solo Leveling Vol. 1-8 (Digital)",
@@ -301,9 +323,11 @@ Download a torrent using configured download client.
 ## Health Monitoring Endpoints
 
 ### GET /health/
+
 Comprehensive system health check.
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -340,9 +364,11 @@ Comprehensive system health check.
 ```
 
 ### GET /health/indexers
+
 Detailed health status of search indexers.
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -397,6 +423,7 @@ All endpoints return consistent error responses:
 ```
 
 ### Common Error Codes
+
 - `AUTHENTICATION_REQUIRED`: Missing or invalid JWT token
 - `VALIDATION_ERROR`: Request validation failed
 - `NOT_FOUND`: Requested resource not found
@@ -416,36 +443,40 @@ API endpoints are rate-limited to ensure fair usage:
 - **Health**: 10 requests per minute
 
 Rate limit headers are included in responses:
+
 ```http
 X-RateLimit-Limit: 30
 X-RateLimit-Remaining: 25
 X-RateLimit-Reset: 1705320660
 ```
+
 GET /api/v1/manga/{manga_id}
 
 # Response
+
 {
-  "id": "manga_123",
-  "title": "One Piece",
-  "alternative_titles": ["ワンピース"],
-  "author": "Eiichiro Oda",
-  "artist": "Eiichiro Oda",
-  "description": "The story follows Monkey D. Luffy...",
-  "cover_url": "https://example.com/cover.jpg",
-  "banner_url": "https://example.com/banner.jpg",
-  "provider": "mangadex",
-  "provider_id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
-  "status": "ongoing",
-  "genres": ["Action", "Adventure", "Comedy"],
-  "tags": ["Pirates", "Superpowers", "Friendship"],
-  "rating": 9.2,
-  "chapters": 1000,
-  "volumes": 100,
-  "year": 1997,
-  "nsfw": false,
-  "last_updated": "2025-01-15T10:30:00Z"
+"id": "manga_123",
+"title": "One Piece",
+"alternative_titles": ["ワンピース"],
+"author": "Eiichiro Oda",
+"artist": "Eiichiro Oda",
+"description": "The story follows Monkey D. Luffy...",
+"cover_url": "https://example.com/cover.jpg",
+"banner_url": "https://example.com/banner.jpg",
+"provider": "mangadex",
+"provider_id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
+"status": "ongoing",
+"genres": ["Action", "Adventure", "Comedy"],
+"tags": ["Pirates", "Superpowers", "Friendship"],
+"rating": 9.2,
+"chapters": 1000,
+"volumes": 100,
+"year": 1997,
+"nsfw": false,
+"last_updated": "2025-01-15T10:30:00Z"
 }
-```
+
+````
 
 ### Chapter Management
 ```bash
@@ -483,11 +514,12 @@ GET /api/v1/chapters/{chapter_id}/images
   ],
   "total_pages": 20
 }
-```
+````
 
 ## User Management
 
 ### User Registration
+
 ```bash
 POST /api/v1/auth/register
 {
@@ -509,6 +541,7 @@ POST /api/v1/auth/register
 ```
 
 ### User Profile
+
 ```bash
 # Get current user profile
 GET /api/v1/user/profile
@@ -528,6 +561,7 @@ PATCH /api/v1/user/profile
 ```
 
 ### Favorites Management
+
 ```bash
 # Add manga to favorites
 POST /api/v1/favorites/{manga_id}
@@ -562,6 +596,7 @@ GET /api/v1/favorites?page={page}&limit={limit}&sort={sort_by}
 ## Provider Management
 
 ### Provider Status
+
 ```bash
 # Get all provider health status
 GET /api/v1/providers/status
@@ -595,6 +630,7 @@ GET /api/v1/providers/{provider_name}/status
 ```
 
 ### Provider Configuration (Admin Only)
+
 ```bash
 # Update provider settings
 PATCH /api/v1/admin/providers/{provider_name}
@@ -609,6 +645,7 @@ PATCH /api/v1/admin/providers/{provider_name}
 ## Admin Endpoints
 
 ### User Management (Admin Only)
+
 ```bash
 # Get all users
 GET /api/v1/admin/users?page={page}&limit={limit}&search={query}
@@ -626,6 +663,7 @@ DELETE /api/v1/admin/users/{user_id}
 ```
 
 ### System Statistics
+
 ```bash
 # Get system statistics
 GET /api/v1/admin/stats
@@ -654,6 +692,7 @@ GET /api/v1/admin/stats
 ## Error Handling
 
 ### HTTP Status Codes
+
 - **200 OK** - Request successful
 - **201 Created** - Resource created successfully
 - **400 Bad Request** - Invalid request parameters
@@ -665,6 +704,7 @@ GET /api/v1/admin/stats
 - **500 Internal Server Error** - Server error
 
 ### Error Response Format
+
 ```json
 {
   "error": {
@@ -683,12 +723,14 @@ GET /api/v1/admin/stats
 ## Rate Limiting
 
 ### Default Limits
+
 - **Anonymous users**: 100 requests per hour
 - **Authenticated users**: 1000 requests per hour
 - **Premium users**: 5000 requests per hour
 - **Admin users**: No limit
 
 ### Rate Limit Headers
+
 ```
 X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 999
@@ -698,6 +740,7 @@ X-RateLimit-Reset: 1642262400
 ## Pagination
 
 ### Standard Pagination
+
 ```bash
 GET /api/v1/endpoint?page=1&limit=20
 
@@ -718,26 +761,30 @@ GET /api/v1/endpoint?page=1&limit=20
 ## WebSocket Endpoints
 
 ### Real-time Updates
+
 ```javascript
 // Connect to WebSocket for real-time updates
-const ws = new WebSocket('ws://localhost:8000/api/v1/ws');
+const ws = new WebSocket("ws://localhost:8000/api/v1/ws");
 
 // Subscribe to provider status updates
-ws.send(JSON.stringify({
-  "type": "subscribe",
-  "channel": "provider_status"
-}));
+ws.send(
+  JSON.stringify({
+    type: "subscribe",
+    channel: "provider_status",
+  }),
+);
 
 // Receive updates
-ws.onmessage = function(event) {
+ws.onmessage = function (event) {
   const data = JSON.parse(event.data);
-  console.log('Provider status update:', data);
+  console.log("Provider status update:", data);
 };
 ```
 
 ## SDK Examples
 
 ### Python SDK
+
 ```python
 import requests
 
@@ -750,14 +797,14 @@ class KuroibaraAPI:
             self.session.headers.update({
                 'Authorization': f'Bearer {token}'
             })
-    
+
     def search(self, query, page=1, limit=20):
         response = self.session.get(
             f'{self.base_url}/search',
             params={'q': query, 'page': page, 'limit': limit}
         )
         return response.json()
-    
+
     def get_manga(self, manga_id):
         response = self.session.get(f'{self.base_url}/manga/{manga_id}')
         return response.json()
@@ -768,6 +815,7 @@ results = api.search('one piece')
 ```
 
 ### JavaScript SDK
+
 ```javascript
 class KuroibaraAPI {
   constructor(baseUrl, token = null) {
@@ -778,8 +826,8 @@ class KuroibaraAPI {
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
+      "Content-Type": "application/json",
+      ...options.headers,
     };
 
     if (this.token) {
@@ -788,7 +836,7 @@ class KuroibaraAPI {
 
     const response = await fetch(url, {
       ...options,
-      headers
+      headers,
     });
 
     return response.json();
@@ -805,6 +853,6 @@ class KuroibaraAPI {
 }
 
 // Usage
-const api = new KuroibaraAPI('http://localhost:8000/api/v1', 'your_token');
-const results = await api.search('one piece');
+const api = new KuroibaraAPI("http://localhost:8000/api/v1", "your_token");
+const results = await api.search("one piece");
 ```

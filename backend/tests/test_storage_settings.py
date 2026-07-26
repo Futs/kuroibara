@@ -2,10 +2,8 @@
 Tests for storage settings functionality
 """
 
-import os
-
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
 from app.models.user import User
 from app.schemas.user import UserSettings, UserSettingsUpdate
@@ -71,17 +69,13 @@ class TestStorageSettings:
         # Use the test database session to check schema
 
         # Check columns exist using the test database session
-        result = await db.execute(
-            text(
-                """
+        result = await db.execute(text("""
                 SELECT column_name, data_type, column_default
                 FROM information_schema.columns
                 WHERE table_name = 'users'
                 AND column_name IN ('storage_type', 'max_upload_size')
                 ORDER BY column_name;
-            """
-            )
-        )
+            """))
 
         columns = {
             row[0]: {"type": row[1], "default": row[2]} for row in result.fetchall()

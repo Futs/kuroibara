@@ -2,6 +2,7 @@
 """
 Script to create the initial database migration.
 """
+
 import os
 import subprocess
 import sys

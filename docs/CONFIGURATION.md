@@ -3,6 +3,7 @@
 ## Environment Variables
 
 ### Database Configuration
+
 ```bash
 # PostgreSQL Database Settings
 DB_HOST=postgres                    # Database host (default: postgres for Docker)
@@ -13,6 +14,7 @@ DB_DATABASE=kuroibara              # Database name
 ```
 
 ### Cache Configuration
+
 ```bash
 # Valkey/Redis Cache Settings
 VALKEY_HOST=valkey                 # Cache host (default: valkey for Docker)
@@ -22,6 +24,7 @@ VALKEY_DB=0                        # Cache database number (default: 0)
 ```
 
 ### Security Configuration
+
 ```bash
 # Security Settings
 SECRET_KEY=your_very_long_secret_key_here  # JWT signing key (generate a strong one!)
@@ -38,6 +41,7 @@ REQUIRE_SPECIAL_CHARS=false                # Require special characters
 ```
 
 ### Provider Monitoring
+
 ```bash
 # Provider Health Check Settings
 PROVIDER_CHECK_INTERVAL=60                 # Check interval in minutes (default: 60)
@@ -52,6 +56,7 @@ HEALTHY_THRESHOLD=2                        # Consecutive successes before markin
 ```
 
 ### Email Configuration
+
 ```bash
 # SMTP Settings (for production)
 SMTP_HOST=smtp.gmail.com                   # SMTP server host
@@ -67,6 +72,7 @@ FROM_NAME=Kuroibara                        # Default sender name
 ```
 
 ### Application Settings
+
 ```bash
 # General Application Settings
 APP_NAME=Kuroibara                         # Application name
@@ -91,6 +97,7 @@ ALLOWED_HEADERS=*                          # Allowed headers
 **Note:** Storage settings have been moved to user-specific configuration. Each user can now configure their own storage preferences through the web interface at Settings > Downloads > Storage Settings.
 
 Available storage options:
+
 - **Local Storage** - Files stored on the server filesystem
 - **Amazon S3** - Files stored in AWS S3 buckets
 - **Google Cloud Storage** - Files stored in GCS buckets
@@ -106,6 +113,7 @@ IMAGE_QUALITY=85                           # JPEG compression quality (1-100)
 ```
 
 ### Background Tasks
+
 ```bash
 # Task Queue Settings
 TASK_QUEUE_URL=redis://valkey:6379/1       # Task queue Redis URL
@@ -117,9 +125,10 @@ RESULT_EXPIRES=3600                        # Task result expiration in seconds
 ## Docker Configuration
 
 ### Production Docker Compose
+
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -162,9 +171,10 @@ volumes:
 ```
 
 ### Development Docker Compose
+
 ```yaml
 # docker-compose.dev.yml
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -194,6 +204,7 @@ services:
 ## Database Configuration
 
 ### PostgreSQL Settings
+
 ```sql
 -- Recommended PostgreSQL settings for production
 -- postgresql.conf
@@ -219,6 +230,7 @@ log_min_duration_statement = 1000
 ```
 
 ### Database Initialization
+
 ```bash
 # Initialize database with required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -229,6 +241,7 @@ CREATE EXTENSION IF NOT EXISTS "unaccent";
 ## Nginx Configuration
 
 ### Production Nginx Config
+
 ```nginx
 # /etc/nginx/sites-available/kuroibara
 server {
@@ -268,6 +281,7 @@ server {
 ## Security Configuration
 
 ### SSL/TLS Setup
+
 ```bash
 # Generate SSL certificate with Let's Encrypt
 certbot --nginx -d yourdomain.com
@@ -280,6 +294,7 @@ ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
 ```
 
 ### Firewall Configuration
+
 ```bash
 # UFW firewall rules
 ufw allow 22/tcp    # SSH
@@ -291,6 +306,7 @@ ufw enable
 ## Monitoring Configuration
 
 ### Health Check Endpoints
+
 ```bash
 # Application health checks
 GET /api/v1/health              # Application health
@@ -300,6 +316,7 @@ GET /api/v1/providers/status    # Provider health status
 ```
 
 ### Logging Configuration
+
 ```python
 # logging.conf
 [loggers]
@@ -340,6 +357,7 @@ format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
 ## Backup Configuration
 
 ### Database Backup
+
 ```bash
 # Automated database backup script
 #!/bin/bash
@@ -352,6 +370,7 @@ find $BACKUP_DIR -name "kuroibara_*.sql" -mtime +7 -delete
 ```
 
 ### File Backup
+
 ```bash
 # Backup uploaded files
 rsync -av /app/uploads/ /backups/uploads/

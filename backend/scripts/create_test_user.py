@@ -50,7 +50,7 @@ async def create_test_user():
         print(f"   ID: {user.id}")
         print(f"   Username: {user.username}")
         print(f"   Email: {user.email}")
-        print(f"   Password: password123")
+        print("   Password: password123")
 
 
 if __name__ == "__main__":

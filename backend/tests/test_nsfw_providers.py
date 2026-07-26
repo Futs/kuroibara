@@ -11,7 +11,6 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-import asyncio
 
 from app.core.providers.enhanced_generic import EnhancedGenericProvider
 from app.core.providers.generic import GenericProvider

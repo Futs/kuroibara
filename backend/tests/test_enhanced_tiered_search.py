@@ -1,7 +1,7 @@
 """Test suite for the enhanced tiered search service with database integration."""
 
-from datetime import datetime
-from unittest.mock import AsyncMock, patch
+from datetime import datetime, timezone
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -22,7 +22,7 @@ from app.models.mangaupdates import (
     UniversalMangaEntry,
     UniversalMangaMapping,
 )
-from app.schemas.search import SearchResponse, SearchResult
+from app.schemas.search import SearchResponse
 
 
 class TestEnhancedTieredSearchService:
@@ -96,7 +96,7 @@ class TestEnhancedTieredSearchService:
             total_chapters=sample_metadata.total_chapters,
             confidence_score=sample_metadata.confidence_score,
             data_completeness=0.9,
-            last_refreshed=datetime.utcnow(),
+            last_refreshed=datetime.now(timezone.utc),
             raw_data=sample_metadata.raw_data,
         )
 
@@ -295,7 +295,7 @@ class TestEnhancedTieredSearchService:
             assert needs_refresh is True
 
             # Test with recent refresh
-            sample_universal_entry.last_refreshed = datetime.utcnow()
+            sample_universal_entry.last_refreshed = datetime.now(timezone.utc)
             sample_universal_entry.refresh_interval_hours = 24
             sample_universal_entry.auto_refresh_enabled = True  # Enable auto refresh
             needs_refresh = service._needs_refresh(sample_universal_entry)
@@ -412,7 +412,7 @@ class TestErrorHandling:
             entry = service._create_entry_from_metadata(None)
             # If it doesn't raise an exception, that's fine
             assert entry is None
-        except (AttributeError, TypeError):
+        except AttributeError, TypeError:
             # If it raises an exception for None input, that's also acceptable
             pass
 

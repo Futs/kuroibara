@@ -8,7 +8,7 @@ updates to connected clients.
 import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 from uuid import uuid4
 
@@ -66,8 +66,13 @@ class WebSocketConnection:
         ):
             return False
 
+        # Extract event data if it's wrapped in an "event" key (e.g. from broadcast_event)
+        data = event
+        if "event" in event and isinstance(event["event"], dict):
+            data = event["event"]
+
         # Check operation subscription
-        operation_id = event.get("operation_id")
+        operation_id = data.get("operation_id")
         if (
             self.subscribed_operations
             and operation_id not in self.subscribed_operations
@@ -75,7 +80,7 @@ class WebSocketConnection:
             return False
 
         # Check operation type subscription
-        operation_type = event.get("operation_type")
+        operation_type = data.get("operation_type")
         if (
             self.subscribed_operation_types
             and operation_type not in self.subscribed_operation_types
@@ -145,7 +150,7 @@ class WebSocketManager:
             {
                 "type": "connection_established",
                 "connection_id": connection.id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 
@@ -221,7 +226,10 @@ class WebSocketManager:
 
             elif message_type == "ping":
                 await connection.send_message(
-                    {"type": "pong", "timestamp": datetime.utcnow().isoformat()}
+                    {
+                        "type": "pong",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
                 )
 
             else:
@@ -371,7 +379,7 @@ class WebSocketManager:
                         success = await connection.send_message(
                             {
                                 "type": "heartbeat",
-                                "timestamp": datetime.utcnow().isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                             }
                         )
                         if not success:

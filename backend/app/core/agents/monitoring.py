@@ -7,7 +7,7 @@ performance tracking, health monitoring, alerting, and metrics aggregation.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .base import AgentStatus
@@ -134,7 +134,7 @@ class AgentMonitor:
             self._historical_metrics[agent_name] = []
 
         health_record = {
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(timezone.utc),
             "type": "health_check",
             "is_healthy": is_healthy,
             "response_time": response_time,
@@ -183,7 +183,7 @@ class AgentMonitor:
                 self._historical_metrics[agent.name] = []
 
             metrics_record = {
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(timezone.utc),
                 "type": "metrics",
                 "total_requests": agent.metrics.total_requests,
                 "successful_requests": agent.metrics.successful_requests,
@@ -206,7 +206,7 @@ class AgentMonitor:
                 continue
 
             # Get recent metrics (last hour)
-            recent_cutoff = datetime.utcnow() - timedelta(hours=1)
+            recent_cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
             recent_metrics = [
                 m
                 for m in metrics
@@ -229,7 +229,9 @@ class AgentMonitor:
 
     async def _cleanup_old_metrics(self) -> None:
         """Clean up old metrics to prevent memory bloat."""
-        cutoff_time = datetime.utcnow() - timedelta(hours=self._metrics_retention_hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(
+            hours=self._metrics_retention_hours
+        )
 
         for agent_name in self._historical_metrics:
             self._historical_metrics[agent_name] = [
@@ -343,7 +345,7 @@ class AgentMonitor:
         if agent_name not in self._historical_metrics:
             return []
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
         return [
             metric
             for metric in self._historical_metrics[agent_name]
@@ -395,7 +397,7 @@ class AgentMonitor:
             progress_status = {"system_status": "unavailable"}
 
         return {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "overall_statistics": {
                 "total_agents": len(agents),
                 "active_agents": len(

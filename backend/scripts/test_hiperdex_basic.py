@@ -34,7 +34,7 @@ async def test_basic_functionality():
     # Test basic properties
     assert provider.name == "HiperDEX"
     assert provider.url == "https://hiperdex.com"
-    assert provider.supports_nsfw == True
+    assert provider.supports_nsfw
     logger.info("✅ Provider properties test passed")
 
     # Test capabilities
@@ -139,7 +139,7 @@ async def test_javascript_provider_base():
     # Test properties
     assert js_provider.name == "TestProvider"
     assert js_provider.url == "https://example.com"
-    assert js_provider.supports_nsfw == True
+    assert js_provider.supports_nsfw
     logger.info("✅ Base class properties test passed")
 
     # Test configuration

@@ -251,7 +251,7 @@ def test_file_operations_simulation():
 
         # Verify target structure
         print("\nTarget structure:")
-        for root, dirs, files in os.walk(os.path.join(temp_dir, "target")):
+        for root, _dirs, files in os.walk(os.path.join(temp_dir, "target")):
             level = root.replace(temp_dir, "").count(os.sep)
             indent = " " * 2 * level
             print(f"{indent}{os.path.basename(root)}/")

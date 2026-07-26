@@ -5,12 +5,14 @@ This guide explains how to set up the GitHub Wiki for Kuroibara using the hybrid
 ## 🎯 **Hybrid Documentation Strategy**
 
 ### **Repository Documentation** (Technical)
+
 - API references and technical specifications
 - Development guides and architecture
 - System administration and deployment
 - Code documentation and contributing guidelines
 
 ### **GitHub Wiki** (User-Facing)
+
 - User guides and tutorials
 - Installation instructions
 - Troubleshooting and FAQ
@@ -21,28 +23,34 @@ This guide explains how to set up the GitHub Wiki for Kuroibara using the hybrid
 ## 🚀 **Setting Up the Wiki**
 
 ### **Step 1: Enable GitHub Wiki**
+
 1. Go to your repository on GitHub
 2. Click **Settings** tab
 3. Scroll down to **Features** section
 4. Check **Wikis** to enable the wiki feature
 
 ### **Step 2: Create Initial Wiki Structure**
+
 1. Click the **Wiki** tab in your repository
 2. Click **Create the first page**
 3. Use the templates provided in `docs/wiki-templates/`
 
 ### **Step 3: Copy Template Content**
+
 Copy the content from these template files to create your wiki pages:
 
 #### **Core Pages**
+
 - `docs/wiki-templates/Home.md` → **Home** (main wiki page)
 - `docs/wiki-templates/Getting-Started.md` → **Getting-Started**
 - `docs/wiki-templates/Installation.md` → **Installation**
 
 #### **Additional Pages to Create**
+
 Create these pages manually based on the structure:
 
 **User Guides:**
+
 - **User-Guide** - Complete feature walkthrough
 - **Managing-Library** - Library organization
 - **Reading-Lists-Categories** - Lists and categories
@@ -50,16 +58,19 @@ Create these pages manually based on the structure:
 - **Settings-Preferences** - Customization options
 
 **Installation & Setup:**
+
 - **Docker-Setup** - Docker deployment guide
 - **Configuration** - Environment setup
 - **Updates-Maintenance** - Keeping updated
 
 **Provider Management:**
+
 - **Supported-Providers** - List of manga sources
 - **Provider-Configuration** - Managing providers
 - **Provider-Troubleshooting** - Fixing provider issues
 
 **Help & Troubleshooting:**
+
 - **Common-Issues** - FAQ and quick fixes
 - **Troubleshooting** - Detailed problem solving
 - **Performance-Optimization** - Speed improvements
@@ -70,6 +81,7 @@ Create these pages manually based on the structure:
 ## 📝 **Wiki Page Templates**
 
 ### **Standard Page Structure**
+
 ```markdown
 # 📖 Page Title
 
@@ -82,6 +94,7 @@ Brief description of what this page covers.
 Content here...
 
 ### **Subsection**
+
 More detailed content...
 
 ---
@@ -93,10 +106,11 @@ More detailed content...
 
 ---
 
-*Last updated: [Date] | Need help? Visit [Getting Help](Getting-Help)*
+_Last updated: [Date] | Need help? Visit [Getting Help](Getting-Help)_
 ```
 
 ### **Navigation Structure**
+
 Use consistent navigation in each page:
 
 ```markdown
@@ -112,21 +126,26 @@ Use consistent navigation in each page:
 ## 🔗 **Cross-Referencing Strategy**
 
 ### **From Repository to Wiki**
+
 Update repository documentation to link to wiki:
 
 ```markdown
 <!-- In README.md -->
+
 For user guides, visit our [📖 GitHub Wiki](https://github.com/Futs/kuroibara/wiki)
 
 <!-- In technical docs -->
+
 For installation instructions, see the [Installation Guide](https://github.com/Futs/kuroibara/wiki/Installation)
 ```
 
 ### **From Wiki to Repository**
+
 Link back to technical documentation:
 
 ```markdown
 <!-- In wiki pages -->
+
 For technical details, see the [Technical Documentation](https://github.com/Futs/kuroibara/tree/main/docs)
 
 For API reference, visit [API Documentation](https://github.com/Futs/kuroibara/blob/main/docs/API_REFERENCE.md)
@@ -137,27 +156,33 @@ For API reference, visit [API Documentation](https://github.com/Futs/kuroibara/b
 ## 🎨 **Wiki Styling Guidelines**
 
 ### **Consistent Formatting**
+
 - Use **emoji headers** for visual appeal (📖, 🚀, 🔧, etc.)
 - Include **horizontal rules** (`---`) to separate sections
 - Use **bold text** for important terms and UI elements
 - Include **code blocks** for commands and configuration
 
 ### **Visual Elements**
+
 ```markdown
 ### **✅ Do This**
+
 - Use clear, actionable language
 - Include step-by-step instructions
 - Add screenshots when helpful
 
 ### **❌ Avoid This**
+
 - Technical jargon without explanation
 - Walls of text without structure
 - Broken or outdated links
 ```
 
 ### **Code Examples**
-```markdown
+
+````markdown
 ### **Example Configuration**
+
 ```bash
 # Start Kuroibara
 docker compose up -d
@@ -165,11 +190,14 @@ docker compose up -d
 # Check status
 docker compose ps
 ```
+````
 
 ### **Important Notes**
+
 > 💡 **Tip**: Use blockquotes for helpful tips and important information
-> 
+>
 > ⚠️ **Warning**: Use warning blocks for critical information
+
 ```
 
 ---
@@ -238,8 +266,10 @@ docker compose ps
 ### **Wiki Repository Structure**
 GitHub wikis are stored in a separate git repository:
 ```
+
 https://github.com/Futs/kuroibara.wiki.git
-```
+
+````
 
 ### **Local Wiki Development**
 ```bash
@@ -254,9 +284,10 @@ cd kuroibara.wiki
 git add .
 git commit -m "Update documentation"
 git push origin master
-```
+````
 
 ### **Backup Strategy**
+
 - **Regular backups** of wiki content
 - **Version control** through git
 - **Export to repository** for critical pages
@@ -266,16 +297,19 @@ git push origin master
 ## 🎯 **Success Metrics**
 
 ### **User Engagement**
+
 - Reduced support questions in issues
 - Increased self-service problem resolution
 - Positive feedback on documentation quality
 
 ### **Content Quality**
+
 - Comprehensive coverage of user scenarios
 - Up-to-date information aligned with releases
 - Clear, actionable instructions
 
 ### **Community Growth**
+
 - Community contributions to wiki
 - User-generated tips and tricks
 - Collaborative improvement process
@@ -292,4 +326,4 @@ git push origin master
 
 ---
 
-*For questions about wiki setup, create an issue or start a discussion in the repository.*
+_For questions about wiki setup, create an issue or start a discussion in the repository._

@@ -2,7 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 
@@ -395,7 +395,7 @@ class SABnzbdClient(BaseDownloadClient):
                 }
 
                 return int(value * multipliers.get(unit, 1))
-        except (ValueError, KeyError):
+        except ValueError, KeyError:
             pass
 
         return 0
@@ -405,7 +405,7 @@ class SABnzbdClient(BaseDownloadClient):
         try:
             # SABnzbd returns speed in KB/s
             return int(float(speed_str) * 1024)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return 0
 
     async def _check_history(self, external_id: str) -> Dict[str, Any]:
@@ -498,12 +498,12 @@ class DownloadClientService:
                     # Update health status
                     client_config.is_healthy = success
                     client_config.error_message = message if not success else None
-                    client_config.last_test = datetime.utcnow()
+                    client_config.last_test = datetime.now(timezone.utc)
             except Exception as e:
                 results[client_config.name] = (False, str(e))
                 client_config.is_healthy = False
                 client_config.error_message = str(e)
-                client_config.last_test = datetime.utcnow()
+                client_config.last_test = datetime.now(timezone.utc)
 
         await db.commit()
         return results

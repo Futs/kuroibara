@@ -6,7 +6,7 @@ in batch operations with progress tracking and error handling.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from uuid import UUID
 
@@ -117,9 +117,9 @@ class BatchOrganizer:
         if status:
             update_data["job_status"] = status
             if status == "running" and not await self._job_has_started(job_id, db):
-                update_data["started_at"] = datetime.utcnow()
+                update_data["started_at"] = datetime.now(timezone.utc)
             elif status in ["completed", "failed", "cancelled"]:
-                update_data["completed_at"] = datetime.utcnow()
+                update_data["completed_at"] = datetime.now(timezone.utc)
 
         await db.execute(
             update(OrganizationJob)
@@ -227,8 +227,8 @@ class BatchOrganizer:
                                         or user.naming_format_manga,
                                         files_processed=len(result.organized_files),
                                         operation_details={"job_id": str(job_id)},
-                                        started_at=datetime.utcnow(),
-                                        completed_at=datetime.utcnow(),
+                                        started_at=datetime.now(timezone.utc),
+                                        completed_at=datetime.now(timezone.utc),
                                     )
                                     db.add(history)
                                 else:
@@ -249,8 +249,8 @@ class BatchOrganizer:
                                         errors_encountered=result.errors,
                                         warnings_encountered=result.warnings,
                                         operation_details={"job_id": str(job_id)},
-                                        started_at=datetime.utcnow(),
-                                        completed_at=datetime.utcnow(),
+                                        started_at=datetime.now(timezone.utc),
+                                        completed_at=datetime.now(timezone.utc),
                                     )
                                     db.add(history)
 

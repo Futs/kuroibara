@@ -5,15 +5,18 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 ## 📚 Documentation Index
 
 ### 🎯 Core Documentation
+
 - **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Complete overview of all implemented features
 - **[Changelog](CHANGELOG.md)** - Version history and release notes
 - **[Versioning](VERSIONING.md)** - Versioning strategy and guidelines
 
 ### 🏗️ Architecture & Setup
+
 - **[Backend README](BACKEND_README.md)** - Backend setup and API documentation
 - **[Frontend README](FRONTEND_README.md)** - Frontend setup and development guide
 
 ### 🎨 Feature Documentation
+
 - **[Advanced Reading Features](ADVANCED_READING_FEATURES.md)** - Reading modes, image handling, and reader customization
 - **[Enhanced Library Features](ENHANCED_LIBRARY_FEATURES.md)** - Enhanced library features and management tools
 - **[Performance Optimizations](PERFORMANCE_OPTIMIZATIONS.md)** - Performance features and optimization techniques
@@ -21,6 +24,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 - **[Security & Privacy Features](SECURITY_PRIVACY_FEATURES.md)** - Security controls, RBAC, and privacy management
 
 ### 🔧 Development
+
 - **[GitHub Templates](github/)** - Pull request templates and GitHub Actions documentation
 
 ## 🚀 Quick Start
@@ -33,6 +37,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 ## 📋 Feature Categories
 
 ### 1. Advanced Reading Modes & Image Handling (10 features)
+
 - Double-page spread mode with intelligent page detection
 - List view mode for quick chapter browsing
 - Adaptive reading mode with automatic optimization
@@ -45,6 +50,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 - Full-screen reading mode with immersive experience
 
 ### 2. Reading Progress & Sync (7 features)
+
 - Comprehensive reading statistics and analytics
 - Reading history with detailed timestamps
 - Page-level bookmarks with notes and annotations
@@ -54,6 +60,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 - Progress visualization with charts and insights
 
 ### 3. Interface & Customization (7 features)
+
 - 5 distinct UI layouts (compact, comfortable, cozy, spacious, custom)
 - 4 theme presets + unlimited custom themes
 - Advanced typography settings for text content
@@ -63,6 +70,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 - Accessibility features and screen reader support
 
 ### 4. Enhanced Library Management (10 features)
+
 - Advanced filtering with 15+ filter types
 - Bulk operations for efficient management
 - Library analytics with detailed insights
@@ -75,6 +83,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 - Sorting with multiple criteria and custom orders
 
 ### 5. Performance Optimizations (10 features)
+
 - Lazy loading with intersection observer
 - Virtual scrolling for massive lists
 - CDN integration with multiple providers
@@ -87,6 +96,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 - Progressive loading with skeleton screens
 
 ### 6. Advanced Provider Features (10 features)
+
 - Provider health monitoring with automatic failover
 - Custom provider builder with no-code interface
 - Provider-specific settings and configuration
@@ -99,6 +109,7 @@ Welcome to the comprehensive documentation for Kuroibara, a modern manga managem
 - Comprehensive provider management interface
 
 ### 7. Security & Privacy (10 features)
+
 - Role-based access control (RBAC) with hierarchical roles
 - Content filtering with age ratings and custom rules
 - Comprehensive audit logging with real-time monitoring
@@ -130,30 +141,35 @@ For questions, issues, or contributions, please refer to the appropriate documen
 
 ---
 
-*Last updated: July 2025*
+_Last updated: July 2025_
 
 ### ✨ **Features Documentation**
+
 - **[🔍 Enhanced Filtering](features/Enhanced-Filtering.md)** - Multi-select genre filtering and advanced search capabilities
 
 ### ⚙️ **System Administration**
+
 - **[Configuration Guide](CONFIGURATION.md)** - Environment variables and system configuration
 - **[FlareSolverr Setup](FLARESOLVERR_SETUP.md)** - Optional Cloudflare bypass integration
 - **[Backup System](BACKUP_SYSTEM.md)** - Backup and recovery procedures
 - **[Organizer System](ORGANIZER_SYSTEM.md)** - File organization and management
 
 ### 🤖 **Automation & CI/CD**
+
 - **[CI/CD Setup](SETUP_CI_CD.md)** - GitHub Actions pipeline configuration
 - **[Automation Setup](AUTOMATION_SETUP.md)** - Development automation tools
 - **[Docker Automation](DOCKER_AUTOMATION.md)** - Container automation and deployment
 - **[Git Automation](GIT_AUTOMATION.md)** - Git hooks and automated workflows
 
 ### 📊 **Project Management**
+
 - **[Git Guidelines](GIT_GUIDELINES.md)** - Git workflow and contribution standards
 - **[Roadmap](ROADMAP.md)** - Project roadmap and planned features
 - **[Versioning Guide](../VERSIONING.md)** - Semantic versioning and release management
 - **[Changelog](../CHANGELOG.md)** - Detailed version history
 
 ### 🔗 **API Documentation**
+
 - **[API Organizer](API_ORGANIZER.md)** - Organizer API endpoints
 - **[Live API Docs](http://localhost:8000/api/docs)** - Interactive API documentation (local)
 
@@ -178,11 +194,13 @@ For questions, issues, or contributions, please refer to the appropriate documen
 ## 🤝 **Contributing to Documentation**
 
 ### **Technical Documentation** (This Repository)
+
 - Submit pull requests for technical docs
 - Follow the established structure and formatting
 - Include code examples and technical details
 
 ### **User Documentation** (GitHub Wiki)
+
 - Edit wiki pages directly on GitHub
 - Focus on user-friendly language and step-by-step guides
 - Include screenshots and visual aids when helpful

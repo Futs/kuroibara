@@ -18,8 +18,6 @@ import httpx
 # Add the backend directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from app.core.providers.generic import GenericProvider
-from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.registry import provider_registry
 
 # Configure logging

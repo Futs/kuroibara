@@ -5,12 +5,14 @@ I've successfully set up a comprehensive CI/CD pipeline for your Kuroibara proje
 ## 📁 Files Created
 
 ### GitHub Actions Workflows
+
 - `.github/workflows/pr-checks.yml` - Comprehensive PR testing
 - `.github/workflows/deploy.yml` - Deployment pipeline
 - `.github/workflows/security-scan.yml` - Security scanning
 - `.github/workflows/dependency-updates.yml` - Automated dependency updates
 
 ### Configuration Files
+
 - `backend/pyproject.toml` - Python project configuration
 - `backend/.flake8` - Python linting rules
 - `frontend/app/vite.config.js` - Updated with test configuration
@@ -18,6 +20,7 @@ I've successfully set up a comprehensive CI/CD pipeline for your Kuroibara proje
 - `frontend/app/src/tests/App.test.js` - Example test file
 
 ### Templates & Documentation
+
 - `.github/pull_request_template.md` - PR template
 - `.github/ISSUE_TEMPLATE/bug_report.yml` - Bug report template
 - `.github/ISSUE_TEMPLATE/feature_request.yml` - Feature request template
@@ -29,33 +32,39 @@ I've successfully set up a comprehensive CI/CD pipeline for your Kuroibara proje
 When you create a pull request, the following checks will run automatically:
 
 ### Backend Tests ✅
+
 - Runs pytest with coverage reporting
 - Database migrations testing
 - Code quality checks (Black, isort, flake8)
 - Type checking with mypy
 
 ### Frontend Tests ✅
+
 - Runs Vitest unit tests
 - ESLint code linting
 - TypeScript type checking
 - Test coverage reporting
 
 ### Security Scans ✅
+
 - Trivy vulnerability scanning
 - Secret detection
 - Dependency review
 
 ### Docker Build ✅
+
 - Validates backend Docker image builds
 - Validates frontend Docker image builds
 - Uses build caching for faster builds
 
 ### Integration Tests ✅
+
 - End-to-end testing with Docker Compose
 - Database and Redis service testing
 - API endpoint validation
 
 ### Code Quality ✅
+
 - Python formatting and linting
 - JavaScript/TypeScript formatting
 - Import sorting and organization
@@ -63,11 +72,13 @@ When you create a pull request, the following checks will run automatically:
 ## 🚀 Deployment Pipeline
 
 ### Staging Deployment
+
 - Automatically deploys to staging when PRs are merged to `main`
 - Builds and pushes Docker images to GitHub Container Registry
 - Environment: `staging`
 
 ### Production Deployment
+
 - Automatically deploys when you create version tags (e.g., `v1.0.0`)
 - Creates GitHub releases with changelog
 - Environment: `production`
@@ -102,6 +113,7 @@ Use the provided setup script to prepare your local environment:
 ```
 
 This script will:
+
 - Check for required tools (Docker, Node.js, Python)
 - Set up backend and frontend dependencies
 - Run tests locally

@@ -5,7 +5,7 @@ This module defines SQLAlchemy models for persisting job queue operations,
 events, and health monitoring data.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
@@ -47,10 +47,20 @@ class JobModel(Base):
     description = Column(Text)
 
     # Timing information
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-    started_at = Column(DateTime, index=True)
-    completed_at = Column(DateTime, index=True)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
+    started_at = Column(DateTime(timezone=True), index=True)
+    completed_at = Column(DateTime(timezone=True), index=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
 
     # Progress tracking
     progress_percentage = Column(Float, default=0.0)
@@ -167,7 +177,7 @@ class JobModel(Base):
         if self.completed_at and self.started_at:
             return (self.completed_at - self.started_at).total_seconds()
         elif self.status == "processing" and self.started_at:
-            return (datetime.utcnow() - self.started_at).total_seconds()
+            return (datetime.now(timezone.utc) - self.started_at).total_seconds()
         return None
 
 
@@ -198,7 +208,12 @@ class JobEventModel(Base):
 
     # Metadata and context
     event_metadata = Column(JSON)
-    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    timestamp = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
 
     # User and session context
     user_id = Column(PostgresUUID(as_uuid=True), index=True)
@@ -248,9 +263,9 @@ class ProviderHealthModel(Base):
 
     # Health status
     status = Column(String(20), nullable=False, default="unknown", index=True)
-    last_check = Column(DateTime, index=True)
-    last_success = Column(DateTime, index=True)
-    last_failure = Column(DateTime, index=True)
+    last_check = Column(DateTime(timezone=True), index=True)
+    last_success = Column(DateTime(timezone=True), index=True)
+    last_failure = Column(DateTime(timezone=True), index=True)
 
     # Performance metrics
     average_response_time = Column(Float, default=0.0)
@@ -263,7 +278,7 @@ class ProviderHealthModel(Base):
     total_successes = Column(Integer, default=0)
 
     # Status tracking
-    status_changed_at = Column(DateTime, index=True)
+    status_changed_at = Column(DateTime(timezone=True), index=True)
     auto_disabled = Column(Boolean, default=False)
     manual_override = Column(Boolean, default=False)
 
@@ -272,8 +287,17 @@ class ProviderHealthModel(Base):
 
     # Metadata
     health_metadata = Column(JSON)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
 
     # Indexes
     __table_args__ = (

@@ -19,6 +19,7 @@ New to Kuroibara? Start here:
 ## 📚 **Documentation Sections**
 
 ### 👤 **User Guides**
+
 - **[📱 User Guide](User-Guide)** - Complete guide to using Kuroibara
 - **[📚 Managing Your Library](Managing-Library)** - Organize your manga collection
 - **[📋 Reading Lists & Categories](Reading-Lists-Categories)** - Create and manage reading lists
@@ -26,23 +27,27 @@ New to Kuroibara? Start here:
 - **[⚙️ Settings & Preferences](Settings-Preferences)** - Customize your experience
 
 ### 🔧 **Installation & Setup**
+
 - **[🔧 Installation Guide](Installation)** - Complete installation instructions
 - **[🐳 Docker Setup](Docker-Setup)** - Docker deployment guide
 - **[⚙️ Configuration](Configuration)** - Environment and system configuration
 - **[🔄 Updates & Maintenance](Updates-Maintenance)** - Keeping Kuroibara updated
 
 ### 🌐 **Provider Management**
+
 - **[🌐 Supported Providers](Supported-Providers)** - Complete list of manga sources
 - **[⚙️ Provider Configuration](Provider-Configuration)** - Setting up and managing providers
 - **[🔧 Provider Troubleshooting](Provider-Troubleshooting)** - Fixing provider issues
 
 ### 🐛 **Help & Troubleshooting**
+
 - **[🐛 Common Issues](Common-Issues)** - Frequently encountered problems
 - **[🔧 Troubleshooting Guide](Troubleshooting)** - Step-by-step problem solving
 - **[📊 Performance Optimization](Performance-Optimization)** - Improve Kuroibara performance
 - **[🆘 Getting Help](Getting-Help)** - Where to find additional support
 
 ### 🎨 **Advanced Features**
+
 - **[🔐 User Authentication](User-Authentication)** - Account management and 2FA
 - **[📥 Downloads & Offline Reading](Downloads-Offline)** - Download manga for offline access
 - **[🔗 External Integrations](External-Integrations)** - AniList, MyAnimeList connections
@@ -53,11 +58,13 @@ New to Kuroibara? Start here:
 ## 🤝 **Community & Contributing**
 
 ### **For Users**
+
 - **[💡 Tips & Tricks](Tips-Tricks)** - Community-shared best practices
 - **[🆘 Getting Help](Getting-Help)** - How to get support
 - **[🐛 Reporting Issues](Reporting-Issues)** - Help improve Kuroibara
 
 ### **For Contributors**
+
 - **[🤝 Contributing to Wiki](Contributing-Wiki)** - Help improve documentation
 - **[🔧 Development Setup](https://github.com/Futs/kuroibara/blob/main/docs/DEVELOPMENT.md)** - Technical development guide
 - **[📋 Git Guidelines](https://github.com/Futs/kuroibara/blob/main/docs/GIT_GUIDELINES.md)** - Contribution standards
@@ -83,4 +90,4 @@ New to Kuroibara? Start here:
 
 ---
 
-*Last updated: July 2025 | Kuroibara v0.5.0*
+_Last updated: July 2025 | Kuroibara v0.5.0_

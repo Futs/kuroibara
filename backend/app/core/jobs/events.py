@@ -7,7 +7,7 @@ including job statuses, priorities, types, and events.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
 
@@ -101,7 +101,7 @@ class JobEvent:
 
     # Metadata and context
     metadata: Dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     # User and session context
     user_id: Optional[str] = None
@@ -144,7 +144,7 @@ class JobEvent:
         event.items_total = data.get("items_total")
         event.metadata = data.get("metadata", {})
         event.timestamp = datetime.fromisoformat(
-            data.get("timestamp", datetime.utcnow().isoformat())
+            data.get("timestamp", datetime.now(timezone.utc).isoformat())
         )
         event.user_id = data.get("user_id")
         event.session_id = data.get("session_id")

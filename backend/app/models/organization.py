@@ -5,7 +5,7 @@ These models provide enhanced metadata tracking for manga organization,
 replacing JSON file-based tracking with database-backed solutions.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -40,10 +40,12 @@ class MangaMetadata(BaseModel):
     organization_format = Column(
         String(500), nullable=True
     )  # Format used for organization
-    last_organized_at = Column(DateTime, nullable=True)  # When last organized
+    last_organized_at = Column(
+        DateTime(timezone=True), nullable=True
+    )  # When last organized
 
     # Reading tracking
-    last_read_at = Column(DateTime, nullable=True)  # When last read
+    last_read_at = Column(DateTime(timezone=True), nullable=True)  # When last read
     reading_status = Column(
         String(20), default="unread", nullable=False
     )  # unread, reading, completed, dropped
@@ -88,7 +90,7 @@ class ChapterMetadata(BaseModel):
     reading_progress = Column(
         Integer, default=0, nullable=False
     )  # Progress percentage (0-100)
-    last_read_at = Column(DateTime, nullable=True)  # When last read
+    last_read_at = Column(DateTime(timezone=True), nullable=True)  # When last read
     is_completed = Column(
         Boolean, default=False, nullable=False
     )  # Whether chapter is completed
@@ -110,7 +112,7 @@ class OrganizationHistory(BaseModel):
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     manga_id = Column(UUID(as_uuid=True), ForeignKey("manga.id"), nullable=True)
-    chapter_id = Column(UUID(as_uuid=True), ForeignKey("chapter.id"), nullable=True)
+    chapter_id = Column(UUID(as_uuid=True), ForeignKey("chapter.id"), nullable=False)
 
     # Operation details
     operation_type = Column(
@@ -134,8 +136,12 @@ class OrganizationHistory(BaseModel):
     )  # List of warnings during operation
 
     # Timing
-    started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    completed_at = Column(DateTime, nullable=True)
+    started_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    completed_at = Column(DateTime(timezone=True), nullable=True)
     duration_seconds = Column(Integer, nullable=True)  # Operation duration
 
     # Additional details
@@ -184,9 +190,11 @@ class OrganizationJob(BaseModel):
     )  # Chapter naming format used
 
     # Timing
-    started_at = Column(DateTime, nullable=True)
-    completed_at = Column(DateTime, nullable=True)
-    estimated_completion = Column(DateTime, nullable=True)  # Estimated completion time
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    estimated_completion = Column(
+        DateTime(timezone=True), nullable=True
+    )  # Estimated completion time
 
     # Results
     result_summary = Column(JSONB, nullable=True)  # Summary of job results

@@ -12,7 +12,7 @@ echo "📦 Installing bump2version..."
 pip install bump2version
 
 # Create bump2version configuration
-cat > .bumpversion.cfg << 'EOF'
+cat >.bumpversion.cfg <<'EOF'
 [bumpversion]
 current_version = 0.7.0
 commit = True
@@ -46,7 +46,7 @@ echo "📦 Installing standard-version..."
 npm install -g standard-version
 
 # Create standard-version configuration
-cat > .versionrc.json << 'EOF'
+cat >.versionrc.json <<'EOF'
 {
   "types": [
     {"type": "feat", "section": "Features"},

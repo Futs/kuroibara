@@ -36,7 +36,7 @@ Navigate to **Settings > Security > Authentication Security** to configure token
 
 ### Options
 
-- **Validate Token on New Tab**: 
+- **Validate Token on New Tab**:
   - **Enabled (Recommended)**: New tabs validate tokens with the server
   - **Disabled (Legacy)**: New tabs trust existing tokens without validation
 
@@ -91,7 +91,7 @@ If you prefer the previous behavior (no validation on new tabs):
 The authentication service provides these methods:
 
 ```javascript
-import { authService } from '@/services/authService.js';
+import { authService } from "@/services/authService.js";
 
 // Check if token exists (quick)
 const hasToken = authService.hasToken();
@@ -134,6 +134,7 @@ Token validation adds a small delay when opening new tabs:
 ### Browser Compatibility
 
 This feature works with all modern browsers that support:
+
 - localStorage/sessionStorage
 - Async/await
 - Fetch API

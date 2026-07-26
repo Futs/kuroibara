@@ -8,7 +8,7 @@ download jobs, health checks, and other background tasks.
 import asyncio
 import logging
 from collections import defaultdict, deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Set
 from uuid import uuid4
 
@@ -101,7 +101,7 @@ class DownloadQueueManager:
         self._is_running = False
 
         # Cancel all active workers
-        for worker_id, task in list(self._active_workers.items()):
+        for _worker_id, task in list(self._active_workers.items()):
             task.cancel()
             try:
                 await task
@@ -350,7 +350,7 @@ class DownloadQueueManager:
     def _update_job_tracking(self, job: BaseJob) -> None:
         """Update job tracking indices."""
         # Remove from old status
-        for status, job_set in self._jobs_by_status.items():
+        for _status, job_set in self._jobs_by_status.items():
             job_set.discard(job.id)
 
         # Add to new status
@@ -508,7 +508,9 @@ class DownloadQueueManager:
 
     async def _cleanup_old_jobs(self) -> None:
         """Remove old completed jobs to prevent memory bloat."""
-        cutoff_time = datetime.utcnow() - timedelta(hours=24)  # Keep jobs for 24 hours
+        cutoff_time = datetime.now(timezone.utc) - timedelta(
+            hours=24
+        )  # Keep jobs for 24 hours
 
         jobs_to_remove = []
         for job_id, job in self._jobs.items():

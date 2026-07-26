@@ -15,7 +15,6 @@ from app.core.services.enhanced_search import ProviderMatcher
 from app.core.services.mangaupdates import MangaUpdatesService
 from app.db.session import AsyncSessionLocal
 from app.models.manga import Chapter, Manga
-from app.models.mangaupdates import MangaUpdatesEntry
 from app.schemas.manga import MangaStatus, MangaType
 
 

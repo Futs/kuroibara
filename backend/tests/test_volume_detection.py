@@ -11,7 +11,6 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-import asyncio
 from unittest.mock import Mock
 
 from app.core.services.naming import VolumeDetectionResult, naming_engine

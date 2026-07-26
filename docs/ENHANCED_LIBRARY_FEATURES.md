@@ -13,6 +13,7 @@ The enhanced library features provide professional-grade manga collection manage
 **Location**: `LibraryFilters.vue`
 
 #### Filter Types
+
 - **Read Status**: Filter by reading progress (unread, reading, completed, on-hold, dropped)
 - **Rating Range**: Filter by rating scores (0-10 with decimal precision)
 - **Date Filters**: Filter by date added and last read dates
@@ -23,13 +24,14 @@ The enhanced library features provide professional-grade manga collection manage
 - **Advanced Options**: Duplicates only, missing metadata
 
 #### Usage Example
+
 ```javascript
 // Set multiple filters
 libraryStore.setFilters({
-  readStatus: ['reading', 'completed'],
+  readStatus: ["reading", "completed"],
   rating: { min: 7, max: 10 },
-  genres: ['Action', 'Adventure'],
-  isFavorite: true
+  genres: ["Action", "Adventure"],
+  isFavorite: true,
 });
 
 // Reset all filters
@@ -41,6 +43,7 @@ libraryStore.resetFilters();
 **Location**: `BulkOperations.vue`
 
 #### Available Operations
+
 - **Selection Management**: Select all, deselect all, toggle selection
 - **Status Updates**: Mark as read/unread in bulk
 - **Favorites Management**: Add/remove from favorites
@@ -48,13 +51,14 @@ libraryStore.resetFilters();
 - **Deletion**: Bulk delete with confirmation
 
 #### Usage Example
+
 ```javascript
 // Enter bulk mode
 libraryStore.toggleBulkMode();
 
 // Select manga
-libraryStore.selectManga('manga-id-1');
-libraryStore.selectManga('manga-id-2');
+libraryStore.selectManga("manga-id-1");
+libraryStore.selectManga("manga-id-2");
 
 // Perform bulk operation
 await libraryStore.bulkMarkAsRead();
@@ -65,6 +69,7 @@ await libraryStore.bulkMarkAsRead();
 **Location**: `LibraryStatistics.vue`
 
 #### Statistics Provided
+
 - **Overview Cards**: Total manga, completed, favorites, currently reading
 - **Reading Status Distribution**: Visual breakdown with progress bars and pie chart
 - **Top Genres**: Most popular genres with counts and percentages
@@ -73,6 +78,7 @@ await libraryStore.bulkMarkAsRead();
 - **Storage Information**: Total library size and average manga size
 
 #### Data Structure
+
 ```javascript
 {
   total: 1250,
@@ -99,12 +105,14 @@ await libraryStore.bulkMarkAsRead();
 **Location**: `DuplicateDetection.vue`
 
 #### Detection Methods
+
 - **Title Similarity**: Normalized title comparison
 - **Author Matching**: Cross-reference author information
 - **Genre Overlap**: Compare genre distributions
 - **Description Analysis**: Content similarity scoring
 
 #### Similarity Algorithm
+
 ```javascript
 calculateSimilarity(manga1, manga2) {
   // Title similarity (40 points)
@@ -116,6 +124,7 @@ calculateSimilarity(manga1, manga2) {
 ```
 
 #### Management Options
+
 - **Merge Duplicates**: Combine reading progress and metadata
 - **Delete Duplicates**: Remove unwanted copies
 - **Ignore Groups**: Mark as false positives
@@ -126,6 +135,7 @@ calculateSimilarity(manga1, manga2) {
 **Location**: `MetadataEditor.vue`
 
 #### Editable Fields
+
 - **Basic Information**: Title, alternative title, status, rating, language
 - **Description**: Full text description editing
 - **Authors**: Multiple authors with roles (author, artist, story, art)
@@ -134,6 +144,7 @@ calculateSimilarity(manga1, manga2) {
 - **Cover Image**: URL-based cover management
 
 #### Batch Editing
+
 - **Multi-Selection**: Edit multiple manga simultaneously
 - **Selective Updates**: Only update specified fields
 - **Tag Application**: Apply tags to multiple items
@@ -141,18 +152,19 @@ calculateSimilarity(manga1, manga2) {
 ### 6. Custom Tags System
 
 #### Tag Management
+
 ```javascript
 // Create custom tag
 libraryStore.createCustomTag({
-  name: 'Must Read',
-  color: '#FF6B6B',
-  description: 'Essential reading list'
+  name: "Must Read",
+  color: "#FF6B6B",
+  description: "Essential reading list",
 });
 
 // Update tag
 libraryStore.updateCustomTag(tagId, {
-  name: 'Updated Name',
-  color: '#4ECDC4'
+  name: "Updated Name",
+  color: "#4ECDC4",
 });
 
 // Delete tag
@@ -160,6 +172,7 @@ libraryStore.deleteCustomTag(tagId);
 ```
 
 #### Tag Features
+
 - **Color Coding**: Visual categorization with custom colors
 - **Hierarchical Organization**: Nested tag structures
 - **Search Integration**: Filter by custom tags
@@ -168,6 +181,7 @@ libraryStore.deleteCustomTag(tagId);
 ### 7. Collection Management
 
 #### Features
+
 - **Series Grouping**: Automatic and manual series detection
 - **Collection Organization**: Group related manga
 - **Navigation**: Collection-based browsing
@@ -176,17 +190,19 @@ libraryStore.deleteCustomTag(tagId);
 ### 8. Search Enhancement
 
 #### Advanced Search Operators
+
 - **Exact Match**: `"exact phrase"`
 - **Exclusion**: `-unwanted`
 - **Field Search**: `author:name`, `genre:action`
 - **Range Search**: `rating:>8`, `year:2020-2023`
 
 #### Saved Searches
+
 ```javascript
 // Save current search
-const savedSearch = libraryStore.saveSearch('High Rated Action', {
-  genres: ['Action'],
-  rating: { min: 8, max: 10 }
+const savedSearch = libraryStore.saveSearch("High Rated Action", {
+  genres: ["Action"],
+  rating: { min: 8, max: 10 },
 });
 
 // Load saved search
@@ -196,12 +212,14 @@ libraryStore.setFilters(savedSearch.filters);
 ### 9. Library Views and Layouts
 
 #### View Modes
+
 - **Grid View**: Traditional card-based layout
 - **List View**: Compact horizontal layout
 - **Detailed View**: Extended information display
 - **Compact View**: Minimal space usage
 
 #### Customization Options
+
 - **Grid Size**: Small, medium, large cards
 - **Sort Options**: Title, date added, rating, last read
 - **Display Fields**: Configurable information display
@@ -210,6 +228,7 @@ libraryStore.setFilters(savedSearch.filters);
 ### 10. Import/Export System
 
 #### Export Features
+
 ```javascript
 // Export library data
 const exportData = await libraryStore.exportLibrary();
@@ -217,6 +236,7 @@ const exportData = await libraryStore.exportLibrary();
 ```
 
 #### Import Features
+
 - **Library Migration**: Import from other systems
 - **Backup Restoration**: Restore from previous exports
 - **Metadata Merging**: Intelligent data combination
@@ -272,12 +292,12 @@ The enhanced library features are built on a robust Pinia store with the followi
     <LibraryStatistics v-if="showStatistics" />
     <DuplicateDetection v-if="showDuplicates" />
     <BulkOperations />
-    
+
     <!-- Existing manga grid -->
     <MangaGrid :manga="filteredManga" />
-    
+
     <!-- Metadata editor modal -->
-    <MetadataEditor 
+    <MetadataEditor
       v-if="showMetadataEditor"
       :manga="selectedManga"
       @saved="onMetadataSaved"
@@ -309,32 +329,35 @@ The enhanced library features include comprehensive test coverage:
 
 ```javascript
 // Advanced filtering test
-it('should filter by multiple criteria', () => {
+it("should filter by multiple criteria", () => {
   const store = useLibraryStore();
   store.setFilters({
-    readStatus: ['reading'],
+    readStatus: ["reading"],
     rating: { min: 8, max: 10 },
-    genres: ['Action']
+    genres: ["Action"],
   });
-  
+
   const filtered = store.getFilteredManga;
-  expect(filtered.every(m => 
-    m.read_status === 'reading' &&
-    m.rating >= 8 &&
-    m.manga.genres.some(g => g.name === 'Action')
-  )).toBe(true);
+  expect(
+    filtered.every(
+      (m) =>
+        m.read_status === "reading" &&
+        m.rating >= 8 &&
+        m.manga.genres.some((g) => g.name === "Action"),
+    ),
+  ).toBe(true);
 });
 
 // Bulk operations test
-it('should perform bulk status update', async () => {
+it("should perform bulk status update", async () => {
   const store = useLibraryStore();
-  store.selectManga('manga1');
-  store.selectManga('manga2');
-  
+  store.selectManga("manga1");
+  store.selectManga("manga2");
+
   await store.bulkMarkAsRead();
-  
-  expect(mockApi.post).toHaveBeenCalledWith('/v1/library/bulk/mark-read', {
-    manga_ids: ['manga1', 'manga2']
+
+  expect(mockApi.post).toHaveBeenCalledWith("/v1/library/bulk/mark-read", {
+    manga_ids: ["manga1", "manga2"],
   });
 });
 ```

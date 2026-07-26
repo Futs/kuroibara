@@ -5,6 +5,7 @@ This document provides technical details for developers working with Kuroibara's
 ## 🏗️ Architecture Overview
 
 ### System Components
+
 - **Integration Clients**: Service-specific API clients (Anilist, MAL, Kitsu)
 - **Sync Service**: Orchestrates data synchronization between services
 - **Database Layer**: Stores integration credentials and manga mappings
@@ -12,6 +13,7 @@ This document provides technical details for developers working with Kuroibara's
 - **Frontend Store**: Pinia store for state management
 
 ### Technology Stack
+
 - **Backend**: FastAPI, SQLAlchemy (async), PostgreSQL
 - **Frontend**: Vue.js 3, Pinia, Axios
 - **Authentication**: OAuth2 (Authorization Code, PKCE, Password Credentials)
@@ -20,6 +22,7 @@ This document provides technical details for developers working with Kuroibara's
 ## 📊 Database Schema
 
 ### External Integrations Table
+
 ```sql
 CREATE TABLE external_integrations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,12 +45,13 @@ CREATE TABLE external_integrations (
     settings JSONB,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     UNIQUE(user_id, integration_type)
 );
 ```
 
 ### External Manga Mappings Table
+
 ```sql
 CREATE TABLE external_manga_mappings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -56,7 +60,7 @@ CREATE TABLE external_manga_mappings (
     external_manga_id VARCHAR(255) NOT NULL,
     external_title VARCHAR(500),
     created_at TIMESTAMP DEFAULT NOW(),
-    
+
     UNIQUE(integration_id, manga_id),
     UNIQUE(integration_id, external_manga_id)
 );
@@ -65,6 +69,7 @@ CREATE TABLE external_manga_mappings (
 ## 🔧 Backend Implementation
 
 ### Integration Types Enum
+
 ```python
 class IntegrationType(str, Enum):
     ANILIST = "anilist"
@@ -73,36 +78,37 @@ class IntegrationType(str, Enum):
 ```
 
 ### Base Integration Client
+
 ```python
 class BaseIntegrationClient(ABC):
     @abstractmethod
     async def authenticate(self, auth_data: Dict[str, Any]) -> Dict[str, Any]:
         """Authenticate with the external service."""
         pass
-    
+
     @abstractmethod
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
         """Refresh the access token."""
         pass
-    
+
     @abstractmethod
     async def get_user_info(self, access_token: str) -> Dict[str, Any]:
         """Get user information."""
         pass
-    
+
     @abstractmethod
     async def get_manga_list(self, access_token: str, **kwargs) -> List[Dict[str, Any]]:
         """Get user's manga list."""
         pass
-    
+
     @abstractmethod
-    async def update_manga_status(self, access_token: str, manga_id: str, 
+    async def update_manga_status(self, access_token: str, manga_id: str,
                                 status: str, **kwargs) -> bool:
         """Update manga status."""
         pass
-    
+
     @abstractmethod
-    async def search_manga(self, access_token: str, query: str, 
+    async def search_manga(self, access_token: str, query: str,
                          limit: int = 10) -> List[Dict[str, Any]]:
         """Search for manga."""
         pass
@@ -111,18 +117,21 @@ class BaseIntegrationClient(ABC):
 ### Service-Specific Implementations
 
 #### Anilist Client
+
 - **Authentication**: OAuth2 Authorization Code Flow
 - **API Base URL**: `https://graphql.anilist.co`
 - **Rate Limiting**: 90 requests per minute
 - **Special Features**: GraphQL API, comprehensive metadata
 
 #### MyAnimeList Client
+
 - **Authentication**: OAuth2 with PKCE
 - **API Base URL**: `https://api.myanimelist.net/v2`
 - **Rate Limiting**: Varies by endpoint
 - **Special Features**: Extensive community data, detailed statistics
 
 #### Kitsu Client
+
 - **Authentication**: OAuth2 Resource Owner Password Credentials
 - **API Base URL**: `https://kitsu.io/api/edge`
 - **Rate Limiting**: Standard rate limits
@@ -131,6 +140,7 @@ class BaseIntegrationClient(ABC):
 ## 🔄 Sync Service
 
 ### Sync Process Flow
+
 1. **Validation**: Check integration status and tokens
 2. **Token Refresh**: Refresh expired tokens if possible
 3. **Data Retrieval**: Fetch manga list from external service
@@ -140,6 +150,7 @@ class BaseIntegrationClient(ABC):
 7. **Push Changes**: Send local changes to external service
 
 ### Sync Strategies
+
 - **Full Sync**: Complete library synchronization
 - **Incremental Sync**: Only sync changes since last sync
 - **Manual Sync**: User-triggered synchronization
@@ -148,6 +159,7 @@ class BaseIntegrationClient(ABC):
 ## 🌐 API Endpoints
 
 ### Integration Management
+
 ```python
 # Get integration settings
 GET /api/v1/integrations/settings
@@ -175,6 +187,7 @@ Body: {
 ```
 
 ### Service Connection
+
 ```python
 # Connect Anilist
 POST /api/v1/integrations/anilist/connect
@@ -200,6 +213,7 @@ Body: {
 ```
 
 ### Sync Operations
+
 ```python
 # Trigger manual sync
 POST /api/v1/integrations/sync
@@ -215,6 +229,7 @@ DELETE /api/v1/integrations/{integration_type}
 ## 🎨 Frontend Implementation
 
 ### Pinia Store Structure
+
 ```javascript
 export const useIntegrationsStore = defineStore("integrations", {
   state: () => ({
@@ -245,38 +260,46 @@ export const useIntegrationsStore = defineStore("integrations", {
 ```
 
 ### OAuth Callback Handling
+
 ```javascript
 // Anilist callback
-router.get('/integrations/anilist/callback', (to) => {
+router.get("/integrations/anilist/callback", (to) => {
   const authCode = to.query.code;
   const redirectUri = `${window.location.origin}/integrations/anilist/callback`;
   return integrationsStore.handleAnilistCallback(authCode, redirectUri);
 });
 
 // MyAnimeList callback
-router.get('/integrations/mal/callback', (to) => {
+router.get("/integrations/mal/callback", (to) => {
   const authCode = to.query.code;
-  const codeVerifier = sessionStorage.getItem('mal_code_verifier');
+  const codeVerifier = sessionStorage.getItem("mal_code_verifier");
   const redirectUri = `${window.location.origin}/integrations/mal/callback`;
-  return integrationsStore.handleMALCallback(authCode, codeVerifier, redirectUri);
+  return integrationsStore.handleMALCallback(
+    authCode,
+    codeVerifier,
+    redirectUri,
+  );
 });
 ```
 
 ## 🔒 Security Considerations
 
 ### Token Management
+
 - Access tokens stored encrypted in database
 - Refresh tokens used for automatic token renewal
 - Tokens expire and are refreshed automatically
 - Client secrets never exposed to frontend
 
 ### API Security
+
 - All endpoints require user authentication
 - Rate limiting implemented per service requirements
 - Input validation on all API endpoints
 - CORS properly configured for OAuth redirects
 
 ### Data Privacy
+
 - Only necessary permissions requested from external services
 - User data never shared between services
 - Sync can be disabled without losing connection
@@ -285,18 +308,21 @@ router.get('/integrations/mal/callback', (to) => {
 ## 🧪 Testing
 
 ### Unit Tests
+
 - Integration client methods
 - Sync service logic
 - API endpoint responses
 - Database operations
 
 ### Integration Tests
+
 - OAuth flows (mocked)
 - Sync process end-to-end
 - Error handling scenarios
 - Token refresh mechanisms
 
 ### Frontend Tests
+
 - Component rendering
 - Store state management
 - User interaction flows
@@ -305,12 +331,14 @@ router.get('/integrations/mal/callback', (to) => {
 ## 📈 Performance Optimization
 
 ### Caching Strategy
+
 - Integration status cached in frontend store
 - API responses cached with appropriate TTL
 - Database queries optimized with indexes
 - Batch operations for bulk sync
 
 ### Rate Limiting
+
 - Respect external service rate limits
 - Implement exponential backoff for retries
 - Queue sync operations to prevent conflicts
@@ -319,6 +347,7 @@ router.get('/integrations/mal/callback', (to) => {
 ## 🔧 Development Setup
 
 ### Environment Configuration
+
 ```bash
 # Backend environment variables
 DATABASE_URL=postgresql://user:pass@localhost/kuroibara
@@ -333,6 +362,7 @@ VITE_MAL_CLIENT_ID=optional_default_client_id
 ```
 
 ### Database Migrations
+
 ```bash
 # Run migrations
 docker compose exec backend alembic upgrade head
@@ -342,6 +372,7 @@ docker compose exec backend alembic revision --autogenerate -m "description"
 ```
 
 ### Testing
+
 ```bash
 # Run backend tests
 docker compose exec backend python -m pytest tests/
@@ -355,4 +386,4 @@ docker compose exec backend python test_integration_validation.py
 
 ---
 
-*This technical guide provides implementation details for developers. For user-facing documentation, see the External Integrations Guide.*
+_This technical guide provides implementation details for developers. For user-facing documentation, see the External Integrations Guide._

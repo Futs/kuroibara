@@ -9,7 +9,7 @@ status management.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -69,7 +69,7 @@ class HealthMetrics:
 
     def update_success(self, response_time: float) -> None:
         """Update metrics after a successful check."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         self.last_check = now
         self.last_success = now
         self.consecutive_failures = 0
@@ -94,7 +94,7 @@ class HealthMetrics:
 
     def update_failure(self, error_message: str) -> None:
         """Update metrics after a failed check."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         self.last_check = now
         self.last_failure = now
         self.consecutive_failures += 1
@@ -140,7 +140,7 @@ class HealthMetrics:
         # Update status if changed
         if new_status != old_status:
             self.status = new_status
-            self.status_changed_at = datetime.utcnow()
+            self.status_changed_at = datetime.now(timezone.utc)
             logger.info(
                 f"Provider {self.provider_name} status changed: {old_status.value} -> {new_status.value}"
             )
@@ -158,9 +158,9 @@ class HealthMetrics:
         score -= failure_penalty
 
         # Bonus for recent success
-        if self.last_success and datetime.utcnow() - self.last_success < timedelta(
-            hours=1
-        ):
+        if self.last_success and datetime.now(
+            timezone.utc
+        ) - self.last_success < timedelta(hours=1):
             score += 10
 
         # Response time factor
@@ -273,7 +273,7 @@ class EnhancedHealthMonitor:
                 await asyncio.sleep(self.check_interval)
 
                 # Occasionally run performance checks
-                if datetime.utcnow().minute == 0:  # Once per hour
+                if datetime.now(timezone.utc).minute == 0:  # Once per hour
                     await self.schedule_health_check(
                         provider_name,
                         HealthCheckType.PERFORMANCE,
@@ -405,7 +405,7 @@ class EnhancedHealthMonitor:
         # old_status = metrics.status  # Unused variable
 
         metrics.status = ProviderHealthStatus.DISABLED
-        metrics.status_changed_at = datetime.utcnow()
+        metrics.status_changed_at = datetime.now(timezone.utc)
         metrics.auto_disabled = auto
 
         logger.warning(
@@ -436,7 +436,7 @@ class EnhancedHealthMonitor:
         metrics.auto_disabled = False
         metrics.manual_override = False
         metrics.status = ProviderHealthStatus.UNKNOWN
-        metrics.status_changed_at = datetime.utcnow()
+        metrics.status_changed_at = datetime.now(timezone.utc)
 
         logger.info(f"Enabled provider {provider_name}")
 

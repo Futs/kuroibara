@@ -20,19 +20,19 @@ flowchart TD
     %% User Input
     A[User enters search query] --> B[Frontend validates input]
     B --> C[Send to Enhanced Search API]
-    
+
     %% Backend Processing
     C --> D{Check cache first}
     D -->|Cache hit| E[Return cached results]
     D -->|Cache miss| F[Initiate tiered search]
-    
+
     %% Tier 1: MangaUpdates
     F --> G[Query MangaUpdates API]
     G --> H{MangaUpdates healthy?}
     H -->|Yes| I[Parse MU response]
     H -->|No| J[Skip to Tier 2]
     I --> K[Enhance with metadata]
-    
+
     %% Tier 2: MadaraDex
     J --> L[Query MadaraDex]
     K --> M{Sufficient results?}
@@ -41,7 +41,7 @@ flowchart TD
     N -->|Yes| O[Parse HTML response]
     N -->|No| P[Skip to Tier 3]
     O --> Q[Extract metadata]
-    
+
     %% Tier 3: MangaDx
     P --> R[Query MangaDx API]
     Q --> S{Sufficient results?}
@@ -50,7 +50,7 @@ flowchart TD
     T -->|Yes| U[Parse API response]
     T -->|No| V[Return available results]
     U --> W[Normalize data]
-    
+
     %% Result Processing
     K --> X[Combine all results]
     Q --> X
@@ -61,17 +61,17 @@ flowchart TD
     Z --> AA[Cache results]
     AA --> BB[Return to frontend]
     E --> BB
-    
+
     %% Frontend Display
     BB --> CC[Update search results grid]
     CC --> DD[Display manga cards]
     DD --> EE[User can view details/add to library]
-    
+
     classDef userAction fill:#e3f2fd
     classDef processing fill:#f1f8e9
     classDef external fill:#fff3e0
     classDef result fill:#fce4ec
-    
+
     class A,EE userAction
     class B,C,D,F,X,Y,Z,AA processing
     class G,L,R external
@@ -89,19 +89,19 @@ flowchart TD
     %% User Action
     A[User clicks 'Add to Library'] --> B[Frontend validates selection]
     B --> C[Send to Library API]
-    
+
     %% Backend Processing
     C --> D{Manga already in library?}
     D -->|Yes| E[Return existing entry]
     D -->|No| F[Create new manga entry]
-    
+
     %% Metadata Processing
     F --> G[Extract metadata from search result]
     G --> H[Validate required fields]
     H --> I{Valid metadata?}
     I -->|No| J[Return validation error]
     I -->|Yes| K[Create MangaUpdates mapping]
-    
+
     %% Database Operations
     K --> L[Begin database transaction]
     L --> M[Insert manga record]
@@ -109,7 +109,7 @@ flowchart TD
     N --> O[Create mapping relationship]
     O --> P[Commit transaction]
     P --> Q[Update search cache]
-    
+
     %% Response
     Q --> R[Return success response]
     E --> R
@@ -118,12 +118,12 @@ flowchart TD
     S --> T
     T --> U[Show success/error message]
     U --> V[Refresh library if needed]
-    
+
     classDef userAction fill:#e3f2fd
     classDef validation fill:#f1f8e9
     classDef database fill:#fff3e0
     classDef response fill:#fce4ec
-    
+
     class A,V userAction
     class B,C,H,I validation
     class L,M,N,O,P database
@@ -141,24 +141,24 @@ flowchart TD
     %% User Initiation
     A[User searches for torrents] --> B[Frontend calls Torrent API]
     B --> C[Torrent Indexer Service]
-    
+
     %% Torrent Search
     C --> D[Query Nyaa.si]
     D --> E[Parse HTML results]
     E --> F[Extract torrent metadata]
     F --> G[Return torrent list]
-    
+
     %% User Selection
     G --> H[User selects torrent]
     H --> I[Frontend sends download request]
     I --> J[Validate download client]
-    
+
     %% Download Initiation
     J --> K{Client available?}
     K -->|No| L[Return client error]
     K -->|Yes| M[Create download record]
     M --> N[Add to download client]
-    
+
     %% Client Communication
     N --> O{Magnet or torrent file?}
     O -->|Magnet| P[Send magnet to qBittorrent]
@@ -166,13 +166,13 @@ flowchart TD
     Q --> R[Send file to qBittorrent]
     P --> S[Client starts download]
     R --> S
-    
+
     %% Progress Tracking
     S --> T[Update download status]
     T --> U[Store in database]
     U --> V[Send WebSocket update]
     V --> W[Frontend updates progress]
-    
+
     %% Completion Handling
     W --> X{Download complete?}
     X -->|No| Y[Continue monitoring]
@@ -181,12 +181,12 @@ flowchart TD
     Z --> AA[File organization]
     AA --> BB[Update library]
     BB --> CC[Notify user]
-    
+
     classDef userAction fill:#e3f2fd
     classDef torrentOps fill:#f1f8e9
     classDef clientOps fill:#fff3e0
     classDef monitoring fill:#fce4ec
-    
+
     class A,H,CC userAction
     class C,D,E,F torrentOps
     class N,O,P,Q,R,S clientOps
@@ -205,7 +205,7 @@ flowchart TD
     A[Health check triggered] --> B{Manual or automatic?}
     B -->|Manual| C[User requests health check]
     B -->|Automatic| D[Scheduled background task]
-    
+
     %% Health Check Execution
     C --> E[Health Monitoring Service]
     D --> E
@@ -213,17 +213,17 @@ flowchart TD
     E --> G[Check cache connection]
     E --> H[Check indexer health]
     E --> I[Check download clients]
-    
+
     %% Database Health
     F --> J{Database responsive?}
     J -->|Yes| K[Record response time]
     J -->|No| L[Mark as unhealthy]
-    
+
     %% Cache Health
     G --> M{Cache responsive?}
     M -->|Yes| N[Record cache stats]
     M -->|No| O[Mark as degraded]
-    
+
     %% Indexer Health
     H --> P[Test MangaUpdates API]
     H --> Q[Test MadaraDex scraping]
@@ -231,13 +231,13 @@ flowchart TD
     P --> S{MU responsive?}
     Q --> T{MDX responsive?}
     R --> U{MD responsive?}
-    
+
     %% Client Health
     I --> V[Test qBittorrent API]
     I --> W[Test SABnzbd API]
     V --> X{qBittorrent responsive?}
     W --> Y{SABnzbd responsive?}
-    
+
     %% Result Aggregation
     K --> Z[Aggregate health results]
     L --> Z
@@ -248,14 +248,14 @@ flowchart TD
     U --> Z
     X --> Z
     Y --> Z
-    
+
     %% Health Status Calculation
     Z --> AA[Calculate overall health]
     AA --> BB{All systems healthy?}
     BB -->|Yes| CC[Status: Healthy]
     BB -->|Some issues| DD[Status: Degraded]
     BB -->|Major issues| EE[Status: Unhealthy]
-    
+
     %% Response and Caching
     CC --> FF[Cache health status]
     DD --> FF
@@ -263,12 +263,12 @@ flowchart TD
     FF --> GG[Return health report]
     GG --> HH[Update monitoring dashboard]
     HH --> II[Send alerts if needed]
-    
+
     classDef trigger fill:#e3f2fd
     classDef checking fill:#f1f8e9
     classDef evaluation fill:#fff3e0
     classDef response fill:#fce4ec
-    
+
     class A,B,C,D trigger
     class E,F,G,H,I,P,Q,R,V,W checking
     class J,M,S,T,U,X,Y,AA,BB evaluation

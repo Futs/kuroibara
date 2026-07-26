@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Clean the test library before running tests."""
+
 import asyncio
 
 import httpx

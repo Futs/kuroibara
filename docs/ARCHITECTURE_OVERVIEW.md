@@ -19,50 +19,50 @@ This document provides comprehensive architecture diagrams showing the complete 
 graph TB
     %% User Layer
     User[👤 User] --> Browser[🌐 Web Browser]
-    
+
     %% Frontend Layer
     Browser --> Frontend[🎨 Vue.js Frontend<br/>Port 3000]
-    
+
     %% API Gateway
     Frontend --> API[🔌 FastAPI Backend<br/>Port 8000]
-    
+
     %% Core Services Layer
     API --> Auth[🔐 Authentication Service]
     API --> Search[🔍 Enhanced Search Service]
     API --> Download[📥 Download Service]
     API --> Library[📚 Library Service]
     API --> Health[💚 Health Monitoring]
-    
+
     %% Search Providers
     Search --> MU[📊 MangaUpdates API]
     Search --> MD[📖 MangaDex API]
     Search --> MDX[🌐 MadaraDex Parser]
-    
+
     %% Download Clients
     Download --> QB[⚡ qBittorrent Client]
     Download --> SAB[📦 SABnzbd Client]
     Download --> Nyaa[🌸 Nyaa.si Indexer]
-    
+
     %% Data Layer
     API --> DB[(🗄️ PostgreSQL Database)]
     API --> Cache[(⚡ Valkey Cache)]
     API --> Storage[💾 File Storage]
-    
+
     %% External Services
     API --> Mail[📧 MailHog SMTP]
-    
+
     %% Monitoring
     Health --> Providers[📡 Provider Health]
     Health --> Indexers[🔍 Indexer Health]
     Health --> Clients[📥 Client Health]
-    
+
     %% Data Flow
     classDef userLayer fill:#e1f5fe
     classDef frontendLayer fill:#f3e5f5
     classDef backendLayer fill:#e8f5e8
     classDef dataLayer fill:#fff3e0
     classDef externalLayer fill:#fce4ec
-    
+
     class User,Browser userLayer
     class Frontend frontendLayer
     class API,Auth,Search,Download,Library,Health backendLayer
@@ -95,6 +95,7 @@ graph TB
 ## Technology Stack
 
 ### Frontend
+
 - **Framework**: Vue.js 3 with Composition API
 - **Styling**: Tailwind CSS with dark mode support
 - **State Management**: Pinia for reactive state
@@ -102,6 +103,7 @@ graph TB
 - **HTTP Client**: Axios for API communication
 
 ### Backend
+
 - **Framework**: FastAPI with async/await support
 - **Database**: PostgreSQL with SQLAlchemy ORM
 - **Cache**: Valkey (Redis-compatible) for session and data caching
@@ -109,6 +111,7 @@ graph TB
 - **Task Queue**: Background tasks for downloads and health checks
 
 ### Infrastructure
+
 - **Containerization**: Docker with Docker Compose
 - **Database Migrations**: Alembic for schema versioning
 - **Development**: Hot reload for both frontend and backend

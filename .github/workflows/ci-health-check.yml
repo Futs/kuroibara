@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # Run weekly on Mondays at 8 AM UTC
-    - cron: '0 8 * * 1'
+    - cron: "0 8 * * 1"
 
 permissions:
   contents: read
@@ -14,10 +14,10 @@ jobs:
   ci-health-check:
     name: CI Health Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Check workflow files
         run: |
@@ -34,19 +34,19 @@ jobs:
       - name: Check for problematic actions
         run: |
           echo "=== Checking for problematic GitHub Actions ==="
-          
+
           # Check for component-detection issues
           if grep -r "component-detection" .github/workflows/ 2>/dev/null; then
             echo "⚠️  Found component-detection references"
           else
             echo "✅ No component-detection references found"
           fi
-          
+
           # Check for deprecated actions
           if grep -r "actions/setup-node@v3" .github/workflows/ 2>/dev/null; then
             echo "⚠️  Found deprecated setup-node@v3"
           fi
-          
+
           if grep -r "actions/setup-python@v4" .github/workflows/ 2>/dev/null; then
             echo "⚠️  Found deprecated setup-python@v4"
           fi
@@ -54,7 +54,7 @@ jobs:
       - name: Validate dependency files
         run: |
           echo "=== Validating dependency files ==="
-          
+
           # Check Python requirements
           if [ -f "backend/requirements.txt" ]; then
             echo "✅ Python requirements.txt found"
@@ -62,7 +62,7 @@ jobs:
           else
             echo "❌ Python requirements.txt not found"
           fi
-          
+
           # Check Node.js package files
           if [ -f "frontend/app/package.json" ]; then
             echo "✅ Node.js package.json found"
@@ -78,14 +78,14 @@ jobs:
       - name: Check CI configuration
         run: |
           echo "=== Checking CI configuration files ==="
-          
+
           # Check for dependency review config
           if [ -f ".github/dependency-review-config.yml" ]; then
             echo "✅ Dependency review config found"
           else
             echo "⚠️  Dependency review config not found"
           fi
-          
+
           # Check for security configs
           if [ -f ".github/workflows/security-scan.yml" ]; then
             echo "✅ Security scan workflow found"
@@ -96,7 +96,7 @@ jobs:
       - name: Test basic workflow syntax
         run: |
           echo "=== Testing workflow syntax ==="
-          
+
           # Install yamllint if available
           if command -v yamllint >/dev/null 2>&1; then
             echo "Using yamllint for validation"

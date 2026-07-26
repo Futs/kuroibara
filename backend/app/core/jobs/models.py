@@ -7,7 +7,7 @@ including downloads, health checks, and organization tasks.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .events import JobPriority, JobStatus, JobType, get_job_timeout
@@ -27,10 +27,10 @@ class BaseJob:
     # Job metadata
     title: str = ""
     description: str = ""
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Progress tracking
     progress_percentage: float = 0.0
@@ -78,7 +78,7 @@ class BaseJob:
         if items_processed is not None:
             self.items_processed = items_processed
 
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
         # Calculate progress from items if available
         if self.items_total and self.items_total > 0:
@@ -88,15 +88,15 @@ class BaseJob:
     def mark_started(self) -> None:
         """Mark job as started."""
         self.status = JobStatus.PROCESSING
-        self.started_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.started_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_completed(self, message: Optional[str] = None) -> None:
         """Mark job as completed."""
         self.status = JobStatus.COMPLETED
         self.progress_percentage = 100.0
-        self.completed_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
         if message:
             self.current_step = message
 
@@ -104,24 +104,24 @@ class BaseJob:
         """Mark job as failed."""
         self.status = JobStatus.FAILED
         self.error_message = error_message
-        self.completed_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_cancelled(self) -> None:
         """Mark job as cancelled."""
         self.status = JobStatus.CANCELLED
-        self.completed_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_paused(self) -> None:
         """Mark job as paused."""
         self.status = JobStatus.PAUSED
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_resumed(self) -> None:
         """Mark job as resumed."""
         self.status = JobStatus.PROCESSING
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def increment_retry(self) -> bool:
         """
@@ -133,7 +133,7 @@ class BaseJob:
         self.retry_count += 1
         if self.retry_count <= self.max_retries:
             self.status = JobStatus.RETRYING
-            self.updated_at = datetime.utcnow()
+            self.updated_at = datetime.now(timezone.utc)
             return True
         else:
             self.mark_failed(f"Max retries ({self.max_retries}) exceeded")
@@ -160,7 +160,7 @@ class BaseJob:
         if not self.started_at:
             return False
 
-        elapsed = (datetime.utcnow() - self.started_at).total_seconds()
+        elapsed = (datetime.now(timezone.utc) - self.started_at).total_seconds()
         return elapsed > self.timeout_seconds
 
     def get_duration(self) -> Optional[float]:
@@ -168,7 +168,7 @@ class BaseJob:
         if self.completed_at and self.started_at:
             return (self.completed_at - self.started_at).total_seconds()
         elif self.started_at and self.status == JobStatus.PROCESSING:
-            return (datetime.utcnow() - self.started_at).total_seconds()
+            return (datetime.now(timezone.utc) - self.started_at).total_seconds()
         return None
 
     def get_estimated_completion(self) -> Optional[datetime]:
@@ -176,12 +176,12 @@ class BaseJob:
         if not self.started_at or self.progress_percentage <= 0:
             return None
 
-        elapsed = (datetime.utcnow() - self.started_at).total_seconds()
+        elapsed = (datetime.now(timezone.utc) - self.started_at).total_seconds()
         total_estimated = elapsed / (self.progress_percentage / 100.0)
         remaining = total_estimated - elapsed
 
         if remaining > 0:
-            return datetime.utcnow() + timedelta(seconds=remaining)
+            return datetime.now(timezone.utc) + timedelta(seconds=remaining)
 
         return None
 

@@ -13,6 +13,7 @@ This document describes the implementation of the new `JavaScriptProvider` base 
 The `JavaScriptProvider` is an abstract base class that extends `BaseProvider` with advanced capabilities for JavaScript-heavy sites:
 
 #### Key Features:
+
 - **FlareSolverr Integration**: Automatic Cloudflare bypass using FlareSolverr
 - **Session Management**: Cookie persistence and session handling
 - **Rate Limiting**: Conservative rate limiting (3+ seconds between requests)
@@ -22,6 +23,7 @@ The `JavaScriptProvider` is an abstract base class that extends `BaseProvider` w
 - **Bot Protection Detection**: Automatic detection of protection mechanisms
 
 #### Core Methods:
+
 - `_make_request()`: Enhanced HTTP requests with JS execution support
 - `_apply_rate_limit()`: Conservative rate limiting for JS sites
 - `_get_headers()`: Browser simulation with rotating user agents
@@ -35,6 +37,7 @@ The `JavaScriptProvider` is an abstract base class that extends `BaseProvider` w
 The `HiperDexProvider` extends `JavaScriptProvider` to handle HiperDEX specifically:
 
 #### Site Characteristics:
+
 - **Base URL**: https://hiperdex.com
 - **Framework**: WordPress with Madara theme + JavaScript enhancements
 - **Content Type**: NSFW manga/manhwa
@@ -42,6 +45,7 @@ The `HiperDexProvider` extends `JavaScriptProvider` to handle HiperDEX specifica
 - **CDN**: Uses `mdg.hiperdex.com` for image hosting
 
 #### Implementation Details:
+
 - **Search**: WordPress search with post_type=wp-manga
 - **Selectors**: Comprehensive CSS selectors for content extraction
 - **JavaScript Patterns**: Regex patterns for extracting JS variables
@@ -101,6 +105,7 @@ hiperdex: {
 **File**: `kuroibara/backend/app/core/agents/factory.py`
 
 The factory has been updated to:
+
 1. Import both `JavaScriptProvider` and `HiperDexProvider`
 2. Register both classes in the provider registry
 3. Handle special initialization for `HiperDexProvider`
@@ -108,21 +113,25 @@ The factory has been updated to:
 ## Benefits of This Architecture
 
 ### 1. **Future-Proofing**
+
 - Template for other JavaScript-heavy sites (Webtoons, Tapas, etc.)
 - Centralized bot protection handling
 - Reusable session management
 
 ### 2. **Scalability**
+
 - Easy to add new JavaScript-based providers
 - Shared rate limiting and retry logic
 - Common browser simulation techniques
 
 ### 3. **Robustness**
+
 - Multiple fallback mechanisms (FlareSolverr → direct requests)
 - Comprehensive error handling
 - Adaptive rate limiting
 
 ### 4. **Maintainability**
+
 - Clear separation of concerns
 - Documented selector patterns
 - Configurable JavaScript extraction
@@ -132,6 +141,7 @@ The factory has been updated to:
 **Test Script**: `kuroibara/backend/scripts/test_hiperdex.py`
 
 The test script validates:
+
 - Provider initialization
 - Health checking
 - Search functionality
@@ -182,7 +192,7 @@ class NewSiteProvider(JavaScriptProvider):
                 'chapter_data': r'var\s+chapterData\s*=\s*({[^}]+})'
             }
         )
-    
+
     async def search(self, query: str, page: int = 1) -> List[Dict[str, Any]]:
         # Implement site-specific search logic
         pass
@@ -191,16 +201,19 @@ class NewSiteProvider(JavaScriptProvider):
 ## Performance Considerations
 
 ### Rate Limiting
+
 - **Conservative by default**: 3-second intervals between requests
 - **Burst protection**: Maximum 2 requests per second
 - **Adaptive delays**: Exponential backoff on failures
 
 ### Resource Usage
+
 - **Session reuse**: Persistent cookies and headers
 - **Connection pooling**: Efficient HTTP client usage
 - **Memory management**: Cleanup of large response objects
 
 ### Error Handling
+
 - **Graceful degradation**: Fallback from FlareSolverr to direct requests
 - **Retry logic**: Up to 3 retries with increasing delays
 - **Timeout management**: Longer timeouts for JavaScript execution
@@ -208,11 +221,13 @@ class NewSiteProvider(JavaScriptProvider):
 ## Security Considerations
 
 ### Bot Protection Bypass
+
 - **FlareSolverr integration**: Handles Cloudflare and similar protections
 - **Browser simulation**: Realistic headers and user agents
 - **Session persistence**: Maintains authentication state
 
 ### Rate Limiting Compliance
+
 - **Respectful crawling**: Conservative request rates
 - **Provider-specific limits**: Tailored to each site's requirements
 - **Burst protection**: Prevents overwhelming target servers
@@ -220,6 +235,7 @@ class NewSiteProvider(JavaScriptProvider):
 ## Future Enhancements
 
 ### Planned Features
+
 1. **Proxy rotation**: Support for multiple proxy servers
 2. **CAPTCHA solving**: Integration with CAPTCHA solving services
 3. **Advanced JavaScript execution**: Full browser automation with Selenium
@@ -227,6 +243,7 @@ class NewSiteProvider(JavaScriptProvider):
 5. **Analytics**: Provider performance monitoring and optimization
 
 ### Potential New Providers
+
 - **Webtoons**: Official webtoon platform
 - **Tapas**: Independent comic platform
 - **Official publishers**: Sites with heavy protection

@@ -14,7 +14,6 @@ A modern manga management platform for discovering, organizing, and reading mang
 > **📦 Latest Release**: v0.7.0 with Enhanced Architecture & Job System
 > **🚧 Development Branch**: `index/download` - Advanced Reader Features & UI Improvements
 
-
 ## ✨ Features
 
 ![Providers](https://img.shields.io/badge/Providers-11+-blue)
@@ -23,6 +22,7 @@ A modern manga management platform for discovering, organizing, and reading mang
 ![Themes](https://img.shields.io/badge/Themes-Dark%2FLight-purple)
 
 ### Core Features
+
 - **Personal Library** - Organize your manga collection with automatic metadata
 - **Multi-Provider Search** - Search across 11+ manga sources simultaneously
 - **Batch Downloads** - Download entire series with progress tracking and retry logic
@@ -34,6 +34,7 @@ A modern manga management platform for discovering, organizing, and reading mang
 - **Real-time Updates** - Live progress notifications via WebSocket
 
 ### 📖 Advanced Reader Features (New!)
+
 - **Professional Reading Experience** - Feature-rich manga reader with multiple viewing modes
 - **Flexible Zoom Controls** - Zoom in/out (25%-500%), mouse wheel zoom, keyboard shortcuts
 - **Multiple Fit Modes** - Width, Height, Both, Original size with instant switching
@@ -48,8 +49,8 @@ A modern manga management platform for discovering, organizing, and reading mang
 - **Perfect Scrolling** - Smooth scroll behavior with proper zoom support
 - **Keyboard Shortcuts** - Comprehensive keyboard controls for power users
 
-
 ## 🛠️ Tech Stack
+
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/node.js-22-green.svg)](https://nodejs.org/)
@@ -75,10 +76,11 @@ docker compose up -d
 ```
 
 **Docker Images:**
+
 - **Backend**:  
-[![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)  
+  [![Docker Backend](https://img.shields.io/docker/pulls/futs/kuroibara-backend?label=backend%20pulls)](https://hub.docker.com/r/futs/kuroibara-backend)
 - **Frontend**:  
-[![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend) 
+  [![Docker Frontend](https://img.shields.io/docker/pulls/futs/kuroibara-frontend?label=frontend%20pulls)](https://hub.docker.com/r/futs/kuroibara-frontend)
 
 ### 📦 From Source
 
@@ -145,4 +147,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 **Kuroibara** - Modern manga management for enthusiasts worldwide.
 
 ## 🤖 Repo Statistics
+
 ![Alt](https://repobeats.axiom.co/api/embed/f25e543ba7457e8ca5c622072e11becd5e6e2cd4.svg "Repobeats analytics image")

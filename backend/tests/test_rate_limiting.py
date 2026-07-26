@@ -7,7 +7,6 @@ rate limiters, circuit breakers, adaptive behavior, and API endpoints.
 
 import asyncio
 import time
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -17,7 +16,6 @@ from app.core.agents.rate_limiting import (
     CircuitState,
     RateLimitConfig,
     RateLimiterManager,
-    RateLimitError,
 )
 
 
@@ -126,7 +124,7 @@ class TestAgentRateLimiter:
     async def test_circuit_breaker_opening(self, rate_limiter):
         """Test circuit breaker opening after failures."""
         # Generate failures to open circuit breaker
-        for i in range(3):  # threshold is 3 in test config
+        for _i in range(3):  # threshold is 3 in test config
             await rate_limiter.acquire()
             rate_limiter.release(success=False)
 
@@ -141,7 +139,7 @@ class TestAgentRateLimiter:
     async def test_circuit_breaker_half_open(self, rate_limiter):
         """Test circuit breaker half-open state."""
         # Open the circuit breaker
-        for i in range(3):
+        for _i in range(3):
             await rate_limiter.acquire()
             rate_limiter.release(success=False)
 
@@ -169,7 +167,7 @@ class TestAgentRateLimiter:
 
         # Generate enough successful requests to trigger adaptation
         # Add delays to avoid burst limit
-        for i in range(15):
+        for _i in range(15):
             await rate_limiter.acquire()
             rate_limiter.release(success=True, response_time=0.1)
             # Small delay to avoid burst limit
@@ -311,8 +309,7 @@ class TestRateLimiterManager:
     def test_update_agent_config(self, manager):
         """Test updating agent configuration."""
         # Create a limiter
-        limiter = manager.get_limiter("test_agent")
-        original_config = limiter.config
+        manager.get_limiter("test_agent")
 
         # Update configuration
         new_config = RateLimitConfig(
@@ -347,7 +344,7 @@ class TestRateLimiterManager:
     def test_get_summary(self, manager):
         """Test getting summary of all rate limiters."""
         # Create some limiters with different states
-        limiter1 = manager.get_limiter("agent1")
+        manager.get_limiter("agent1")
         limiter2 = manager.get_limiter("agent2")
         limiter2._open_circuit()  # Open one circuit
 
@@ -362,7 +359,6 @@ class TestRateLimiterManager:
 
 if __name__ == "__main__":
     # Run basic tests if executed directly
-    import sys
 
     print("Running rate limiting tests...")
 

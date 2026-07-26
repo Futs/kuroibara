@@ -121,7 +121,7 @@ class StorageRecoveryService:
                     filepath = os.path.join(dirpath, filename)
                     try:
                         total_size += os.path.getsize(filepath)
-                    except OSError, IOError:
+                    except (OSError, IOError):
                         continue
         except Exception as e:
             logger.error(f"Error calculating directory size for {directory_path}: {e}")

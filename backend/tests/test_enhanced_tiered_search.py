@@ -412,7 +412,7 @@ class TestErrorHandling:
             entry = service._create_entry_from_metadata(None)
             # If it doesn't raise an exception, that's fine
             assert entry is None
-        except AttributeError, TypeError:
+        except (AttributeError, TypeError):
             # If it raises an exception for None input, that's also acceptable
             pass
 

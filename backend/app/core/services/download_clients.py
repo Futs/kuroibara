@@ -395,7 +395,7 @@ class SABnzbdClient(BaseDownloadClient):
                 }
 
                 return int(value * multipliers.get(unit, 1))
-        except ValueError, KeyError:
+        except (ValueError, KeyError):
             pass
 
         return 0
@@ -405,7 +405,7 @@ class SABnzbdClient(BaseDownloadClient):
         try:
             # SABnzbd returns speed in KB/s
             return int(float(speed_str) * 1024)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return 0
 
     async def _check_history(self, external_id: str) -> Dict[str, Any]:

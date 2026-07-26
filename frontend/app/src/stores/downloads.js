@@ -409,7 +409,7 @@ export const useDownloadsStore = defineStore("downloads", {
           external_id: download.external_id,
           priority: download.priority || 3,
         });
-        
+
         // Remove from active/history and let the new enqueue handle it
         this.activeDownloads.delete(download.id);
       } catch (error) {

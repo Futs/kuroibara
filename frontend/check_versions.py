@@ -3,11 +3,13 @@
 import argparse
 import json
 import re
-import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import requests
 from packaging.version import InvalidVersion, Version
 
 REGISTRY_URL = "https://registry.npmjs.org/{}"
+
 
 def parse_npm_version(version_str):
     """Remove ^, ~, >, <, etc. from npm version strings."""
@@ -16,13 +18,14 @@ def parse_npm_version(version_str):
     # Remove common npm version decorators
     return re.sub(r"^[\^~><=]+", "", version_str).strip()
 
+
 def get_versions(package, current_version_str):
     """Return latest same-major and latest overall versions from npm registry."""
     try:
         response = requests.get(REGISTRY_URL.format(package), timeout=15)
         response.raise_for_status()
         data = response.json()
-        
+
         versions_data = data.get("versions", {})
         if not versions_data:
             return package, current_version_str, "-", "-", "No releases"
@@ -40,16 +43,22 @@ def get_versions(package, current_version_str):
             return package, current_version_str, "-", "-", "No stable releases"
 
         stable_versions.sort()
-        
+
         try:
             current_v_obj = Version(parse_npm_version(current_version_str))
         except InvalidVersion:
-            return package, current_version_str, "-", "-", "ERROR: Invalid current version"
+            return (
+                package,
+                current_version_str,
+                "-",
+                "-",
+                "ERROR: Invalid current version",
+            )
 
         # Latest Minor: highest version with same major as current
         same_major = [v for v in stable_versions if v.major == current_v_obj.major]
         latest_minor = same_major[-1] if same_major else current_v_obj
-        
+
         # Latest Major: highest version overall
         latest_major = stable_versions[-1]
 
@@ -76,6 +85,7 @@ def get_versions(package, current_version_str):
             "-",
             f"ERROR: {e.__class__.__name__}",
         )
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -110,8 +120,7 @@ def main():
     results = []
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = [
-            executor.submit(get_versions, pkg, ver)
-            for pkg, ver in dependencies.items()
+            executor.submit(get_versions, pkg, ver) for pkg, ver in dependencies.items()
         ]
 
         for future in as_completed(futures):
@@ -130,13 +139,8 @@ def main():
     print("-" * 90)
 
     for package, current, minor, major, status in results:
-        print(
-            f"{package:25}"
-            f"{current:15}"
-            f"{minor:15}"
-            f"{major:15}"
-            f"{status}"
-        )
+        print(f"{package:25}" f"{current:15}" f"{minor:15}" f"{major:15}" f"{status}")
+
 
 if __name__ == "__main__":
     main()

@@ -1,9 +1,7 @@
 import logging
 import os
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.services.download import download_chapter_with_fallback
@@ -14,12 +12,6 @@ from app.schemas.export import BulkExportRequest, ExportRequest
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chapters", tags=["Chapters"])
-
-
-class ExportRequest(BaseModel):
-    manga_id: UUID
-    chapter_id: UUID
-    auto_export_cbz: bool = True
 
 
 @router.post("/export")

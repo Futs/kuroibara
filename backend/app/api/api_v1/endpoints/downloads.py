@@ -9,6 +9,7 @@ from app.core.progress.websocket import websocket_manager
 from app.core.providers.registry import provider_registry
 from app.core.services.download_queue import PriorityDownload, queue_manager
 from app.db.session import get_db
+from app.models.manga import Manga
 
 router = APIRouter(prefix="/downloads", tags=["downloads"])
 

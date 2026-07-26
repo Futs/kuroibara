@@ -10,11 +10,11 @@ class ExportRequest(BaseModel):
     auto_export_cbz: bool = True
 
 
-class BulkExportRequest(BaseModel):
-    items: List[ExportItem]
-
-
 class ExportItem(BaseModel):
     manga_id: UUID
     chapter_id: UUID
     auto_export_cbz: bool = True
+
+
+class BulkExportRequest(BaseModel):
+    items: List[ExportItem]

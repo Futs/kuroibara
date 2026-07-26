@@ -131,8 +131,7 @@ def main():
 
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = [
-            executor.submit(get_versions, pkg, version)
-            for pkg, version in requirements
+            executor.submit(get_versions, pkg, version) for pkg, version in requirements
         ]
 
         for future in as_completed(futures):
@@ -151,13 +150,7 @@ def main():
     print("-" * 90)
 
     for package, current, minor, major, status in results:
-        print(
-            f"{package:25}"
-            f"{current:15}"
-            f"{minor:15}"
-            f"{major:15}"
-            f"{status}"
-        )
+        print(f"{package:25}" f"{current:15}" f"{minor:15}" f"{major:15}" f"{status}")
 
 
 if __name__ == "__main__":

@@ -5,11 +5,11 @@ This module provides database persistence for progress operations and events.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import AsyncSessionLocal
@@ -211,25 +211,25 @@ class ProgressPersistenceService:
             db = AsyncSessionLocal()
 
         try:
-            query = db.query(ProgressOperationModel)
+            query = select(ProgressOperationModel)
 
             # Apply filters
             if user_id:
-                query = query.filter(ProgressOperationModel.user_id == UUID(user_id))
+                query = query.where(ProgressOperationModel.user_id == UUID(user_id))
 
             if session_id:
-                query = query.filter(ProgressOperationModel.session_id == session_id)
+                query = query.where(ProgressOperationModel.session_id == session_id)
 
             if operation_type:
-                query = query.filter(
+                query = query.where(
                     ProgressOperationModel.operation_type == operation_type.value
                 )
 
             if status:
-                query = query.filter(ProgressOperationModel.status == status.value)
+                query = query.where(ProgressOperationModel.status == status.value)
 
             if active_only:
-                query = query.filter(
+                query = query.where(
                     ProgressOperationModel.status.in_(["pending", "running", "paused"])
                 )
 
@@ -239,9 +239,10 @@ class ProgressPersistenceService:
             # Apply pagination
             query = query.offset(offset).limit(limit)
 
-            result = await query.all()
+            result = await db.execute(query)
+            operations = result.scalars().all()
 
-            return [self._db_operation_to_progress_operation(op) for op in result]
+            return [self._db_operation_to_progress_operation(op) for op in operations]
 
         except Exception as e:
             logger.error(f"Error getting operations: {e}")
@@ -264,15 +265,16 @@ class ProgressPersistenceService:
 
         try:
             query = (
-                db.query(ProgressEventModel)
-                .filter(ProgressEventModel.operation_id == UUID(operation_id))
+                select(ProgressEventModel)
+                .where(ProgressEventModel.operation_id == UUID(operation_id))
                 .order_by(desc(ProgressEventModel.timestamp))
             )
 
             query = query.offset(offset).limit(limit)
-            result = await query.all()
+            result = await db.execute(query)
+            events = result.scalars().all()
 
-            return [self._db_event_to_progress_event(event) for event in result]
+            return [self._db_event_to_progress_event(event) for event in events]
 
         except Exception as e:
             logger.error(f"Error getting events for operation {operation_id}: {e}")
@@ -316,15 +318,14 @@ class ProgressPersistenceService:
             db = AsyncSessionLocal()
 
         try:
-            operation_cutoff = datetime.utcnow() - timedelta(
+            operation_cutoff = datetime.now(timezone.utc) - timedelta(
                 days=self._max_operation_age_days
             )
-            event_cutoff = datetime.utcnow() - timedelta(days=self._max_event_age_days)
+            event_cutoff = datetime.now(timezone.utc) - timedelta(days=self._max_event_age_days)
 
             # Delete old completed operations
-            old_operations = (
-                await db.query(ProgressOperationModel)
-                .filter(
+            old_operations_result = await db.execute(
+                select(ProgressOperationModel).where(
                     and_(
                         ProgressOperationModel.completed_at < operation_cutoff,
                         ProgressOperationModel.status.in_(
@@ -332,19 +333,20 @@ class ProgressPersistenceService:
                         ),
                     )
                 )
-                .all()
             )
+            old_operations = old_operations_result.scalars().all()
 
             operations_deleted = len(old_operations)
             for operation in old_operations:
                 await db.delete(operation)
 
             # Delete old events (orphaned events will be deleted by cascade)
-            events_deleted = (
-                await db.query(ProgressEventModel)
-                .filter(ProgressEventModel.timestamp < event_cutoff)
-                .delete()
+            events_delete_result = await db.execute(
+                delete(ProgressEventModel).where(
+                    ProgressEventModel.timestamp < event_cutoff
+                )
             )
+            events_deleted = events_delete_result.rowcount
 
             await db.commit()
 

@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TorrentResultSchema(BaseModel):
@@ -26,8 +26,7 @@ class TorrentResultSchema(BaseModel):
     description: Optional[str] = Field(None, description="Torrent description")
     uploader: Optional[str] = Field(None, description="Uploader name")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TorrentSearchRequest(BaseModel):

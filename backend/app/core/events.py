@@ -1,5 +1,4 @@
 import logging
-from typing import Callable
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
@@ -140,43 +139,3 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
     logger.info("Database connections closed")
     logger.info("Application shutdown complete")
-
-
-def shutdown_event_handler(app: FastAPI) -> Callable:
-    async def stop_app() -> None:
-        # Stop backup scheduler
-        try:
-            scheduled_backup_service.stop()
-            logger.info("Backup scheduler stopped")
-        except Exception as e:
-            logger.warning(f"Error stopping backup scheduler: {e}")
-
-        # Stop provider monitoring
-        try:
-            await provider_monitor.stop_monitoring()
-            logger.info("Provider monitoring stopped")
-        except Exception as e:
-            logger.warning(f"Error stopping provider monitoring: {e}")
-
-        # Stop download queue manager
-        try:
-            await queue_manager.stop()
-            logger.info("Download queue manager stopped")
-        except Exception as e:
-            logger.warning(f"Error stopping download queue manager: {e}")
-
-        # Close Redis connection
-        if hasattr(app.state, "redis") and app.state.redis:
-            try:
-                await app.state.redis.close()
-                logger.info("Redis connection closed")
-            except Exception as e:
-                logger.warning(f"Error closing Redis connection: {e}")
-
-        # Close database connections
-        await engine.dispose()
-        logger.info("Database connections closed")
-
-        logger.info("Application shutdown complete")
-
-    return stop_app

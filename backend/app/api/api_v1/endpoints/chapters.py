@@ -119,13 +119,14 @@ async def bulk_export_chapters(
             )
         except Exception as e:
             logger.error(
-                f"Bulk export failed for manga_id={item.manga_id}, chapter_id={item.chapter_id}: {e}"
+                f"Bulk export failed for manga_id={item.manga_id}, chapter_id={item.chapter_id}: {e}",
+                exc_info=True,
             )
             results.append(
                 {
                     "chapter_id": str(item.chapter_id),
                     "status": "failed",
-                    "error": str(e),
+                    "error": "Export failed. See server logs for details.",
                 }
             )
 

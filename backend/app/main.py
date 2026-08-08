@@ -10,7 +10,7 @@ from app.core.events import lifespan
 app = FastAPI(
     title=settings.APP_NAME,
     description="API for Kuroibara manga/manhua/manhwa library",
-    version="0.7.0",
+    version="0.7.2",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",

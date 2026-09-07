@@ -19,6 +19,7 @@ from app.core.providers.madaradex import MadaraDexProvider
 from app.core.providers.mangadex import MangaDexProvider
 from app.core.providers.mangapill import MangaPillProvider
 from app.core.providers.mangasail import MangaSailProvider
+from app.core.providers.manhwatoon import ManhwaToonProvider
 
 from .base import BaseAgent
 from .provider_agent import ProviderAgent
@@ -50,6 +51,7 @@ class AgentFactory:
                 "EnhancedGenericProvider": EnhancedGenericProvider,
                 "JavaScriptProvider": JavaScriptProvider,
                 "HiperDexProvider": HiperDexProvider,
+                "ManhwaToonProvider": ManhwaToonProvider,
             }
         )
 

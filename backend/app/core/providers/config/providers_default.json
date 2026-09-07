@@ -314,6 +314,40 @@
     }
   },
   {
+    "id": "manhwatoon",
+    "name": "ManhwaToon",
+    "class_name": "ManhwaToonProvider",
+    "supports_nsfw": true,
+    "priority": 25,
+    "params": {
+      "base_url": "https://www.manhwatoon.me",
+      "search_url": "https://www.manhwatoon.me/?s={query}&post_type=wp-manga",
+      "manga_url_pattern": "https://www.manhwatoon.me/manhwa/{manga_id}",
+      "chapter_url_pattern": "https://www.manhwatoon.me/manhwa/{manga_id}/{chapter_id}",
+      "name": "ManhwaToon",
+      "supports_nsfw": true,
+      "selectors": {
+        "search_items": [".c-tabs-item__content", ".page-item-detail"],
+        "title": [".post-title h1", ".post-title h3 a", ".post-title a", "h1"],
+        "cover": [".summary_image img", ".tab-thumb img", "img"],
+        "link": [".tab-thumb a", ".post-title a"],
+        "description": [".summary__content", ".tab-summary", ".description"],
+        "status": [
+          ".mg_status .summary-content",
+          ".summary-heading:-soup-contains('Status') + .summary-content"
+        ],
+        "genres": [".mg_genres .summary-content a"],
+        "authors": [".mg_author .summary-content a"],
+        "chapters": [
+          "li.wp-manga-chapter a",
+          ".wp-manga-chapter a",
+          ".listing-chapters_wrap a"
+        ],
+        "pages": ["#readerarea img", ".reading-content img"]
+      }
+    }
+  },
+  {
     "id": "hiperdex",
     "name": "HiperDEX",
     "class_name": "HiperDexProvider",

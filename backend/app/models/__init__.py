@@ -1,6 +1,7 @@
 # Models package
 
 from app.models.base import BaseModel
+from app.models.access import AppSetting, Group, UserGroup
 from app.models.extension_series import Series, SeriesMetadata, SourceDownload
 from app.models.reading import ReadingEvent, ReadingState, SeriesChapter, UserDayActivity
 from app.models.external_integration import ExternalIntegration, ExternalMangaMapping

@@ -28,6 +28,22 @@ if settings.CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+SETUP_OPEN_PREFIXES = ("/api/v2/setup", "/api/v1/health", "/api/docs", "/api/redoc", "/api/openapi.json")
+
+
+@app.middleware("http")
+async def first_run_guard(request, call_next):
+    """Until first-run setup is complete, the API answers 503 (with the setup location), except setup itself."""
+    from fastapi.responses import JSONResponse
+
+    from app.core import setup as setup_state
+
+    path = request.url.path
+    if setup_state.required() and path.startswith("/api/") and not path.startswith(SETUP_OPEN_PREFIXES):
+        return JSONResponse(status_code=503, content={"setup_required": True, "setup_url": "/setup"})
+    return await call_next(request)
+
+
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(api_v2_router, prefix="/api/v2")

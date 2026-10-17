@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import eu.kanade.tachiyomi.host.Config
 import eu.kanade.tachiyomi.host.Browse
+import eu.kanade.tachiyomi.host.Isolation
 import eu.kanade.tachiyomi.host.ImportInstaller
 import eu.kanade.tachiyomi.host.Probe
 import eu.kanade.tachiyomi.host.catalog.Catalog
@@ -203,11 +204,11 @@ class Server(private val config: Config) {
     private fun browseCall(ex: HttpExchange, module: String, block: suspend () -> JsonElement) {
         if (store.get(module) == null) return send(ex, 404, err("not installed: $module"))
         try {
-            val body = runBlocking { withTimeout(120_000) { block() } }
+            val body = probe.isolation.run(module, 120_000) { runBlocking { withTimeout(120_000) { block() } } }
             send(ex, 200, body)
         } catch (t: Throwable) {
             val root = generateSequence(t) { it.cause }.last()
-            send(ex, 502, buildJsonObject {
+            send(ex, errorStatus(root), buildJsonObject {
                 put("error", "${root.javaClass.name}: ${root.message}".take(300))
                 put("error_class", Probe.classify(root))
             })
@@ -284,18 +285,27 @@ class Server(private val config: Config) {
         val index = body["index"]?.jsonPrimitive?.intOrNull ?: 0
         val offset = body["offset"]?.jsonPrimitive?.longOrNull ?: 0L
         try {
-            val img = runBlocking { withTimeout(120_000) { browse.image(module, url, imageUrl, index, offset) } }
+            val img = probe.isolation.run(module, 120_000) {
+                runBlocking { withTimeout(120_000) { browse.image(module, url, imageUrl, index, offset) } }
+            }
             ex.responseHeaders.add("Content-Type", img.contentType ?: "application/octet-stream")
             ex.responseHeaders.add("X-Upstream-Status", img.status.toString())
             ex.sendResponseHeaders(200, img.bytes.size.toLong())
             ex.responseBody.use { it.write(img.bytes) }
         } catch (t: Throwable) {
             val root = generateSequence(t) { it.cause }.last()
-            send(ex, 502, buildJsonObject {
+            send(ex, errorStatus(root), buildJsonObject {
                 put("error", "${root.javaClass.name}: ${root.message}".take(300))
                 put("error_class", Probe.classify(root))
             })
         }
+    }
+
+    // 503 when the extension is paused or busy (try again later), 504 on a deadline, 502 for anything else it raised.
+    private fun errorStatus(root: Throwable): Int = when (root) {
+        is Isolation.Unavailable -> 503
+        is Isolation.Timed -> 504
+        else -> 502
     }
 
     private fun urlFrom(ex: HttpExchange): String? {

@@ -4,6 +4,8 @@ import os
 
 os.environ["ENABLE_PROVIDER_MONITORING"] = "false"
 os.environ["ENABLE_DB_INIT"] = "false"
+# First-run setup would hold the API closed in every test. Setup tests turn it on explicitly.
+os.environ["SETUP_ENABLED"] = "false"
 
 # Standard library imports
 from typing import AsyncGenerator, Generator

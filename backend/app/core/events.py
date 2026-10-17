@@ -72,6 +72,20 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("Database initialization disabled by configuration")
 
+    # First-run setup: make sure an admin exists and print the one-time token until setup is complete.
+    if settings.SETUP_ENABLED:
+        try:
+            from app.core import setup as setup_state
+            from app.db.session import AsyncSessionLocal
+
+            async with AsyncSessionLocal() as session:
+                token = await setup_state.bootstrap(session)
+            if token:
+                setup_state.announce(token)
+        except Exception as e:
+            logger.error(f"First-run setup check failed: {e}")
+            raise
+
     # Initialize and test providers (only if enabled)
     if settings.ENABLE_PROVIDER_MONITORING:
         try:

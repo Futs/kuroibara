@@ -14,7 +14,7 @@ import eu.kanade.tachiyomi.host.state.InstallStore
 
 // Runs search, details, chapters and pages once against an installed extension and records the result.
 // Loaded extensions are cached per JAR. Health is recorded per install, never used to hide a source (D6).
-class Probe(private val jarsDir: File, private val store: InstallStore) {
+class Probe(private val jarsDir: File, private val store: InstallStore, val isolation: Isolation = Isolation()) {
     private val loaded = ConcurrentHashMap<String, LoadedExtension>()
 
     fun test(module: String, query: String): Health {
@@ -26,7 +26,7 @@ class Probe(private val jarsDir: File, private val store: InstallStore) {
         try {
             val ext = loaded.getOrPut(entry.jar) { ExtensionLoader.load(entry.jar, listOf(jar)) }
             val src = ext.sources.firstOrNull { it.lang == "en" } ?: ext.sources.first()
-            runBlocking {
+            isolation.run(module, 120_000) { runBlocking {
                 withTimeout(120_000) {
                     val mangas = src.getSearchManga(1, query, src.getFilterList()).mangas
                     steps["search"] = "ok n=${mangas.size}"
@@ -37,7 +37,7 @@ class Probe(private val jarsDir: File, private val store: InstallStore) {
                     val last = update.chapters.lastOrNull() ?: return@withTimeout
                     steps["pages"] = "ok n=${src.getPageList(last).size}"
                 }
-            }
+            } }
         } catch (t: Throwable) {
             val root = generateSequence(t) { it.cause }.last()
             errorClass = classify(root)
@@ -69,6 +69,8 @@ class Probe(private val jarsDir: File, private val store: InstallStore) {
     companion object {
         // Buckets from the Phase 0b run. Used for display only; nothing is excluded because of them.
         fun classify(t: Throwable): String = when {
+            t is Isolation.Timed -> "timeout"
+            t is Isolation.Unavailable -> "unavailable"
             t is HttpException && t.code == 401 -> "auth-401"
             t is HttpException && (t.code == 403 || t.code == 503) -> "blocked"
             t is NoClassDefFoundError && t.message?.contains("android/webkit") == true -> "webview-needed"

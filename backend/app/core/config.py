@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     # FlareSolverr
     FLARESOLVERR_URL: Optional[str] = None
 
+    # First-run setup. Tests switch it off; leave it on everywhere else.
+    SETUP_ENABLED: bool = True
+
     # Where source (extension) chapter downloads are written.
     SOURCE_DOWNLOAD_DIR: str = "/app/storage/source_downloads"
     # Source download worker (python -m app.sources.worker_main)

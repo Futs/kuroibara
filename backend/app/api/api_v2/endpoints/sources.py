@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.sources.deps import get_host_client, host_error
+from app.sources.deps import get_host_client, host_error, require_superuser
 from app.sources.host_client import ExtensionHostClient, ExtensionHostError
 
 router = APIRouter()
@@ -56,7 +56,7 @@ async def catalog_settings(
 async def set_catalog_settings(
     body: CatalogSettingsBody,
     host: ExtensionHostClient = Depends(get_host_client),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_superuser),
 ) -> Any:
     if body.url is not None and not body.url.lower().startswith("https://"):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="catalog URL must be https://")
@@ -66,7 +66,7 @@ async def set_catalog_settings(
 @router.post("/catalog/refresh")
 async def refresh_catalog(
     host: ExtensionHostClient = Depends(get_host_client),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_superuser),
 ) -> Any:
     """Fetches the chosen catalog and updates the list. Installs nothing."""
     return await _call(host.refresh_catalog())
@@ -77,7 +77,7 @@ async def import_jar(
     module: str,
     file: UploadFile = File(...),
     host: ExtensionHostClient = Depends(get_host_client),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_superuser),
 ) -> Any:
     """Installs a JAR the user provides for this module. The host checks that it is an extension and that it loads."""
     data = await file.read(MAX_IMPORT_BYTES + 1)
@@ -101,7 +101,7 @@ async def install(
     version_code: Optional[int] = None,
     hash: Optional[str] = None,
     host: ExtensionHostClient = Depends(get_host_client),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_superuser),
 ) -> Any:
     return await _call(host.install(module, source=source, version_code=version_code, hash=hash))
 
@@ -110,7 +110,7 @@ async def install(
 async def uninstall(
     module: str,
     host: ExtensionHostClient = Depends(get_host_client),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_superuser),
 ) -> Any:
     return await _call(host.uninstall(module))
 
@@ -119,7 +119,7 @@ async def uninstall(
 async def enable(
     module: str,
     host: ExtensionHostClient = Depends(get_host_client),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_superuser),
 ) -> Any:
     return await _call(host.enable(module))
 
@@ -128,7 +128,7 @@ async def enable(
 async def disable(
     module: str,
     host: ExtensionHostClient = Depends(get_host_client),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_superuser),
 ) -> Any:
     return await _call(host.disable(module))
 

@@ -41,7 +41,7 @@ def api(client):
         finally:
             await c.aclose()
 
-    app.dependency_overrides[get_current_user] = lambda: type("U", (), {"id": 1})()
+    app.dependency_overrides[get_current_user] = lambda: type("U", (), {"id": 1, "is_superuser": True})()
     app.dependency_overrides[get_host_client] = fake_client
     yield client
     app.dependency_overrides.pop(get_current_user, None)
@@ -90,3 +90,26 @@ def test_import_refuses_oversized_uploads_before_forwarding(api):
     r = api.post("/api/v2/sources/en/x/import", files={"file": ("big.jar", big, "application/octet-stream")})
     assert r.status_code == 413
     assert "last" not in SEEN or SEEN["last"][1] != "/extensions/en/x/import"
+
+
+@pytest.fixture
+def regular_user(client):
+    app.dependency_overrides[get_current_user] = lambda: type("U", (), {"id": 2, "is_superuser": False})()
+    yield client
+    app.dependency_overrides[get_current_user] = lambda: type("U", (), {"id": 1, "is_superuser": True})()
+
+
+def test_regular_users_cannot_change_global_source_state(api, regular_user):
+    assert api.put("/api/v2/sources/catalog/settings", json={"url": None}).status_code == 403
+    assert api.post("/api/v2/sources/catalog/refresh").status_code == 403
+    assert api.post("/api/v2/sources/en/x/import", files={"file": ("x.jar", b"PK", "application/octet-stream")}).status_code == 403
+    assert api.post("/api/v2/sources/en/x/install").status_code == 403
+    assert api.delete("/api/v2/sources/en/x").status_code == 403
+    assert api.post("/api/v2/sources/en/x/enable").status_code == 403
+    assert api.post("/api/v2/sources/en/x/disable").status_code == 403
+
+
+def test_regular_users_can_still_read_and_browse(api, regular_user):
+    assert api.get("/api/v2/sources/catalog/settings").status_code == 200
+    # The fake host has no search route, so the proxy's 404 is expected. The point is that access is not refused.
+    assert api.post("/api/v2/sources/en/x/search?q=one").status_code not in (401, 403)

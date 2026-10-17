@@ -189,6 +189,9 @@ async def register(
         )
 
         db.add(user)
+        await db.flush()
+        from app.core import groups
+        await groups.join_default(db, user)
         await db.commit()
         await db.refresh(user)
 

@@ -54,8 +54,12 @@ def create_refresh_token(
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against a hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """False for an unusable stored value (for example the admin before first-run setup), never an error."""
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        return False
+
 
 
 def get_password_hash(password: str) -> str:

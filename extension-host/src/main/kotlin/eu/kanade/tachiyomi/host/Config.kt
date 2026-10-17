@@ -22,7 +22,10 @@ data class Config(
 
         fun fromEnv(): Config {
             val token = System.getenv("HOST_TOKEN")?.takeIf { it.isNotBlank() }
-                ?: error("HOST_TOKEN must be set")
+                ?: error("HOST_TOKEN must be set (openssl rand -hex 32)")
+            require(!token.startsWith("CHANGE_ME") && token.length >= 32) {
+                "HOST_TOKEN is too short or still the example value; generate one with: openssl rand -hex 32"
+            }
             return Config(
                 port = System.getenv("HOST_PORT")?.toIntOrNull() ?: 8800,
                 token = token,

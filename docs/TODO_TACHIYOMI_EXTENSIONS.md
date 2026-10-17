@@ -6,6 +6,57 @@ Goal: Mihon-style source handling in Kuroibara.
 2. Run Tachiyomi/Keiyoushi extensions instead of hand-written Python providers.
 3. Metadata comes from the source. MangaUpdates is an optional comparison, field by field, as AudioSilo does with its community metadata.
 
+## HANDOFF (read this first in a new session)
+
+**Where things stand (2026-10-17).** Last commit: `1707f4f`. Everything below marked "uncommitted" is in the working tree and is committed in the same change as this section.
+
+**Working rules agreed with the user**
+- Ask before big decisions. Make small reversible choices yourself and say so.
+- Commit only when asked. Commit messages end with the `Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>` line.
+- Use local builds for containers (`dev.sh` / compose with build), not Docker Hub images.
+- Kuroibara's `.env` holds real secrets: never print or copy them. `.env.example` has placeholders only.
+- Mihon is the reference for download behaviour, library and migration. AudioSilo is the reference for metadata provenance and the admin UI look (React + shadcn, see `audiosilo-server/admin-ui/STYLEGUIDE.md`).
+
+**How to run things**
+- Backend tests (from `backend/`): `DB_HOST=localhost VALKEY_HOST=localhost ./venv/bin/python -m pytest tests/ -q -p no:cacheprovider`. Needs the dev Postgres and Valkey containers (`docker compose -f docker-compose.dev.yml up -d postgres valkey`). Full suite: 325 passed, 6 skipped.
+- Migrations: alembic head is `022`. Test them on a scratch database (create it with `docker exec kuroibara-postgres-1 psql -U kuroibara -d postgres -c "CREATE DATABASE x;"`), never on `kuroibara` by accident.
+- Extension host (from `extension-host/`): `JAVA_HOME=$(ls -d ~/.local/jdk/jdk-21*) ./gradlew --no-daemon test`. Set `HOST_IT=1` for the live tests. JDK 21 only (Kotlin caps at JVM 26). Android SDK platform 37.0 is in `~/Android/Sdk`.
+- Upstream catalog: `python3 extension-host/tools/fetch-upstream.py`. Build-from-source JARs: `extension-host/tools/build-jars.py` (not used for installs now; installs come from upstream release JARs, checked against GitHub digests).
+- Container: `docker compose -f docker-compose.dev.yml build extension-host && docker compose -f docker-compose.dev.yml up -d extension-host`. Seed the volume with `extension-host/tools/seed-container.sh` (sets uid 10001 ownership).
+
+**Outstanding (uncommitted, now committed with this section)**
+1. Superuser gate on source management (`require_superuser`): catalog settings PUT, catalog refresh, import, install, uninstall, enable, disable. Browse, search and health test stay open to all signed-in users.
+2. Host isolation (`extension-host/.../Isolation.kt`): per-call deadline 120 s (504), two concurrent calls per extension (503 when busy), five failures in a row pause an extension for 60 s (503). Not covered: an extension that exits the JVM or exhausts its memory. That needs process isolation (not built).
+3. Host refuses to start with a token shorter than 32 characters or starting with `CHANGE_ME`. `.env.example` has the placeholder and the generator command.
+4. Catalog download limit raised to 30 MB. Note: download archives themselves have no size limit in our pipeline. The user's oversized archives were from the legacy path or a proxy; not yet located.
+5. Groups and first-run setup: migration 022 (`groups`, `user_groups`, `app_settings`). Admin membership sets `users.is_superuser`. One-time token printed in the log, stored as a hash, rotated each start until setup completes. API returns 503 (`setup_required`) for `/api/` routes until setup is done. Steps: `POST /api/v2/setup/admin-password`, `/first-user`, `/provider` (optional), `/library`, `/finish`. Admin routes: `GET /api/v2/admin/users`, `PUT /api/v2/admin/users/{id}/role`.
+6. Extension host container rebuilt with the catalog, import, cookie and isolation changes. Verified from inside the compose network.
+
+**Open decisions for the user**
+- **Setup page in the frontend.** The API is ready. The wizard and the redirect while setup is pending are not built. Decide whether the wizard goes on `feat/ui-react-shadcn` (recommended, the React UI) or on this branch's Vue frontend.
+- **Public registration.** `/api/v1/auth/register` still lets anyone sign up (new accounts join `user`). Keep it open, or disable it after setup so admins create accounts?
+- **Provider and library steps.** Setup installs an optional provider and names a library folder under `STORAGE_PATH`. The library is only a folder and a name for now. Is that what "first library" should mean, or should it be a Kuroibara library (categories) as well?
+- **Other groups.** Only `admin` and `user` for now. The user is still thinking about whether more are needed.
+- **Source of the oversized archives.** Find where the 20 MB failures came from (legacy download path, import, or a proxy `client_max_body_size`).
+
+**Backend work still to do (in rough priority order)**
+1. Global search (Phase 3): fan out to enabled installed sources, per-source timeouts, group results by normalised title, report which sources have each title.
+2. Provider metadata refresh into the base snapshot (Phase 2b). Today the base is written once.
+3. Source health and "update available" surfaced in library responses (the data exists in the host).
+4. Manual Cloudflare capture endpoint (Phase 4): the user solves the challenge in a browser, and cookies are sent to the host.
+5. Live Cloudflare challenge test. Needs a site that actually serves a challenge. Public test sites and petsathome.com do not challenge from this network right now.
+6. Library update checks for new chapters, and optional auto-download of new chapters.
+7. Download worker: heartbeats and stale-claim recovery (only matters with more than one worker).
+8. Process isolation for extensions (see item 2 above).
+9. `docs/API_V2.md` and TypeScript types for the UI.
+10. Phase 6 cutover: make the new path the default, then deprecate the legacy providers.
+11. Release schedule shown in each user's time zone.
+
+**Key files**
+- Host: `extension-host/src/main/kotlin/eu/kanade/tachiyomi/host/` (`api/Server.kt` routes, `Probe.kt`, `Browse.kt`, `Isolation.kt`, `catalog/`, `upstream/`, `ImportInstaller.kt`), and `extension-host/src/main/kotlin/eu/kanade/tachiyomi/network/interceptor/CloudflareInterceptor.kt`.
+- Backend: `backend/app/sources/` (host client, series service, reading service, download worker and writer, download control, MangaUpdates link, groups and setup in `app/core/`), `backend/app/api/api_v2/endpoints/` (sources, series, reading, mangaupdates, downloads, me, setup, admin).
+- Migrations: `backend/alembic/versions/018` to `022`.
+
 UI work is on a separate branch: `feat/ui-react-shadcn` (see the UI section below). This branch is backend only.
 
 **Base:** `origin/chore/dependency-updates` (`0796388`), the newest commit on any remote branch. It sits on top of `dev` and adds one dependency bump (`backend/requirements.txt`, `frontend/app/package-lock.json`). Drop that commit if you don't want it here. Local `main` is fast-forwarded to `origin/main` (`cd39318`).
@@ -369,6 +420,21 @@ Location: `extension-host/` (new, top-level).
 Implemented: `backend/app/sources/download_writer.py` (ChapterWriter, with_retries, safe_name) and 12 filesystem tests. Covers: pages in `_tmp`, partial pages with resume, finished-only counting, completeness refusal, folder and CBZ commit, the already-committed guard, and retry waits 2, 4, 8.
 
 **Identity (answer to "where does the entry id come from", 2026-10-17).** `series.id` is a Kuroibara UUID (`uuid4` in `BaseModel`), not a provider id. The provider's identity is `(module, series_url)`, unique in the table. Each source's own IDs (like the Keiyoushi `source_id`) are stored for reference only. So two providers can use the same title id without clashing. Known risk: if a site changes its URL for a title, the same title can get a second entry. Mitigation later: a "re-link" action on the entry, or matching on the source id where the extension gives one.
+
+**Status, groups and first-run setup (2026-10-17). Built, not committed.**
+- Groups: `admin` and `user` in `groups`, membership in `user_groups` (migration 022). Admin membership sets `users.is_superuser`, which the existing checks use. Every user stays in `user`. The last admin cannot be removed. Existing users join `user`, and existing superusers join `admin`.
+- First run: the admin account is created with no usable password. A one-time token is printed in the log, stored only as a hash, and rotated on each start until setup completes. While setup is open, every `/api/` route except setup and health answers 503 with `setup_required`.
+- Setup steps, in order, each with the token: `POST /api/v2/setup/admin-password`, `/first-user` (role admin or user), `/provider` (optional; installs one provider), `/library` (name and a folder inside `STORAGE_PATH`), `/finish`. `GET /api/v2/setup/status` shows progress.
+- Admin: `GET /api/v2/admin/users` and `PUT /api/v2/admin/users/{id}/role`. Source management, catalog and server settings need admin (superuser).
+- Registration (`/api/v1/auth/register`) still accepts anyone, and new accounts join `user`. Decide whether to keep it open.
+- Verified: 11 setup and group tests, and the full backend suite (325 passed). Live check on a fresh database: the token printed, the API returned 503 until setup, and all five steps completed over HTTP.
+- Not built: the setup page in the frontend. The API is ready, and the UI needs a /setup wizard and a redirect to it while setup is required.
+
+**Status, superuser gate and host isolation (2026-10-17). Built, not committed.**
+- Superuser only (`require_superuser`): catalog settings PUT, catalog refresh, JAR import, install, uninstall, enable, disable. Any signed-in user can read settings, browse, search, and run the health test. Tests cover both sides.
+- Isolation (`extension-host/.../Isolation.kt`): each call runs on its own thread with a deadline (120 s; the caller stops waiting, the thread is abandoned). At most 2 calls per extension run at once (a third waits 5 s, then 503). Five failures in a row pause that extension for 60 s (503 with the reason), then it is tried again. Other extensions are not affected. Deadline is 504. Probe uses the same layer. 7 tests with a fake clock; live integration tests pass through the layer.
+- Not covered: an extension that calls System.exit or exhausts the whole JVM's memory. Only process isolation covers those. Not built.
+- The running extension-host container is older than these changes (its catalog routes return 404). Rebuild needed before live use.
 
 **Status, Phase 2 leftovers 5 to 7 (2026-10-17). Built, not committed.**
 - 5. MangaUpdates: `app/sources/mangaupdates_link.py` reuses the existing client and field extraction. Endpoints: `GET /series/{id}/mangaupdates/search` (defaults to the shown title), `POST .../link {mu_series_id}` (caches details, changes nothing shown), `POST .../refresh` (explicit only), `GET .../compare` (provider, MangaUpdates, shown value and origin, per field; works from the cache), `POST .../apply {choices}` (per field: `provider`, `mangaupdates`, or `{origin: edited, value}`). Unchosen fields keep their value and origin. Revert keeps the cache. 10 tests with a fake client.

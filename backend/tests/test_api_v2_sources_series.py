@@ -68,7 +68,7 @@ def api(client, db, host_down):
         finally:
             await c.aclose()
 
-    app.dependency_overrides[get_current_user] = lambda: type("U", (), {"id": 1})()
+    app.dependency_overrides[get_current_user] = lambda: type("U", (), {"id": 1, "is_superuser": True})()
     app.dependency_overrides[get_host_client] = fake_client
     yield client
     app.dependency_overrides.pop(get_current_user, None)

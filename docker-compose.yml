@@ -91,6 +91,21 @@ services:
     networks:
       - kuroibara-network
 
+  # Optional: FlareSolverr solves Cloudflare challenges for the extension host.
+  # Off by default. Start with: docker compose --profile flaresolverr up -d
+  # Or skip this service and point FLARESOLVERR_URL at an existing instance.
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    profiles: ["flaresolverr"]
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+      - TZ=UTC
+    ports:
+      - "8191:8191"
+    networks:
+      - kuroibara-network
+
 networks:
   kuroibara-network:
     driver: bridge

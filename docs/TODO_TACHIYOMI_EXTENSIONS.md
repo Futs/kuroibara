@@ -1,0 +1,458 @@
+# TODO: feat/tachiyomi-extensions
+
+Goal: Mihon-style source handling in Kuroibara.
+
+1. Sources supply search **and** metadata, as in Mihon. Users install extensions from the catalog, and global search shows which installed extensions have a match.
+2. Run Tachiyomi/Keiyoushi extensions instead of hand-written Python providers.
+3. Metadata comes from the source. MangaUpdates is an optional comparison, field by field, as AudioSilo does with its community metadata.
+
+UI work is on a separate branch: `feat/ui-react-shadcn` (see the UI section below). This branch is backend only.
+
+**Base:** `origin/chore/dependency-updates` (`0796388`), the newest commit on any remote branch. It sits on top of `dev` and adds one dependency bump (`backend/requirements.txt`, `frontend/app/package-lock.json`). Drop that commit if you don't want it here. Local `main` is fast-forwarded to `origin/main` (`cd39318`).
+
+## Decisions
+
+Recommended defaults. Confirm before Phase 2.
+
+- [ ] **D1 Metadata source.** Selecting a title adds it to the library using the provider's metadata. That is the base record. MangaUpdates is applied only when the user asks (see Phase 2b).
+- [ ] **D2 Extension runtime.** A JVM process that loads the extension JARs and exposes HTTP to the Python backend. Runs as its own container in the compose stack. Why a separate process is needed: see "Why a JVM process" below.
+- [ ] **D3 UI stack.** React + shadcn/ui + Tailwind v4, matching AudioSilo's admin console. Lives on `feat/ui-react-shadcn`, not this branch. Kuroibara's colour palette stays.
+- [ ] **D4 Rollout.** Strangler pattern. Additive migrations only. New code paths sit beside the old providers behind a flag. Old providers are removed only after parity.
+- [ ] **D6 Network-dependent sources stay in the project.** A source that fails from one network may work from another, and other users in other countries may reach it. Never exclude a source because it failed here. Each install carries a health record instead: last result, error class (blocked, timeout, 401, shim gap, WebView needed) and when it was checked. The user decides what to keep. Enable, disable and uninstall are separate actions. Disabled sources stay installed, skip search, and keep their library links.
+- [ ] **D5 No built-in sources.** The new path ships with no extensions installed. The user imports Keiyoushi-compatible extensions from a catalog URL or local JAR files and installs or removes them. Old providers stay in place until cutover (D4).
+
+## Why a JVM process (D2)
+
+Keiyoushi extensions are compiled JVM bytecode. The Kuroibara backend is Python, so something has to run that bytecode. Options:
+
+- In-process via JPype or Py4J. Works, but a bad extension can crash or exhaust memory in the API server, and the JVM and Python GCs compete.
+- A separate JVM process. Isolates crashes and memory, and lets the backend stay in Python.
+- Rewrite the backend in Kotlin. Large change; not justified by this feature.
+- Reimplement extensions in Python. Not viable at roughly 1,400 extensions.
+
+A "container" is only packaging. The required part is a separate process. It can run as a sidecar container or as a second process in the Kuroibara image.
+
+## Constraints (to avoid breaking existing features)
+
+- [ ] Do not edit existing provider classes except where a shared helper must change. Record each such edit here.
+- [ ] Existing tables and API routes stay unchanged. New data goes in new tables and new `/api/v2/...` routes.
+- [ ] Each phase ends with `pytest` green and the frontend building. Note any test that was already failing before this branch.
+- [ ] The local `refactor` branch is not used. Its remote was deleted, and it is an ancestor of `dev` (`dev` has 16 commits it lacks), so nothing in it is missing from `dev`.
+
+## Phase 0: Feasibility spike (go / no-go)
+
+Time-box this. Stop and report if it fails.
+
+**Result (2026-10-17): GO.** Search, details, chapters and pages all return real data for 3 extensions across 2 themes.
+
+| Extension | Theme | Search | Details | Chapters | Pages |
+| --- | --- | --- | --- | --- | --- |
+| MangaKatana | standalone | 5 | One Piece, Oda Eiichiro | 1202 | 52 |
+| Toonily | Madara | 25 | Baby Prisoner of the Winter Castle | 84 | 16 |
+| MangaFire (en) | standalone, multi-source | 50 | One Plus One | 3 | 34 |
+
+- Runtime: Mihon `source-api` plus trimmed network code (`NetworkHelper`, `OkHttpExtensions`, `Requests`, interceptors) plus Android shims. Compiled by Gradle with JDK 21. The Madara theme and `lib/i18n` are compiled from this repo.
+- Shortcuts that matter: `NetworkHelper` has no Cloudflare WebView (a pass-through placeholder). No Bitmap or image decode. Preferences UI is not rendered. None of these were exercised.
+- Harness, runtime and run notes: `/home/futs/Apps/phase0-spike/` (see `RUN.md`). Kept outside `/tmp`.
+- Next: Phase 0b, the smoke test across the 27 day-1 extensions. Expect more shim gaps and Cloudflare failures there.
+
+**Status (2026-10-17):** step 1 done. Built with JDK 21 (Temurin 21.0.12, `~/.local/jdk`) and Android SDK platform 37.0 (`~/Android/Sdk`). Kotlin here caps at JVM 26, so JDK 27 fails. Unsigned JARs in `/tmp/phase0/jars/`: `mangakatana.jar`, `toonily.jar`, `mangafire.jar`. JARs bundle library code under obfuscated names (for example `eu/kanade/tachiyomi/a/a/a`, `keiyoushi/b`), so a host can't just swap in its own lib. Check this before the loader work.
+
+**Status, step 2 (2026-10-17): blocked on the host runtime, not on shims.**
+
+- The `extensions-lib` artifact (`com.github.keiyoushi:extensions-lib`) is compile-time stubs. Every method in `HttpSource` throws `Stub!`. Its runtime jar has stubs too. The real `HttpSource`, `NetworkHelper` and models come from the host app at runtime.
+- Extensions import about 306 distinct host classes. Most common: source models, `FilterList`, `GET`/`POST`, `HttpException`, `ConfigurableSource`. Multisrc themes (`lib-multisrc/madara`, `mangathemesia`, and others) are source in this repo and need compiling too.
+- Closest real runtime in the workspace: Mihon's `source-api` (19 Kotlin files) plus its `core/common` network code. Both are coupled to Android and Mihon core (`Context`, `PreferenceScreen`, Compose `@Stable`, `rx.Observable`, `tachiyomi.core.common`).
+- Host harness exists at `/tmp/phase0/host/` (`Host.java`, Android shims, `build.sh`, `classpath.py`). Loads `keiyoushi.source.Generated` (KSP output), registers `Application` in Injekt, calls the suspend functions through reflection. Works up to `HttpSource` init, then stops at the stub.
+- Next, one of: (a) compile Mihon `source-api` plus a trimmed `core/common` network subset with `kotlin-compiler-embeddable` as the host runtime; (b) write our own `HttpSource`-compatible runtime in Java/Kotlin covering the ~306-symbol surface. (a) is closer to real behaviour. (b) is cleaner but larger.
+- Obfuscation finding from step 1 still applies. Extension JARs from `outputs/jar` bundle renamed library classes. The harness uses the unobfuscated `compileReleaseKotlin/classes` directory instead.
+
+- [x] Get 3 extension JARs. The project already builds them: `gradle/build-logic/.../ExtensionPlugin.kt` creates `outputs/jar/<variant>/*.jar` via `CreateExtensionJarTask` (R8-shrinks the classes, excludes anything the host provides). CI uploads these as artifacts. Pick one per theme family (for example madara, mangareader, and one custom).
+- [ ] Shim the Android classes the JARs reference. Inventory below.
+- [ ] WebView: stub it, and mark Cloudflare-protected extensions as "needs capture" for now.
+- [ ] For each extension call `search`, `details`, `chapterList`, `pageList`. Record which calls work.
+- [ ] **Go** if at least 3 extensions across 2 themes return search, details, chapters and pages. **No-go** otherwise. On no-go, stop and report to the user with the failure list.
+
+### Phase 0b: Measure compatibility across all extensions
+
+Run before promising "all extensions on day 1".
+
+- [ ] Build a smoke-test harness that loads each extension JAR and runs `search` (fixed query), `details`, `chapterList` and `pageList` on one known title.
+- [ ] Run it across all ~1,434 packages. Record per extension: loads, search, details, chapters, pages, and the first error.
+- [ ] Bucket the results: works, broken by shim gap (which class), needs WebView, site down or changed. The "shim gap" bucket shows which shims to build next.
+- [ ] Publish the pass rate and the list. That becomes the honest day-1 claim.
+- [ ] Results go stale. Re-run on a schedule.
+
+**Result (2026-10-17, query "one", FlareSolverr on):** 27 of 27 load. 21 of 27 pass search, details, chapters and pages with real data.
+
+| Outcome | Extensions |
+| --- | --- |
+| Full pass | 1Manga.co, Anisa Scans, Asura Scans, Drake Scans, Hive Scans, MangaGeko, MangaKatana, MangaOnline.fun, Vortex Scans, Weeb Central, Lunar Manga, Manga18.me, Manga18fx, MangaDNA, Eris Scans, Grim Scans, MadaraDex, MangaFire, Mangafreak, Toonily, TopManhua.fan |
+| Pages need WebView (shim gap, Phase 4) | AllManga, HDoujin (search, details and chapters pass) |
+| Unverified from our network | Mangakakalot, Manhuarm (MangaBox theme; 403 without solver, timeout with it). Kept per D6. "Unverified", not "broken". |
+| HTTP 401 | Hiperdex (may need login) |
+| Inconclusive | MangaDex (en): test title returned 0 chapters, so pages were skipped. Retest with another title. |
+
+Notes:
+
+- No Cloudflare challenge (`cf-mitigated`) was seen during the run, so the solver path was not exercised for these sources. The live FlareSolverr check is still open.
+- Fixed in this round: `AppInfo` shim, Main dispatcher for `Dispatchers.Main`, English source picked from multi-source extensions.
+- Raw results: `phase0-spike/smoke/results_final.jsonl`. Earlier runs are kept beside it.
+
+### Day-1 target set (from the user's installed extensions)
+
+27 installed on the user's mobile. All 27 resolve to a source directory in `extensions-source`, with two names that need confirming. Source dirs are relative to `/home/futs/Apps/extensions-source`.
+
+| # | Installed name | Source dir | Notes |
+| --- | --- | --- | --- |
+| 1 | 1manga | `src/en/onemangaco` | Listed as "1Manga.co" in the source |
+| 2 | allmanga | `src/en/allanime` | WebView + Cloudflare references |
+| 3 | Anisa Scans | `src/en/anisascans` | |
+| 4 | Asusra Scans | `src/en/asurascans` | Listed as "Asura Scans" in the source. Confirm this is the same site. |
+| 5 | Drake Scans | `src/en/drakescans` | |
+| 6 | Hive Scans | `src/en/hivescans` | |
+| 7 | MangaGeko | `src/en/mangarawclub` | Source name differs from the installed name |
+| 8 | MangaKakalot | `src/en/mangakakalot` | |
+| 9 | MangaKatana | `src/en/mangakatana` | |
+| 10 | MangaOnline.fun | `src/en/mangaonlinefun` | |
+| 11 | Vortex Scans | `src/en/vortexscans` | |
+| 12 | Weeb Central | `src/en/weebcentral` | |
+| 13 | HDoujin | `src/all/hdoujin` | NSFW |
+| 14 | Lunar Manga | `src/all/lunaranime` | |
+| 15 | Manga18.me | `src/all/manga18me` | NSFW |
+| 16 | Manga18fx | `src/all/manga18fx` | NSFW |
+| 17 | MangaDNA | `src/all/mangadna` | |
+| 18 | Eris Scans | `src/en/erisscans` | |
+| 19 | Grim Scans | `src/en/grimscans` | |
+| 20 | Hiperdex | `src/en/hiperdex` | |
+| 21 | MadaraDex | `src/en/madaradex` | |
+| 22 | MangaDex | `src/all/mangadex` | |
+| 23 | MangaFire | `src/all/mangafire` | WebView + Cloudflare references |
+| 24 | MangaFreak | `src/en/mangafreak` | |
+| 25 | Manhuarm | `src/all/manhuarm` | |
+| 26 | Toonily | `src/en/toonily` | |
+| 27 | TopManhua | `src/en/topmanhuafan` or `src/en/topmanhuanet` | Two source dirs match. Confirm which one is installed. |
+
+- [ ] Confirm the three ambiguous rows (1, 4, 27) with the user before the spike.
+- [ ] Phase 0 spike: pick at least one from the set with no WebView (for example MangaKatana or Toonily) and one with WebView (MangaFire) to test the go / no-go criteria.
+- [ ] Phase 0b: run the smoke test over these 27 first. Their result is the day-1 claim. The rest of the ~1,434 are tested after.
+- [ ] Two in the set reference WebView and Cloudflare: allmanga and MangaFire. Expect them to need the Phase 4 capture flow.
+
+### Kuroibara providers outside the day-1 set
+
+Source: `kuroibara_providers.csv` (`/home/futs/Apps/kuroibara_providers.csv`). Rows already in the day-1 set are excluded. Integration status is Kuroibara's current status, not the status of a Keiyoushi extension. Most of these need a Keiyoushi extension to be checked for a match first. Nothing here is confirmed to exist in `extensions-source`.
+
+- [ ] Map each row to a Keiyoushi extension (or mark as no extension) before Phase 0b. Matching is by name only so far.
+- [ ] Drop `Example Provider`. It is a template row.
+- [ ] `HiperDex` is a Kuroibara provider class (`backend/app/core/providers/hiperdex.py`) with no CSV row. It is in the day-1 set as `Hiperdex`.
+
+| Provider | NSFW | Kuroibara status |
+| --- | --- | --- |
+| TAADD | yes | not integrated |
+| MangaHub | yes | not integrated |
+| MangaForest | yes | not integrated |
+| TrueManga | yes | not integrated |
+| MangaBuddy | no | Enhanced Integration (Disabled) |
+| MangaKakalotFun | yes | not integrated |
+| Tsumino | yes | Basic Integration |
+| MangaHere | yes | not integrated |
+| ReadComicsOnline.li (kisscomic) | yes | not integrated |
+| ReadAllComics | yes | Basic Integration |
+| MangaFoxFun | yes | not integrated |
+| MangaHereFun | no | not integrated |
+| HentaiNexus | yes | Basic Integration |
+| MangaReader.to | yes | not integrated |
+| AllPornComics | yes | not integrated |
+| Kissmanga | yes | not integrated |
+| MangaPlaza | yes | not integrated |
+| MangaTown | yes | Basic Integration |
+| NovelCool | no | not integrated |
+| MangaGG | yes | not integrated |
+| ReadComicsOnline.us | no | not integrated |
+| ZinManga | yes | not integrated |
+| WuxiaWorld | no | not integrated |
+| S2Manga | yes | not integrated |
+| MangaReaderSite | yes | not integrated |
+| MangaOnlineTeam | yes | not integrated |
+| WebComicsApp | yes | Enhanced Integration (Disabled) |
+| MangaRockTeam | yes | Basic Integration |
+| MangaPlanet | yes | not integrated |
+| MangaRead | yes | Basic Integration |
+| Manhuascan.us/Manga18.us | yes | not integrated |
+| MangaFoxFull | yes | not integrated |
+| MangaEffect | no | not integrated |
+| MangaOwl.io | yes | not integrated |
+| ComicK | yes | not integrated |
+| Manga18.club | yes | not integrated |
+| ManhwasMen | yes | not integrated |
+| ManhwaHub | yes | Basic Integration |
+| NitroManga | no | not integrated |
+| ManhuaFast | no | Basic Integration |
+| Tapas | no | not integrated |
+| MangaforFree | yes | not integrated |
+| MangaPill | yes | Basic Integration |
+| MangaSail | no | Basic Integration |
+| Toomics | yes | not integrated |
+| MangaRead.co | yes | not integrated |
+| Danke furs Lesen | yes | not integrated |
+| Comikey | no | not integrated |
+| ManhuaGold | no | not integrated |
+| ToonilyMe | yes | not integrated |
+| ResetsScans | no | not integrated |
+| OmegaScans | yes | Basic Integration |
+| Milftoon Comics | yes | not integrated |
+| MangaPlus | no | Fully Integrated |
+| AniGliScans | no | Basic Integration |
+| AnshScans | no | Basic Integration |
+| ArcaneScans | no | Basic Integration |
+| ColoredManga | no | Basic Integration |
+| CrazyScans | no | Basic Integration |
+| CulturedWorks | yes | Basic Integration |
+| DeathTollScans | no | Basic Integration |
+| DynastyScans | yes | Basic Integration |
+| EightMuses | yes | Basic Integration |
+| EightMusesXXX | yes | Basic Integration |
+| Example Provider | no | Enhanced Integration |
+| FirstKiss | no | Basic Integration |
+| FreeManga | no | Basic Integration |
+| HatigarmScans | no | Basic Integration |
+| HentaiRead | yes | Basic Integration |
+| HentaiWebtoon | yes | Basic Integration |
+| IMHentai | yes | Basic Integration |
+| KissComic | no | Basic Integration |
+| KissmangaIN | no | Basic Integration |
+| LewdManhwa | yes | Basic Integration |
+| Manga3S | no | Basic Integration |
+| MangaBat | no | Basic Integration |
+| MangaEighteenUS | yes | Basic Integration |
+| MangaFox | no | Basic Integration |
+| MangaHasu | no | Basic Integration |
+| MangaHentai | yes | Basic Integration |
+| MangaHereToday | no | Basic Integration |
+| MangaKisa | no | Basic Integration |
+| MangaLife | no | Basic Integration |
+| MangaNel | no | Basic Integration |
+| Manganelos | no | Basic Integration |
+| MangaNeloToday | no | Basic Integration |
+| MangaOwlio | no | Basic Integration |
+| MangaReaderTo | no | Enhanced Integration |
+| Manhuaga | no | Basic Integration |
+| ManhuaPlus | no | Basic Integration |
+| ManhuaUs | no | Basic Integration |
+| ManhuaZ | no | Basic Integration |
+| ManhwaHentaiMe | yes | Basic Integration |
+| ManyToonCOM | yes | Basic Integration |
+| MonochromeScans | no | Basic Integration |
+| MyAnimeListManga | no | Basic Integration |
+| NovelCoolEN | no | Basic Integration |
+| RadiantScans | no | Basic Integration |
+| ReadM | no | Basic Integration |
+| ReaperScans | no | Basic Integration |
+| SectScans | no | Basic Integration |
+| TapTrans | no | Basic Integration |
+| TCBScans | no | Basic Integration |
+| TenshiMoe | no | Basic Integration |
+| TheGuildScans | no | Basic Integration |
+| ViewComics | no | Basic Integration |
+| VizShonenJump | no | Basic Integration |
+| WebtoonTRCOM | no | Basic Integration |
+| WhimSubs | no | Basic Integration |
+| WoopRead | no | Basic Integration |
+| WordExcerpt | no | Basic Integration |
+| XlecX | yes | Basic Integration |
+| XunScans | no | Basic Integration |
+
+### Android shim inventory (from `extensions-source`)
+
+Counts are files in `src/` that import the class.
+
+| Area | Used by (files) | Shim effort |
+| --- | --- | --- |
+| `android.util.Log`, `android.util.Base64`, `android.os.Build`, `android.net.Uri`, `Color` | Base64 101, Log 10 | Trivial |
+| `SharedPreferences`, `Context`, `Application` (Injekt `applicationContext`) | 92, 9 | Small: map-backed store per source id |
+| `CookieManager` (in `core/Cookie.kt`) | 7 | Small: forward to the cookie jar |
+| `android.graphics` `Bitmap`, `BitmapFactory`, `Canvas`, `Rect` | 61, 55, 54, 42 | Moderate: tile un-scrambling needs real decode, draw and encode. Use Java2D or ImageIO, and check output quality per site. |
+| `android.webkit` `WebView`, `WebResourceResponse`, Chromium boundary classes | 18 | Heavy: this is a browser. Stub for Phase 0. Real support means headless Chromium over CDP. |
+| `androidx.preference.*`, `android.widget.*`, `android.view.*`, `android.text.*`, `Toast`, `Activity` | 229 (preference), 25, 3, 30 | Stub-only. Needed so classes load. Settings UI comes from our own UI, not these classes. |
+
+Cloudflare/JS-heavy sites are the costly part. Most extensions use only the trivial and small rows.
+
+**Prior art:** Suwayomi-Server runs Tachiyomi/Keiyoushi extensions on the JVM with an Android compatibility layer. Read its compat module before writing ours. (From memory, not verified in this repo.)
+
+## Phase 1: Extension host service
+
+Location: `extension-host/` (new, top-level).
+
+**Status (2026-10-17):** step 1 done. `extension-host/` is a Gradle project (runtime + Android shims + HostRegistry) that builds to `build/libs/extension-host.jar` with JDK 21. Copied from `phase0-spike/runtime`. Not committed. Debt: `build.gradle.kts` still points `compileOnly` at a Gradle cache path for the androidx.preference stubs. Replace with source stubs before merge.
+
+**Status, step 2 (2026-10-17): per-extension class loaders done.** `ExtensionClassLoader` (child-first for extension, theme and resources; host API classes always from the parent) and `ExtensionLoader` (instantiates `keiyoushi.source.Generated`, handles `createSources`). `HostRuntime.init()` registers Injekt singletons once per JVM. Verified: MangaKatana, Toonily (Madara theme) and MangaFire (multi-source) load and run search, details, chapters and pages in one JVM. Each extension has its own loader, so the shared `Generated` class name does not clash. Dev harness: `eu.kanade.tachiyomi.host.HostSmokeKt`.
+
+**Blocker found for step 2 (install path):** the publish script (`extensions-source/.github/scripts/publish-repo.py`) publishes APKs, not JARs. APKs contain DEX bytecode, which a JVM cannot load. Install needs one of: (a) DEX to JVM class conversion (dex2jar-style), with the usual fidelity risk; (b) build each extension from source to a JAR in our own CI, as the spike does. (b) is more reliable and matches the Phase 0 method. Decide before the catalog install step.
+
+**Decision: (b), build from source.** Done (2026-10-17): `extension-host/tools/build-jars.py`.
+
+- Compiles the module and its theme and lib deps with Gradle (JDK 21, Android SDK). Packs the classes into `<module>.jar`, leaving out host-provided packages (Mihon source API, network, core utils, androidx). Copies theme assets under `assets/`.
+- Reads name, lang, id and baseUrl from the KSP `Generated.kt` (two shapes handled; runtime-computed baseUrls recorded as `dynamic`).
+- Writes `data/jars/index.json`, pinned to the `extensions-source` commit it was built from.
+- Incremental: rebuilds a module only when its source tree hash changes (or with `--all`).
+- Result: 27 of 27 day-1 modules built, 138 sources in total. Three JARs (MangaKatana, Toonily, MangaFire) load and run search, details, chapters and pages in one JVM. AllManga fails on WebView, as before.
+
+**Version history (2026-10-17).** `index.json` keeps one `versions` list per module. Each record holds `version_code`, source hash, JAR name, sources, build time and the `extensions-source` commit. JARs are named `<module>@<version_code>-<hash8>.jar`, so older builds stay on disk for rollback. A new record is added only when the version_code or source hash changes. Verified: rebuilding unchanged source does not duplicate a record. Migrated the old flat index in place.
+
+**CI (decided, later).** Automation will run as a GitHub Action, after all of Phase 1 to 6 is built and tested. Trigger: upstream `extensions-source` changes. Steps: pull, run `build-jars.py`, publish `index.json` and the JARs.
+
+**Updates (not automatic yet).** Nothing pulls upstream or rebuilds on its own. Today the flow is manual: `git pull` in `extensions-source`, then `build-jars.py`. Only changed modules rebuild. To automate: a scheduled job (systemd timer or CI) that pulls, runs the build, and publishes the index. Its gaps: the build machine needs JDK 21 and the Android SDK, and the host needs to swap in a new JAR while keeping the old one as rollback. The index records each module's `version_code`, so the host can show "update available". Keep the old JAR until the new one passes a health check.
+
+- [ ] Gradle project, JVM. Loads the extension JARs against the shim module and the Keiyoushi lib.
+- [ ] Catalog: fetch `repo.json` and the index from the Keiyoushi repo. Verify the `signingKeyFingerprint` from `repo.json` before trusting an index. The index is produced by `.github/scripts/publish-repo.py` in `extensions-source` and published to the `repo` branch of `keiyoushi/extensions`. The local `/home/futs/Apps/extensions` clone only has a 2-entry shim index. The full index is `index.pb` on GitHub (about 1,400 packages).
+- [ ] Install, update and uninstall extensions. Store JARs under a data dir.
+- [ ] HTTP API (localhost only, internal auth token):
+  - `GET /extensions` (installed), `GET /catalog` (available)
+  - `POST /extensions/{pkg}/install`, `DELETE /extensions/{pkg}` (uninstall)
+  - `POST /extensions/{pkg}/enable`, `POST /extensions/{pkg}/disable` (keeps the install, skips it in search)
+  - `GET /extensions/{pkg}/health` (last check, error class, message). Written by search, details and pages calls, and by a manual "test" action.
+  - `POST /search` with `{query, sources[]}`
+  - `GET /series/{source}/{id}`, `GET /series/{source}/{id}/chapters`, `GET /chapters/{source}/{id}/pages`
+- [ ] Per-extension timeout and error isolation. A crashing extension must not take down the host.
+- [ ] Own container in the stack: a new service in `docker-compose.yml` and `docker-compose.dev.yml`, alongside the backend, frontend, PostgreSQL and Valkey. Reachable only on the internal Docker network. Extension JARs live in a named volume.
+
+## Phase 2: Kuroibara backend integration
+
+- [ ] Client module `backend/app/sources/` that talks to the host.
+- [ ] Alembic migration (additive only): `installed_extensions`, `series`, `series_source_links`. Keep existing tables untouched.
+- [ ] Adding a title from an extension result writes `series_metadata_base` and `series_metadata_current` (both provider values). See Phase 2b.
+- [ ] Job-system integration for downloads, reusing the existing job runner. Do not create a second queue.
+- [ ] Tests: client against a fake host; migration up and down on a copy of the dev DB.
+
+## Phase 2b: Metadata from the provider, optional MangaUpdates overwrite
+
+Model: AudioSilo's admin console, which shows where each value came from and lets you pick and revert.
+
+Flow:
+
+1. User selects a title from a provider. The series is added to the library with the provider's metadata, so it loads straight away.
+2. If the name is wrong or authors are missing, the user clicks **Update Metadata from MangaUpdates** on the series page.
+3. A comparison view opens: provider value and MangaUpdates value side by side, with a choice per field. The user picks which to keep and applies.
+4. **Revert to provider** restores the base record from step 1.
+
+Data model:
+
+- [ ] `series_metadata_base`: the provider snapshot taken when the title is added. Never edited.
+- [ ] `series_metadata_current`: the values shown in the library, each tagged `provider`, `mangaupdates` or `edited`.
+- [ ] `mangaupdates_snapshot`: cached MangaUpdates response for the matched entry. Stored so the comparison works offline after the first fetch.
+- [ ] Fields: title, alternative titles, description, cover, authors, genres, status, type, year, NSFW.
+
+Behaviour:
+
+- [ ] **Update Metadata from MangaUpdates:** matches the series to a MangaUpdates entry (title and year), shows candidates, requires the user to confirm the match. Never auto-applies.
+- [ ] **Compare view:** per-field choice, provider as default. Apply writes `series_metadata_current`.
+- [ ] **Revert to provider:** resets `series_metadata_current` to `series_metadata_base`.
+- [ ] A provider refresh updates `series_metadata_base` only. It does not overwrite fields tagged `mangaupdates` or `edited`.
+- [ ] Tests: base snapshot is immutable, revert restores exactly the base, a field chosen from MangaUpdates survives a provider refresh.
+
+## Phase 2c: Extension import (D5)
+
+- [ ] Settings page: add a catalog URL (Keiyoushi by default, left as the user's choice) or upload local JAR files.
+- [ ] Validate each JAR before install: manifest, source list, and signature where the catalog provides one.
+- [ ] Installed extensions show version, languages and NSFW flag. Remove and update actions.
+- [ ] Fresh install starts with zero extensions. Global search says so and links to the catalog.
+
+## Phase 2d: Migrate a series to another source (Mihon behaviour)
+
+When a source stops responding or its extension needs an update, the user can move a series to another source. Reading progress and metadata are kept. Only the place it is read or downloaded from changes.
+
+- [ ] Action on the series page: **Migrate**. Pick a target source (installed extensions only), then search it using the current title.
+- [ ] Show candidates from the target source. The user confirms the match. Never auto-matches.
+- [ ] Carry over: read state per chapter, mapped by chapter number (with a fallback to the closest number and a list of unmapped chapters), reading position, and categories or library membership.
+- [ ] Metadata: the user chooses whether to keep the current metadata or take the target source's. Default is keep.
+- [ ] Downloads: already-downloaded chapters stay on disk. Option to re-download from the new source.
+- [ ] Keep the old source link in `series_source_links` as a disabled entry, so the user can switch back.
+- [ ] Existing fields to build on: `manga.provider` / `manga.external_id` (single source only, replaced by `series_source_links`) and `chapter.provider_external_ids` / `chapter.fallback_providers` (already present, currently unused by a UI path).
+- [ ] Health indicator: a series whose source is failing or needs an update shows a warning and a Migrate button. Source health is recorded per extension by the host (last success, last error).
+- [ ] Tests: chapter mapping (exact, renumbered, missing), progress preserved after migrate, metadata choice respected, switch back restores the old link.
+
+## Phase 3: Global search (Mihon behaviour)
+
+- [ ] `GET /api/v2/search?q=` fans out to all installed extensions in parallel with per-source timeouts.
+- [ ] Results are grouped by normalised title. Each group lists the sources that have it, for example `Found in: MangaDex, ComicK`.
+- [ ] Partial results stream to the UI (existing WebSocket is fine).
+- [ ] Tests: grouping, timeout behaviour, one failing source does not fail the request.
+
+## Phase 4: Cloudflare capture
+
+- [ ] Endpoint to start a capture for an extension's base URL. The UI opens the site in a new tab. The user solves the challenge.
+- [ ] Capture cookies and user agent. Store them in the host cookie jar for that extension only.
+- [ ] Keep FlareSolverr as the first attempt. Show the manual capture option when it fails.
+
+### Phase 4a: FlareSolverr-first (decided)
+
+**Status (2026-10-17):**
+
+- [x] Solver endpoint at `http://172.16.40.12:8191` reachable. Responses have the fields the interceptor reads (`status`, `solution.userAgent`, `solution.cookies[name,value]`).
+- [x] Interceptor implemented in the spike runtime (`phase0-spike/runtime/.../CloudflareInterceptor.kt`). Detects `cf-mitigated: challenge` or 403/503 from Cloudflare, solves, caches per host, retries with cookies and UA. Off when `FLARESOLVERR_URL` is unset.
+- [x] Mock test: challenge, solve, retry (200), then cache hit (200). With no solver, the 403 surfaces. Run in `phase0-spike/cf-test/`.
+- [ ] Live test not done: allmanga and MangaFire serve no challenge from this network right now, so the solve path never fires there. Need a challenged site to test live.
+- [x] Compose: `flaresolverr` service added to `docker-compose.yml` and `docker-compose.dev.yml` under profile `flaresolverr`. Not started by default. Enable with `--profile flaresolverr`, or set `FLARESOLVERR_URL` to an existing instance.
+- [ ] GET only. POST challenges are not solved yet.
+
+Kuroibara already talks to FlareSolverr (`backend/flaresolverr_integration.py`: sessions, `request.get`). Reuse that approach in the extension host.
+
+- [ ] Replace the Phase 0 pass-through `CloudflareInterceptor` with a real one. Detect `cf-mitigated: challenge` (and 403/503 from a Cloudflare server) on the response.
+- [ ] On detection, call FlareSolverr `POST /v1` with `cmd: request.get` (or `request.post` for POST requests), the same URL, and a session per host.
+- [ ] From the solution, take the cookies and the `userAgent`. Store the cookies in the host cookie jar for that host. Use that UA for later requests to the host. `cf_clearance` is bound to UA and IP.
+- [ ] Retry the original request with the new cookies and UA. Do not return FlareSolverr's body as the response. This keeps headers and method intact.
+- [ ] Cache clearance per host until it expires, so each request does not trigger a solve.
+- [ ] Implement a real `CookieManager` shim (Phase 0 is a stub) so extensions read and write cookies through the same jar.
+- [ ] Add a `flaresolverr` service to `docker-compose.yml` and `docker-compose.dev.yml`. Host config: `FLARESOLVERR_URL`. Build locally per the dev.sh note.
+- [ ] Fallback: if FlareSolverr fails or the challenge is unsolved (Turnstile, for example), show the Phase 4 manual capture.
+- [ ] Known limit: extensions that run JS in an Android WebView (MangaFire references WebView 24 times) need more than cookies. FlareSolverr does not cover that. Track those per extension in Phase 0b.
+- [ ] Test on the day-1 Cloudflare-flagged extensions (allmanga, MangaFire) against a local FlareSolverr container.
+
+## Phase 5: Backend API for the UI
+
+Built on this branch so the UI branch has a stable contract.
+
+- [ ] Document `/api/v2` endpoints in `docs/API_V2.md`.
+- [ ] Generate or hand-write TypeScript types for the React app.
+
+## UI work (branch `feat/ui-react-shadcn`)
+
+Separate branch, based on `dev`. Built against the `/api/v2` contract.
+
+- [ ] Port Kuroibara's Vue frontend to React + shadcn/ui + Tailwind v4, page by page. Decide per page whether to rewrite or keep until cutover.
+- [ ] Take AudioSilo's tokens from `audiosilo-server/admin-ui/src/styles/` and `STYLEGUIDE.md` (type scale, spacing, radius, hairline borders, shadows only on floating layers). Map them to Kuroibara's current palette, keeping Kuroibara's colours.
+- [ ] Layout: top bar, sub bar with segmented sections, covers-first grids.
+- [ ] Extensions page: catalog, language and NSFW filters, install and uninstall, version and status.
+- [ ] Global search page: result cards with source badges.
+- [ ] Series page: metadata with a source label on each field, the MangaUpdates compare view, chapter list, download button.
+- [ ] Mobile layout under 720px.
+
+## Phase 6: Cutover
+
+- [ ] Parity checklist: each feature used in `dev` works on the new path. Record gaps.
+- [ ] Switch default search and add flow to the new path behind a setting.
+- [ ] Mark old providers deprecated in `PROVIDER_STATUS.md`. Remove them in a separate PR after one release.
+
+## Phase 6b: Move native providers onto Keiyoushi extensions
+
+Goal: where a native Kuroibara provider has a Keiyoushi extension for the same site, use the extension. Speed is a hypothesis, not a result. Measure it before claiming it.
+
+- [ ] Map each native provider (`backend/app/core/providers/*.py` and the CSV rows) to a Keiyoushi extension package, or record "no extension". Start with the day-1 set and the rows marked `Basic Integration` or `Fully Integrated`.
+- [ ] Benchmark per site, native vs extension: search latency, chapter-list latency, page-fetch latency, and error rate over the same test title. Record the results in the TODO.
+- [ ] Switch a site to its extension only when it matches or beats the native provider on the benchmark and passes the Phase 0b checks for that site.
+- [ ] Keep the native provider installed as a fallback until the extension has been stable for one release. Use the fallback mechanism in Phase 2d.
+- [ ] Native providers with no extension stay on the native path. Decide per provider whether to keep it, or to write a Keiyoushi extension for it. Writing one means working in `extensions-source` under its `CONTRIBUTING.md` rules, so do it as a separate upstream contribution.
+- [ ] Record the mapping table (native provider, extension package, benchmark result, decision) in `PROVIDER_STATUS.md`.
+
+## Risks
+
+- Android shim fidelity: extensions may call APIs we stub wrongly, and failures are silent (wrong return values). Mitigation: Phase 0 spike and per-extension tests.
+- Bitmap and WebView shims: image descrambling and Cloudflare are the costly parts. Mitigation: treat them as their own work items.
+- Extension churn: Keiyoushi updates often. Mitigation: pin versions per install, update on demand.
+- Scope: several weeks of work. Each phase is shippable on its own behind the flag.
+
+## Open questions for the user
+
+- Which extensions must work on day one? (Your current providers, or a fixed list.)
+- Keep the dependency bump commit (`0796388`) on this branch, or drop it?
+- Should the extension catalog come from the Keiyoushi URL by default, with local JAR import as an option?

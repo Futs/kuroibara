@@ -145,5 +145,30 @@ class ExtensionHostClient:
         upstream = int(resp.headers.get("X-Upstream-Status", resp.status_code))
         return ImageFetch(status=upstream, content_type=resp.headers.get("Content-Type"), body=resp.content)
 
+    async def catalog_settings(self) -> dict[str, Any]:
+        return await self._request("GET", "/catalog/settings")
+
+    async def set_catalog_settings(self, url: Optional[str]) -> dict[str, Any]:
+        """url None restores the built-in catalog."""
+        return await self._request("PUT", "/catalog/settings", json={"url": url})
+
+    async def refresh_catalog(self) -> dict[str, Any]:
+        return await self._request("POST", "/catalog/refresh")
+
+    async def import_jar(self, module: str, data: bytes) -> dict[str, Any]:
+        """Uploads a Keiyoushi-compatible JAR for a module. The host checks it before keeping it."""
+        try:
+            resp = await self._client.post(f"/extensions/{self._module_path(module)}/import", content=data,
+                                           headers={"Content-Type": "application/octet-stream"})
+        except httpx.HTTPError as e:
+            raise ExtensionHostError(None, str(e)) from e
+        if resp.status_code >= 400:
+            try:
+                message = resp.json().get("error", resp.text)
+            except ValueError:
+                message = resp.text
+            raise ExtensionHostError(resp.status_code, message)
+        return resp.json()
+
     async def health_of(self, module: str) -> dict[str, Any]:
         return await self._request("GET", f"/extensions/{self._module_path(module)}/health")

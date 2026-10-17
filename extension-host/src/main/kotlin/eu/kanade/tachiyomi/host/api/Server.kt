@@ -4,8 +4,10 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import eu.kanade.tachiyomi.host.Config
 import eu.kanade.tachiyomi.host.Browse
+import eu.kanade.tachiyomi.host.ImportInstaller
 import eu.kanade.tachiyomi.host.Probe
 import eu.kanade.tachiyomi.host.catalog.Catalog
+import eu.kanade.tachiyomi.host.catalog.CatalogSource
 import eu.kanade.tachiyomi.host.catalog.ModuleEntry
 import eu.kanade.tachiyomi.host.catalog.Upstream
 import eu.kanade.tachiyomi.host.state.Health
@@ -37,6 +39,8 @@ class Server(private val config: Config) {
     private val catalog = Catalog(config.indexFile, config.jarsDir)
     private val upstream = Upstream(File(config.dataDir, "upstream/index.json"))
     private val installer = UpstreamInstaller(config.githubApi, config.jarsDir)
+    private val catalogSource = CatalogSource(config)
+    private val importer = ImportInstaller(config)
     private val store = InstallStore(config.stateFile)
     private val probe = Probe(config.jarsDir, store)
     private val browse = Browse(probe)
@@ -65,6 +69,9 @@ class Server(private val config: Config) {
             val parts = path.split('/').filter { it.isNotEmpty() }
             val query = parseQuery(ex.requestURI.rawQuery)
             when {
+                parts == listOf("catalog", "settings") && method == "GET" -> catalogSettings(ex)
+                parts == listOf("catalog", "settings") && method == "PUT" -> catalogSettingsPut(ex)
+                parts == listOf("catalog", "refresh") && method == "POST" -> catalogRefresh(ex)
                 parts == listOf("catalog") && method == "GET" -> send(ex, 200, catalogJson())
                 parts == listOf("extensions") && method == "GET" -> send(ex, 200, installedJson())
                 parts == listOf("upstream") && method == "GET" -> upstreamJson()?.let { send(ex, 200, it) }
@@ -102,6 +109,7 @@ class Server(private val config: Config) {
                 browseCall(ex, module) { browse.details(module, url) }
             }
             action == "image" && method == "POST" -> imageCall(ex, module)
+            action == "import" && method == "POST" -> importCall(ex, module)
             action == "pages" && method == "POST" -> {
                 val url = urlFrom(ex) ?: return send(ex, 400, err("body needs {\"url\": ...}"))
                 browseCall(ex, module) { buildJsonObject { put("pages", browse.pages(module, url)) } }
@@ -203,6 +211,63 @@ class Server(private val config: Config) {
                 put("error", "${root.javaClass.name}: ${root.message}".take(300))
                 put("error_class", Probe.classify(root))
             })
+        }
+    }
+
+    private fun catalogSettings(ex: HttpExchange) {
+        val s = catalogSource.settings()
+        send(ex, 200, buildJsonObject { put("catalog_url", s.url); put("is_default", s.isDefault) })
+    }
+
+    private fun catalogSettingsPut(ex: HttpExchange) {
+        val body = runCatching { Json.parseToJsonElement(ex.requestBody.readBytes().toString(StandardCharsets.UTF_8)).jsonObject }
+            .getOrNull() ?: return send(ex, 400, err("body must be JSON"))
+        // JSON null means "use the default"; a missing or blank string is treated the same way.
+        val url = body["url"]?.takeUnless { it is kotlinx.serialization.json.JsonNull }?.jsonPrimitive?.content?.takeIf { it.isNotBlank() }
+        try {
+            url?.let { catalogSource.validate(it) }
+            val s = catalogSource.setUrl(url)
+            send(ex, 200, buildJsonObject { put("catalog_url", s.url); put("is_default", s.isDefault) })
+        } catch (e: CatalogSource.CatalogError) {
+            send(ex, 422, err(e.message ?: "invalid catalog URL"))
+        }
+    }
+
+    private fun catalogRefresh(ex: HttpExchange) {
+        try {
+            val n = catalogSource.refresh()
+            send(ex, 200, buildJsonObject { put("extensions", n); put("source", catalogSource.settings().url) })
+        } catch (e: CatalogSource.CatalogError) {
+            send(ex, 502, err(e.message ?: "catalog refresh failed"))
+        }
+    }
+
+    // Body: the JAR bytes (application/octet-stream). The module is in the path: /extensions/{lang}/{name}/import.
+    private fun importCall(ex: HttpExchange, module: String) {
+        val bytes = ex.requestBody.readBytes()
+        try {
+            val imported = importer.import(module, bytes)
+            val prev = store.get(module)
+            store.put(Installed(
+                module = module,
+                versionCode = 0,
+                hash = imported.sha256,
+                jar = imported.relativePath,
+                enabled = prev?.enabled ?: true,
+                installedAt = InstallStore.now(),
+                health = null,
+                source = "import",
+                packageName = imported.packageName,
+            ))
+            prev?.jar?.takeIf { it != imported.relativePath }?.let { probe.forget(it) }
+            send(ex, 200, buildJsonObject {
+                put("module", module)
+                put("source", "import")
+                put("package", imported.packageName)
+                put("sources", buildJsonArray { imported.sourceNames.forEach { add(JsonPrimitive(it)) } })
+            })
+        } catch (e: ImportInstaller.ImportError) {
+            send(ex, 422, err(e.message ?: "import failed"))
         }
     }
 
@@ -359,6 +424,6 @@ class Server(private val config: Config) {
     }
 
     companion object {
-        private val ACTIONS = setOf("install", "enable", "disable", "test", "health", "search", "details", "pages", "image")
+        private val ACTIONS = setOf("install", "enable", "disable", "test", "health", "search", "details", "pages", "image", "import")
     }
 }

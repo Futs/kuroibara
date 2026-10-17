@@ -152,3 +152,15 @@ async def migrate_to_source(
         old.in_library = False
     await session.flush()
     return new, created
+
+
+async def apply_values(session: AsyncSession, series: Series, updates: dict[str, tuple[Any, str]]) -> SeriesMetadata:
+    """Sets the shown value and origin for each field, then updates the listing copy. Nothing else changes."""
+    record = series.metadata_record
+    current = dict(record.current or {})
+    for name, (value, origin) in updates.items():
+        current[name] = {"value": value, "origin": origin}
+    record.current = current
+    sync_listing(series, record)
+    await session.flush()
+    return record

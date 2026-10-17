@@ -5,8 +5,8 @@ Module names contain a slash (en/mangakatana), so the module is a path parameter
 """
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from pydantic import BaseModel, Field
 
 from app.core.deps import get_current_user
 from app.models.user import User
@@ -18,6 +18,14 @@ router = APIRouter()
 
 class UrlBody(BaseModel):
     url: str
+
+
+class CatalogSettingsBody(BaseModel):
+    # https://... The host refuses anything else. null restores the built-in catalog.
+    url: Optional[str] = Field(None, max_length=2000)
+
+
+MAX_IMPORT_BYTES = 30_000_000
 
 
 async def _call(coro):
@@ -34,6 +42,48 @@ async def catalog(
 ) -> Any:
     """Upstream catalog with local and installed flags. 404 until the upstream index has been fetched."""
     return await _call(host.upstream())
+
+
+@router.get("/catalog/settings")
+async def catalog_settings(
+    host: ExtensionHostClient = Depends(get_host_client),
+    _user: User = Depends(get_current_user),
+) -> Any:
+    return await _call(host.catalog_settings())
+
+
+@router.put("/catalog/settings")
+async def set_catalog_settings(
+    body: CatalogSettingsBody,
+    host: ExtensionHostClient = Depends(get_host_client),
+    _user: User = Depends(get_current_user),
+) -> Any:
+    if body.url is not None and not body.url.lower().startswith("https://"):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="catalog URL must be https://")
+    return await _call(host.set_catalog_settings(body.url))
+
+
+@router.post("/catalog/refresh")
+async def refresh_catalog(
+    host: ExtensionHostClient = Depends(get_host_client),
+    _user: User = Depends(get_current_user),
+) -> Any:
+    """Fetches the chosen catalog and updates the list. Installs nothing."""
+    return await _call(host.refresh_catalog())
+
+
+@router.post("/{module:path}/import")
+async def import_jar(
+    module: str,
+    file: UploadFile = File(...),
+    host: ExtensionHostClient = Depends(get_host_client),
+    _user: User = Depends(get_current_user),
+) -> Any:
+    """Installs a JAR the user provides for this module. The host checks that it is an extension and that it loads."""
+    data = await file.read(MAX_IMPORT_BYTES + 1)
+    if len(data) > MAX_IMPORT_BYTES:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="JAR is larger than 30 MB")
+    return await _call(host.import_jar(module, data))
 
 
 @router.get("/installed")

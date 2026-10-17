@@ -34,5 +34,5 @@ def host_error(e: ExtensionHostError) -> HTTPException:
     """Maps a host failure to an HTTP status. Unreachable host is 503; host statuses pass through."""
     if e.status is None:
         return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=e.message)
-    mapped = e.status if e.status in (400, 401, 404, 405, 502) else 502
+    mapped = e.status if e.status in (400, 401, 404, 405, 409, 413, 422, 502) else 502
     return HTTPException(status_code=mapped, detail=e.message)

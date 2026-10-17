@@ -108,6 +108,21 @@ class IntegrationTest {
     }
 
     @Test
+    fun importedJarLoadsAndRunsLikeAnInstall() {
+        val jar = File(work, "jars").listFiles()!!.filter { it.name.startsWith("en_mangakatana@") && it.name.endsWith(".jar") }
+            .firstOrNull() ?: return  // no built JAR to import from this checkout
+        val req = HttpRequest.newBuilder(URI.create(base + "/extensions/en/mangakatana_import/import"))
+            .header("Authorization", "Bearer $token")
+            .header("Content-Type", "application/octet-stream")
+            .POST(HttpRequest.BodyPublishers.ofByteArray(jar.readBytes())).build()
+        val r = client.send(req, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, r.statusCode(), r.body())
+        assertTrue(r.body().contains("\"source\":\"import\""), r.body())
+        val body = post("/extensions/en/mangakatana_import/test?q=one")
+        assertTrue(body.contains("\"ok\":true"), body)
+    }
+
+    @Test
     fun blockedOrUnreachableSource_isRecordedNotHidden() {
         // Whatever this network does to a source, the install stays and the health is recorded.
         post("/extensions/en/mangakakalot/install")

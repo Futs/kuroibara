@@ -144,6 +144,7 @@ async def revert(
 class MigrateBody(AddSeriesBody):
     replace: bool = True  # False keeps the old entry in the library too (Mihon's "copy")
     carry_metadata: bool = False  # copy the values chosen from MangaUpdates or edited, keeping their origin
+    carry_read_state: bool = True  # Mihon's CHAPTER flag: read and bookmark by chapter number
 
 
 @router.post("/{series_id}/migrate", status_code=status.HTTP_201_CREATED)
@@ -170,11 +171,21 @@ async def migrate(
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    reading = None
+    if body.carry_read_state:
+        from app.api.api_v2.endpoints.reading import refresh_chapters
+        from app.sources.reading_service import carry_reading_state
+
+        await refresh_chapters(db, host, old)
+        await refresh_chapters(db, host, new)
+        result = await carry_reading_state(db, _user.id, old.id, new.id)
+        reading = {"carried_read": result.carried_read, "carried_bookmarks": result.carried_bookmarks,
+                   "unmatched_old_chapters": result.unmatched_old}
     await db.commit()
     if not created:
         response.status_code = status.HTTP_200_OK
     new = await _load(db, new.id)
-    return {"from": _series_json(old), "to": _series_json(new, full=True)}
+    return {"from": _series_json(old), "to": _series_json(new, full=True), "reading": reading}
 
 
 class DownloadChapter(BaseModel):

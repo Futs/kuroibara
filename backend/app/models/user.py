@@ -15,6 +15,7 @@ class User(BaseModel):
     full_name = Column(String(100), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
+    timezone = Column(String(64), nullable=True)  # IANA name, e.g. Europe/Amsterdam. Null = the server's zone
 
     # 2FA
     two_fa_secret = Column(String(32), nullable=True)

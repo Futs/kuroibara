@@ -370,12 +370,38 @@ Implemented: `backend/app/sources/download_writer.py` (ChapterWriter, with_retri
 
 **Identity (answer to "where does the entry id come from", 2026-10-17).** `series.id` is a Kuroibara UUID (`uuid4` in `BaseModel`), not a provider id. The provider's identity is `(module, series_url)`, unique in the table. Each source's own IDs (like the Keiyoushi `source_id`) are stored for reference only. So two providers can use the same title id without clashing. Known risk: if a site changes its URL for a title, the same title can get a second entry. Mitigation later: a "re-link" action on the entry, or matching on the source id where the extension gives one.
 
+**Status, pre-commit fixes (2026-10-17). Built, not committed.**
+- FlareSolverr wiring: `extension-host` gets `FLARESOLVERR_URL` from `.env` in both compose files (`${FLARESOLVERR_URL:-}`). Your `.env` already sets it. Validated with `docker compose config`.
+- CookieManager: the host's shim is a real per-host store now. Extensions read and write it. The interceptor stores the solver's cookies there and sends stored cookies on later requests. Offline tests: 4 pass (challenge solved and retried, stored clearance reused, no solver gives 403, domain matching).
+- Live FlareSolverr: the solver at `172.16.40.12:8191` answers, and its response has the fields the interceptor reads. A full live challenge run was NOT possible. This network serves no challenge from the public test sites (nowsecure.nl returns 200), and FlareSolverr cannot reach this machine (172.16.10.10:8766) to solve a simulated challenge, which timed out after 60 s. Next: test on a challenged site, or a target the solver can reach.
+- Solver check on https://www.petsathome.com/ (request.get, maxTimeout 60000): FlareSolverr returned 200 in 8 s, "Pets at Home" page, cookies including cf_clearance and __cf_bm. A plain request also gets 200 with no cf-mitigated header, so no challenge was served. The page contains a benign challenge-platform script, not an interstitial. The solver path was therefore not exercised. Result: the solver works on this site, and this site does not currently challenge this network.
+- Full backend suite (all 295 tests, including the legacy ones): 289 passed, 6 skipped, 0 failed (90 s).
+
+**Status, time zones (2026-10-17). Built, not committed.**
+- Resolution: the user's zone (`users.timezone`, IANA name), then the server's `TZ` (set per service in compose, default UTC), then UTC. Code: `app/core/timezones.py`.
+- Events keep UTC time and store `local_day`, computed with the zone in force when written. `user_day_activity` is keyed by that local day, so past totals don't move when a zone changes. Stats ("today", week, month, year) use the user's local date.
+- Migration `021_add_user_timezone.py`: `users.timezone`, `reading_events.local_day` (backfilled from UTC). Upgrade, downgrade and upgrade checked.
+- Settings: `GET /api/v2/me/settings` (zone, source), `PUT /api/v2/me/settings/timezone` (IANA name, or null to clear; invalid names are 422).
+- Docker: `tzdata` installed in the backend image. `TZ` passed to backend and source-worker in both compose files.
+- Still to do: the web UI pre-fills the zone from the browser on first login and asks the user to confirm.
+- Release schedule (future): release dates must be shown in each user's zone. Store the release instant in UTC and convert with the user's zone, as with reading days.
+
+**Status, reading state and stats (2026-10-17). Built, not committed.**
+- Migration `020_add_reading_state.py`: `series_chapters` (cached per series, shared), `reading_state` (per user per chapter: read, bookmark, last page), `reading_events` (append-only read/unread log), `user_day_activity` (net chapters read per user per UTC day). Upgrade, downgrade and upgrade again checked on a scratch database.
+- Library stays global (`series.in_library`). No `user_library` table, as you decided.
+- Service `app/sources/reading_service.py`: chapter sync (upsert, never deletes history); read/unread writes one event and adjusts the day only on a real change; bookmark and progress are not activity; migration carry (by chapter number, Mihon's max-read rule, no events); stats (today, week from Monday, month, year, latest read, 365-day heatmap).
+- API: `GET /api/v2/series/{id}/chapters[?refresh=true]`, `PUT .../chapters/{cid}/read|bookmark|progress`, `GET /api/v2/reading/stats`. `POST /api/v2/series/{id}/migrate` now carries read state by default (`carry_read_state`, default true).
+- Notes: stats use UTC days. Per-user timezone is not stored yet. A chapter the source drops stays in the cache. Test users must exist in the database, because the foreign keys require it.
+- Verified: 78 backend tests across the new files pass.
+
 **Deferred: reading state, activity and stats (decided 2026-10-17, to build after the download work).**
 - Design basis: Mihon's per-chapter read state (read, bookmark, last read page) plus AudioSilo's per-user pages (progress per series per user).
 - Reading state is per user per chapter: `reading_state(user_id, series_id, chapter_key, read, bookmark, page, updated_at)`. Chapters come from the source; the table stores only what the user did.
 - Library membership must become per user too. `series.in_library` is global today, which is wrong once there is more than one user. Move it to `user_library(user_id, series_id, in_library, added_at)`.
 - Activity: append-only `reading_events(user_id, series_id, chapter_key, kind, at)` for "read", "started", "finished". Daily totals are derived from it. A daily aggregate table can be added if queries get slow.
 - Stats to show: latest read, chapters read today, this week, this month, this year. Heatmap of days with activity (git-style), plus totals per series.
+- Storage decision (advice, 2026-10-17): one shared PostgreSQL database with `user_id` on the per-user tables. Not a database or schema per user. Shared data (series, metadata, chapters, downloads) stays global. Per-user tables are `user_library`, `reading_state` (unique on user, series, chapter) and `reading_events` (append-only, indexed on user and time). Add a `series_chapters` cache, so reading state points at a stable chapter row. Daily totals per user go in a rollup table, `user_day_activity(user_id, day, chapters_read)`, updated as events arrive. Store times in UTC and bucket "today" by the user's timezone. Do not reuse the legacy `reading_progress` table, which points at the old manga tables.
+- Why not a database per user: N migrations, N connection pools, no cross-user queries (admin views, shared metadata), harder backups. The volume is small: about 730k event rows a year for 100 users reading 20 chapters a day, which Postgres handles easily.
 - Migration (Mihon's) uses reading_state: copy read and bookmark by chapter number from the old entry to the new one, then mark the old entry as migrated. This is the step the migrate endpoint is waiting on.
 
 **Status, Mihon model for library entries (2026-10-17). Replaces the one-series-many-sources design (D-series).**

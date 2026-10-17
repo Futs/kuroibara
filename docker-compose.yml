@@ -14,6 +14,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      - TZ=${TZ:-UTC}
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/docs"]
@@ -38,6 +40,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      - TZ=${TZ:-UTC}
     command: python -m app.sources.worker_main
     networks:
       - kuroibara-network
@@ -117,6 +121,7 @@ services:
       - HOST_TOKEN=${EXTENSION_HOST_TOKEN:-}
       - HOST_DATA_DIR=/data
       - HOST_PORT=8800
+      - FLARESOLVERR_URL=${FLARESOLVERR_URL:-}
     volumes:
       - extension_host_data:/data
     networks:

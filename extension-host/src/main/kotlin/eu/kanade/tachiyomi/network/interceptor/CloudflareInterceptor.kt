@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.network.interceptor
 
+import android.webkit.CookieManager
 import eu.kanade.tachiyomi.host.HostRegistry
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -23,9 +24,8 @@ class CloudflareInterceptor(
     private val solverUrl: String? = System.getenv("FLARESOLVERR_URL")?.takeIf { it.isNotBlank() },
 ) : Interceptor {
 
-    private data class Clearance(val cookieHeader: String, val userAgent: String)
-
-    private val clearance = ConcurrentHashMap<String, Clearance>()
+    // The solver's user agent per host. Cookies live in the shared CookieManager, so extensions can read them too.
+    private val userAgents = ConcurrentHashMap<String, String>()
 
     // No interceptors here: the solver call must not recurse into this interceptor.
     private val solverClient = OkHttpClient.Builder()
@@ -33,24 +33,17 @@ class CloudflareInterceptor(
         .build()
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
+        val request = withStoredClearance(chain.request())
         val host = request.url.host
-
-        clearance[host]?.let { cached ->
-            val response = chain.proceed(withClearance(request, cached))
-            if (!isChallenge(response)) return response
-            response.close()
-            clearance.remove(host)
-        }
 
         val response = chain.proceed(request)
         if (solverUrl == null || !isChallenge(response)) return response
         response.close()
 
-        val solved = solve(solverUrl, request.url.toString())
+        val userAgent = solve(solverUrl, request.url.toString())
             ?: throw IOException("Cloudflare challenge not solved for $host")
-        clearance[host] = solved
-        return chain.proceed(withClearance(request, solved))
+        userAgents[host] = userAgent
+        return chain.proceed(withStoredClearance(request))
     }
 
     private fun isChallenge(response: Response): Boolean {
@@ -58,13 +51,18 @@ class CloudflareInterceptor(
         return response.code in setOf(403, 503) && response.header("server")?.startsWith("cloudflare") == true
     }
 
-    private fun withClearance(request: Request, c: Clearance): Request =
-        request.newBuilder()
-            .apply { if (c.cookieHeader.isNotEmpty()) header("Cookie", c.cookieHeader) }
-            .header("User-Agent", c.userAgent)
-            .build()
+    // Adds the stored cookies for this URL (if the request has none) and the solver's user agent for this host.
+    private fun withStoredClearance(request: Request): Request {
+        val builder = request.newBuilder()
+        if (request.header("Cookie") == null) {
+            CookieManager.getInstance().getCookie(request.url.toString())?.let { builder.header("Cookie", it) }
+        }
+        userAgents[request.url.host]?.let { builder.header("User-Agent", it) }
+        return builder.build()
+    }
 
-    private fun solve(solverUrl: String, url: String): Clearance? {
+    // Stores the solver's cookies in CookieManager for the page's URL. Returns the user agent, or null if unsolved.
+    private fun solve(solverUrl: String, url: String): String? {
         val payload = """{"cmd":"request.get","url":${jsonString(url)},"maxTimeout":60000}"""
         val body = payload.toRequestBody("application/json".toMediaType())
         val req = Request.Builder().url("${solverUrl.trimEnd('/')}/v1").post(body).build()
@@ -75,12 +73,14 @@ class CloudflareInterceptor(
             val solution = root["solution"]?.jsonObject ?: return null
             val userAgent = solution["userAgent"]?.jsonPrimitive?.content ?: return null
             // Solver may report "Challenge not detected" with no cookies. Keep its user agent anyway.
-            val cookies = solution["cookies"]?.jsonArray.orEmpty()
-            val header = cookies.joinToString("; ") { c ->
+            solution["cookies"]?.jsonArray.orEmpty().forEach { c ->
                 val o = c.jsonObject
-                "${o["name"]!!.jsonPrimitive.content}=${o["value"]!!.jsonPrimitive.content}"
+                CookieManager.getInstance().setCookie(
+                    url,
+                    "${o["name"]!!.jsonPrimitive.content}=${o["value"]!!.jsonPrimitive.content}",
+                )
             }
-            return Clearance(header, userAgent)
+            return userAgent
         }
     }
 

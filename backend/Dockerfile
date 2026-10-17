@@ -11,6 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install system dependencies and security updates
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     build-essential \
+    tzdata \
     libpq-dev \
     libmagic1 \
     unar \

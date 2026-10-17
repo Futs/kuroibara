@@ -44,8 +44,7 @@ def fake_host_handler(down: bool = False):
                                              "mangas": [{"url": MANGA["url"], "title": MANGA["title"]}]})
         if path == "/extensions/en/mangakatana/details":
             body = json.loads(req.content)
-            assert body["url"] == MANGA["url"]
-            return httpx.Response(200, json={"manga": MANGA, "chapters": []})
+            return httpx.Response(200, json={"manga": {**MANGA, "url": body["url"]}, "chapters": []})
         if path == "/extensions/en/mangakatana/install":
             return httpx.Response(200, json={"module": "en/mangakatana", "source": "upstream"})
         if path == "/extensions/en/missing/details":
@@ -129,7 +128,7 @@ def test_get_and_revert_series(api):
 def test_migrate_moves_the_title_and_hides_the_old_entry(api):
     created = api.post("/api/v2/series", json=add_body()).json()
     body = {"module": "en/mangakatana", "source_name": "MangaKatana", "source_lang": "en",
-            "manga": {**MANGA, "url": "/manga/other"}}
+            "manga": {**MANGA, "url": "/manga/other"}, "carry_read_state": False}
     r = api.post(f"/api/v2/series/{created['id']}/migrate", json=body)
     assert r.status_code == 201, r.text
     data = r.json()

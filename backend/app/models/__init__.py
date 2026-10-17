@@ -1,6 +1,7 @@
 # Models package
 
 from app.models.base import BaseModel
+from app.models.extension_series import Series, SeriesMetadata, SourceDownload
 from app.models.external_integration import ExternalIntegration, ExternalMangaMapping
 from app.models.library import (
     Bookmark,

@@ -297,6 +297,32 @@ Location: `extension-host/` (new, top-level).
 - Incremental: rebuilds a module only when its source tree hash changes (or with `--all`).
 - Result: 27 of 27 day-1 modules built, 138 sources in total. Three JARs (MangaKatana, Toonily, MangaFire) load and run search, details, chapters and pages in one JVM. AllManga fails on WebView, as before.
 
+**Status, step 3 (2026-10-17): catalog, install state and HTTP API done.** Verified by hand with curl against a running host.
+
+- `catalog/Catalog.kt` reads `data/jars/index.json` (read-only, reloads on change). Lists modules, versions, and sources.
+- `state/InstallStore.kt` keeps installs in `data/state.json`: module, version_code, hash, JAR, enabled flag, install time, last health.
+- `Probe.kt` runs search, details, chapters and pages through the per-extension loader. Maps failures to the Phase 0b buckets (blocked, timeout, 401, shim-gap, webview-needed). Results are display only (D6).
+- `api/Server.kt` on `com.sun.net.httpserver`. Bearer token from `HOST_TOKEN` (required). Routes: `/health`, `GET /catalog`, `GET /extensions`, `POST /extensions/{module}/install[?version_code=&hash=]`, `enable`, `disable`, `test?q=`, `GET health`, `DELETE /extensions/{module}`.
+- Checked: MangaKatana install, test (all four steps ok), disable, enable. Toonily test ok. AllManga test gives `webview-needed`. Uninstall works. Unknown module gives 404. No token gives 401.
+**Status, step 7 and packaging (2026-10-17).**
+- Contract tests: `extension-host/src/test/.../ServerContractTest.kt`, 10 tests, all pass (`./gradlew test`). They cover auth, catalog, install, pinned versions, enable/disable, uninstall, persistence across restart, missing JAR, and 404s. They use a fake index and empty JARs, so no network is needed.
+- Packaging: `tools/vendor.sh` builds `vendor/keiyoushi-core.jar` (compiled Keiyoushi core from extensions-source) and `vendor/androidx-preference-stubs.jar`. Both are on the host's runtime classpath and gitignored. Verified: the host runs with only its own jars and an extension test passes.
+- Tried vendoring Keiyoushi core as source: 465 compile errors (Android UI and resources, plus a lib-version mismatch in related-manga overrides). Rejected in favour of the compiled jar.
+- Integration tests: `extension-host/src/test/.../IntegrationTest.kt`, 5 tests, gated by `HOST_IT=1` (skipped otherwise, and the skip is reported). They work on a copy of the build output, so the real `state.json` is never touched. Passing from this network: MangaKatana, Toonily (Madara), MangaFire (multi-source), each with all four steps. AllManga reports `webview-needed` as expected. Mangakakalot records its result whatever happens (D6). `HOST_IT` is a Gradle test input, so a cached skip can't be reused.
+**Status, container (2026-10-17).** `extension-host/Dockerfile` (JDK 21 build, JRE runtime, non-root uid 10001). Compose service `extension-host` in both files: internal network only, no published port, `EXTENSION_HOST_TOKEN` required (in `.env.example`), data in the `extension_host_data` volume. Built locally with compose. Seed the volume with `extension-host/tools/seed-container.sh`, which also chowns it to uid 10001; without that, installs fail to write. Verified from inside the compose network: health, auth (401 without token), 27-module catalog, upstream install, and MangaKatana and Toonily tests all pass. Requires `tools/vendor.sh` before building (vendor JARs are not in git).
+
+**Status, upstream catalog (2026-10-17).**
+- `tools/fetch-upstream.py` decodes upstream `index.pb` (schema from `extensions-source/.github/scripts/index_pb2.py`) into `data/upstream/index.json`: 1434 extensions. The host serves it at `GET /upstream`, with flags `in_local_build`, `local_module` and `installed`. Matching is by upstream package name, not by directory name.
+- Finding: upstream renamed some packages. Hive Scans is `en.infernalvoidscans` and Vortex Scans is `en.arvenscans`, though their source dirs are `hivescans` and `vortexscans`. Matching by directory name would have missed them. The build now records each module's package (from `pkgName`, or `<lang>.<dir>` by default). All 27 day-1 modules match an upstream package.
+- Finding: upstream also publishes a JAR per extension (`jarUrl`, release assets). I downloaded `tachiyomi-en.mangakatana` from upstream, and the host loads it and runs search, details, chapters and pages. So an install from upstream JARs works too.
+- Correction: `signingKeyFingerprint` in `repo.json` is the APK signing key. It is not a signature on the index, so checking it would not verify the index. It is recorded for display only. Nothing is verified against it, because installs come from the local build.
+- Tests: 12 contract tests (including `/upstream`) and 5 gated integration tests pass.
+- **Decided: install source = upstream (option 2).** Default install downloads the Keiyoushi release JAR. Each download is checked against the SHA-256 that GitHub publishes for the release asset (release digest API). Fails closed: a missing digest or a mismatch refuses the install (HTTP 502). Verified JARs are stored under `data/jars/upstream/`. The local build stays as `?source=local` for unreleased work.
+- Install records carry `source` and `package`. `update_available` compares against the upstream catalog for upstream installs.
+- Tests: 12 contract, 5 upstream-install (offline, fake GitHub: good digest, wrong digest, missing digest, reuse, local path), 5 integration (`HOST_IT=1`, live). All pass.
+- CI (later) now needs no Android SDK: it refreshes `data/upstream/index.json` on a schedule and runs the tests. The local JAR build is only for unreleased work.
+
+
 **Version history (2026-10-17).** `index.json` keeps one `versions` list per module. Each record holds `version_code`, source hash, JAR name, sources, build time and the `extensions-source` commit. JARs are named `<module>@<version_code>-<hash8>.jar`, so older builds stay on disk for rollback. A new record is added only when the version_code or source hash changes. Verified: rebuilding unchanged source does not duplicate a record. Migrated the old flat index in place.
 
 **CI (decided, later).** Automation will run as a GitHub Action, after all of Phase 1 to 6 is built and tested. Trigger: upstream `extensions-source` changes. Steps: pull, run `build-jars.py`, publish `index.json` and the JARs.
@@ -314,9 +340,111 @@ Location: `extension-host/` (new, top-level).
   - `POST /search` with `{query, sources[]}`
   - `GET /series/{source}/{id}`, `GET /series/{source}/{id}/chapters`, `GET /chapters/{source}/{id}/pages`
 - [ ] Per-extension timeout and error isolation. A crashing extension must not take down the host.
-- [ ] Own container in the stack: a new service in `docker-compose.yml` and `docker-compose.dev.yml`, alongside the backend, frontend, PostgreSQL and Valkey. Reachable only on the internal Docker network. Extension JARs live in a named volume.
+- [x] Own container in the stack (done 2026-10-17): a new service in `docker-compose.yml` and `docker-compose.dev.yml`, alongside the backend, frontend, PostgreSQL and Valkey. Reachable only on the internal Docker network. Extension JARs live in a named volume.
 
 ## Phase 2: Kuroibara backend integration
+
+**Status, slice 1 (2026-10-17).**
+- Host browse routes added (needed by the backend): `POST /extensions/{module}/search?q=&page=`, `POST .../details` with `{"url"}`, `POST .../pages` with `{"url"}`. Live check: MangaKatana search returned results; details and pages were not checked end to end (see open issue below). Contract tests cover validation and install state (13 pass).
+- Backend client `backend/app/sources/host_client.py` (async httpx, bearer token, typed errors). Covers health, catalog, upstream, installed, install (source, version pin), uninstall, enable, disable, test, health_of. 8 tests with a mock transport.
+- Migration `018_add_extension_series.py` (additive): `series`, `series_source_links`, `series_metadata`. Checked: upgrade, downgrade, upgrade again on a scratch database.
+- Models `app/models/extension_series.py`. Service `app/sources/series_service.py`: add a title from a details result (base and tagged current written once; duplicates by extension and URL return the existing series; NSFW from content warning), revert to provider (keeps base and the cached MangaUpdates entry). 6 database tests.
+- Deviations from the plan above: no `installed_extensions` table. The host is the source of truth for installs, so Kuroibara does not keep a copy. `series_metadata` is one table with `base`, `current` and `mangaupdates` columns instead of separate tables.
+- Config: `EXTENSION_HOST_URL` and `EXTENSION_HOST_TOKEN` in `app/core/config.py`.
+- Compose: `EXTENSION_HOST_TOKEN` is no longer required for every compose command. The host itself refuses to start without a token.
+- Open: the job-system integration for downloads (needs a look at the existing job runner). The FastAPI routes that expose add, revert and browse to the UI. The host's details and pages paths, end to end, with a real title.
+**API routes (2026-10-17).** Mounted at `/api/v2` (`backend/app/api/api_v2/`).
+- Sources (proxy to the host, auth required): `GET /sources/catalog`, `GET /sources/installed`, `POST /sources/{module}/install?source=upstream|local`, `DELETE /sources/{module}`, `POST .../enable`, `POST .../disable`, `POST .../test?q=`, `POST .../search?q=&page=`, `POST .../details` (`{"url"}`), `POST .../pages` (`{"url"}`). Module is a path parameter, so slashes work.
+- Series: `POST /series` (body: module, source name and lang, source id, content warning, and the details `manga`). The package comes from the host's install record, not the client. Returns 201 new, 200 if the same extension and URL already exist. `GET /series` (paginated), `GET /series/{id}`, `POST /series/{id}/revert`.
+- Host failures: unreachable is 503. Host 4xx passes through. Other host errors are 502.
+- Tests: 11 API tests with a mocked host and the test database. With the other new tests, 25 pass (`VALKEY_HOST=localhost`, `DB_HOST=localhost`). Without Valkey running, each API test spends about 46 seconds in startup, because the lifespan waits on Redis.
+- Not done: the job-backed download endpoints (waiting on your decision above), and the reader endpoints that stream pages.
+
+**Download method: Mihon's, adopted (2026-10-17).** Decided by you. Answers recorded here:
+- Hand-off: pages go into `<chapter>_tmp/`. The completeness check runs first, then ComicInfo.xml, then the CBZ is written as `<chapter>.cbz.tmp` and renamed to `<chapter>.cbz`, and the `_tmp` folder is deleted. Folder mode renames `_tmp` to `<chapter>`. Default is CBZ (`saveChaptersAsCBZ` = true).
+- The waits (2s, 4s, 8s, three retries) are error backoff for a failed page. They are not rate limits.
+- Rate limits: each extension sets its own (`rateLimit(permits, period)` from keiyoushi core, inside its HTTP client). The host runs that unchanged. Mihon's download path does not read 429 or Retry-After. Kuroibara does (`services/download.py`, around line 344), and that could be kept as an addition.
+- Kuroibara's per-provider `page_delay` dict was a hand-tuned stand-in for rate limits. Under this method it goes away; the extension's own limit applies.
+
+Implemented: `backend/app/sources/download_writer.py` (ChapterWriter, with_retries, safe_name) and 12 filesystem tests. Covers: pages in `_tmp`, partial pages with resume, finished-only counting, completeness refusal, folder and CBZ commit, the already-committed guard, and retry waits 2, 4, 8.
+
+**Identity (answer to "where does the entry id come from", 2026-10-17).** `series.id` is a Kuroibara UUID (`uuid4` in `BaseModel`), not a provider id. The provider's identity is `(module, series_url)`, unique in the table. Each source's own IDs (like the Keiyoushi `source_id`) are stored for reference only. So two providers can use the same title id without clashing. Known risk: if a site changes its URL for a title, the same title can get a second entry. Mitigation later: a "re-link" action on the entry, or matching on the source id where the extension gives one.
+
+**Deferred: reading state, activity and stats (decided 2026-10-17, to build after the download work).**
+- Design basis: Mihon's per-chapter read state (read, bookmark, last read page) plus AudioSilo's per-user pages (progress per series per user).
+- Reading state is per user per chapter: `reading_state(user_id, series_id, chapter_key, read, bookmark, page, updated_at)`. Chapters come from the source; the table stores only what the user did.
+- Library membership must become per user too. `series.in_library` is global today, which is wrong once there is more than one user. Move it to `user_library(user_id, series_id, in_library, added_at)`.
+- Activity: append-only `reading_events(user_id, series_id, chapter_key, kind, at)` for "read", "started", "finished". Daily totals are derived from it. A daily aggregate table can be added if queries get slow.
+- Stats to show: latest read, chapters read today, this week, this month, this year. Heatmap of days with activity (git-style), plus totals per series.
+- Migration (Mihon's) uses reading_state: copy read and bookmark by chapter number from the old entry to the new one, then mark the old entry as migrated. This is the step the migrate endpoint is waiting on.
+
+**Status, Mihon model for library entries (2026-10-17). Replaces the one-series-many-sources design (D-series).**
+- `series` = one library entry per title per source (`module`, `package`, `source_name`, `source_lang`, `source_id`, `series_url`, `title`, `cover_url`, `in_library`). Unique on (module, series_url). `series_source_links` is gone.
+- `series_metadata` = one row per entry: `base` (provider snapshot, written once), `current` (shown values, each with origin), `mangaupdates` (cached comparison, Phase 2b). `series.title` and `cover_url` copy `current` for listing.
+- Migration: `POST /api/v2/series/{id}/migrate`. Creates or reuses the target entry. `replace` (default true) takes the old entry out of the library. `carry_metadata` (default false) copies the values chosen from MangaUpdates or edited, keeping their origins, plus the MangaUpdates cache. Refuses the same title on the same source (409). Re-adding a removed title puts it back.
+- Downloads stay with the old entry's folder. The target gets its own folder (new id).
+- Not yet: read state and chapter bookkeeping. Mihon carries read state across a migration. Kuroibara has no chapter table for source entries yet, so that needs a `series_chapters` table first.
+- Verified: 68 backend tests (service, migration, API, worker). Migrations 018 and 019 upgrade, downgrade to 017 and upgrade again on a scratch database.
+
+**Status, separate worker and claims (2026-10-17).**
+- Worker: `python -m app.sources.worker_main`, same image as the API, as its own compose service `source-worker` (one replica) in both compose files. Loop: claim a batch, download each chapter in its own session, wait `SOURCE_WORKER_POLL_SECONDS` when idle. SIGTERM finishes the batch. A hard stop leaves rows `downloading`, and the next start recovers them.
+- Atomic claim: `claim_next()` uses `SELECT ... FOR UPDATE SKIP LOCKED`. Rows record `claimed_by` and `claimed_at`. Two workers or an API call can't take the same chapter.
+- Startup recovery moved from the API lifespan to the worker. The API never resets rows, so it can't disturb a running worker.
+- Folder naming: `<module>/<title> [<first 8 hex of series id>]/`. Two series with the same title never share a folder. The series id stays the same when its source changes, so migration does not move files.
+- Verified: 56 backend tests pass (claims across two real sessions, orphan recovery, batch run, graceful stop, folder uniqueness). Live, on a scratch database: the worker claimed two MangaKatana chapters (`worker-<host>`) and wrote them as CBZ into `One Piece [6962ca81]/`.
+- Setup note: `EXTENSION_HOST_TOKEN` must be in `.env`, because the API and the worker both read it there. It is not in `.env` yet; I did not add a token to your file.
+
+**Status, download pipeline (2026-10-17). Done, steps 1 to 5 of the list above:**
+1. Persisted queue: migration `019_add_source_downloads.py`, model `SourceDownload`, worker `app/sources/download_worker.py`. `recover_queue()` runs at startup (in the lifespan), so interrupted rows go back to queued.
+2. Parallel pages: 5 per chapter (`parallel_pages`), with a per-chapter semaphore. Per-source parallelism is the `limit` on each run.
+3. Host image endpoint: `POST /extensions/{module}/image` with `{url, image_url, index, offset}`. Returns the raw bytes with `X-Upstream-Status`. Uses the extension's `getImage`, so its headers, referer and rate limit apply. Verified live: a real MangaKatana page is a JPEG (388 KB), and 206 handling is in place.
+4. ComicInfo.xml: written before commit and packed into the CBZ. Fields: Series, Title, Number, Writer, Genre, Summary, Web. Text is XML-escaped.
+5. Wiring: `POST /api/v2/series/{id}/downloads` (empty body = every chapter from the source), `GET /api/v2/series/{id}/downloads`, `POST /api/v2/series/downloads/process?limit=`.
+
+Verified:
+- Backend tests: 50 pass across the new files (download writer 12, worker 10, download API 4, plus earlier).
+- Host: 14 contract, 5 upstream-install, 6 integration (live, `HOST_IT=1`).
+- End to end, live, on a freshly migrated scratch database: added One Piece from MangaKatana, queued two chapters, downloaded them. Chapter 1 gave 52 pages and Chapter 2 gave 24, each a single CBZ with ComicInfo.xml and JPEG pages.
+
+Deviations and open points:
+- Resume is per page, not per byte. The worker writes whole responses. The host honours `offset` when the extension returns 206, so a byte-level resume is ready once the worker streams.
+- Downloads run only when `process` is called. No background loop yet. The loop needs a decision (interval, and whether it runs in the API process or a separate one).
+- Two concurrent `process` calls could pick the same queued row. A row-level lock (`SELECT ... FOR UPDATE SKIP LOCKED`) fixes that. Not done.
+- Migrations 018 and 019 were checked upgrade, downgrade and upgrade on scratch databases. The `series_metadata` model was wrong (it inherited a second primary key) and is fixed to match migration 018.
+
+
+**Download design (confirmed 2026-10-17, before the Phase 2 job work).**
+
+How Mihon does it (`app/src/main/java/eu/kanade/tachiyomi/data/download/`):
+- Queue is persisted (`DownloadStore`) and restored at startup. Runs in a `DownloadWorker` (WorkManager, `ExistingWorkPolicy.REPLACE`).
+- Parallel: up to 5 sources (`parallelSourceLimit`) and 5 pages per chapter (`parallelPageLimit`), both user settings.
+- Page list is fetched once and stored on the download, so a resume does not refetch it.
+- Each chapter is written to a `.tmp` folder, then renamed to its final name only when every page is in. A partial chapter is never shown as downloaded.
+- Each page is retried 3 times with 2, 4 and 8 second waits. A partial file resumes with HTTP Range (206). A 416 deletes the partial and starts over.
+- Completeness check before commit: page count matches, no `.tmp` left, split pages counted once.
+- Folders are human-readable (source, manga, chapter), and CBZ is optional.
+
+What Kuroibara does (`backend/app/core/services/download.py`, `jobs/queue_manager.py`):
+- Queue lives in memory (`_jobs`, `_priority_queues`). A restart loses every queued and running download.
+- Pages are written straight into the final chapter folder. No temp folder, no rename, no completeness check.
+- A chapter with any page downloaded is marked `downloaded`. Only `download_error` records the missing pages. Example: 1 page of 50 gives `downloaded`.
+- Pages download one at a time, with per-provider delays hardcoded in a dict.
+- Page list is refetched on each retry. Nothing persists between attempts.
+- Concurrency: 3 downloads total (`max_concurrent_downloads`).
+- Storage path is keyed by database UUIDs, so folders are not readable.
+
+Proposed for the extension path (Phase 2 job integration):
+1. A persisted queue table (`download_queue`). Survives restarts.
+2. A chapter is `downloaded` only when all pages are in. Otherwise `error`, with the page list kept for retry.
+3. Temp folder plus atomic rename, as in Mihon.
+4. Parallel pages with a limit, and per-source delays from the extension (not a hardcoded dict).
+5. Resume with Range, and reuse the stored page list.
+6. Human-readable layout: `<root>/<source>/<series>/<chapter>`.
+
+Decision needed: the TODO said to reuse the existing job runner. Reusing it would inherit the in-memory queue and the partial-chapter behaviour. My recommendation is a separate, persisted download pipeline for source-backed series, with the existing runner unchanged. Confirm before I write the job code.
+
+- Open issue found: MangaKatana search returned 5 results on one request and 0 on the next, from the same host. Plain curl gets results every time. Not yet explained. Health should flag empty search results as a warning.
+
 
 - [ ] Client module `backend/app/sources/` that talks to the host.
 - [ ] Alembic migration (additive only): `installed_extensions`, `series`, `series_source_links`. Keep existing tables untouched.

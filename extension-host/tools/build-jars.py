@@ -39,6 +39,7 @@ def read_build(path):
         "version_code": (re.search(r"versionCode\s*=\s*(\d+)", text) or [None, None])[1],
         "theme": (re.search(r'theme\s*=\s*"([^"]+)"', text) or [None, None])[1],
         "lib_deps": re.findall(r'project\(":lib:([^"]+)"\)', text),
+        "pkg_name": (re.search(r'pkgName\s*=\s*"([^"]+)"', text) or [None, None])[1],
     }
 
 
@@ -211,8 +212,12 @@ def main():
         jar_name = f"{m.replace('/', '_')}@{vc}-{h[:8]}.jar"
         write_jar(os.path.join(out, jar_name), classes, assets)
         sources = parse_sources(os.path.join(src, "src", m, "build", "generated", "ksp", "release", "kotlin", "keiyoushi", "source", "Generated.kt"))
+        # Upstream package = eu.kanade.tachiyomi.extension.<pkgName>. pkgName can differ from the dir name.
+        lang, dirname = m.split("/", 1)
+        package = "eu.kanade.tachiyomi.extension." + (build["pkg_name"] or f"{lang}.{dirname}")
         record = {
             "version_code": vc,
+            "package": package,
             "hash": h,
             "jar": jar_name,
             "sources": sources,

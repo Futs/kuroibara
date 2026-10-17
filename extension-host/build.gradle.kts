@@ -14,12 +14,31 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.11.0")
-    compileOnly(files("/home/futs/.gradle/caches/9.8.1/transforms/c1671c56efc5ebeea59d26e99f45c481/transformed/extensions-lib-42255ee5fa-runtime.jar"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.11.0")
     implementation("com.squareup.okhttp3:okhttp-brotli:5.5.0")
     implementation("com.squareup.okhttp3:okhttp-zstd:5.5.0")
     implementation("com.squareup.zstd:zstd-kmp-okio:0.4.0")
     implementation("com.github.null2264.injekt:injekt-core:4135455a2a")
+    // Built by tools/vendor.sh from extensions-source. Not in git.
+    implementation(files("vendor/keiyoushi-core.jar", "vendor/androidx-preference-stubs.jar"))
+}
+
+dependencies {
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    // HOST_IT is read from the environment; without this input Gradle reuses a cached skip.
+    inputs.property("HOST_IT", System.getenv("HOST_IT") ?: "")
+}
+
+// Copies every runtime dependency to build/lib, for the container image.
+tasks.register<Copy>("installLib") {
+    from(configurations.runtimeClasspath)
+    into(layout.buildDirectory.dir("lib"))
 }
 
 tasks.register("printRuntimeCp") {

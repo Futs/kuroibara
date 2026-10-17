@@ -95,6 +95,17 @@ class Settings(BaseSettings):
     # FlareSolverr
     FLARESOLVERR_URL: Optional[str] = None
 
+    # Where source (extension) chapter downloads are written.
+    SOURCE_DOWNLOAD_DIR: str = "/app/storage/source_downloads"
+    # Source download worker (python -m app.sources.worker_main)
+    SOURCE_WORKER_PARALLEL_SOURCES: int = 5
+    SOURCE_WORKER_PARALLEL_PAGES: int = 5
+    SOURCE_WORKER_POLL_SECONDS: float = 5.0
+
+    # Extension host (Tachiyomi/Keiyoushi extensions). Token is required for source features.
+    EXTENSION_HOST_URL: str = "http://extension-host:8800"
+    EXTENSION_HOST_TOKEN: Optional[str] = None
+
     # External Integrations
     ANILIST_CLIENT_ID: Optional[str] = None
     ANILIST_CLIENT_SECRET: Optional[str] = None

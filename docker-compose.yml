@@ -25,6 +25,23 @@ services:
       - kuroibara-network
 
   # Frontend Vue.js application
+  # Source download worker: a separate process from the same image as the API. Keep one replica.
+  source-worker:
+    image: futs/kuroibara-backend:latest
+    restart: unless-stopped
+    volumes:
+      - manga_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: python -m app.sources.worker_main
+    networks:
+      - kuroibara-network
+
   frontend:
     image: futs/kuroibara-frontend:latest
     restart: unless-stopped
@@ -91,6 +108,20 @@ services:
     networks:
       - kuroibara-network
 
+  # Extension host: runs upstream Keiyoushi extension JARs. Internal network only; no published port.
+  # Needs EXTENSION_HOST_TOKEN in the environment (or .env). Data lives in the extension_host_data volume.
+  extension-host:
+    build: ./extension-host
+    restart: unless-stopped
+    environment:
+      - HOST_TOKEN=${EXTENSION_HOST_TOKEN:-}
+      - HOST_DATA_DIR=/data
+      - HOST_PORT=8800
+    volumes:
+      - extension_host_data:/data
+    networks:
+      - kuroibara-network
+
   # Optional: FlareSolverr solves Cloudflare challenges for the extension host.
   # Off by default. Start with: docker compose --profile flaresolverr up -d
   # Or skip this service and point FLARESOLVERR_URL at an existing instance.
@@ -111,6 +142,7 @@ networks:
     driver: bridge
 
 volumes:
+  extension_host_data:
   postgres_data:
   valkey_data:
   manga_storage:
